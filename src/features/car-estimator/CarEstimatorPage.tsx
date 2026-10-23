@@ -1,0 +1,1 @@
+export const CarEstimatorPage = () => <div className="space-y-4"><h1 className="text-2xl font-black text-slate-900">Dự Toán Chi Phí Lăn Bánh & Vay Trả Góp (F03, F04 Stub)</h1><p className="text-xs text-slate-500">Tính thuế trước bạ, phí đăng ký biển số theo Tỉnh/Thành và bảng phân bổ lãi suất vay</p></div>;

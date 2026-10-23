@@ -1,0 +1,1 @@
+export const CarDetailPage = () => <div className="space-y-4"><h1 className="text-2xl font-black text-slate-900">Chi Tiết Mẫu Xe & Phiên Bản (F02 Stub)</h1><p className="text-xs text-slate-500">Bộ sưu tập ảnh 360, chọn màu sắc xe, đặt cọc giữ xe 72h và đăng ký lái thử</p></div>;

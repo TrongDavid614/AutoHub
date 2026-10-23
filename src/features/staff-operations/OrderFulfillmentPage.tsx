@@ -1,0 +1,1 @@
+export const OrderFulfillmentPage = () => <div><h2 className="text-lg font-bold text-white mb-2">Đóng Gói & Xuất Kho Phụ Kiện (UC23)</h2></div>;

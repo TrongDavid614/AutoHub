@@ -1,0 +1,1 @@
+export const LoginPage = () => <div className="p-8 max-w-md mx-auto bg-white border border-slate-200 rounded-xl shadow-sm text-center"><h2 className="text-lg font-bold">Đăng Nhập Hệ Thống (Stub)</h2><p className="text-xs text-slate-500 mt-2">Hỗ trợ Stateless JWT & RBAC phân quyền</p></div>;

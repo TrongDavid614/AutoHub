@@ -1,0 +1,1 @@
+export const CarDepositPage = () => <div className="space-y-4"><h1 className="text-2xl font-black text-slate-900">Quy Trình Đặt Cọc Giữ Suất Xe 72 Giờ (F13, UC17 Stub)</h1><p className="text-xs text-slate-500">Xác thực CCCD, khóa giữ xe và thanh toán đặt cọc qua VNPay</p></div>;

@@ -1,0 +1,1 @@
+export const AdminDashboardPage = () => <div><h2 className="text-lg font-bold text-white mb-2">Báo Cáo Doanh Thu & Chỉ Số Vận Hành (F19)</h2><p className="text-xs text-slate-400">Tích hợp biểu đồ thống kê Chart.js</p></div>;

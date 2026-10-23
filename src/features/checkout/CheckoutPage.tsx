@@ -1,0 +1,1 @@
+export const CheckoutPage = () => <div className="space-y-4"><h1 className="text-2xl font-black text-slate-900">Thanh Toán Đơn Hàng Phụ Kiện (F09 Stub)</h1><p className="text-xs text-slate-500">Tích hợp cổng VNPay HMAC-SHA512 & COD</p></div>;

@@ -1,0 +1,1 @@
+export const UserRbacPage = () => <div><h2 className="text-lg font-bold text-white mb-2">Phân Quyền & Quản Lý Người Dùng RBAC (F24)</h2></div>;

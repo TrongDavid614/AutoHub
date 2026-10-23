@@ -1,0 +1,1 @@
+export const CarComparisonPage = () => <div className="space-y-4"><h1 className="text-2xl font-black text-slate-900">Bàn Cân Đối Đầu So Sánh Xe Song Song (F05 Stub)</h1><p className="text-xs text-slate-500">So sánh đối đầu tối đa 3 phiên bản xe theo thông số kỹ thuật, động cơ và kích thước</p></div>;

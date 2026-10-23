@@ -1,0 +1,1 @@
+export const RegisterPage = () => <div className="p-8 max-w-md mx-auto bg-white border border-slate-200 rounded-xl shadow-sm text-center"><h2 className="text-lg font-bold">Đăng Ký Tài Khoản Khách Hàng (Stub)</h2></div>;

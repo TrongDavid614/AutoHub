@@ -1,0 +1,1 @@
+export const CartPage = () => <div className="space-y-4"><h1 className="text-2xl font-black text-slate-900">Giỏ Hàng Phụ Kiện (F08 Stub)</h1><p className="text-xs text-slate-500">Hỗ trợ giỏ hàng khách vãng lai và đồng bộ tài khoản khi đăng nhập</p></div>;

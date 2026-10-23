@@ -1,0 +1,1 @@
+export const FeeVoucherMasterPage = () => <div><h2 className="text-lg font-bold text-white mb-2">Biểu Phí Lăn Bánh Tỉnh Thành & Voucher (F22)</h2></div>;

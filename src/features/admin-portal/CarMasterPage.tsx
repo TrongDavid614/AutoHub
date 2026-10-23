@@ -1,0 +1,1 @@
+export const CarMasterPage = () => <div><h2 className="text-lg font-bold text-white mb-2">Quản Trị Master Data Ô Tô & Xe Demo (F20)</h2></div>;

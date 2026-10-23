@@ -1,0 +1,1 @@
+export const DepositAuditPage = () => <div><h2 className="text-lg font-bold text-white mb-2">Đối Soát Phiếu Cọc & Gán Số Khung VIN (UC22)</h2></div>;

@@ -1,0 +1,1 @@
+export const AddressBookPage = () => <div><h2 className="text-lg font-bold text-slate-900 mb-2">Sổ Địa Chỉ Giao Hàng (UC03 Stub)</h2><p className="text-xs text-slate-500">Quản lý danh sách địa chỉ nhận phụ kiện</p></div>;

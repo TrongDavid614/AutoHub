@@ -1,0 +1,1 @@
+export const TestDriveBookingPage = () => <div className="space-y-4"><h1 className="text-2xl font-black text-slate-900">Đăng Ký Lái Thử Trực Tuyến (F12, UC16 Stub)</h1><p className="text-xs text-slate-500">Cam kết GPLX hợp lệ, chọn mẫu xe demo và showroom tiếp nhận</p></div>;
