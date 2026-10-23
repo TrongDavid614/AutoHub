@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { BarChart3, Car, PackageCheck, Receipt, Users, LogOut } from 'lucide-react';
-import { useAuthStore } from '../../store/authStore';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export const AdminLayout: React.FC = () => {
   const { user, logout } = useAuthStore();

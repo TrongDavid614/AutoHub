@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { CarVariant } from '../types/car.types';
-import { MAX_COMPARE_CARS } from '../config/constants';
+import type { CarVariant } from '@/types/car.types';
+import { MAX_COMPARE_CARS } from '@/config/constants';
 
 interface CompareStore {
   selectedVariants: CarVariant[];

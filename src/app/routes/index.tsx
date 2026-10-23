@@ -1,37 +1,37 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 // Layouts
-import { PublicLayout } from '../layouts/PublicLayout';
-import { CustomerLayout } from '../layouts/CustomerLayout';
-import { StaffLayout } from '../layouts/StaffLayout';
-import { AdminLayout } from '../layouts/AdminLayout';
+import { PublicLayout } from '@/app/layouts/PublicLayout';
+import { CustomerLayout } from '@/app/layouts/CustomerLayout';
+import { StaffLayout } from '@/app/layouts/StaffLayout';
+import { AdminLayout } from '@/app/layouts/AdminLayout';
 import { ProtectedRoute } from './ProtectedRoute';
 
 // Feature Pages
-import { CarListPage, CarDetailPage } from '../../features/cars';
-import { CarEstimatorPage } from '../../features/car-estimator';
-import { CarComparisonPage } from '../../features/car-comparison';
-import { AccessoryListPage, AccessoryDetailPage } from '../../features/accessories';
-import { CartPage } from '../../features/cart';
-import { CheckoutPage } from '../../features/checkout';
-import { CarDepositPage } from '../../features/car-deposit';
-import { TestDriveBookingPage } from '../../features/test-drive';
-import { LoginPage, RegisterPage } from '../../features/auth';
-import { ProfilePage, AddressBookPage } from '../../features/profile';
+import { CarListPage, CarDetailPage } from '@/features/cars';
+import { CarEstimatorPage } from '@/features/car-estimator';
+import { CarComparisonPage } from '@/features/car-comparison';
+import { AccessoryListPage, AccessoryDetailPage } from '@/features/accessories';
+import { CartPage } from '@/features/cart';
+import { CheckoutPage } from '@/features/checkout';
+import { CarDepositPage } from '@/features/car-deposit';
+import { TestDriveBookingPage } from '@/features/test-drive';
+import { LoginPage, RegisterPage } from '@/features/auth';
+import { ProfilePage, AddressBookPage } from '@/features/profile';
 import {
   ConsultationListPage,
   TestDriveSchedulePage,
   DepositAuditPage,
   OrderFulfillmentPage,
   ReturnManagementPage,
-} from '../../features/staff-operations';
+} from '@/features/staff-operations';
 import {
   AdminDashboardPage,
   CarMasterPage,
   AccessoryMasterPage,
   FeeVoucherMasterPage,
   UserRbacPage,
-} from '../../features/admin-portal';
+} from '@/features/admin-portal';
 
 export const router = createBrowserRouter([
   // 1. PUBLIC ROUTES (Mọi người dùng & Khách vãng lai)
