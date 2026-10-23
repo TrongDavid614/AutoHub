@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '../lib/utils';
+import { cn } from '@/lib/utils';
 
 export interface Column<T> {
   key: string;
@@ -47,7 +47,7 @@ export function Table<T>({
               <tr key={rowKey(record)} className="hover:bg-slate-50/80 transition-colors">
                 {columns.map((col) => (
                   <td key={col.key} className={cn('px-4 py-3', col.className)}>
-                    {col.render ? col.render(record) : (record as any)[col.key]}
+                    {col.render ? col.render(record) : ((record as Record<string, unknown>)[col.key] as React.ReactNode)}
                   </td>
                 ))}
               </tr>
