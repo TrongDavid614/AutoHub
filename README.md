@@ -2,7 +2,7 @@
 > **Đề tài:** Website giới thiệu, bán ô tô và phụ kiện ô tô trực tuyến  
 > **Môn học:** Lập Trình WWW Java — Trường Đại học Công nghiệp TP.HCM (IUH)  
 > **Nhóm thực hiện:** Nhóm 7 (Lớp: DHKTPM19ATT)  
-> **Giảng viên hướng dẫn:** ThS. Đặng Thị Thu Hà
+> **Giảng viên hướng dẫn:** TS. Nguyễn Vũ Lâm
 
 ---
 
