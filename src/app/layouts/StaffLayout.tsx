@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { MessageSquare, CalendarClock, ShieldCheck, Box, RotateCcw, LogOut } from 'lucide-react';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export const StaffLayout: React.FC = () => {
   const { user, logout } = useAuthStore();
