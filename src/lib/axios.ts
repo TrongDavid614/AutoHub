@@ -1,6 +1,6 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
-import { API_CONFIG } from '../config/api.config';
-import { useAuthStore } from '../store/authStore';
+import { API_CONFIG } from '@/config/api.config';
+import { useAuthStore } from '@/store/authStore';
 
 export const axiosClient = axios.create({
   baseURL: API_CONFIG.BASE_URL,

@@ -1,9 +1,9 @@
 import React from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { Car, ShoppingCart, Scale, User as UserIcon, Bot, Search } from 'lucide-react';
-import { useCartStore } from '../../store/cartStore';
-import { useCompareStore } from '../../store/compareStore';
-import { useAuthStore } from '../../store/authStore';
+import { useCartStore } from '@/store/cartStore';
+import { useCompareStore } from '@/store/compareStore';
+import { useAuthStore } from '@/store/authStore';
 
 export const PublicLayout: React.FC = () => {
   const totalCartCount = useCartStore((s) => s.getTotalItemsCount());
