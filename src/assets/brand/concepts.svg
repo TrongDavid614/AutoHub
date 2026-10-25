@@ -1,0 +1,707 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1600" height="984" viewBox="0 0 1600 984"><rect width="1600" height="984" fill="#f7f7f4"/><text x="60" y="78" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="40" font-weight="700" fill="#161616">AutoHub Logo Concepts</text><text x="60" y="116" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="20" fill="#6b6b6b">Concepts for review — pick a direction (or tell me what you like in each).</text><rect x="60" y="150" width="474.667" height="774" rx="18" fill="#fff" stroke="#e4e4e0" stroke-width="1"/><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-a" viewBox="0 0 256 256" x="90" y="190" width="414.667" height="300" preserveAspectRatio="xMidYMid meet">
+  <title id="c0-title-a">AutoHub Kinetic Delta Symbol</title>
+  <path fill="#89CEFF" fill-rule="evenodd" d="
+    M 128 36
+    L 220 204
+    L 172 204
+    L 128 120
+    L 84 204
+    L 36 204
+    Z
+    M 128 92
+    L 148 132
+    L 108 132
+    Z
+    M 78 220
+    H 178
+    L 164 192
+    H 92
+    Z
+  "/>
+</svg></g><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-a-lockup" viewBox="0 0 960 256" x="90" y="514" width="414.667" height="120" preserveAspectRatio="xMidYMid meet">
+  <title id="l0-title-a-lockup">AutoHub Kinetic Delta Lockup</title>
+  <g id="l0-symbol" transform="translate(0, 0)">
+    <path fill="#89CEFF" fill-rule="evenodd" d="
+      M 128 36
+      L 220 204
+      L 172 204
+      L 128 120
+      L 84 204
+      L 36 204
+      Z
+      M 128 92
+      L 148 132
+      L 108 132
+      Z
+      M 78 220
+      H 178
+      L 164 192
+      H 92
+      Z
+    "/>
+  </g>
+  <g id="l0-wordmark">
+
+      <!-- A -->
+      <path fill="#DAE2FD" fill-rule="evenodd" d="
+        M 310 78
+        L 350 178
+        L 328 178
+        L 319 146
+        L 301 146
+        L 292 178
+        L 270 178
+        Z
+        M 310 104
+        L 316 128
+        L 304 128
+        Z
+      "/>
+
+      <!-- U -->
+      <path fill="#DAE2FD" fill-rule="evenodd" d="
+        M 362 78
+        H 382
+        V 143
+        A 20 20 0 0 0 402 163
+        A 20 20 0 0 0 422 143
+        V 78
+        H 442
+        V 143
+        A 40 40 0 0 1 402 178
+        A 40 40 0 0 1 362 143
+        Z
+      "/>
+
+      <!-- T -->
+      <path fill="#DAE2FD" d="
+        M 454 78
+        H 534
+        V 98
+        H 504
+        V 178
+        H 484
+        V 98
+        H 454
+        Z
+      "/>
+
+      <!-- O -->
+      <path fill="#DAE2FD" fill-rule="evenodd" d="
+        M 586 78
+        A 40 50 0 0 1 626 128
+        A 40 50 0 0 1 586 178
+        A 40 50 0 0 1 546 128
+        A 40 50 0 0 1 586 78
+        Z
+        M 586 98
+        A 20 30 0 0 0 566 128
+        A 20 30 0 0 0 586 158
+        A 20 30 0 0 0 606 128
+        A 20 30 0 0 0 586 98
+        Z
+      "/>
+
+      <!-- H (Accent) -->
+      <path fill="#89CEFF" d="
+        M 648 78
+        H 668
+        V 118
+        H 708
+        V 78
+        H 728
+        V 178
+        H 708
+        V 138
+        H 668
+        V 178
+        H 648
+        Z
+      "/>
+
+      <!-- U (Accent) -->
+      <path fill="#89CEFF" fill-rule="evenodd" d="
+        M 740 78
+        H 760
+        V 143
+        A 20 20 0 0 0 780 163
+        A 20 20 0 0 0 800 143
+        V 78
+        H 820
+        V 143
+        A 40 40 0 0 1 780 178
+        A 40 40 0 0 1 740 143
+        Z
+      "/>
+
+      <!-- B (Accent) -->
+      <path fill="#89CEFF" fill-rule="evenodd" d="
+        M 832 78
+        H 887
+        A 25 25 0 0 1 912 103
+        A 25 25 0 0 1 892 128
+        A 26 26 0 0 1 912 153
+        A 25 25 0 0 1 887 178
+        H 832
+        Z
+        M 852 98
+        H 884
+        A 10 10 0 0 1 892 103
+        A 10 10 0 0 1 884 118
+        H 852
+        Z
+        M 852 136
+        H 884
+        A 11 11 0 0 1 894 153
+        A 11 11 0 0 1 884 158
+        H 852
+        Z
+      "/>
+  </g>
+</svg></g><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-a" viewBox="0 0 256 256" x="90" y="660" width="64" height="64" preserveAspectRatio="xMidYMid meet">
+  <title id="s064-title-a">AutoHub Kinetic Delta Symbol</title>
+  <path fill="#89CEFF" fill-rule="evenodd" d="
+    M 128 36
+    L 220 204
+    L 172 204
+    L 128 120
+    L 84 204
+    L 36 204
+    Z
+    M 128 92
+    L 148 132
+    L 108 132
+    Z
+    M 78 220
+    H 178
+    L 164 192
+    H 92
+    Z
+  "/>
+</svg></g><text x="122" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">64px</text><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-a" viewBox="0 0 256 256" x="180" y="692" width="32" height="32" preserveAspectRatio="xMidYMid meet">
+  <title id="s032-title-a">AutoHub Kinetic Delta Symbol</title>
+  <path fill="#89CEFF" fill-rule="evenodd" d="
+    M 128 36
+    L 220 204
+    L 172 204
+    L 128 120
+    L 84 204
+    L 36 204
+    Z
+    M 128 92
+    L 148 132
+    L 108 132
+    Z
+    M 78 220
+    H 178
+    L 164 192
+    H 92
+    Z
+  "/>
+</svg></g><text x="196" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">32px</text><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-a" viewBox="0 0 256 256" x="238" y="708" width="16" height="16" preserveAspectRatio="xMidYMid meet">
+  <title id="s016-title-a">AutoHub Kinetic Delta Symbol</title>
+  <path fill="#89CEFF" fill-rule="evenodd" d="
+    M 128 36
+    L 220 204
+    L 172 204
+    L 128 120
+    L 84 204
+    L 36 204
+    Z
+    M 128 92
+    L 148 132
+    L 108 132
+    Z
+    M 78 220
+    H 178
+    L 164 192
+    H 92
+    Z
+  "/>
+</svg></g><text x="246" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">16px</text><text x="90.0" y="780" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="26" font-weight="700" fill="#161616">A · Kinetic Delta</text><text x="90.0" y="814" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">Biểu tượng mũi tên vận tốc EV khí động học</text><rect x="562.667" y="150" width="474.667" height="774" rx="18" fill="#fff" stroke="#161616" stroke-width="2"/><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-b" viewBox="0 0 256 256" x="592.667" y="190" width="414.667" height="300" preserveAspectRatio="xMidYMid meet">
+  <title id="c1-title-b">AutoHub AH Velocity Monogram</title>
+  <path fill="#89CEFF" fill-rule="evenodd" d="
+    M 40 216
+    L 108 40
+    L 148 40
+    L 216 216
+    L 178 216
+    L 160 168
+    L 96 168
+    L 78 216
+    Z
+    M 128 84
+    L 108 136
+    L 148 136
+    Z
+    M 192 40
+    L 216 40
+    L 216 148
+    L 192 148
+    Z
+  "/>
+</svg></g><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-b-lockup" viewBox="0 0 960 256" x="592.667" y="514" width="414.667" height="120" preserveAspectRatio="xMidYMid meet">
+  <title id="l1-title-b-lockup">AutoHub AH Monogram Lockup</title>
+  <g id="l1-symbol">
+    <path fill="#89CEFF" fill-rule="evenodd" d="
+      M 40 216
+      L 108 40
+      L 148 40
+      L 216 216
+      L 178 216
+      L 160 168
+      L 96 168
+      L 78 216
+      Z
+      M 128 84
+      L 108 136
+      L 148 136
+      Z
+      M 192 40
+      L 216 40
+      L 216 148
+      L 192 148
+      Z
+    "/>
+  </g>
+  <g id="l1-wordmark">
+
+      <!-- A -->
+      <path fill="#DAE2FD" fill-rule="evenodd" d="
+        M 310 78
+        L 350 178
+        L 328 178
+        L 319 146
+        L 301 146
+        L 292 178
+        L 270 178
+        Z
+        M 310 104
+        L 316 128
+        L 304 128
+        Z
+      "/>
+
+      <!-- U -->
+      <path fill="#DAE2FD" fill-rule="evenodd" d="
+        M 362 78
+        H 382
+        V 143
+        A 20 20 0 0 0 402 163
+        A 20 20 0 0 0 422 143
+        V 78
+        H 442
+        V 143
+        A 40 40 0 0 1 402 178
+        A 40 40 0 0 1 362 143
+        Z
+      "/>
+
+      <!-- T -->
+      <path fill="#DAE2FD" d="
+        M 454 78
+        H 534
+        V 98
+        H 504
+        V 178
+        H 484
+        V 98
+        H 454
+        Z
+      "/>
+
+      <!-- O -->
+      <path fill="#DAE2FD" fill-rule="evenodd" d="
+        M 586 78
+        A 40 50 0 0 1 626 128
+        A 40 50 0 0 1 586 178
+        A 40 50 0 0 1 546 128
+        A 40 50 0 0 1 586 78
+        Z
+        M 586 98
+        A 20 30 0 0 0 566 128
+        A 20 30 0 0 0 586 158
+        A 20 30 0 0 0 606 128
+        A 20 30 0 0 0 586 98
+        Z
+      "/>
+
+      <!-- H (Accent) -->
+      <path fill="#89CEFF" d="
+        M 648 78
+        H 668
+        V 118
+        H 708
+        V 78
+        H 728
+        V 178
+        H 708
+        V 138
+        H 668
+        V 178
+        H 648
+        Z
+      "/>
+
+      <!-- U (Accent) -->
+      <path fill="#89CEFF" fill-rule="evenodd" d="
+        M 740 78
+        H 760
+        V 143
+        A 20 20 0 0 0 780 163
+        A 20 20 0 0 0 800 143
+        V 78
+        H 820
+        V 143
+        A 40 40 0 0 1 780 178
+        A 40 40 0 0 1 740 143
+        Z
+      "/>
+
+      <!-- B (Accent) -->
+      <path fill="#89CEFF" fill-rule="evenodd" d="
+        M 832 78
+        H 887
+        A 25 25 0 0 1 912 103
+        A 25 25 0 0 1 892 128
+        A 26 26 0 0 1 912 153
+        A 25 25 0 0 1 887 178
+        H 832
+        Z
+        M 852 98
+        H 884
+        A 10 10 0 0 1 892 103
+        A 10 10 0 0 1 884 118
+        H 852
+        Z
+        M 852 136
+        H 884
+        A 11 11 0 0 1 894 153
+        A 11 11 0 0 1 884 158
+        H 852
+        Z
+      "/>
+  </g>
+</svg></g><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-b" viewBox="0 0 256 256" x="592.667" y="660" width="64" height="64" preserveAspectRatio="xMidYMid meet">
+  <title id="s164-title-b">AutoHub AH Velocity Monogram</title>
+  <path fill="#89CEFF" fill-rule="evenodd" d="
+    M 40 216
+    L 108 40
+    L 148 40
+    L 216 216
+    L 178 216
+    L 160 168
+    L 96 168
+    L 78 216
+    Z
+    M 128 84
+    L 108 136
+    L 148 136
+    Z
+    M 192 40
+    L 216 40
+    L 216 148
+    L 192 148
+    Z
+  "/>
+</svg></g><text x="624.667" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">64px</text><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-b" viewBox="0 0 256 256" x="682.667" y="692" width="32" height="32" preserveAspectRatio="xMidYMid meet">
+  <title id="s132-title-b">AutoHub AH Velocity Monogram</title>
+  <path fill="#89CEFF" fill-rule="evenodd" d="
+    M 40 216
+    L 108 40
+    L 148 40
+    L 216 216
+    L 178 216
+    L 160 168
+    L 96 168
+    L 78 216
+    Z
+    M 128 84
+    L 108 136
+    L 148 136
+    Z
+    M 192 40
+    L 216 40
+    L 216 148
+    L 192 148
+    Z
+  "/>
+</svg></g><text x="698.667" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">32px</text><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-b" viewBox="0 0 256 256" x="740.667" y="708" width="16" height="16" preserveAspectRatio="xMidYMid meet">
+  <title id="s116-title-b">AutoHub AH Velocity Monogram</title>
+  <path fill="#89CEFF" fill-rule="evenodd" d="
+    M 40 216
+    L 108 40
+    L 148 40
+    L 216 216
+    L 178 216
+    L 160 168
+    L 96 168
+    L 78 216
+    Z
+    M 128 84
+    L 108 136
+    L 148 136
+    Z
+    M 192 40
+    L 216 40
+    L 216 148
+    L 192 148
+    Z
+  "/>
+</svg></g><text x="748.667" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">16px</text><text x="592.6666666666667" y="780" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="26" font-weight="700" fill="#161616">B · Velocity Monogram</text><text x="592.6666666666667" y="808" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="15" font-weight="700" fill="#161616" letter-spacing="1.5">RECOMMENDED</text><text x="592.6666666666667" y="842" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">Monogram AH lồng ghép năng lượng tốc độ</text><text x="592.6666666666667" y="868" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">(Khuyến nghị)</text><rect x="1065.33" y="150" width="474.667" height="774" rx="18" fill="#fff" stroke="#e4e4e0" stroke-width="1"/><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-c" viewBox="0 0 256 256" x="1095.33" y="190" width="414.667" height="300" preserveAspectRatio="xMidYMid meet">
+  <title id="c2-title-c">AutoHub Neural Turbine Core</title>
+  <circle cx="128" cy="128" r="24" fill="#89CEFF"/>
+  
+      <g transform="rotate(0 128 128)">
+        <path fill="#89CEFF" d="
+          M 128 36
+          A 92 92 0 0 1 208 82
+          L 180 98
+          A 60 60 0 0 0 128 68
+          Z
+        "/>
+      </g>
+      <g transform="rotate(120 128 128)">
+        <path fill="#89CEFF" d="
+          M 128 36
+          A 92 92 0 0 1 208 82
+          L 180 98
+          A 60 60 0 0 0 128 68
+          Z
+        "/>
+      </g>
+      <g transform="rotate(240 128 128)">
+        <path fill="#89CEFF" d="
+          M 128 36
+          A 92 92 0 0 1 208 82
+          L 180 98
+          A 60 60 0 0 0 128 68
+          Z
+        "/>
+      </g>
+</svg></g><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-c-lockup" viewBox="0 0 960 256" x="1095.33" y="514" width="414.667" height="120" preserveAspectRatio="xMidYMid meet">
+  <title id="l2-title-c-lockup">AutoHub Neural Turbine Lockup</title>
+  <g id="l2-symbol">
+    <circle cx="128" cy="128" r="24" fill="#89CEFF"/>
+    <g transform="rotate(0 128 128)">
+      <path fill="#89CEFF" d="M 128 36 A 92 92 0 0 1 208 82 L 180 98 A 60 60 0 0 0 128 68 Z"/>
+    </g>
+    <g transform="rotate(120 128 128)">
+      <path fill="#89CEFF" d="M 128 36 A 92 92 0 0 1 208 82 L 180 98 A 60 60 0 0 0 128 68 Z"/>
+    </g>
+    <g transform="rotate(240 128 128)">
+      <path fill="#89CEFF" d="M 128 36 A 92 92 0 0 1 208 82 L 180 98 A 60 60 0 0 0 128 68 Z"/>
+    </g>
+  </g>
+  <g id="l2-wordmark">
+
+      <!-- A -->
+      <path fill="#DAE2FD" fill-rule="evenodd" d="
+        M 310 78
+        L 350 178
+        L 328 178
+        L 319 146
+        L 301 146
+        L 292 178
+        L 270 178
+        Z
+        M 310 104
+        L 316 128
+        L 304 128
+        Z
+      "/>
+
+      <!-- U -->
+      <path fill="#DAE2FD" fill-rule="evenodd" d="
+        M 362 78
+        H 382
+        V 143
+        A 20 20 0 0 0 402 163
+        A 20 20 0 0 0 422 143
+        V 78
+        H 442
+        V 143
+        A 40 40 0 0 1 402 178
+        A 40 40 0 0 1 362 143
+        Z
+      "/>
+
+      <!-- T -->
+      <path fill="#DAE2FD" d="
+        M 454 78
+        H 534
+        V 98
+        H 504
+        V 178
+        H 484
+        V 98
+        H 454
+        Z
+      "/>
+
+      <!-- O -->
+      <path fill="#DAE2FD" fill-rule="evenodd" d="
+        M 586 78
+        A 40 50 0 0 1 626 128
+        A 40 50 0 0 1 586 178
+        A 40 50 0 0 1 546 128
+        A 40 50 0 0 1 586 78
+        Z
+        M 586 98
+        A 20 30 0 0 0 566 128
+        A 20 30 0 0 0 586 158
+        A 20 30 0 0 0 606 128
+        A 20 30 0 0 0 586 98
+        Z
+      "/>
+
+      <!-- H (Accent) -->
+      <path fill="#89CEFF" d="
+        M 648 78
+        H 668
+        V 118
+        H 708
+        V 78
+        H 728
+        V 178
+        H 708
+        V 138
+        H 668
+        V 178
+        H 648
+        Z
+      "/>
+
+      <!-- U (Accent) -->
+      <path fill="#89CEFF" fill-rule="evenodd" d="
+        M 740 78
+        H 760
+        V 143
+        A 20 20 0 0 0 780 163
+        A 20 20 0 0 0 800 143
+        V 78
+        H 820
+        V 143
+        A 40 40 0 0 1 780 178
+        A 40 40 0 0 1 740 143
+        Z
+      "/>
+
+      <!-- B (Accent) -->
+      <path fill="#89CEFF" fill-rule="evenodd" d="
+        M 832 78
+        H 887
+        A 25 25 0 0 1 912 103
+        A 25 25 0 0 1 892 128
+        A 26 26 0 0 1 912 153
+        A 25 25 0 0 1 887 178
+        H 832
+        Z
+        M 852 98
+        H 884
+        A 10 10 0 0 1 892 103
+        A 10 10 0 0 1 884 118
+        H 852
+        Z
+        M 852 136
+        H 884
+        A 11 11 0 0 1 894 153
+        A 11 11 0 0 1 884 158
+        H 852
+        Z
+      "/>
+  </g>
+</svg></g><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-c" viewBox="0 0 256 256" x="1095.33" y="660" width="64" height="64" preserveAspectRatio="xMidYMid meet">
+  <title id="s264-title-c">AutoHub Neural Turbine Core</title>
+  <circle cx="128" cy="128" r="24" fill="#89CEFF"/>
+  
+      <g transform="rotate(0 128 128)">
+        <path fill="#89CEFF" d="
+          M 128 36
+          A 92 92 0 0 1 208 82
+          L 180 98
+          A 60 60 0 0 0 128 68
+          Z
+        "/>
+      </g>
+      <g transform="rotate(120 128 128)">
+        <path fill="#89CEFF" d="
+          M 128 36
+          A 92 92 0 0 1 208 82
+          L 180 98
+          A 60 60 0 0 0 128 68
+          Z
+        "/>
+      </g>
+      <g transform="rotate(240 128 128)">
+        <path fill="#89CEFF" d="
+          M 128 36
+          A 92 92 0 0 1 208 82
+          L 180 98
+          A 60 60 0 0 0 128 68
+          Z
+        "/>
+      </g>
+</svg></g><text x="1127.33" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">64px</text><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-c" viewBox="0 0 256 256" x="1185.33" y="692" width="32" height="32" preserveAspectRatio="xMidYMid meet">
+  <title id="s232-title-c">AutoHub Neural Turbine Core</title>
+  <circle cx="128" cy="128" r="24" fill="#89CEFF"/>
+  
+      <g transform="rotate(0 128 128)">
+        <path fill="#89CEFF" d="
+          M 128 36
+          A 92 92 0 0 1 208 82
+          L 180 98
+          A 60 60 0 0 0 128 68
+          Z
+        "/>
+      </g>
+      <g transform="rotate(120 128 128)">
+        <path fill="#89CEFF" d="
+          M 128 36
+          A 92 92 0 0 1 208 82
+          L 180 98
+          A 60 60 0 0 0 128 68
+          Z
+        "/>
+      </g>
+      <g transform="rotate(240 128 128)">
+        <path fill="#89CEFF" d="
+          M 128 36
+          A 92 92 0 0 1 208 82
+          L 180 98
+          A 60 60 0 0 0 128 68
+          Z
+        "/>
+      </g>
+</svg></g><text x="1201.33" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">32px</text><g><svg xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title-c" viewBox="0 0 256 256" x="1243.33" y="708" width="16" height="16" preserveAspectRatio="xMidYMid meet">
+  <title id="s216-title-c">AutoHub Neural Turbine Core</title>
+  <circle cx="128" cy="128" r="24" fill="#89CEFF"/>
+  
+      <g transform="rotate(0 128 128)">
+        <path fill="#89CEFF" d="
+          M 128 36
+          A 92 92 0 0 1 208 82
+          L 180 98
+          A 60 60 0 0 0 128 68
+          Z
+        "/>
+      </g>
+      <g transform="rotate(120 128 128)">
+        <path fill="#89CEFF" d="
+          M 128 36
+          A 92 92 0 0 1 208 82
+          L 180 98
+          A 60 60 0 0 0 128 68
+          Z
+        "/>
+      </g>
+      <g transform="rotate(240 128 128)">
+        <path fill="#89CEFF" d="
+          M 128 36
+          A 92 92 0 0 1 208 82
+          L 180 98
+          A 60 60 0 0 0 128 68
+          Z
+        "/>
+      </g>
+</svg></g><text x="1251.33" y="744" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#8a8a8a" text-anchor="middle">16px</text><text x="1095.3333333333335" y="780" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="26" font-weight="700" fill="#161616">C · Neural Turbine</text><text x="1095.3333333333335" y="814" font-family="system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif" font-size="19" fill="#555">Lõi động cơ phản lực và bánh xe số hóa</text></svg>

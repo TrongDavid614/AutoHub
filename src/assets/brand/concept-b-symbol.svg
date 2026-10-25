@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="title-b">
+  <title id="title-b">AutoHub AH Velocity Monogram</title>
+  <path fill="#89CEFF" fill-rule="evenodd" d="
+    M 40 216
+    L 108 40
+    L 148 40
+    L 216 216
+    L 178 216
+    L 160 168
+    L 96 168
+    L 78 216
+    Z
+    M 128 84
+    L 108 136
+    L 148 136
+    Z
+    M 192 40
+    L 216 40
+    L 216 148
+    L 192 148
+    Z
+  "/>
+</svg>

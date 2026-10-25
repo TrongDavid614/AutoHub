@@ -1,10 +1,51 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Space Mono', monospace;
+
+  --color-canvas-primary: #0B1326;
+  --color-canvas-deep: #060E20;
+  --color-surface-container: #131B2E;
+  --color-surface-elevated: #171F33;
+  --color-surface-interactive: #222A3D;
+  --color-surface-highlight: #2D3449;
+  --color-border-subtle: #3E4850;
+
+  --color-accent-primary: #89CEFF;
+  --color-accent-action: #0EA5E9;
+  --color-accent-contrast: #00344D;
+
+  --color-text-primary: #DAE2FD;
+  --color-text-secondary: #BEC8D2;
+  --color-text-muted: #88929B;
+}
+
 @layer base {
+  html {
+    color-scheme: dark;
+  }
+
   body {
-    background-color: #f8fafc;
-    color: #1e293b;
+    background-color: #0B1326;
+    color: #DAE2FD;
     -webkit-font-smoothing: antialiased;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  /* Custom scrollbar for dark luxury UI */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0B1326;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #222A3D;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3E4850;
   }
 }
