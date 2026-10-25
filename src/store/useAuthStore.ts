@@ -12,13 +12,24 @@ interface AuthStore {
   updateUser: (user: Partial<User>) => void;
 }
 
+const defaultDemoUser: User = {
+  id: 8899,
+  email: 'nguyenvana@gmail.com',
+  fullName: 'Nguyễn Văn A',
+  phoneNumber: '0912 345 678',
+  identityCardNumber: '079090001234',
+  role: 'ROLE_CUSTOMER',
+  isActive: true,
+  createdAt: '2026-01-15T08:00:00Z',
+};
+
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set) => ({
-      user: null,
-      accessToken: null,
-      role: null,
-      isAuthenticated: false,
+      user: defaultDemoUser,
+      accessToken: 'demo-jwt-autohub-vip8899',
+      role: 'ROLE_CUSTOMER',
+      isAuthenticated: true,
 
       login: (token: string, user: User) =>
         set({
@@ -42,7 +53,7 @@ export const useAuthStore = create<AuthStore>()(
         })),
     }),
     {
-      name: 'autohub_auth_state',
+      name: 'autohub_auth_session_v3',
     }
   )
 );

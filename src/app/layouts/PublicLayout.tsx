@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
-import { Car, ShoppingCart, Scale, User as UserIcon, Bot, Search } from 'lucide-react';
+import { Car, ShoppingCart, Scale, Bot, Search } from 'lucide-react';
 import { useCartStore } from '@/store/useCartStore';
 import { useCompareStore } from '@/store/useCompareStore';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -83,17 +83,23 @@ export const PublicLayout: React.FC = () => {
                       ? '/staff'
                       : '/customer/profile'
                   }
-                  className="flex items-center gap-2 text-xs font-semibold text-slate-200 hover:text-white"
                 >
-                  <UserIcon className="w-4 h-4 text-red-500" />
-                  <span>{user?.fullName}</span>
+                  <div className="flex items-center gap-2 px-2.5 py-1 bg-slate-800 hover:bg-slate-700/80 rounded-full border border-slate-700 transition-all">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white text-[10px] font-black">
+                      A
+                    </div>
+                    <span className="font-semibold text-slate-100">{user?.fullName}</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                      VIP
+                    </span>
+                  </div>
                 </Link>
                 <button
                   onClick={() => {
                     logout();
                     navigate('/');
                   }}
-                  className="text-xs text-slate-400 hover:text-red-400"
+                  className="text-xs text-slate-400 hover:text-red-400 transition-colors"
                 >
                   Thoát
                 </button>
@@ -111,7 +117,7 @@ export const PublicLayout: React.FC = () => {
       </header>
 
       {/* MAIN CONTENT OUTLET */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-6">
+      <main className="flex-1 w-full bg-slate-950 text-slate-100 min-h-[calc(100vh-4rem)]">
         <Outlet />
       </main>
 
