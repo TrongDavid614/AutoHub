@@ -13,10 +13,10 @@ import { CarEstimatorPage } from '@/features/car-estimator';
 import { CarComparisonPage } from '@/features/car-comparison';
 import { AccessoryListPage, AccessoryDetailPage } from '@/features/accessories';
 import { CartPage } from '@/features/cart';
-import { CheckoutPage } from '@/features/checkout';
+import { CheckoutPage, OrderSuccessPage } from '@/features/checkout';
 import { CarDepositPage } from '@/features/car-deposit';
 import { TestDriveBookingPage } from '@/features/test-drive';
-import { LoginPage, RegisterPage } from '@/features/auth';
+import { LoginPage, RegisterPage, RegisterSuccessPage } from '@/features/auth';
 import { ProfilePage, AddressBookPage } from '@/features/profile';
 import {
   ConsultationListPage,
@@ -48,10 +48,15 @@ export const router = createBrowserRouter([
       { path: 'accessories/:id', element: <AccessoryDetailPage /> },
       { path: 'cart', element: <CartPage /> },
       { path: 'checkout', element: <CheckoutPage /> },
+      { path: 'checkout/success', element: <OrderSuccessPage /> },
+      { path: 'order-success', element: <OrderSuccessPage /> },
       { path: 'deposit/:variantId', element: <CarDepositPage /> },
       { path: 'test-drive', element: <TestDriveBookingPage /> },
       { path: 'auth/login', element: <LoginPage /> },
+      { path: 'login', element: <LoginPage /> },
       { path: 'auth/register', element: <RegisterPage /> },
+      { path: 'register', element: <RegisterPage /> },
+      { path: 'auth/register-success', element: <RegisterSuccessPage /> },
       {
         path: 'unauthorized',
         element: (
@@ -77,7 +82,7 @@ export const router = createBrowserRouter([
           { path: 'addresses', element: <AddressBookPage /> },
           { path: 'test-drives', element: <TestDriveBookingPage /> },
           { path: 'deposits', element: <CarDepositPage /> },
-          { path: 'orders', element: <CartPage /> },
+          { path: 'orders', element: <OrderSuccessPage /> },
         ],
       },
     ],
