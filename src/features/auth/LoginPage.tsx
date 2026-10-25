@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, X, ArrowRight, ArrowUpRight, Check, AlertCircle, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, X, ArrowRight, ArrowUpRight, Check, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { authService } from './services/auth.service';
 
@@ -52,14 +52,6 @@ export const LoginPage: React.FC = () => {
       setIsLoading(false);
       setErrorMessage('Email hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại.');
     }
-  };
-
-  // Nhanh chóng điền tài khoản mẫu phục vụ hội đồng chấm đồ án
-  const handleFillDemoAccount = (demoEmail: string, roleName: string) => {
-    setEmail(demoEmail);
-    setPassword('Autohub@2026');
-    setErrorMessage('');
-    console.log(`Đã chọn tài khoản demo [${roleName}]: ${demoEmail}`);
   };
 
   const handleGoogleLogin = () => {
@@ -320,29 +312,7 @@ export const LoginPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Quick Demo Credentials Assistant (Hỗ trợ chấm điểm đồ án IUH nhanh chóng) */}
-        <div className="mt-6 pt-3 border-t border-[#2D3449]/40 text-center">
-          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-[#131B2E] border border-[#2D3449]/60 text-[10px] font-mono text-[#88929B] mb-2">
-            <ShieldCheck className="w-3 h-3 text-[#34D399]" />
-            <span>TÀI KHOẢN DEMO KIỂM THỬ:</span>
-          </div>
-          <div className="flex items-center justify-center gap-2 text-[11px]">
-            <button
-              type="button"
-              onClick={() => handleFillDemoAccount('khachhang@autohub.vn', 'Khách hàng')}
-              className="px-2 py-1 rounded bg-[#060E20] hover:bg-[#131B2E] text-[#89CEFF] border border-[#2D3449] hover:border-[#7BD0FF]/40 transition-colors cursor-pointer"
-            >
-              Khách hàng
-            </button>
-            <button
-              type="button"
-              onClick={() => handleFillDemoAccount('nhanvien@autohub.vn', 'Nhân viên')}
-              className="px-2 py-1 rounded bg-[#060E20] hover:bg-[#131B2E] text-[#34D399] border border-[#2D3449] hover:border-[#34D399]/40 transition-colors cursor-pointer"
-            >
-              Nhân viên Showroom
-            </button>
-          </div>
-        </div>
+
       </div>
 
       {/* Forgot Password Modal (Glassmorphic EV Popup) */}
