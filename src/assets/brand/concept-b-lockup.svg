@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 256" width="960" height="256" role="img" aria-labelledby="title-b-lockup">
+  <title id="title-b-lockup">AutoHub AH Monogram Lockup</title>
+  <g id="symbol">
+    <path fill="#89CEFF" fill-rule="evenodd" d="
+      M 40 216
+      L 108 40
+      L 148 40
+      L 216 216
+      L 178 216
+      L 160 168
+      L 96 168
+      L 78 216
+      Z
+      M 128 84
+      L 108 136
+      L 148 136
+      Z
+      M 192 40
+      L 216 40
+      L 216 148
+      L 192 148
+      Z
+    "/>
+  </g>
+  <g id="wordmark">
+
+      <!-- A -->
+      <path fill="#DAE2FD" fill-rule="evenodd" d="
+        M 310 78
+        L 350 178
+        L 328 178
+        L 319 146
+        L 301 146
+        L 292 178
+        L 270 178
+        Z
+        M 310 104
+        L 316 128
+        L 304 128
+        Z
+      "/>
+
+      <!-- U -->
+      <path fill="#DAE2FD" fill-rule="evenodd" d="
+        M 362 78
+        H 382
+        V 143
+        A 20 20 0 0 0 402 163
+        A 20 20 0 0 0 422 143
+        V 78
+        H 442
+        V 143
+        A 40 40 0 0 1 402 178
+        A 40 40 0 0 1 362 143
+        Z
+      "/>
+
+      <!-- T -->
+      <path fill="#DAE2FD" d="
+        M 454 78
+        H 534
+        V 98
+        H 504
+        V 178
+        H 484
+        V 98
+        H 454
+        Z
+      "/>
+
+      <!-- O -->
+      <path fill="#DAE2FD" fill-rule="evenodd" d="
+        M 586 78
+        A 40 50 0 0 1 626 128
+        A 40 50 0 0 1 586 178
+        A 40 50 0 0 1 546 128
+        A 40 50 0 0 1 586 78
+        Z
+        M 586 98
+        A 20 30 0 0 0 566 128
+        A 20 30 0 0 0 586 158
+        A 20 30 0 0 0 606 128
+        A 20 30 0 0 0 586 98
+        Z
+      "/>
+
+      <!-- H (Accent) -->
+      <path fill="#89CEFF" d="
+        M 648 78
+        H 668
+        V 118
+        H 708
+        V 78
+        H 728
+        V 178
+        H 708
+        V 138
+        H 668
+        V 178
+        H 648
+        Z
+      "/>
+
+      <!-- U (Accent) -->
+      <path fill="#89CEFF" fill-rule="evenodd" d="
+        M 740 78
+        H 760
+        V 143
+        A 20 20 0 0 0 780 163
+        A 20 20 0 0 0 800 143
+        V 78
+        H 820
+        V 143
+        A 40 40 0 0 1 780 178
+        A 40 40 0 0 1 740 143
+        Z
+      "/>
+
+      <!-- B (Accent) -->
+      <path fill="#89CEFF" fill-rule="evenodd" d="
+        M 832 78
+        H 887
+        A 25 25 0 0 1 912 103
+        A 25 25 0 0 1 892 128
+        A 26 26 0 0 1 912 153
+        A 25 25 0 0 1 887 178
+        H 832
+        Z
+        M 852 98
+        H 884
+        A 10 10 0 0 1 892 103
+        A 10 10 0 0 1 884 118
+        H 852
+        Z
+        M 852 136
+        H 884
+        A 11 11 0 0 1 894 153
+        A 11 11 0 0 1 884 158
+        H 852
+        Z
+      "/>
+  </g>
+</svg>
