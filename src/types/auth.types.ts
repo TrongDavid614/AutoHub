@@ -29,6 +29,15 @@ export interface LoginResponse {
   user: User;
 }
 
+export interface RegisterRequest {
+  fullName: string;
+  phoneNumber: string;
+  email: string;
+  password: string;
+  agreeTerms: boolean;
+  receiveMarketing?: boolean;
+}
+
 export interface AuthState {
   user: User | null;
   accessToken: string | null;
