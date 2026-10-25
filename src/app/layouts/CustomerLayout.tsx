@@ -29,7 +29,7 @@ export const CustomerLayout: React.FC = () => {
 
   const navItems: NavItem[] = [
     { to: '/customer/profile', label: 'Hồ Sơ Cá Nhân', icon: User },
-    { to: '/customer/addresses', label: 'Sổ Địa Chỉ (UC03)', icon: MapPin },
+    { to: '/customer/addresses', label: 'Sổ Địa Chỉ', icon: MapPin },
     { to: '/customer/test-drives', label: 'Lịch Hẹn Lái Thử', icon: Calendar },
     { to: '/customer/deposits', label: 'Phiếu Đặt Cọc Xe (72h)', icon: CreditCard, badge: '72h' },
     { to: '/customer/orders', label: 'Đơn Hàng Phụ Kiện', icon: Package },
