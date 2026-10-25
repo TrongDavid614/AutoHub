@@ -1,1 +1,0 @@
-export const AccessoryListPage = () => <div className="space-y-4"><h1 className="text-2xl font-black text-slate-900">Sàn Thương Mại Điện Tử Phụ Kiện Ô Tô (F06 Stub)</h1><p className="text-xs text-slate-500">Bộ lọc tương thích tuyệt đối theo Dòng xe & Năm sản xuất</p></div>;
