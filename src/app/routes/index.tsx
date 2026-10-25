@@ -53,7 +53,9 @@ export const router = createBrowserRouter([
       { path: 'deposit/:variantId', element: <CarDepositPage /> },
       { path: 'test-drive', element: <TestDriveBookingPage /> },
       { path: 'auth/login', element: <LoginPage /> },
+      { path: 'login', element: <LoginPage /> },
       { path: 'auth/register', element: <RegisterPage /> },
+      { path: 'register', element: <RegisterPage /> },
       { path: 'auth/register-success', element: <RegisterSuccessPage /> },
       {
         path: 'unauthorized',
