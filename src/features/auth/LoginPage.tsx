@@ -235,7 +235,7 @@ export const LoginPage: React.FC = () => {
                 {rememberMe && <Check className="w-3 h-3 stroke-[3]" />}
               </button>
               <span className="text-[13px] text-[#BEC8D2] group-hover:text-[#DAE2FD] transition-colors">
-                Duy trì đăng nhập an toàn 30 ngày
+                Duy trì đăng nhập
               </span>
             </label>
           </div>
