@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-labelledby="title-a">
+  <title id="title-a">AutoHub Kinetic Delta Symbol</title>
+  <path fill="#89CEFF" fill-rule="evenodd" d="
+    M 128 36
+    L 220 204
+    L 172 204
+    L 128 120
+    L 84 204
+    L 36 204
+    Z
+    M 128 92
+    L 148 132
+    L 108 132
+    Z
+    M 78 220
+    H 178
+    L 164 192
+    H 92
+    Z
+  "/>
+</svg>
