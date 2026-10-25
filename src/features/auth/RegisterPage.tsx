@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User as UserIcon, Mail, Phone, Lock, Eye, EyeOff, X, ShieldCheck, Check } from 'lucide-react';
 import { PasswordStrengthMeter } from './components/PasswordStrengthMeter';
-import { RegisterSuccessModal } from './components/RegisterSuccessModal';
 import { authService } from './services/auth.service';
 import { useAuthStore } from '@/store/useAuthStore';
 
@@ -23,7 +22,6 @@ export const RegisterPage: React.FC = () => {
   // Form validation / error
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
   // Password score calculation (0 - 4)
   const calculateScore = (pwd: string) => {
@@ -77,7 +75,7 @@ export const RegisterPage: React.FC = () => {
       // Auto login user into store
       login(`jwt_mock_token_${Date.now()}`, user);
       setIsSubmitting(false);
-      setIsSuccessModalOpen(true);
+      navigate(`/auth/register-success?name=${encodeURIComponent(fullName)}&email=${encodeURIComponent(email)}`);
     } catch {
       setIsSubmitting(false);
       setError('Có lỗi xảy ra trong quá trình đăng ký. Vui lòng thử lại.');
@@ -223,8 +221,8 @@ export const RegisterPage: React.FC = () => {
                 </button>
               </div>
 
-              {/* Strength Meter */}
-              {password.length > 0 && <PasswordStrengthMeter score={passwordScore} />}
+              {/* Strength Meter matching Figma Frame 20:14537 */}
+              <PasswordStrengthMeter score={passwordScore} />
             </div>
 
             {/* 5. Xác nhận mật khẩu */}
@@ -368,14 +366,6 @@ export const RegisterPage: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Success Modal */}
-      <RegisterSuccessModal
-        isOpen={isSuccessModalOpen}
-        fullName={fullName}
-        email={email}
-        onClose={() => setIsSuccessModalOpen(false)}
-      />
     </div>
   );
 };

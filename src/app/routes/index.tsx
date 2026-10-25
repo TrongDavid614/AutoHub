@@ -16,7 +16,7 @@ import { CartPage } from '@/features/cart';
 import { CheckoutPage, OrderSuccessPage } from '@/features/checkout';
 import { CarDepositPage } from '@/features/car-deposit';
 import { TestDriveBookingPage } from '@/features/test-drive';
-import { LoginPage, RegisterPage } from '@/features/auth';
+import { LoginPage, RegisterPage, RegisterSuccessPage } from '@/features/auth';
 import { ProfilePage, AddressBookPage } from '@/features/profile';
 import {
   ConsultationListPage,
@@ -54,6 +54,7 @@ export const router = createBrowserRouter([
       { path: 'test-drive', element: <TestDriveBookingPage /> },
       { path: 'auth/login', element: <LoginPage /> },
       { path: 'auth/register', element: <RegisterPage /> },
+      { path: 'auth/register-success', element: <RegisterSuccessPage /> },
       {
         path: 'unauthorized',
         element: (
