@@ -1,6 +1,5 @@
 // Pages
 export * from './pages/CarListPage';
-export * from './CarDetailPage';
 
 // Components
 export * from './components/CarCardGrid';

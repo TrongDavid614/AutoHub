@@ -12,7 +12,6 @@ import {
   List,
   Heart,
   Scale,
-  Zap,
   CheckCircle2
 } from 'lucide-react';
 import { MOCK_CARS, type MockCar } from '../mocks/car.mock';
@@ -112,7 +111,7 @@ export const CarListPage: React.FC = () => {
           <span className="text-[#88929B]">DÒNG XE</span>
           <span className="text-[#2D3449]">/</span>
           <span className="text-[#89CEFF]">
-            {viewMode === 'row' ? 'DANH MỤC XE ĐIỆN AUTOHUB (DẠNG ROW)' : 'BỘ SƯU TẬP DÒNG XE (GRID VIEW)'}
+            {viewMode === 'row' ? 'DANH MỤC XE ĐIỆN AUTOHUB (DẠNG ROW)' : 'BỘ SƯU TẬP DÒNG XE'}
           </span>
         </nav>
 
@@ -121,48 +120,15 @@ export const CarListPage: React.FC = () => {
             {viewMode === 'row' ? (
               <>
                 <h1 className="text-2xl sm:text-3xl font-bold text-[#DAE2FD] tracking-tight">
-                  Bộ Sưu Tập Xe Điện Hiệu Năng Cao <span className="text-[#89CEFF] drop-shadow-[0_0_16px_rgba(14,165,233,0.35)]">AutoHub GT-e</span>
+                  Bộ Sưu Tập Xe Hiệu Năng <span className="text-[#89CEFF] drop-shadow-[0_0_16px_rgba(14,165,233,0.35)]">Cao Cấp AutoHub</span>
                 </h1>
-                <p className="text-xs text-[#BEC8D2] mt-1 max-w-3xl">
-                  Khám phá các dòng sedan thể thao thuần điện kiến trúc sạc siêu nhanh 800V SiC và công nghệ tự hành HubPilot thế hệ mới.
-                </p>
               </>
             ) : (
               <>
                 <h1 className="text-2xl sm:text-3xl font-bold text-[#DAE2FD] tracking-tight">
-                  Bộ Sưu Tập Dòng Xe Điện & Thể Thao <span className="text-[#89CEFF] drop-shadow-[0_0_16px_rgba(14,165,233,0.35)]">Cao Cấp AutoHub</span>
+                  Bộ Sưu Tập Xe Hiệu Năng <span className="text-[#89CEFF] drop-shadow-[0_0_16px_rgba(14,165,233,0.35)]">Cao Cấp AutoHub</span>
                 </h1>
-                <p className="text-xs text-[#BEC8D2] mt-1 max-w-3xl">
-                  Khám phá danh mục xe thuần điện đỉnh cao 800V và hybrid hiệu năng vượt trội với công nghệ tự hành LiDAR.
-                </p>
               </>
-            )}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
-            <div className="flex items-center gap-3 px-3.5 py-1.5 rounded-[4px] bg-[#131B2E] border border-[#3E4850]/50 shadow-sm">
-              <div className="text-right">
-                <span className="text-[10px] font-mono font-bold text-[#88929B] uppercase tracking-wider block">
-                  NỀN TẢNG KIẾN TRÚC
-                </span>
-                <span className="text-xs font-mono font-bold text-[#89CEFF] uppercase tracking-wider block">
-                  800V SiC ULTRA
-                </span>
-              </div>
-              <div className="w-2.5 h-2.5 rounded-full bg-[#89CEFF] shadow-[0_0_8px_#89CEFF]" />
-            </div>
-
-            {viewMode === 'grid' && (
-              <div className="flex items-center gap-3 px-3.5 py-1.5 rounded-[4px] bg-[#131B2E] border border-[#3E4850]/50 shadow-sm">
-                <div className="text-right">
-                  <span className="text-[10px] font-mono font-bold text-[#88929B] uppercase tracking-wider block">
-                    CÔNG NGHỆ CỐT LÕI
-                  </span>
-                  <span className="text-xs font-mono font-bold text-[#89CEFF] uppercase tracking-wider block">
-                    LiDAR + HubOS
-                  </span>
-                </div>
-              </div>
             )}
           </div>
         </div>
@@ -714,32 +680,8 @@ export const CarListPage: React.FC = () => {
               SỐ LƯỢNG: <span className="font-semibold text-[#DAE2FD]">Hiển thị 6 / trang</span>
             </div>
           </div>
-
-          {/* SUPERCHARGE 350KW NETWORK BANNER MATCHING FIGMA */}
-          <div className="p-5 rounded-[4px] bg-gradient-to-r from-[#171F33] to-[#131B2E] border border-[#3E4850]/50 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
-            <div className="flex items-center gap-3.5">
-              <div className="p-3 rounded-[2px] bg-[rgba(137,206,255,0.15)] text-[#89CEFF] border border-[#89CEFF]/30 flex-shrink-0">
-                <Zap className="w-6 h-6" />
-              </div>
-              <div>
-                <h4 className="text-sm font-bold text-[#DAE2FD]">Mạng lưới sạc SuperCharge 350kW độc quyền</h4>
-                <p className="text-xs text-[#BEC8D2] mt-0.5">
-                  Miễn phí 1 năm sạc không giới hạn tại hơn 850 trạm sạc cao tốc trên toàn quốc khi đặt xe trực tuyến.
-                </p>
-              </div>
-            </div>
-
-            <a
-              href="#charging-network"
-              className="px-4 py-2 rounded-[2px] bg-[#171F33] hover:bg-[#222A3D] border border-[#3E4850]/60 text-xs font-semibold text-[#89CEFF] flex items-center gap-1.5 whitespace-nowrap transition-colors flex-shrink-0"
-            >
-              <span>Khám phá bản đồ trạm sạc</span>
-              <ArrowRight className="w-3.5 h-3.5 text-[#89CEFF]" />
-            </a>
-          </div>
         </section>
       </div>
-
       </div>
   );
 };
