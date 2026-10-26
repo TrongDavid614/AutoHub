@@ -8,7 +8,7 @@ import { AdminLayout } from '@/app/layouts/AdminLayout';
 import { ProtectedRoute } from './ProtectedRoute';
 
 // Feature Pages
-import { CarListPage } from '@/features/cars';
+import { CarListPage, CarDetailPage } from '@/features/cars';
 import { CarEstimatorPage } from '@/features/car-estimator';
 import { CarComparisonPage } from '@/features/car-comparison';
 import { AccessoryListPage, AccessoryDetailPage } from '@/features/accessories';
@@ -41,6 +41,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <CarListPage /> },
       { path: 'cars', element: <CarListPage /> },
+      { path: 'cars/:id', element: <CarDetailPage /> },
       { path: 'car-estimator', element: <CarEstimatorPage /> },
       { path: 'car-comparison', element: <CarComparisonPage /> },
       { path: 'accessories', element: <AccessoryListPage /> },
