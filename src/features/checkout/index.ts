@@ -12,3 +12,6 @@ export * from './components/SuccessActionMatrix';
 export * from './components/TrustAndSupportFooterCard';
 export * from './hooks/useCheckoutFlow';
 export * from './mocks/checkout.mock';
+
+export * from './pages/CustomerOrderListPage';
+export * from './mocks/orders.mock';
