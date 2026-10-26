@@ -1,1 +1,0 @@
-export const CarListPage = () => <div className="space-y-4"><h1 className="text-2xl font-black text-slate-900">Showroom Danh Mục Ô Tô (F01 Stub)</h1><p className="text-xs text-slate-500">Bộ lọc phân khúc A/B/C/D/E, loại nhiên liệu, hộp số và bảng giá niêm yết</p></div>;
