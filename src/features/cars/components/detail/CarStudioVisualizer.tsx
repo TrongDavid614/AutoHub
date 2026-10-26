@@ -66,7 +66,6 @@ const PERSPECTIVES = [
 export const CarStudioVisualizer: React.FC<CarStudioVisualizerProps> = ({
   carName,
   activeTrim,
-  activeColorName,
 }) => {
   const [activeTab, setActiveTab] = useState<string>('exterior');
   const [activePerspective, setActivePerspective] = useState<number>(0);
@@ -117,12 +116,7 @@ export const CarStudioVisualizer: React.FC<CarStudioVisualizerProps> = ({
           </div>
         </div>
 
-        {/* Color & Trim Tag on Image */}
-        <div className="absolute top-16 left-4 z-10 hidden sm:block">
-          <div className="px-2.5 py-1 rounded bg-canvas-deep/80 backdrop-blur-md border border-surface-highlight text-[10px] font-mono text-text-secondary">
-            Màu hiển thị: <span className="text-accent-primary font-bold">{activeColorName}</span>
-          </div>
-        </div>
+        
 
         {/* Bottom Overlay: Floating Key Performance Metrics */}
         <div className="absolute bottom-4 left-4 right-4 p-3.5 rounded-lg bg-surface-container/85 backdrop-blur-md border border-surface-highlight/80 z-10 shadow-xl">

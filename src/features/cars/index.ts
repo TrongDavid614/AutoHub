@@ -8,6 +8,7 @@ export * from './components/CarCardRow';
 export * from './components/detail/CarStudioVisualizer';
 export * from './components/detail/CarConfiguratorPanel';
 export * from './components/detail/CarEngineeringSpecs';
+export * from './components/detail/CarDepositModal';
 
 // Hooks
 export * from './hooks/useCarCatalog';

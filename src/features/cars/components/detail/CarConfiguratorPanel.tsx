@@ -22,6 +22,7 @@ interface CarConfiguratorPanelProps {
   onSelectTrim: (trim: TrimType) => void;
   activeColor: string;
   onSelectColor: (colorId: string) => void;
+  onOpenDeposit?: () => void;
 }
 
 export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
@@ -29,6 +30,7 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
   onSelectTrim,
   activeColor,
   onSelectColor,
+  onOpenDeposit,
 }) => {
   const navigate = useNavigate();
 
@@ -276,7 +278,13 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
       <div className="space-y-3 pt-2">
         <button
           type="button"
-          onClick={() => navigate('/customer/deposits')}
+          onClick={() => {
+            if (onOpenDeposit) {
+              onOpenDeposit();
+            } else {
+              navigate('/customer/deposits');
+            }
+          }}
           className="w-full py-4 px-6 rounded-lg bg-accent-action hover:bg-accent-primary text-accent-contrast font-bold text-sm tracking-wide shadow-[0_0_25px_rgba(14,165,233,0.4)] hover:shadow-[0_0_35px_rgba(137,206,255,0.6)] flex items-center justify-center gap-2.5 transition-all cursor-pointer transform hover:-translate-y-0.5"
         >
           <CreditCard className="w-5 h-5 text-accent-contrast" />

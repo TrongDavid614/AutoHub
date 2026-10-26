@@ -4,6 +4,7 @@ import { ChevronRight } from 'lucide-react';
 import { useCarDetail } from '../hooks/useCarDetail';
 import { CarStudioVisualizer } from '../components/detail/CarStudioVisualizer';
 import { CarConfiguratorPanel } from '../components/detail/CarConfiguratorPanel';
+import { CarDepositModal } from '../components/detail/CarDepositModal';
 import { EXTERIOR_COLORS } from '../types/detail.types';
 import { CarEngineeringSpecs } from '../components/detail/CarEngineeringSpecs';
 
@@ -13,6 +14,9 @@ export const CarDetailPage: React.FC = () => {
     setActiveTrim,
     activeColor,
     setActiveColor,
+    isDepositOpen,
+    setIsDepositOpen,
+    currentTrimData,
   } = useCarDetail();
 
   const activeColorObj =
@@ -60,12 +64,23 @@ export const CarDetailPage: React.FC = () => {
             onSelectTrim={setActiveTrim}
             activeColor={activeColor}
             onSelectColor={setActiveColor}
+            onOpenDeposit={() => setIsDepositOpen(true)}
           />
         </div>
       </div>
 
       {/* 3. Technical Telemetry & Engineering Specifications */}
       <CarEngineeringSpecs />
+
+      {/* 4. Car Deposit Modal (72h Online Reservation) */}
+      <CarDepositModal
+        isOpen={isDepositOpen}
+        onClose={() => setIsDepositOpen(false)}
+        carName="AutoHub GT-e"
+        trimName={currentTrimData?.name || 'GT-e Performance'}
+        colorName={activeColorObj.name}
+        depositAmount={20000000}
+      />
     </div>
   );
 };
