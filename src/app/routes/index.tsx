@@ -13,7 +13,7 @@ import { CarEstimatorPage } from '@/features/car-estimator';
 import { CarComparisonPage } from '@/features/car-comparison';
 import { AccessoryListPage, AccessoryDetailPage } from '@/features/accessories';
 import { CartPage } from '@/features/cart';
-import { CheckoutPage, OrderSuccessPage } from '@/features/checkout';
+import { CheckoutPage, OrderSuccessPage, CustomerOrderListPage } from '@/features/checkout';
 import { CarDepositPage } from '@/features/car-deposit';
 import { TestDriveBookingPage } from '@/features/test-drive';
 import { LoginPage, RegisterPage, RegisterSuccessPage } from '@/features/auth';
@@ -82,7 +82,7 @@ export const router = createBrowserRouter([
           { path: 'addresses', element: <AddressBookPage /> },
           { path: 'test-drives', element: <TestDriveBookingPage /> },
           { path: 'deposits', element: <CarDepositPage /> },
-          { path: 'orders', element: <OrderSuccessPage /> },
+          { path: 'orders', element: <CustomerOrderListPage /> },
         ],
       },
     ],
