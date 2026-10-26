@@ -111,7 +111,7 @@ export const CarListPage: React.FC = () => {
           <span className="text-[#88929B]">DÒNG XE</span>
           <span className="text-[#2D3449]">/</span>
           <span className="text-[#89CEFF]">
-            {viewMode === 'row' ? 'DANH MỤC XE ĐIỆN AUTOHUB (DẠNG ROW)' : 'BỘ SƯU TẬP DÒNG XE'}
+            {viewMode === 'row' ? 'DANH MỤC XE ĐIỆN AUTOHUB' : 'BỘ SƯU TẬP DÒNG XE'}
           </span>
         </nav>
 
