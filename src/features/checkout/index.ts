@@ -14,4 +14,11 @@ export * from './hooks/useCheckoutFlow';
 export * from './mocks/checkout.mock';
 
 export * from './pages/CustomerOrderListPage';
+export * from './components/OrderFilterTabs';
+export * from './components/CustomerOrderRowCard';
+export * from './components/OrderReviewModal';
+export * from './components/OrderReturnModal';
+export * from './components/OrderTrackingModal';
+export * from './components/OrderCancelModal';
+export * from './components/OrderTimelineModal';
 export * from './mocks/orders.mock';

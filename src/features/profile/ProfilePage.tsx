@@ -1,1 +1,0 @@
-export const ProfilePage = () => <div><h2 className="text-lg font-bold text-slate-900 mb-2">Thông Tin Cá Nhân (Stub)</h2><p className="text-xs text-slate-500">Quản lý hồ sơ định danh CCCD và số điện thoại</p></div>;
