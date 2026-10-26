@@ -28,11 +28,8 @@ export const ProfilePage: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <UserIcon className="w-6 h-6 text-accent-primary" />
-              <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Hồ Sơ Cá Nhân & Định Danh (UC03)</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Hồ Sơ Cá Nhân & Định Danh</h1>
             </div>
-            <p className="text-xs text-text-muted mt-1">
-              Quản lý thông tin tài khoản hội viên EV-VIP, số định danh CCCD (BR01) và bảo mật đăng nhập.
-            </p>
           </div>
         </div>
 

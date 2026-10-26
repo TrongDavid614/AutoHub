@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Check, Plus } from 'lucide-react';
+import { Calendar, Check } from 'lucide-react';
 import type { TestDriveStatus, TestDriveItem } from '../types';
 import { TestDriveFilterTabs } from '../components/TestDriveFilterTabs';
 import { TestDriveRowCard } from '../components/TestDriveRowCard';
-import { TestDriveBookingModal } from '../components/TestDriveBookingModal';
 import { TestDriveEvaluationModal } from '../components/TestDriveEvaluationModal';
 
 const INITIAL_TEST_DRIVES: TestDriveItem[] = [
@@ -69,9 +68,6 @@ export const TestDriveBookingPage: React.FC = () => {
   const [testDrives, setTestDrives] = useState<TestDriveItem[]>(INITIAL_TEST_DRIVES);
   const [activeTab, setActiveTab] = useState<'ALL' | TestDriveStatus>('ALL');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  // Modal đăng ký lịch lái thử mới
-  const [showBookingModal, setShowBookingModal] = useState(false);
   // Modal xem biên bản đánh giá lái thử
   const [selectedEvaluation, setSelectedEvaluation] = useState<TestDriveItem | null>(null);
 
@@ -87,44 +83,7 @@ export const TestDriveBookingPage: React.FC = () => {
     );
     showToast('Đã hủy lịch hẹn lái thử thành công. Xe Demo đã được giải phóng khung giờ.');
   };
-
-  // 2. Tạo lịch hẹn lái thử mới (UC16)
-  const handleCreateBooking = (data: {
-    selectedCarModel: string;
-    selectedLocation: string;
-    bookingDate: string;
-    timeSlot: string;
-    customerName: string;
-    customerPhone: string;
-    licenseAgreed: boolean;
-  }) => {
-    const newItem: TestDriveItem = {
-      id: Math.floor(1000 + Math.random() * 9000),
-      bookingCode: `#TD-${Math.floor(100 + Math.random() * 900)}`,
-      carModelName: data.selectedCarModel,
-      carVariant:
-        data.selectedCarModel === 'AutoHub GT-e'
-          ? 'Performance Dual-Motor AWD (800V SiC)'
-          : 'Long Range 7-Chỗ (Pin 110 kWh)',
-      carImageUrl:
-        'https://api.builder.io/api/v1/image/assets/TEMP/f8563407750402a5ec748ad5da036903aa27d5e0?width=600',
-      showroomName: data.selectedLocation,
-      showroomAddress:
-        data.selectedLocation.includes('Thủ Đức')
-          ? 'Đại lộ Mai Chí Thọ, Phường An Phú, TP. Thủ Đức'
-          : 'Số 2 Tôn Đức Thắng, Phường Bến Nghé, Quận 1',
-      locationType: 'SHOWROOM',
-      bookingDate: data.bookingDate,
-      timeSlot: data.timeSlot,
-      status: 'PENDING',
-      hasDrivingLicense: true,
-      createdAt: new Date().toISOString(),
-    };
-
-    setTestDrives((prev) => [newItem, ...prev]);
-    setShowBookingModal(false);
-    showToast('Đăng ký lịch lái thử thành công! Cố vấn showroom sẽ đối soát xe Demo và xác nhận trong 24h.');
-  };
+  
 
   const filteredItems =
     activeTab === 'ALL' ? testDrives : testDrives.filter((td) => td.status === activeTab);
@@ -143,14 +102,6 @@ export const TestDriveBookingPage: React.FC = () => {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setShowBookingModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-[4px] bg-accent-action hover:bg-accent-primary text-xs font-bold text-accent-contrast transition-all cursor-pointer shadow-md self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Đăng Ký Lịch Lái Thử Mới</span>
-        </button>
       </div>
 
       {/* 2. Tabs lọc theo Enum TrangThaiLichHen */}
@@ -190,13 +141,6 @@ export const TestDriveBookingPage: React.FC = () => {
           ))
         )}
       </div>
-
-      {/* 4. Modal Đăng ký lịch hẹn lái thử mới (UC16) */}
-      <TestDriveBookingModal
-        isOpen={showBookingModal}
-        onClose={() => setShowBookingModal(false)}
-        onSubmit={handleCreateBooking}
-      />
 
       {/* 5. Modal Biên bản đánh giá trải nghiệm lái thử (COMPLETED) */}
       <TestDriveEvaluationModal
