@@ -106,8 +106,8 @@ export const CustomerLayout: React.FC = () => {
           {/* User Status Badge bên phải */}
           <div className="flex items-center gap-3">
             <div className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-[2px] bg-surface-elevated border border-surface-highlight">
-              <Sparkles className="w-3 h-3 text-amber-400" />
-              <span className="font-mono text-[10px] font-bold text-amber-400 uppercase tracking-wider">
+              <Sparkles className="w-3 h-3 text-accent-primary" />
+              <span className="font-mono text-[10px] font-bold text-accent-primary uppercase tracking-wider">
                 ★ GT-E VIP RESERVE
               </span>
             </div>
@@ -154,7 +154,7 @@ export const CustomerLayout: React.FC = () => {
               <h3 className="text-sm font-bold text-text-primary">
                 {user?.fullName || 'Nguyễn Văn A'}
               </h3>
-              <div className="inline-flex items-center gap-1 font-mono text-[9px] font-bold text-amber-400 uppercase tracking-wider">
+              <div className="inline-flex items-center gap-1 font-mono text-[9px] font-bold text-accent-primary uppercase tracking-wider">
                 <Sparkles className="w-2.5 h-2.5" />
                 <span>★ GT-E VIP RESERVE</span>
               </div>

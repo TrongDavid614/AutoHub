@@ -44,7 +44,7 @@ export const CarDepositRefundModal: React.FC<CarDepositRefundModalProps> = ({
       <div className="w-full max-w-lg rounded-xl bg-surface-container border border-surface-highlight p-6 shadow-2xl relative">
         <div className="flex items-center justify-between pb-3 border-b border-surface-highlight">
           <div className="flex items-center gap-2">
-            <RefreshCcw className="w-5 h-5 text-orange-400" />
+            <RefreshCcw className="w-5 h-5 text-accent-primary" />
             <h3 className="text-base font-bold text-text-primary">Yêu Cầu Hoàn Tiền Cọc Xe (UC18)</h3>
           </div>
           <button
@@ -123,7 +123,7 @@ export const CarDepositRefundModal: React.FC<CarDepositRefundModalProps> = ({
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 rounded bg-orange-500 hover:bg-orange-400 text-xs font-bold text-canvas-deep cursor-pointer transition-colors"
+                className="px-5 py-2 rounded bg-accent-action hover:bg-accent-primary text-xs font-bold text-accent-contrast cursor-pointer transition-colors"
               >
                 Gửi Hồ Sơ Xin Hoàn Cọc
               </button>

@@ -28,13 +28,16 @@ export const ProfilePage: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <UserIcon className="w-6 h-6 text-accent-primary" />
-              <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Hồ Sơ Cá Nhân & Định Danh</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Hồ Sơ Cá Nhân & Định Danh (UC03)</h1>
             </div>
+            <p className="text-xs text-text-muted mt-1">
+              Quản lý thông tin tài khoản hội viên EV-VIP, số định danh CCCD (BR01) và bảo mật đăng nhập.
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-[4px] bg-amber-500/10 border border-amber-500/30 text-amber-400 self-start sm:self-auto shadow-sm">
-          <Sparkles className="w-4 h-4 animate-spin text-amber-400" />
+        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-[4px] bg-accent-action/10 border border-accent-primary/30 text-accent-primary self-start sm:self-auto shadow-sm">
+          <Sparkles className="w-4 h-4 animate-spin text-accent-primary" />
           <span className="text-xs font-mono font-bold tracking-wider">HẠNG THÀNH VIÊN: VIP TITANIUM</span>
         </div>
       </div>

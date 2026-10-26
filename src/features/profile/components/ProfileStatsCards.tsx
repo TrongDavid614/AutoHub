@@ -15,12 +15,12 @@ export const ProfileStatsCards: React.FC = () => {
       </div>
 
       <div className="p-4 rounded-[4px] bg-surface-elevated/60 border border-surface-highlight flex items-center gap-3.5 shadow-sm">
-        <div className="w-10 h-10 rounded-[2px] bg-amber-500/15 flex items-center justify-center text-amber-400 shrink-0">
-          <CreditCard className="w-5 h-5 text-amber-400" />
+        <div className="w-10 h-10 rounded-[2px] bg-accent-action/15 flex items-center justify-center text-accent-primary shrink-0">
+          <CreditCard className="w-5 h-5 text-accent-primary" />
         </div>
         <div>
           <div className="text-[10px] font-mono text-text-muted uppercase">PHIẾU CỌC XE 72H</div>
-          <div className="text-lg font-bold text-amber-400 font-mono">01 Đang giữ chỗ</div>
+          <div className="text-lg font-bold text-accent-primary font-mono">01 Đang giữ chỗ</div>
         </div>
       </div>
 
