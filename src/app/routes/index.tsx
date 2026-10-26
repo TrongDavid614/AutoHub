@@ -32,6 +32,7 @@ import {
   FeeVoucherMasterPage,
   UserRbacPage,
 } from '@/features/admin-portal';
+import { AiConsultantPage } from '@/features/ai-consultant/pages/AiConsultantPage';
 
 export const router = createBrowserRouter([
   // 1. PUBLIC ROUTES (Mọi người dùng & Khách vãng lai)
@@ -42,6 +43,7 @@ export const router = createBrowserRouter([
       { index: true, element: <CarListPage /> },
       { path: 'cars', element: <CarListPage /> },
       { path: 'cars/:id', element: <CarDetailPage /> },
+      { path: 'ai-consultant', element: <AiConsultantPage /> },
       { path: 'car-estimator', element: <CarEstimatorPage /> },
       { path: 'car-comparison', element: <CarComparisonPage /> },
       { path: 'accessories', element: <AccessoryListPage /> },

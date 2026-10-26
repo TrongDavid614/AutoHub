@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ShoppingCart, Scale, User as UserIcon, Search, Sparkles, Phone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/Logo';
@@ -14,8 +14,7 @@ export interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ className }) => {
   const totalCartCount = useCartStore((s) => s.getTotalItemsCount());
   const compareCount = useCompareStore((s) => s.selectedVariants.length);
-  const { user, isAuthenticated, logout } = useAuthStore();
-  const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuthStore();
 
   return (
     <header
@@ -113,16 +112,6 @@ export const Header: React.FC<HeaderProps> = ({ className }) => {
                 <UserIcon className="w-4 h-4 text-[#89CEFF]" />
                 <span className="max-w-[120px] truncate">{user?.fullName}</span>
               </Link>
-              <button
-                type="button"
-                onClick={() => {
-                  logout();
-                  navigate('/');
-                }}
-                className="text-xs text-[#88929B] hover:text-rose-400 transition-colors"
-              >
-                Thoát
-              </button>
             </div>
           ) : (
             <Link
