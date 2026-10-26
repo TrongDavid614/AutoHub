@@ -152,7 +152,7 @@ export const AddressBookPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <MapPin className="w-6 h-6 text-accent-primary" />
-            <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Sổ Địa Chỉ Giao Hàng (UC03)</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Sổ Địa Chỉ Giao Hàng</h1>
           </div>
           <p className="text-xs text-text-muted mt-1">
             Quản lý danh sách địa chỉ nhận hàng phụ kiện ô tô và điểm hẹn kỹ thuật viên khảo sát trạm sạc tại nhà.

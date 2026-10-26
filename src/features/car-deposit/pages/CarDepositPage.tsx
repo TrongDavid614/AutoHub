@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CreditCard, ShieldCheck, Check } from 'lucide-react';
+import { CreditCard, Check } from 'lucide-react';
 import type { CarDepositStatus, CarDepositItem } from '../types';
 import { CarDepositFilterTabs } from '../components/CarDepositFilterTabs';
 import { CarDepositRowCard } from '../components/CarDepositRowCard';
@@ -147,16 +147,11 @@ export const CarDepositPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2">
             <CreditCard className="w-6 h-6 text-accent-primary" />
-            <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Phiếu Đặt Cọc Giữ Xe 72H (UC17)</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Phiếu Đặt Cọc Giữ Xe 72H</h1>
           </div>
           <p className="text-xs text-text-muted mt-1">
             Theo dõi trạng thái tạm khóa suất xe trong kho trong thời hạn 72 giờ liên tục, đối soát số khung VIN và trích xuất biên lai điện tử.
           </p>
-        </div>
-
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-[4px] bg-surface-elevated border border-surface-highlight text-xs text-text-muted">
-          <ShieldCheck className="w-4 h-4 text-accent-primary" />
-          <span>Bảo mật giao dịch VNPay HMAC-SHA512</span>
         </div>
       </div>
 
