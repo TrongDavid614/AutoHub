@@ -55,11 +55,11 @@ export const ProfileInfoForm: React.FC = () => {
       <div className="flex items-center justify-between pb-4 border-b border-surface-highlight">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-5 h-5 text-accent-primary" />
-          <h2 className="text-base font-bold text-text-primary">Thông Tin Định Danh Khách Hàng</h2>
+          <h2 className="text-base font-bold text-text-primary">Thông Tin Định Danh Khách Hàng (UC03)</h2>
         </div>
         <span className="text-[11px] font-mono text-emerald-400 font-semibold flex items-center gap-1">
           <Check className="w-3.5 h-3.5" />
-          <span>Đã xác thực OTP</span>
+          <span>ĐÃ ĐỐI SOÁT BR01</span>
         </span>
       </div>
 
@@ -73,7 +73,7 @@ export const ProfileInfoForm: React.FC = () => {
         <div className="space-y-1">
           <h3 className="text-sm font-bold text-text-primary">{fullName}</h3>
           <p className="text-xs text-text-muted font-mono">{user?.email || 'nguyenvana@gmail.com'}</p>
-          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[2px] bg-surface-container border border-amber-400/40 text-[10px] font-mono text-amber-300 font-bold">
+          <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[2px] bg-surface-container border border-accent-primary/40 text-[10px] font-mono text-accent-primary font-bold">
             <Sparkles className="w-2.5 h-2.5" />
             <span>★ GT-E VIP RESERVE</span>
           </div>
@@ -93,12 +93,10 @@ export const ProfileInfoForm: React.FC = () => {
         </div>
       )}
 
-      <form onSubmit={handleSaveProfile} className="space-y-5">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <form onSubmit={handleSaveProfile} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-text-primary">
-              Họ và tên <span className="text-accent-primary">*</span>
-            </label>
+            <label className="text-xs font-semibold text-text-primary">Họ và tên khách hàng *</label>
             <div className="relative flex items-center">
               <UserIcon className="w-4 h-4 text-text-muted absolute left-3 pointer-events-none" />
               <input
@@ -106,31 +104,26 @@ export const ProfileInfoForm: React.FC = () => {
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Nguyễn Văn A"
                 className="w-full h-10 pl-9 pr-3 bg-canvas-deep border border-surface-highlight focus:border-accent-primary rounded-[4px] text-xs text-text-primary focus:outline-none"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-text-primary">
-              Địa chỉ Email
-            </label>
+            <label className="text-xs font-semibold text-text-primary">Địa chỉ Email (Định danh đăng nhập)</label>
             <div className="relative flex items-center">
               <Mail className="w-4 h-4 text-text-muted absolute left-3 pointer-events-none" />
               <input
                 type="email"
                 disabled
                 value={user?.email || 'nguyenvana@gmail.com'}
-                className="w-full h-10 pl-9 pr-3 bg-canvas-deep/60 border border-surface-highlight/60 rounded-[4px] text-xs text-text-muted cursor-not-allowed"
+                className="w-full h-10 pl-9 pr-3 bg-canvas-deep/50 border border-surface-highlight/50 rounded-[4px] text-xs text-text-muted font-mono cursor-not-allowed"
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-text-primary">
-              Số điện thoại <span className="text-accent-primary">*</span>
-            </label>
+            <label className="text-xs font-semibold text-text-primary">Số điện thoại liên hệ *</label>
             <div className="relative flex items-center">
               <Phone className="w-4 h-4 text-text-muted absolute left-3 pointer-events-none" />
               <input
@@ -138,7 +131,6 @@ export const ProfileInfoForm: React.FC = () => {
                 required
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="0912 345 678"
                 className="w-full h-10 pl-9 pr-3 bg-canvas-deep border border-surface-highlight focus:border-accent-primary rounded-[4px] text-xs text-text-primary font-mono focus:outline-none"
               />
             </div>
@@ -147,7 +139,7 @@ export const ProfileInfoForm: React.FC = () => {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label className="text-xs font-semibold text-text-primary">
-                Số CCCD định danh <span className="text-amber-400">*</span>
+                Số CCCD định danh <span className="text-accent-primary">*</span>
               </label>
             </div>
             <div className="relative flex items-center">
@@ -158,7 +150,7 @@ export const ProfileInfoForm: React.FC = () => {
                 value={identityCard}
                 onChange={(e) => setIdentityCard(e.target.value)}
                 placeholder="12 chữ số CCCD gắn chip"
-                className="w-full h-10 pl-9 pr-3 bg-canvas-deep border border-surface-highlight focus:border-amber-400 rounded-[4px] text-xs text-text-primary font-mono tracking-wider focus:outline-none"
+                className="w-full h-10 pl-9 pr-3 bg-canvas-deep border border-surface-highlight focus:border-accent-primary rounded-[4px] text-xs text-text-primary font-mono tracking-wider focus:outline-none"
               />
             </div>
           </div>

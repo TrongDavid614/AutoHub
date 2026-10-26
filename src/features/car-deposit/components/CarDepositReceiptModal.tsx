@@ -18,7 +18,7 @@ export const CarDepositReceiptModal: React.FC<CarDepositReceiptModalProps> = ({
       <div className="w-full max-w-xl rounded-xl bg-surface-container border border-surface-highlight p-6 shadow-2xl relative">
         <div className="flex items-center justify-between pb-3 border-b border-surface-highlight">
           <div className="flex items-center gap-2">
-            <FileCheck2 className="w-5 h-5 text-amber-400" />
+            <FileCheck2 className="w-5 h-5 text-accent-primary" />
             <h3 className="text-base font-bold text-text-primary">Biên Nhận Đặt Cọc Xe Ô Tô Điện Tử</h3>
           </div>
           <button
@@ -34,7 +34,7 @@ export const CarDepositReceiptModal: React.FC<CarDepositReceiptModalProps> = ({
           <div className="p-4 rounded bg-canvas-deep border border-surface-highlight space-y-2">
             <div className="flex justify-between items-center text-text-muted">
               <span>MÃ PHIẾU CỌC:</span>
-              <span className="font-mono font-bold text-amber-400 text-sm">{receipt.depositCode}</span>
+              <span className="font-mono font-bold text-accent-primary text-sm">{receipt.depositCode}</span>
             </div>
             <div className="flex justify-between items-center text-text-muted">
               <span>MÃ ĐỐI SOÁT VNPAY:</span>
@@ -60,7 +60,7 @@ export const CarDepositReceiptModal: React.FC<CarDepositReceiptModalProps> = ({
             )}
             <div className="pt-2 border-t border-surface-highlight flex justify-between items-baseline">
               <span className="text-text-primary font-bold">TIỀN CỌC ĐÃ THANH TOÁN:</span>
-              <span className="font-mono text-lg font-bold text-amber-400">
+              <span className="font-mono text-lg font-bold text-accent-primary">
                 {receipt.depositAmount.toLocaleString('vi-VN')} VNĐ
               </span>
             </div>

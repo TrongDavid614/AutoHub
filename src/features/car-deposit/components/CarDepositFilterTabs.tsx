@@ -39,14 +39,14 @@ export const CarDepositFilterTabs: React.FC<CarDepositFilterTabsProps> = ({
               onClick={() => onSelectTab(tab.key)}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-[4px] text-xs font-mono font-bold tracking-wider uppercase transition-all cursor-pointer ${
                 isActive
-                  ? 'bg-amber-400 text-canvas-deep shadow-[0_0_15px_rgba(251,191,36,0.35)]'
+                  ? 'bg-accent-action text-accent-contrast shadow-[0_0_15px_rgba(14,165,233,0.35)]'
                   : 'text-text-secondary hover:text-text-primary hover:bg-surface-container'
               }`}
             >
               <span>{tab.label}</span>
               <span
                 className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-                  isActive ? 'bg-canvas-deep text-amber-400 font-bold' : 'bg-surface-interactive text-text-muted'
+                  isActive ? 'bg-accent-contrast text-accent-primary font-bold' : 'bg-surface-interactive text-text-muted'
                 }`}
               >
                 {count}

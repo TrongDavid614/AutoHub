@@ -59,14 +59,14 @@ export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
         );
       case 'PENDING_PAYMENT':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-amber-500/15 border border-amber-500/40 text-amber-300 font-mono text-[11px] font-bold uppercase tracking-wider">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-sky-500/15 border border-sky-500/40 text-sky-300 font-mono text-[11px] font-bold uppercase tracking-wider">
             <Clock className="w-3.5 h-3.5 animate-spin" />
             <span>CHỜ THANH TOÁN (15 PHÚT)</span>
           </span>
         );
       case 'REFUND_REQUESTED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-orange-500/15 border border-orange-500/40 text-orange-300 font-mono text-[11px] font-bold uppercase tracking-wider">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-sky-500/15 border border-sky-500/40 text-sky-300 font-mono text-[11px] font-bold uppercase tracking-wider">
             <RefreshCcw className="w-3.5 h-3.5 animate-spin" />
             <span>ĐANG THẨM ĐỊNH HOÀN CỌC</span>
           </span>
@@ -96,17 +96,17 @@ export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
   };
 
   return (
-    <div className="rounded-[6px] bg-surface-elevated/80 border border-surface-highlight hover:border-amber-400/40 shadow-xl overflow-hidden transition-all duration-200">
+    <div className="rounded-[6px] bg-surface-elevated/80 border border-surface-highlight hover:border-accent-primary/40 shadow-xl overflow-hidden transition-all duration-200">
       {/* Header của Row: Mã cọc, Ngày đặt, Badge trạng thái */}
       <div className="p-4 bg-surface-container border-b border-surface-highlight flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-1.5">
             <span className="text-xs text-text-muted font-mono">MÃ PHIẾU CỌC:</span>
-            <span className="font-mono text-sm font-bold text-amber-400">{item.depositCode}</span>
+            <span className="font-mono text-sm font-bold text-accent-primary">{item.depositCode}</span>
             <button
               type="button"
               onClick={() => onCopy(item.depositCode)}
-              className="p-1 rounded hover:bg-surface-interactive text-text-muted hover:text-amber-400 transition-colors cursor-pointer"
+              className="p-1 rounded hover:bg-surface-interactive text-text-muted hover:text-accent-primary transition-colors cursor-pointer"
               title="Sao chép mã phiếu cọc"
             >
               {copiedCode === item.depositCode ? (
@@ -142,7 +142,7 @@ export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
             className="w-28 h-20 rounded-[4px] bg-canvas-deep border border-surface-highlight object-cover shrink-0"
           />
           <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[2px] bg-amber-400/15 text-amber-400 font-mono text-[10px] font-bold">
+            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[2px] bg-accent-action/15 text-accent-primary font-mono text-[10px] font-bold">
               <Sparkles className="w-3 h-3" />
               <span>SUẤT GIỮ XE ĐIỆN 72H LIÊN TỤC</span>
             </div>
@@ -167,12 +167,12 @@ export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
               <div className="font-bold text-sm tracking-wider">{item.vinNumber}</div>
             </div>
           ) : item.status === 'PAID' ? (
-            <div className="p-2 rounded bg-amber-500/10 border border-amber-500/30 text-amber-300 font-mono text-xs">
-              <div className="text-[10px] uppercase font-bold text-amber-400 flex items-center gap-1">
-                <Clock className="w-3 h-3 animate-pulse" />
+            <div className="p-2 rounded bg-accent-action/10 border border-accent-primary/30 text-accent-primary font-mono text-xs">
+              <div className="text-[10px] uppercase font-bold text-accent-primary flex items-center gap-1">
+                <Clock className="w-3 h-3 animate-pulse text-accent-primary" />
                 <span>Thời hạn giữ chỗ 72h còn lại:</span>
               </div>
-              <div className="font-bold text-sm tracking-wide mt-0.5">
+              <div className="font-bold text-sm tracking-wide mt-0.5 text-accent-primary">
                 {format72hCountdown(remainingSeconds)}
               </div>
             </div>
@@ -192,7 +192,7 @@ export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
       <div className="p-3 bg-surface-container/90 border-t border-surface-highlight flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="text-[11px] text-text-muted font-mono uppercase">Tiền cọc giữ chỗ (DR08):</div>
-          <div className="font-mono text-lg font-bold text-amber-400">
+          <div className="font-mono text-lg font-bold text-accent-primary">
             {item.depositAmount.toLocaleString('vi-VN')} VNĐ
           </div>
         </div>
@@ -202,9 +202,9 @@ export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
           <button
             type="button"
             onClick={() => onSelectReceipt(item)}
-            className="px-3.5 py-2 rounded-[2px] bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight hover:border-amber-400/50 text-xs font-semibold text-text-primary flex items-center gap-1.5 cursor-pointer transition-colors"
+            className="px-3.5 py-2 rounded-[2px] bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight hover:border-accent-primary/50 text-xs font-semibold text-text-primary flex items-center gap-1.5 cursor-pointer transition-colors"
           >
-            <Download className="w-3.5 h-3.5 text-amber-400" />
+            <Download className="w-3.5 h-3.5 text-accent-primary" />
             <span>Biên nhận điện tử</span>
           </button>
 
@@ -213,7 +213,7 @@ export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
             <button
               type="button"
               onClick={() => onRequestRefund(item)}
-              className="px-3 py-2 rounded-[2px] bg-surface-elevated hover:bg-orange-950/40 border border-surface-highlight hover:border-orange-500/50 text-xs font-semibold text-orange-400 flex items-center gap-1 cursor-pointer transition-colors"
+              className="px-3 py-2 rounded-[2px] bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight hover:border-accent-primary/50 text-xs font-semibold text-accent-primary flex items-center gap-1 cursor-pointer transition-colors"
             >
               <RefreshCcw className="w-3.5 h-3.5" />
               <span>Yêu cầu hoàn cọc</span>

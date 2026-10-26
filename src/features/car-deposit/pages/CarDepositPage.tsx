@@ -25,7 +25,7 @@ const INITIAL_DEPOSITS: CarDepositItem[] = [
     showroomAddress: 'Đại lộ Mai Chí Thọ, Phường An Phú, TP. Thủ Đức, TP. Hồ Chí Minh',
     status: 'PAID',
     vnpayTransactionId: 'vnp_9921448',
-    paidAt: new Date(Date.now() - 14 * 60 * 60 * 1000).toISOString(),
+    paidAt: new Date(Date.now() - 14 * 60 * 60 * 1000).toISOString(), // Đã cọc cách đây 14h
     createdAt: new Date(Date.now() - 14 * 60 * 60 * 1000).toISOString(),
   },
 
@@ -146,7 +146,7 @@ export const CarDepositPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-surface-highlight">
         <div>
           <div className="flex items-center gap-2">
-            <CreditCard className="w-6 h-6 text-amber-400" />
+            <CreditCard className="w-6 h-6 text-accent-primary" />
             <h1 className="text-xl sm:text-2xl font-bold text-text-primary">Phiếu Đặt Cọc Giữ Xe 72H (UC17)</h1>
           </div>
           <p className="text-xs text-text-muted mt-1">
