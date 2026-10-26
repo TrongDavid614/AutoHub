@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Check } from 'lucide-react';
+import { Calendar, Check, Plus } from 'lucide-react';
 import type { TestDriveStatus, TestDriveItem } from '../types';
 import { TestDriveFilterTabs } from '../components/TestDriveFilterTabs';
 import { TestDriveRowCard } from '../components/TestDriveRowCard';
 import { TestDriveEvaluationModal } from '../components/TestDriveEvaluationModal';
+import { TestDriveBookingModal } from '../components/TestDriveBookingModal';
 
 const INITIAL_TEST_DRIVES: TestDriveItem[] = [
   {
@@ -68,6 +69,7 @@ export const TestDriveBookingPage: React.FC = () => {
   const [testDrives, setTestDrives] = useState<TestDriveItem[]>(INITIAL_TEST_DRIVES);
   const [activeTab, setActiveTab] = useState<'ALL' | TestDriveStatus>('ALL');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   // Modal xem biên bản đánh giá lái thử
   const [selectedEvaluation, setSelectedEvaluation] = useState<TestDriveItem | null>(null);
 
@@ -83,7 +85,6 @@ export const TestDriveBookingPage: React.FC = () => {
     );
     showToast('Đã hủy lịch hẹn lái thử thành công. Xe Demo đã được giải phóng khung giờ.');
   };
-  
 
   const filteredItems =
     activeTab === 'ALL' ? testDrives : testDrives.filter((td) => td.status === activeTab);
@@ -102,6 +103,14 @@ export const TestDriveBookingPage: React.FC = () => {
           </p>
         </div>
 
+        <button
+          type="button"
+          onClick={() => setIsBookingModalOpen(true)}
+          className="py-2.5 px-4 rounded-lg bg-accent-action hover:bg-accent-primary text-accent-contrast font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_0_15px_rgba(14,165,233,0.3)] hover:shadow-[0_0_25px_rgba(137,206,255,0.4)] transition-all cursor-pointer shrink-0"
+        >
+          <Plus className="w-4 h-4 text-accent-contrast" />
+          <span>Đăng ký lái thử mới</span>
+        </button>
       </div>
 
       {/* 2. Tabs lọc theo Enum TrangThaiLichHen */}
@@ -142,10 +151,20 @@ export const TestDriveBookingPage: React.FC = () => {
         )}
       </div>
 
-      {/* 5. Modal Biên bản đánh giá trải nghiệm lái thử (COMPLETED) */}
+      {/* 4. Modal Biên bản đánh giá trải nghiệm lái thử (COMPLETED) */}
       <TestDriveEvaluationModal
         evaluation={selectedEvaluation}
         onClose={() => setSelectedEvaluation(null)}
+      />
+
+      {/* 5. Modal Đăng ký lái thử mới (High-fidelity từ Figma) */}
+      <TestDriveBookingModal
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+        onSubmitSuccess={() => {
+          setIsBookingModalOpen(false);
+          showToast('Đăng ký lái thử xe Demo thành công! Lịch hẹn mới đã được ghi nhận.');
+        }}
       />
     </div>
   );

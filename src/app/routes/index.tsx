@@ -15,7 +15,7 @@ import { AccessoryListPage, AccessoryDetailPage } from '@/features/accessories';
 import { CartPage } from '@/features/cart';
 import { CheckoutPage, OrderSuccessPage, CustomerOrderListPage } from '@/features/checkout';
 import { CarDepositPage } from '@/features/car-deposit';
-import { TestDriveBookingPage } from '@/features/test-drive';
+import { TestDriveBookingPage, TestDriveCanvasPage } from '@/features/test-drive';
 import { LoginPage, RegisterPage, RegisterSuccessPage } from '@/features/auth';
 import { ProfilePage, AddressBookPage } from '@/features/profile';
 import {
@@ -51,7 +51,7 @@ export const router = createBrowserRouter([
       { path: 'checkout/success', element: <OrderSuccessPage /> },
       { path: 'order-success', element: <OrderSuccessPage /> },
       { path: 'deposit/:variantId', element: <CarDepositPage /> },
-      { path: 'test-drive', element: <TestDriveBookingPage /> },
+      { path: 'test-drive', element: <TestDriveCanvasPage /> },
       { path: 'auth/login', element: <LoginPage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'auth/register', element: <RegisterPage /> },
