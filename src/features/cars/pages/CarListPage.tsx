@@ -102,7 +102,7 @@ export const CarListPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full space-y-6 text-[#DAE2FD] antialiased">
+    <div className="w-full space-y-6 text-[#DAE2FD] antialiased animate-fadeIn">
       {/* BREADCRUMB & HEADER SECTION */}
       <div className="space-y-3 pb-4 border-b border-[#3E4850]/40">
         <nav className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-[#88929B] uppercase tracking-wider">

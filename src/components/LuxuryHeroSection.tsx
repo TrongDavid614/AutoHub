@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 export interface LuxuryHeroSectionProps {
   brandName?: string;
@@ -18,7 +18,9 @@ export const LuxuryHeroSection: React.FC<LuxuryHeroSectionProps> = ({
   browseText = 'Bắt đầu khám phá ngay',
   onBrowseClick,
 }) => {
+  const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [isExiting, setIsExiting] = useState<boolean>(false);
 
   // VIDEO CONTINUOUS PLAYBACK WATCHDOG
   useEffect(() => {
@@ -71,6 +73,23 @@ export const LuxuryHeroSection: React.FC<LuxuryHeroSectionProps> = ({
     };
   }, []);
 
+  // SMOOTH CINEMATIC TRANSITION TO /cars
+  const handleStartExplore = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    if (isExiting) return;
+
+    setIsExiting(true);
+
+    // Smooth transition timing: 650ms gives an acceleration zoom effect before route shift
+    setTimeout(() => {
+      if (onBrowseClick) {
+        onBrowseClick();
+      } else {
+        navigate('/cars');
+      }
+    }, 650);
+  };
+
   return (
     <section
       className="relative w-full h-screen min-h-[720px] overflow-hidden bg-[#0a0a0b] select-none font-['Archivo',sans-serif]"
@@ -78,7 +97,7 @@ export const LuxuryHeroSection: React.FC<LuxuryHeroSectionProps> = ({
         fontFamily: "'Archivo', sans-serif",
       }}
     >
-      {/* 1. BACKGROUND VIDEO */}
+      {/* 1. BACKGROUND VIDEO (With Push-In Acceleration Zoom during exit) */}
       <video
         ref={videoRef}
         src="https://cdn.sceneai.art/Hero section video file (2)/37091057-3719-4207-815c-745ebf57aeb4.mp4"
@@ -87,7 +106,9 @@ export const LuxuryHeroSection: React.FC<LuxuryHeroSectionProps> = ({
         loop
         playsInline
         preload="auto"
-        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        className={`absolute inset-0 w-full h-full object-cover pointer-events-none transition-transform duration-700 ease-out ${
+          isExiting ? 'scale-115 filter brightness-75' : 'scale-100'
+        }`}
         style={{
           objectPosition: 'center 60%',
         }}
@@ -102,8 +123,26 @@ export const LuxuryHeroSection: React.FC<LuxuryHeroSectionProps> = ({
         }}
       />
 
-      {/* 3. NAVBAR */}
-      <nav className="relative z-[3] flex items-center justify-between px-6 sm:px-10 lg:px-[56px] py-[34px] w-full">
+      {/* 2.1. CINEMATIC SPEED-TUNNEL TRANSITION CURTAIN */}
+      <div
+        className={`absolute inset-0 pointer-events-none z-[4] transition-all duration-700 ease-in-out ${
+          isExiting ? 'opacity-100 bg-[#0B1326]/95 backdrop-blur-md' : 'opacity-0 bg-transparent'
+        }`}
+      >
+        {/* Glowing Horizon Accent Line */}
+        <div
+          className={`absolute top-1/2 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#89CEFF] to-transparent transform -translate-y-1/2 transition-all duration-700 ${
+            isExiting ? 'scale-x-100 opacity-90' : 'scale-x-0 opacity-0'
+          }`}
+        />
+      </div>
+
+      {/* 3. NAVBAR (Slides up gracefully during exit) */}
+      <nav
+        className={`relative z-[3] flex items-center justify-between px-6 sm:px-10 lg:px-[56px] py-[34px] w-full transition-all duration-500 ease-in-out ${
+          isExiting ? '-translate-y-8 opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
+        }`}
+      >
         {/* Brand Logo (Left) */}
         <div>
           <Link
@@ -116,29 +155,34 @@ export const LuxuryHeroSection: React.FC<LuxuryHeroSectionProps> = ({
 
         {/* Right Action Button -> Bắt đầu khám phá ngay */}
         <div>
-          {onBrowseClick ? (
-            <button
-              type="button"
-              onClick={onBrowseClick}
-              className="inline-flex items-center gap-[10px] px-[20px] py-[11px] rounded-[10px] bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.2)] text-[#FAF9F5] text-[14px] font-[600] cursor-pointer hover:bg-[#e9e9ec] hover:text-[#0a0a0b] hover:border-[#e9e9ec] transition-all duration-300 shadow-sm"
+          <button
+            type="button"
+            onClick={handleStartExplore}
+            disabled={isExiting}
+            className={`group inline-flex items-center gap-[10px] px-[20px] py-[11px] rounded-[10px] bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.2)] text-[#FAF9F5] text-[14px] font-[600] cursor-pointer hover:bg-[#e9e9ec] hover:text-[#0a0a0b] hover:border-[#e9e9ec] transition-all duration-300 shadow-sm ${
+              isExiting
+                ? 'scale-95 bg-white text-[#0a0a0b] border-white shadow-[0_0_25px_rgba(255,255,255,0.7)]'
+                : ''
+            }`}
+          >
+            <span>{browseText}</span>
+            <span
+              className={`text-[15px] leading-none transition-transform duration-300 ${
+                isExiting ? 'translate-x-2' : 'group-hover:translate-x-1'
+              }`}
             >
-              <span>{browseText}</span>
-              <span className="text-[15px] leading-none">→</span>
-            </button>
-          ) : (
-            <Link
-              to="/cars"
-              className="inline-flex items-center gap-[10px] px-[20px] py-[11px] rounded-[10px] bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.2)] text-[#FAF9F5] text-[14px] font-[600] cursor-pointer hover:bg-[#e9e9ec] hover:text-[#0a0a0b] hover:border-[#e9e9ec] transition-all duration-300 shadow-sm"
-            >
-              <span>{browseText}</span>
-              <span className="text-[15px] leading-none">→</span>
-            </Link>
-          )}
+              →
+            </span>
+          </button>
         </div>
       </nav>
 
-      {/* 4. GIANT HEADLINE */}
-      <div className="absolute top-[92px] left-0 w-full text-center z-[2] pointer-events-none">
+      {/* 4. GIANT HEADLINE (Dissolves with motion blur during exit) */}
+      <div
+        className={`absolute top-[92px] left-0 w-full text-center z-[2] pointer-events-none transition-all duration-600 ease-in-out ${
+          isExiting ? 'scale-105 opacity-0 blur-sm -translate-y-4' : 'scale-100 opacity-100'
+        }`}
+      >
         <h1
           className="font-[800] leading-[0.9] tracking-[-0.03em] whitespace-nowrap uppercase select-none"
           style={{
@@ -154,8 +198,12 @@ export const LuxuryHeroSection: React.FC<LuxuryHeroSectionProps> = ({
         </h1>
       </div>
 
-      {/* 5. BOTTOM-LEFT HERO COPY */}
-      <div className="absolute left-6 sm:left-10 lg:left-[56px] bottom-6 sm:bottom-10 lg:bottom-[56px] z-[3] max-w-[620px]">
+      {/* 5. BOTTOM-LEFT HERO COPY (Slides down gracefully during exit) */}
+      <div
+        className={`absolute left-6 sm:left-10 lg:left-[56px] bottom-6 sm:bottom-10 lg:bottom-[56px] z-[3] max-w-[620px] transition-all duration-500 ease-in-out ${
+          isExiting ? 'translate-y-8 opacity-0 blur-sm' : 'translate-y-0 opacity-100'
+        }`}
+      >
         {/* Heading */}
         <h2
           className="text-white font-[600] tracking-[-0.02em] leading-[0.98]"
