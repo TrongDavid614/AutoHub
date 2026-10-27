@@ -6,10 +6,8 @@ export interface LuxuryHeroSectionProps {
   headline?: string;
   subHeading?: string;
   description?: string;
-  ctaText?: string;
   browseText?: string;
   onBrowseClick?: () => void;
-  onDiscoverClick?: () => void;
 }
 
 export const LuxuryHeroSection: React.FC<LuxuryHeroSectionProps> = ({
@@ -17,10 +15,8 @@ export const LuxuryHeroSection: React.FC<LuxuryHeroSectionProps> = ({
   headline = 'REGAL DRIVE',
   subHeading = 'Rent Your Dream Luxury Car Today',
   description = 'Enjoy a premium rental experience with exclusive cars, seamless booking, and honest pricing.',
-  ctaText = 'DISCOVER NOW',
-  browseText = 'Browse cars',
+  browseText = 'Bắt đầu khám phá ngay',
   onBrowseClick,
-  onDiscoverClick,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -108,51 +104,23 @@ export const LuxuryHeroSection: React.FC<LuxuryHeroSectionProps> = ({
 
       {/* 3. NAVBAR */}
       <nav className="relative z-[3] flex items-center justify-between px-6 sm:px-10 lg:px-[56px] py-[34px] w-full">
-        {/* Left Navigation Links */}
-        <div className="flex items-center gap-[42px]">
+        {/* Brand Logo (Left) */}
+        <div>
           <Link
             to="/"
-            className="text-[14px] font-[500] text-white border-b-2 border-white pb-[3px] transition-colors"
-          >
-            Home
-          </Link>
-          <Link
-            to="/about"
-            className="text-[14px] font-[500] text-[rgba(255,255,255,0.82)] hover:text-white transition-colors"
-          >
-            About
-          </Link>
-          <Link
-            to="/cars"
-            className="text-[14px] font-[500] text-[rgba(255,255,255,0.82)] hover:text-white transition-colors"
-          >
-            Cars
-          </Link>
-          <Link
-            to="/contact"
-            className="text-[14px] font-[500] text-[rgba(255,255,255,0.82)] hover:text-white transition-colors"
-          >
-            Contact
-          </Link>
-        </div>
-
-        {/* Center Text Logo */}
-        <div className="absolute left-1/2 -translate-x-1/2">
-          <Link
-            to="/"
-            className="text-white text-[26px] font-[700] tracking-[0.04em] uppercase"
+            className="text-white text-[24px] sm:text-[26px] font-[700] tracking-[0.04em] uppercase hover:opacity-90 transition-opacity"
           >
             {brandName}
           </Link>
         </div>
 
-        {/* Right Action Button */}
+        {/* Right Action Button -> Bắt đầu khám phá ngay */}
         <div>
           {onBrowseClick ? (
             <button
               type="button"
               onClick={onBrowseClick}
-              className="inline-flex items-center gap-[10px] px-[20px] py-[11px] rounded-[10px] bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.2)] text-[#FAF9F5] text-[14px] font-[600] cursor-pointer hover:bg-[#e9e9ec] hover:text-[#0a0a0b] hover:border-[#e9e9ec] transition-all duration-300"
+              className="inline-flex items-center gap-[10px] px-[20px] py-[11px] rounded-[10px] bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.2)] text-[#FAF9F5] text-[14px] font-[600] cursor-pointer hover:bg-[#e9e9ec] hover:text-[#0a0a0b] hover:border-[#e9e9ec] transition-all duration-300 shadow-sm"
             >
               <span>{browseText}</span>
               <span className="text-[15px] leading-none">→</span>
@@ -160,7 +128,7 @@ export const LuxuryHeroSection: React.FC<LuxuryHeroSectionProps> = ({
           ) : (
             <Link
               to="/cars"
-              className="inline-flex items-center gap-[10px] px-[20px] py-[11px] rounded-[10px] bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.2)] text-[#FAF9F5] text-[14px] font-[600] cursor-pointer hover:bg-[#e9e9ec] hover:text-[#0a0a0b] hover:border-[#e9e9ec] transition-all duration-300"
+              className="inline-flex items-center gap-[10px] px-[20px] py-[11px] rounded-[10px] bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.2)] text-[#FAF9F5] text-[14px] font-[600] cursor-pointer hover:bg-[#e9e9ec] hover:text-[#0a0a0b] hover:border-[#e9e9ec] transition-all duration-300 shadow-sm"
             >
               <span>{browseText}</span>
               <span className="text-[15px] leading-none">→</span>
@@ -202,28 +170,6 @@ export const LuxuryHeroSection: React.FC<LuxuryHeroSectionProps> = ({
         <p className="text-[rgba(255,255,255,0.82)] text-[15px] font-[400] leading-[1.5] max-w-[480px] mt-[18px]">
           {description}
         </p>
-
-        {/* Button DISCOVER NOW */}
-        <div className="mt-[32px]">
-          {onDiscoverClick ? (
-            <button
-              type="button"
-              onClick={onDiscoverClick}
-              className="inline-flex items-center gap-[12px] px-[24px] py-[13px] rounded-[10px] bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.2)] backdrop-blur-[6px] text-white text-[14px] font-[600] tracking-[0.04em] uppercase cursor-pointer hover:bg-white hover:text-[#0a0a0b] hover:border-white transition-all duration-300"
-            >
-              <span>{ctaText}</span>
-              <span className="text-[15px] leading-none font-bold">↗</span>
-            </button>
-          ) : (
-            <Link
-              to="/cars"
-              className="inline-flex items-center gap-[12px] px-[24px] py-[13px] rounded-[10px] bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.2)] backdrop-blur-[6px] text-white text-[14px] font-[600] tracking-[0.04em] uppercase cursor-pointer hover:bg-white hover:text-[#0a0a0b] hover:border-white transition-all duration-300"
-            >
-              <span>{ctaText}</span>
-              <span className="text-[15px] leading-none font-bold">↗</span>
-            </Link>
-          )}
-        </div>
       </div>
     </section>
   );
