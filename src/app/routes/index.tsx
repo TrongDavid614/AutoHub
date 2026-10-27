@@ -33,8 +33,15 @@ import {
   UserRbacPage,
 } from '@/features/admin-portal';
 import { AiConsultantPage } from '@/features/ai-consultant/pages/AiConsultantPage';
+import { LuxuryHeroSection } from '@/components';
 
 export const router = createBrowserRouter([
+  // 0. STANDALONE FULLSCREEN LUXURY HERO
+  {
+    path: '/hero',
+    element: <LuxuryHeroSection />,
+  },
+
   // 1. PUBLIC ROUTES (Mọi người dùng & Khách vãng lai)
   {
     path: '/',

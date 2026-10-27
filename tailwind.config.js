@@ -11,6 +11,7 @@ export default {
         'desktop-fhd': '1920px',
       },
       fontFamily: {
+        archivo: ['Archivo', 'sans-serif'],
         sans: ['Plus Jakarta Sans', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
         mono: ['Space Mono', 'monospace'],
       },
