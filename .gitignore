@@ -7,16 +7,49 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Frontend dependencies & build outputs
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+dist-ssr/
 *.local
+.env
+.env.*.local
 
-# Editor directories and files
+# Backend Gradle & build outputs
+.gradle/
+**/.gradle/
+build/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+bin/
+**/bin/
+out/
+**/out/
+
+# IDE & Editor files
+.idea/
+**/.idea/
+*.iws
+*.iml
+*.ipr
 .vscode/*
 !.vscode/extensions.json
-.idea
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# Operating System files
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
