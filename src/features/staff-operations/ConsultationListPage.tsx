@@ -1,1 +1,0 @@
-export const ConsultationListPage = () => <div><h2 className="text-lg font-bold text-white mb-2">Tiếp Nhận & Xử Lý Yêu Cầu Tư Vấn (UC20)</h2></div>;

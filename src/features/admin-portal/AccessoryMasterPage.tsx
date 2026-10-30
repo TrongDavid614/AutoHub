@@ -1,1 +1,0 @@
-export const AccessoryMasterPage = () => <div><h2 className="text-lg font-bold text-white mb-2">Quản Trị Danh Mục Phụ Kiện & Tồn Kho (F21)</h2></div>;

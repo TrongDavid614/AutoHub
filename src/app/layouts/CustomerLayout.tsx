@@ -9,7 +9,6 @@ import {
   X,
   ChevronRight,
   LogOut,
-  Sparkles,
   Headphones,
 } from 'lucide-react';
 import { Header, Footer } from '@/components';
@@ -103,24 +102,8 @@ export const CustomerLayout: React.FC = () => {
             </div>
           </div>
 
-          {/* User Status Badge bên phải */}
-          <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-[2px] bg-surface-elevated border border-surface-highlight">
-              <Sparkles className="w-3 h-3 text-accent-primary" />
-              <span className="font-mono text-[10px] font-bold text-accent-primary uppercase tracking-wider">
-                ★ GT-E VIP RESERVE
-              </span>
-            </div>
-
-            <div className="text-right">
-              <div className="text-xs font-bold text-text-primary">
-                {user?.fullName || 'Nguyễn Văn A'}
-              </div>
-              <div className="text-[10px] text-text-muted font-mono">
-                {user?.email || 'nguyenvana@gmail.com'}
-              </div>
-            </div>
-          </div>
+          {/* Phía bên phải thanh trạng thái */}
+          <div className="flex items-center gap-3" />
         </div>
       </section>
 
@@ -154,10 +137,7 @@ export const CustomerLayout: React.FC = () => {
               <h3 className="text-sm font-bold text-text-primary">
                 {user?.fullName || 'Nguyễn Văn A'}
               </h3>
-              <div className="inline-flex items-center gap-1 font-mono text-[9px] font-bold text-accent-primary uppercase tracking-wider">
-                <Sparkles className="w-2.5 h-2.5" />
-                <span>★ GT-E VIP RESERVE</span>
-              </div>
+              <p className="text-[10px] text-text-muted font-mono">{user?.email || "nguyenvana@gmail.com"}</p>
             </div>
           </div>
 
@@ -257,7 +237,7 @@ export const CustomerLayout: React.FC = () => {
 
       {/* 4. CUSTOMER CONTENT OUTLET (Toàn bộ không gian rộng rãi, thoáng đãng) */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <div className="bg-surface-container border border-surface-highlight rounded-[4px] p-4 sm:p-6 md:p-8 shadow-2xl min-w-0 transition-all">
+        <div key={location.pathname} className="bg-surface-container border border-surface-highlight rounded-[4px] p-4 sm:p-6 md:p-8 shadow-2xl min-w-0 animate-pageTransition">
           <Outlet />
         </div>
       </main>

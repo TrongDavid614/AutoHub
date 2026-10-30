@@ -1,0 +1,163 @@
+import React, { useState } from 'react';
+import { ShieldCheck, Check, AlertCircle, User as UserIcon, Mail, Phone, CreditCard, Save } from 'lucide-react';
+import { useAuthStore } from '@/store/useAuthStore';
+
+export const ProfileInfoForm: React.FC = () => {
+  const { user, updateUser } = useAuthStore();
+
+  const [fullName, setFullName] = useState(user?.fullName || 'Nguyễn Văn A');
+  const [phone, setPhone] = useState(user?.phoneNumber || '0912345678');
+  const [identityCard, setIdentityCard] = useState(user?.identityCardNumber || '079204001234');
+  const [avatarUrl] = useState(
+    user?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80'
+  );
+
+  const [profileSuccess, setProfileSuccess] = useState('');
+  const [profileError, setProfileError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfileError('');
+    setProfileSuccess('');
+
+    if (!fullName.trim()) {
+      setProfileError('Họ và tên không được để trống.');
+      return;
+    }
+
+    const phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
+    if (!phoneRegex.test(phone)) {
+      setProfileError('Số điện thoại không hợp lệ (yêu cầu 10 chữ số đầu số nhà mạng Việt Nam).');
+      return;
+    }
+
+    if (identityCard && !/^[0-9]{12}$/.test(identityCard)) {
+      setProfileError('Số Căn cước công dân (CCCD) phải bao gồm đúng 12 chữ số.');
+      return;
+    }
+
+    setIsSaving(true);
+    setTimeout(() => {
+      updateUser({
+        fullName,
+        phoneNumber: phone,
+        identityCardNumber: identityCard,
+      });
+      setIsSaving(false);
+      setProfileSuccess('Cập nhật hồ sơ thành công! Thông tin định danh đã được đồng bộ.');
+      setTimeout(() => setProfileSuccess(''), 3000);
+    }, 600);
+  };
+
+  return (
+    <div className="rounded-[6px] bg-surface-elevated/80 border border-surface-highlight p-6 shadow-xl space-y-6">
+      <div className="flex items-center justify-between pb-4 border-b border-surface-highlight">
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="w-5 h-5 text-accent-primary" />
+          <h2 className="text-base font-bold text-text-primary">Thông Tin Định Danh Khách Hàng</h2>
+        </div>
+      </div>
+
+      {/* Avatar và thông tin tóm tắt */}
+      <div className="flex items-center gap-4 pb-2">
+        <img
+          src={avatarUrl}
+          alt={fullName}
+          className="w-16 h-16 rounded-full border-2 border-accent-primary object-cover shadow-md"
+        />
+        <div className="space-y-1">
+          <p className="text-xs font-semibold text-text-primary">Ảnh đại diện tài khoản</p>
+          <p className="text-[11px] text-text-muted">Định dạng hỗ trợ: JPG, PNG hoặc WebP</p>
+        </div>
+      </div>
+
+      {profileSuccess && (
+        <div className="p-3 rounded bg-emerald-500/15 border border-emerald-500/40 text-xs text-emerald-300 flex items-center gap-2 animate-fadeIn">
+          <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{profileSuccess}</span>
+        </div>
+      )}
+      {profileError && (
+        <div className="p-3 rounded bg-rose-500/15 border border-rose-500/40 text-xs text-rose-300 flex items-center gap-2 animate-fadeIn">
+          <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+          <span>{profileError}</span>
+        </div>
+      )}
+
+      <form onSubmit={handleSaveProfile} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-text-primary">Họ và tên khách hàng *</label>
+            <div className="relative flex items-center">
+              <UserIcon className="w-4 h-4 text-text-muted absolute left-3 pointer-events-none" />
+              <input
+                type="text"
+                required
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="w-full h-10 pl-9 pr-3 bg-canvas-deep border border-surface-highlight focus:border-accent-primary rounded-[4px] text-xs text-text-primary focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-text-primary">Địa chỉ Email</label>
+            <div className="relative flex items-center">
+              <Mail className="w-4 h-4 text-text-muted absolute left-3 pointer-events-none" />
+              <input
+                type="email"
+                disabled
+                value={user?.email || 'nguyenvana@gmail.com'}
+                className="w-full h-10 pl-9 pr-3 bg-canvas-deep/50 border border-surface-highlight/50 rounded-[4px] text-xs text-text-muted font-mono cursor-not-allowed"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-text-primary">Số điện thoại liên hệ *</label>
+            <div className="relative flex items-center">
+              <Phone className="w-4 h-4 text-text-muted absolute left-3 pointer-events-none" />
+              <input
+                type="tel"
+                required
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full h-10 pl-9 pr-3 bg-canvas-deep border border-surface-highlight focus:border-accent-primary rounded-[4px] text-xs text-text-primary font-mono focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-text-primary">
+                Số CCCD định danh <span className="text-accent-primary">*</span>
+              </label>
+            </div>
+            <div className="relative flex items-center">
+              <CreditCard className="w-4 h-4 text-text-muted absolute left-3 pointer-events-none" />
+              <input
+                type="text"
+                maxLength={12}
+                value={identityCard}
+                onChange={(e) => setIdentityCard(e.target.value)}
+                placeholder="12 chữ số CCCD gắn chip"
+                className="w-full h-10 pl-9 pr-3 bg-canvas-deep border border-surface-highlight focus:border-accent-primary rounded-[4px] text-xs text-text-primary font-mono tracking-wider focus:outline-none"
+              />
+            </div>
+          </div>
+        </div>
+        <div className="flex justify-end pt-2">
+          <button
+            type="submit"
+            disabled={isSaving}
+            className="px-5 py-2.5 rounded-[2px] bg-accent-action hover:bg-accent-primary text-xs font-bold text-accent-contrast flex items-center gap-2 transition-all cursor-pointer shadow-md disabled:opacity-50"
+          >
+            <Save className="w-4 h-4" />
+            <span>{isSaving ? 'Đang lưu...' : 'Lưu Thay Đổi Hồ Sơ'}</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};

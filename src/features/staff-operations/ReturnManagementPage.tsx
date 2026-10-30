@@ -1,1 +1,0 @@
-export const ReturnManagementPage = () => <div><h2 className="text-lg font-bold text-white mb-2">Thẩm Định & Xử Lý Đổi Trả Phụ Kiện (UC24)</h2></div>;

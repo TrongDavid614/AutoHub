@@ -1,1 +1,0 @@
-export const AccessoryDetailPage = () => <div className="space-y-4"><h1 className="text-2xl font-black text-slate-900">Chi Tiết Phụ Kiện & Đồ Chơi Xe (F07 Stub)</h1></div>;

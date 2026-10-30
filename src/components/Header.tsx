@@ -1,6 +1,19 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { ShoppingCart, Scale, User as UserIcon, Search, Sparkles, Phone } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  ShoppingCart,
+  Scale,
+  User as UserIcon,
+  Search,
+  Phone,
+  LogOut,
+  FileText,
+  Calendar,
+  MapPin,
+  Shield,
+  ShoppingBag,
+  ExternalLink,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/Logo';
 import { useCartStore } from '@/store/useCartStore';
@@ -12,9 +25,34 @@ export interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ className }) => {
+  const navigate = useNavigate();
   const totalCartCount = useCartStore((s) => s.getTotalItemsCount());
   const compareCount = useCompareStore((s) => s.selectedVariants.length);
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, logout } = useAuthStore();
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    if (showUserMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showUserMenu]);
+
+  const handleLogout = () => {
+    setShowUserMenu(false);
+    logout();
+    navigate('/');
+  };
 
   return (
     <header
@@ -46,16 +84,6 @@ export const Header: React.FC<HeaderProps> = ({ className }) => {
           </Link>
           <Link to="/accessories" className="hover:text-[#89CEFF] transition-colors">
             Phụ Kiện
-          </Link>
-          <Link to="/test-drive" className="hover:text-[#89CEFF] transition-colors">
-            Lái Thử
-          </Link>
-          <Link
-            to="/ai-consultant"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[2px] bg-[#171F33] border border-cyan-500/40 text-[#89CEFF] hover:text-white hover:border-[#89CEFF] hover:bg-[#222A3D] transition-all text-xs font-semibold"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-[#89CEFF]" />
-            <span>Tư Vấn AI</span>
           </Link>
         </nav>
 
@@ -96,22 +124,136 @@ export const Header: React.FC<HeaderProps> = ({ className }) => {
             )}
           </Link>
 
-          {/* User Profile / Auth Link */}
+          {/* User Profile Trigger (Icon-only like Admin) */}
           {isAuthenticated ? (
-            <div className="flex items-center gap-3">
-              <Link
-                to={
-                  user?.role === 'ROLE_ADMIN'
-                    ? '/admin'
-                    : user?.role === 'ROLE_STAFF'
-                    ? '/staff'
-                    : '/customer/profile'
-                }
-                className="flex items-center gap-2 text-xs font-semibold text-[#DAE2FD] hover:text-[#89CEFF]"
+            <div className="relative" ref={userMenuRef}>
+              <button
+                type="button"
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-200 cursor-pointer shadow-sm relative focus:outline-none bg-gradient-to-tr from-[#0284C7] to-[#89CEFF] text-[#060E20] border border-[#89CEFF]/50 hover:scale-105"
+                title={`Tài khoản: ${user?.fullName || 'Người dùng'}`}
+                aria-label="Tài khoản cá nhân"
               >
-                <UserIcon className="w-4 h-4 text-[#89CEFF]" />
-                <span className="max-w-[120px] truncate">{user?.fullName}</span>
-              </Link>
+                <UserIcon className="w-4 h-4 text-[#060E20]" />
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#10B981] border-2 border-[#131B2E]" />
+              </button>
+
+              {/* User Dropdown Menu */}
+              {showUserMenu && (
+                <div className="absolute right-0 mt-2 w-64 border border-[#3E4850]/60 rounded-xl shadow-2xl p-3 space-y-2 z-50 bg-[#0B1326] text-[#DAE2FD] text-xs animate-in fade-in slide-in-from-top-2 duration-200">
+                  {/* User Info Header */}
+                  <div className="border-b border-[#3E4850]/40 pb-2.5">
+                    <div className="font-bold text-white text-sm">{user?.fullName || 'Khách Hàng'}</div>
+                    <div className="text-[11px] font-mono text-[#88929B] truncate">
+                      {user?.email || 'customer@autohub.vn'}
+                    </div>
+                    <div className="mt-1.5 flex items-center gap-1.5">
+                      {user?.role === 'ROLE_ADMIN' ? (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold">
+                          ADMIN MASTER
+                        </span>
+                      ) : user?.role === 'ROLE_STAFF' ? (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold">
+                          STAFF SHOWROOM
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-sky-500/20 text-sky-400 border border-sky-500/30 font-bold">
+                          THÀNH VIÊN AUTOHUB
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Menu Links */}
+                  <div className="space-y-1 py-1">
+                    {/* Management link if admin or staff */}
+                    {user?.role === 'ROLE_ADMIN' && (
+                      <Link
+                        to="/admin"
+                        onClick={() => setShowUserMenu(false)}
+                        className="flex items-center justify-between p-2 rounded-lg hover:bg-[#171F33] text-rose-400 font-semibold transition-colors"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Shield className="w-3.5 h-3.5" />
+                          Trang Quản Trị Admin
+                        </span>
+                        <ExternalLink className="w-3 h-3 opacity-60" />
+                      </Link>
+                    )}
+
+                    {user?.role === 'ROLE_STAFF' && (
+                      <Link
+                        to="/staff"
+                        onClick={() => setShowUserMenu(false)}
+                        className="flex items-center justify-between p-2 rounded-lg hover:bg-[#171F33] text-amber-400 font-semibold transition-colors"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Shield className="w-3.5 h-3.5" />
+                          Bàn Vận Hành Showroom
+                        </span>
+                        <ExternalLink className="w-3 h-3 opacity-60" />
+                      </Link>
+                    )}
+
+                    <Link
+                      to="/customer/profile"
+                      onClick={() => setShowUserMenu(false)}
+                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-[#171F33] text-[#BEC8D2] hover:text-white transition-colors"
+                    >
+                      <UserIcon className="w-3.5 h-3.5 text-[#89CEFF]" />
+                      <span>Hồ sơ cá nhân</span>
+                    </Link>
+
+                    <Link
+                      to="/customer/orders"
+                      onClick={() => setShowUserMenu(false)}
+                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-[#171F33] text-[#BEC8D2] hover:text-white transition-colors"
+                    >
+                      <ShoppingBag className="w-3.5 h-3.5 text-[#89CEFF]" />
+                      <span>Đơn hàng phụ kiện</span>
+                    </Link>
+
+                    <Link
+                      to="/customer/deposits"
+                      onClick={() => setShowUserMenu(false)}
+                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-[#171F33] text-[#BEC8D2] hover:text-white transition-colors"
+                    >
+                      <FileText className="w-3.5 h-3.5 text-[#89CEFF]" />
+                      <span>Phiếu cọc xe 72h</span>
+                    </Link>
+
+                    <Link
+                      to="/customer/test-drives"
+                      onClick={() => setShowUserMenu(false)}
+                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-[#171F33] text-[#BEC8D2] hover:text-white transition-colors"
+                    >
+                      <Calendar className="w-3.5 h-3.5 text-[#89CEFF]" />
+                      <span>Lịch hẹn lái thử</span>
+                    </Link>
+
+                    <Link
+                      to="/customer/addresses"
+                      onClick={() => setShowUserMenu(false)}
+                      className="flex items-center gap-2 p-2 rounded-lg hover:bg-[#171F33] text-[#BEC8D2] hover:text-white transition-colors"
+                    >
+                      <MapPin className="w-3.5 h-3.5 text-[#89CEFF]" />
+                      <span>Sổ địa chỉ nhận hàng</span>
+                    </Link>
+                  </div>
+
+                  {/* Logout Button */}
+                  <div className="border-t border-[#3E4850]/40 pt-1.5">
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-rose-950/30 text-rose-400 font-semibold transition-colors cursor-pointer text-left"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Đăng xuất</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <Link

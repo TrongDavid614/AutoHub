@@ -23,7 +23,8 @@
 13. [Kho Template chuẩn hóa cho từng loại file](#13-kho-template-chuẩn-hóa-cho-từng-loại-file)
 14. [Quy chuẩn Git & Conventional Commits](#14-quy-chuẩn-git--conventional-commits)
 15. [Chỉ dẫn tác vụ dành riêng cho AI Agent khi Vibe Coding](#15-chỉ-dẫn-tác-vụ-dành-riêng-cho-ai-agent-khi-vibe-coding)
-16. [Checklist kiểm tra trước khi Commit / Mở PR](#16-checklist-kiểm-tra-trước-khi-commit--mở-pr)
+16. [Bộ quy chuẩn phòng chống "AI Slop" & Nâng cao gu thiết kế (Anti-AI-Slop Guidelines)](#16-bộ-quy-chuẩn-phòng-chống-ai-slop--nâng-cao-gu-thiết-kế-anti-ai-slop-guidelines)
+17. [Checklist kiểm tra trước khi Commit / Mở PR](#17-checklist-kiểm-tra-trước-khi-commit--mở-pr)
 
 ---
 
@@ -792,7 +793,123 @@ Sau mỗi phiên hoàn thành code, Agent PHẢI liệt kê:
 
 ---
 
-## 16. CHECKLIST KIỂM TRA TRƯỚC KHI COMMIT / MỞ PR
+## 16. BỘ QUY CHUẨN PHÒNG CHỐNG "AI SLOP" & NÂNG CAO GU THIẾT KẾ (ANTI-AI-SLOP GUIDELINES)
+
+### 16.1. Định nghĩa "AI Slop" trong AutoHub Frontend
+"AI Slop" (rác thiết kế / mã nguồn vô hồn do AI sinh ra) là những mẫu giao diện, bố cục và logic rập khuôn, hời hợt mà các mô hình AI (LLMs) tự động sinh ra theo quán tính dữ liệu đào tạo trung bình. 
+Đặc trưng của AI Slop là **bề ngoài có vẻ bóng bẩy nhưng rỗng tuếch về giá trị sử dụng và thiếu bản sắc sản phẩm**:
+- Lạm dụng dải màu gradient tím/xanh vũ trụ (`indigo`/`purple`) cùng hiệu ứng hào quang phát sáng (glows) vô tội vạ.
+- Bố cục rập khuôn theo "công thức lười biếng": hàng 3 card tính năng giống hệt nhau, mỗi card cắm một icon trong ô tròn màu pastel.
+- Giao diện quản trị (Staff/Admin) bị biến thành dashboard template rẻ tiền: câu chào sáo rỗng "Welcome back John 👋", 4 thẻ KPI chứa số liệu tăng trưởng ảo "+12.5%", biểu đồ diện tích loang lổ nhiều màu che lấp dữ liệu.
+- Ngôn từ tiếp thị sáo rỗng kiểu AI ("Unlock the future", "Nâng tầm đẳng cấp", "Trải nghiệm vượt trội", "Seamless", "Supercharge") thay cho thông số kỹ thuật xe hơi chính xác.
+- Mã nguồn và component hời hợt (Shallow UI): bấm nút không có phản hồi thật, thiếu hoàn toàn các trạng thái biên (loading, error, empty), không hiểu logic nghiệp vụ thực tế của ngành ô tô.
+
+> [!CAUTION]
+> **CẢNH BÁO KIẾN TRÚC:** AutoHub là nền tảng thương mại điện tử giao dịch sản phẩm giá trị cao (ô tô hàng trăm triệu đến hàng tỷ đồng). Mọi màn hình người dùng và quản trị **BẮT BUỘC** phải toát lên tinh thần **Automotive Substance**: Cơ khí chính xác, Vững chắc, Đĩnh đạc, Trung thực và Tối ưu mật độ thông tin cao cho Desktop. **AI SLOP BỊ NGHIÊM CẤM 100% TRONG TOÀN BỘ DỰ ÁN.**
+
+---
+
+### 16.2. Sổ tay nhận diện & Các điều CẤM TRIỆT ĐỂ (The Banned Slop Tells)
+
+Dựa trên nghiên cứu chuẩn mực thiết kế (Anti-slop House Style), dự án thiết lập danh mục các "Tells" (dấu vết tố cáo AI sinh mã cẩu thả) bị **CẤM TUYỆT ĐỐI**:
+
+#### A. Visual & Styling Tells (Giao diện & Thẩm mỹ rập khuôn)
+1. **🚫 CẤM Gradient tím / chàm phát sáng (Purple/Indigo Glows & Gradients):**
+   - *Cấm:* Các class như `bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500`, bóng đổ mờ ảo màu neon quanh các nút bấm hoặc card.
+   - *Chuẩn thay thế:* Sử dụng bề mặt màu phẳng (`bg-white`, `bg-slate-900`), điểm xuyết màu nhấn cơ khí của thương hiệu (`bg-red-600` thể thao hoặc `bg-emerald-600` cho phân khúc xe điện).
+2. **🚫 CẤM Chữ Gradient (Gradient Text):**
+   - *Cấm:* `bg-clip-text text-transparent bg-gradient-to-r...` trên các thẻ tiêu đề `h1`, `h2`.
+   - *Chuẩn thay thế:* Màu chữ đơn sắc đồng nhất, tương phản cao (`text-slate-900` trên nền sáng hoặc `text-white` trên nền tối).
+3. **🚫 CẤM Lạm dụng Glassmorphism & Backdrop Blur:**
+   - *Cấm:* Rải `backdrop-blur-md bg-white/20 border-white/30` khắp nơi tạo cảm giác nhòe nhoẹt, giảm khả năng đọc và gây giật lag trình duyệt.
+   - *Chuẩn thay thế:* Phân tách bề mặt bằng bước tông màu phẳng đục (Opaque Tone Step: `bg-slate-50` đặt trên `bg-white`) và đường viền mảnh sắc gọn `border-slate-200`.
+4. **🚫 CẤM Bộ 3 Card tính năng rập khuôn (Cliché 3-Card Feature Row):**
+   - *Cấm:* Hàng 3 khối giống hệt nhau, mỗi khối gắn một icon trong ô tròn/vuông màu pastel nhạt ở trên cùng.
+   - *Chuẩn thay thế:* Bố cục có chiều sâu dựa trên nội dung xe thực tế: Bảng so sánh thông số kỹ thuật 2 cột bất đối xứng, lưới phụ kiện dày dặn, lát cắt ảnh động cơ hoặc góc chụp khoang lái thực tế.
+5. **🚫 CẤM Nhãn nhỏ in hoa li ti (Eyebrows / Kickers & Badges vô nghĩa):**
+   - *Cấm:* Đặt một nhãn nhỏ chữ in hoa giãn cách trên đầu tiêu đề ("INTRODUCING", "FEATURES", "AUTOHUB EXCLUSIVE") hoặc badge "New ✨".
+   - *Chuẩn thay thế:* Đưa thẳng thông điệp giá trị vào tiêu đề chính hoặc câu mô tả bổ trợ bên dưới.
+6. **🚫 CẤM Số thứ tự đếm trang trí lười biếng & Kẻ viền Tech Cosplay:**
+   - *Cấm:* Rải `01 / 02 / 03`, `(001)`, đường ngắm chữ thập (crosshairs), dấu crop-mark, hoặc đường kẻ mảnh li ti để giả phong cách công nghệ vũ trụ.
+   - *Chuẩn thay thế:* Phân cấp bằng kích thước chữ, khoảng cách trắng (whitespace), hoặc cấu trúc thẻ `<ol>` có ý nghĩa ngữ nghĩa thực sự.
+7. **🚫 CẤM Dùng Emoji làm icon:**
+   - *Cấm:* Dùng `🚗`, `⚡`, `🚀`, `🔥`, `⭐` trong tiêu đề, danh sách hoặc nút bấm.
+   - *Chuẩn thay thế:* Chỉ dùng icon hình học tinh gọn từ thư viện `lucide-react` hoặc ảnh chụp thực tế.
+
+#### B. Dashboard & Back-Office Tells (Bảng điều khiển Staff & Admin)
+1. **🚫 CẤM Lời chào rỗng tuếch & Icon vẫy tay:**
+   - *Cấm:* "Welcome back, John! 👋" chiếm diện tích quý giá trên màn hình làm việc của nhân viên showroom.
+   - *Chuẩn thay thế:* Tiêu đề làm việc thực chất, nêu rõ nhiệm vụ và phạm vi: "Điều phối giao xe & Lái thử trong ngày", "Danh sách 18 hợp đồng cọc chờ gán số VIN".
+2. **🚫 CẤM 4 thẻ KPI rập khuôn với số liệu tăng trưởng ảo:**
+   - *Cấm:* 4 ô KPI luôn luôn có icon trong vòng tròn màu, con số `+12.5% vs last month` màu xanh lá và sparkline uốn lượn vô căn cứ.
+   - *Chuẩn thay thế:* Thẻ chỉ số hiển thị con số thật với typography dứt khoát, gắn liền với nghiệp vụ ô tô (Ví dụ: "Xe sẵn sàng bàn giao: 12 xe", "Cọc quá hạn 72h cần xử lý: 3 phiếu").
+3. **🚫 CẤM Biểu đồ Gradient 7 sắc cầu vồng (Rainbow / Gradient Area Charts):**
+   - *Cấm:* Biểu đồ vùng đổ dốc màu tím sang hồng mờ mịt không rõ ý nghĩa phân tích, trục tọa độ thiếu đơn vị (VND, số lượng xe).
+   - *Chuẩn thay thế:* Biểu đồ cột (Bar) hoặc đường mảnh (Line) với 1 màu dữ liệu chủ đạo (`slate-800` hoặc `blue-600`), lưới tọa độ mờ tối giản, số liệu có chú giải rõ ràng.
+4. **🚫 CẤM Thanh xám giả lập (Grey bars / Dummy skeletons):**
+   - *Cấm:* Vẽ các thanh màu xám `h-4 bg-slate-200 rounded` để giả lập dashboard trong các bản demo.
+   - *Chuẩn thay thế:* Hiển thị dữ liệu thực tế: Mã số VIN 17 ký tự chuẩn quốc tế, tên dòng xe (Sedan, SUV), tên showroom, biển số tạm, giá trị đặt cọc VND.
+
+#### C. Content & Copywriting Tells (Ngôn từ tiếp thị sáo rỗng)
+1. **🚫 CẤM Khẩu hiệu tiếp thị rỗng tuếch kiểu AI:**
+   - *Cấm:* "Mở khóa tương lai ngành ô tô", "Nâng tầm đẳng cấp thượng lưu", "Trải nghiệm vượt trội không giới hạn", "Seamless", "Supercharge", "Cutting-edge", "All-in-one solution".
+   - *Chuẩn thay thế:* Văn phong đĩnh đạc, trung thực, tập trung vào sự thật và lợi ích khách hàng: "Dự toán chi phí lăn bánh chính xác theo quy chuẩn từng tỉnh thành", "Đặt cọc trực tuyến giữ xe trong 72 giờ cam kết bàn giao đúng hẹn", "Đăng ký lái thử tận nhà miễn phí".
+2. **🚫 CẤM Bịa đặt bằng chứng xã hội (Fake Social Proof):**
+   - *Cấm:* Tự bịa đánh giá "Nguyễn Văn A - CEO XYZ: Dịch vụ tuyệt vời nhất...", "Hơn 50,000+ khách hàng tin dùng".
+   - *Chuẩn thay thế:* Chỉ hiển thị đánh giá thực từ database hoặc ẩn hẳn phần review khi chưa có dữ liệu thật.
+3. **🚫 CẤM Tiêu đề dài dòng lê thê:**
+   - *Cấm:* Tiêu đề dài 4 dòng chữ chiếm hết màn hình đầu tiên (Above the fold).
+   - *Chuẩn thay thế:* Tiêu đề tối đa 2 dòng (khoảng 5-7 từ, dưới 35 ký tự), câu bổ trợ bên dưới giải đáp ngay câu hỏi lớn nhất của người mua xe.
+
+#### D. Code & Interaction Tells (Lập trình cẩu thả & Hời hợt)
+1. **🚫 CẤM Giao diện rỗng ruột (Shallow UI):**
+   - *Cấm:* Vẽ component cho có hình thức nhưng nút bấm không có phản hồi, bấm submit chỉ hiện `alert('Thành công')`, không validate dữ liệu, không có disable state khi đang submit.
+   - *Chuẩn thay thế:* Kết nối đầy đủ React Hook Form + Zod, xử lý disable button, hiển thị spinner khi pending, bắt lỗi API và thông báo toast rõ ràng.
+2. **🚫 CẤM Bịa đặt logic & Công thức nghiệp vụ ô tô:**
+   - *Cấm:* Tự phỏng đoán công thức thuế phí lăn bánh (ví dụ: nhân bừa 10%) hoặc bịa quy trình hoàn cọc 72h.
+   - *Chuẩn thay thế:* Tuân thủ chính xác biểu phí nhà nước (Hà Nội & TP.HCM: 12% trước bạ; tỉnh khác: 10%; xe điện: 0%; phí biển số 20 triệu vs 1 triệu) và hợp đồng cọc xe đã quy định trong đồ án.
+
+---
+
+### 16.3. Bảng đối chiếu nhanh: Slop bị cấm vs Chuẩn mực AutoHub
+
+| Khía cạnh | ❌ AI Slop (Bị cấm) | ✅ Chuẩn mực AutoHub (Bắt buộc) |
+|---|---|---|
+| **Bảng màu (Palette)** | Gradient tím, hồng, xanh neon, nền đen mờ phát sáng | Bảng màu Semantic vững chãi: Nền `slate-50`/`white`, Text `slate-900`, Điểm nhấn `red-600` hoặc `slate-900` |
+| **Bề mặt (Surfaces)** | Đổ bóng mờ nhạt lơ lửng khắp mọi card, viền kính mờ glassmorphism | Bề mặt phẳng, phân tách bằng bước tông màu (`bg-slate-50` vs `bg-white`) và viền mảnh sắc nét `border-slate-200` |
+| **Khối tính năng** | Hàng 3 card giống hệt nhau với icon trong vòng tròn màu pastel | Bố cục đa dạng: Bảng thông số kỹ thuật (Specs grid), ảnh cắt lớp động cơ, so sánh tương quan thực chất |
+| **Tiêu đề (Headlines)** | Câu văn dài 3-4 dòng, chữ tô màu loang lổ (gradient text) | Tiêu đề tối đa 2 dòng, chữ màu đơn sắc đậm nét, kích thước tương phản rõ rệt với đoạn văn |
+| **Trang trí (Ornaments)** | Eyebrow in hoa li ti, status dot nhấp nháy, emoji 🚗⚡ | Xóa bỏ mọi trang trí thừa thãi; dùng ảnh xe thật sắc nét và thông số cơ khí chính xác làm điểm nhấn |
+| **Dashboard Back-Office** | Câu chào sáo rỗng 👋, 4 KPI có sparkline ảo, biểu đồ nhiều màu | Mật độ thông tin cao (High-density), bảng biểu dữ liệu căn chỉnh thẳng hàng, bộ lọc thao tác 1-click |
+| **Văn bản (Copy)** | Sáo rỗng: "Mở khóa tương lai", "Nâng tầm đẳng cấp", "Seamless" | Thực tế, đĩnh đạc: "Dự toán chi phí lăn bánh", "Hợp đồng cọc giữ xe 72h", "Cam kết giao xe đúng hẹn" |
+| **Chất lượng code** | UI tĩnh không logic, `useEffect` race conditions, alert giả lập | Custom Hook có AbortController, React Hook Form + Zod, đủ 3 trạng thái Loading/Error/Empty |
+
+---
+
+### 16.4. Tôn chỉ thiết kế: "Substance over Ornament" (Thực chất hơn hào nhoáng)
+
+Khi xây dựng giao diện cho AutoHub, lập trình viên và AI Agent **PHẢI** tuân thủ 4 nguyên tắc nghệ thuật sau:
+
+1. **Chất cơ khí chính xác (Mechanical Precision):**
+   - Xe hơi là đỉnh cao của kỹ thuật cơ khí và an toàn. Giao diện AutoHub phải thể hiện sự đĩnh đạc, vững chắc và tin cậy.
+   - Tôn vinh hình ảnh sản phẩm: Hình ảnh xe phải chụp ở các góc độ sắc nét (góc 3/4 trước, khoang lái, động cơ, mâm xe). Thông số kỹ thuật phải được trình bày rõ ràng, minh bạch (Mã lực, Mô-men xoắn, Hộp số, Dung tích xy-lanh, Mức tiêu thụ nhiên liệu L/100km).
+2. **Khoảng cách và mật độ có chủ đích (Intentional Spacing & Density):**
+   - **Showroom / Khách hàng:** Khoảng cách giữa các section rộng rãi (80px – 120px trên màn hình desktop), tạo cảm giác sang trọng như bước vào showroom thực tế.
+   - **Back-Office (Staff / Admin):** Áp dụng bố cục mật độ cao (High-Density): padding tinh gọn (`py-2.5`, `px-3`), bảng dữ liệu hiển thị được nhiều hàng trên một màn hình, giúp nhân viên xử lý đơn cọc và gán số VIN nhanh chóng mà không phải cuộn trang liên tục.
+3. **Màu sắc phục vụ dữ liệu, không phục vụ khung viền (Color for Data, Not Chrome):**
+   - Giữ cho khung viền (sidebar, header, card border) luôn ở gam màu trung tính (`slate-200`, `slate-700`).
+   - Màu sắc nổi bật chỉ xuất hiện để biểu thị trạng thái dữ liệu nghiệp vụ:
+     - `emerald-600`: Xe sẵn sàng giao / Đã hoàn tất thanh toán cọc VNPay.
+     - `amber-600`: Phiếu cọc đang chờ duyệt / Đang trong 72 giờ giữ xe.
+     - `rose-600`: Hết hạn cọc 72h / Yêu cầu hoàn cọc từ chối.
+     - `blue-600`: Lịch hẹn lái thử đã xác nhận.
+4. **Kiểm tra thực tế (The Reality Check):**
+   - Trước khi hoàn thành một màn hình, hãy tự hỏi: *"Nếu che logo AutoHub đi, giao diện này có bị nhầm với một template bán khóa học, crypto hay SaaS chung chung không?"*.
+   - Nếu có, hãy loại bỏ ngay các icon trong vòng tròn màu, dải gradient và bổ sung các đặc trưng thực thụ của ô tô (bảng thông số kỹ thuật xe, mã số VIN, phụ kiện chính hãng, bảng tính lăn bánh).
+
+---
+
+## 17. CHECKLIST KIỂM TRA TRƯỚC KHI COMMIT / MỞ PR
 
 Trước khi tạo commit hoặc mở Pull Request, lập trình viên và AI Agent **PHẢI** tự rà soát danh sách kiểm tra sau:
 
@@ -807,4 +924,8 @@ Trước khi tạo commit hoặc mở Pull Request, lập trình viên và AI Ag
 - [ ] **9. Không Hardcode:** Không hardcode URL API, Role, mã màu Hex hay hằng số hệ thống.
 - [ ] **10. Responsive Desktop:** Giao diện hiển thị rõ ràng, không vỡ layout ở độ phân giải 1366×768 và 1920×1080.
 - [ ] **11. Dọn dẹp mã nguồn:** Đã xóa bỏ mọi `console.log` thử nghiệm và import không dùng tới.
-- [ ] **12. Commit Message:** Tuân thủ Conventional Commits bằng tiếng Anh (ví dụ: `feat(car-deposit): ...`).
+- [ ] **12. Loại bỏ hoàn toàn AI Slop:** Không có gradient tím/xanh phát sáng, không dùng chữ gradient, không lạm dụng backdrop-blur, không có hàng 3 card rập khuôn với icon trong vòng tròn màu.
+- [ ] **13. Ngôn từ thực chất (No Slop Copy):** Không sử dụng khẩu hiệu sáo rỗng ("Seamless", "Elevate", "Nâng tầm tương lai"), tiêu đề súc tích <= 2 dòng, dữ liệu phản ánh nghiệp vụ ô tô thật.
+- [ ] **14. Dashboard đúng chuẩn Desktop:** Mật độ thông tin cao, không chứa lời chào sáo rỗng hay KPI sparkline ảo, màu sắc chỉ dùng cho trạng thái dữ liệu.
+- [ ] **15. Tương tác hoàn thiện:** Mọi nút bấm, form nhập liệu đều có validation và xử lý submit/error/loading đầy đủ (không shallow UI).
+- [ ] **16. Commit Message:** Tuân thủ Conventional Commits bằng tiếng Anh (ví dụ: `feat(car-deposit): ...`).

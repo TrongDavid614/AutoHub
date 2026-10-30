@@ -12,6 +12,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@designcodeio/threeui/style.css': path.resolve(__dirname, './src/shaders/threeui.css'),
+      '@designcodeio/threeui': path.resolve(__dirname, './src/shaders/landing-pages/LandingPages.tsx'),
     },
   },
 })

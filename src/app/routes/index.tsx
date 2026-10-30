@@ -8,38 +8,84 @@ import { AdminLayout } from '@/app/layouts/AdminLayout';
 import { ProtectedRoute } from './ProtectedRoute';
 
 // Feature Pages
-import { CarListPage, CarDetailPage } from '@/features/cars';
-import { CarEstimatorPage } from '@/features/car-estimator';
-import { CarComparisonPage } from '@/features/car-comparison';
-import { AccessoryListPage, AccessoryDetailPage } from '@/features/accessories';
-import { CartPage } from '@/features/cart';
-import { CheckoutPage, OrderSuccessPage, CustomerOrderListPage } from '@/features/checkout';
-import { CarDepositPage } from '@/features/car-deposit';
-import { TestDriveBookingPage, TestDriveCanvasPage } from '@/features/test-drive';
-import { LoginPage, RegisterPage, RegisterSuccessPage } from '@/features/auth';
-import { ProfilePage, AddressBookPage } from '@/features/profile';
+// 1. Customer Module (Showroom, Store, Services, Auth & Landing)
 import {
+  CarListPage,
+  CarDetailPage,
+  CarEstimatorPage,
+  CarComparisonPage,
+  AccessoryListPage,
+  AccessoryDetailPage,
+  CartPage,
+  CheckoutPage,
+  OrderSuccessPage,
+  ProfilePage,
+  AddressBookPage,
+  TestDriveBookingPage,
+  TestDriveCanvasPage,
+  CarDepositPage,
+  CustomerOrderListPage,
+  LoginPage,
+  RegisterPage,
+  RegisterSuccessPage,
+  AdminStaffLoginPage,
+  AdminLoginPage,
+  AiConsultantPage,
+  Scene,
+} from '@/features/customer';
+
+// 2. Staff Operations Module
+import {
+  StaffWorkspacePage,
   ConsultationListPage,
   TestDriveSchedulePage,
   DepositAuditPage,
+  StaffRefundDocketPage,
   OrderFulfillmentPage,
   ReturnManagementPage,
+  StockTransferPage,
+  FleetMaintenancePage,
+  ShiftHandoverPage,
 } from '@/features/staff-operations';
+
+// 3. Admin Portal Module
 import {
   AdminDashboardPage,
+  AdminAnalyticsPage,
+  SystemMonitorPage,
   CarMasterPage,
   AccessoryMasterPage,
+  ShowroomNetworkPage,
+  RegistrationFeePage,
+  VoucherMasterPage,
   FeeVoucherMasterPage,
   UserRbacPage,
+  StaffSchedulePage,
+  ReviewModerationPage,
+  RefundApprovalPage,
 } from '@/features/admin-portal';
-import { AiConsultantPage } from '@/features/ai-consultant/pages/AiConsultantPage';
-import { LuxuryHeroSection } from '@/components';
 
 export const router = createBrowserRouter([
-  // 0. STANDALONE FULLSCREEN LUXURY HERO
+  // 0. STANDALONE 3D KAGE LANDING PAGE & HERO
+  {
+    path: '/',
+    element: <Scene />,
+  },
+  {
+    path: '/landing',
+    element: <Scene />,
+  },
   {
     path: '/hero',
-    element: <LuxuryHeroSection />,
+    element: <Scene />,
+  },
+  {
+    path: '/admin/login',
+    element: <AdminLoginPage />,
+  },
+  {
+    path: '/staff/login',
+    element: <AdminStaffLoginPage />,
   },
 
   // 1. PUBLIC ROUTES (Mọi người dùng & Khách vãng lai)
@@ -47,7 +93,6 @@ export const router = createBrowserRouter([
     path: '/',
     element: <PublicLayout />,
     children: [
-      { index: true, element: <CarListPage /> },
       { path: 'cars', element: <CarListPage /> },
       { path: 'cars/:id', element: <CarDetailPage /> },
       { path: 'ai-consultant', element: <AiConsultantPage /> },
@@ -62,6 +107,7 @@ export const router = createBrowserRouter([
       { path: 'deposit/:variantId', element: <CarDepositPage /> },
       { path: 'test-drive', element: <TestDriveCanvasPage /> },
       { path: 'auth/login', element: <LoginPage /> },
+      { path: 'auth/admin-login', element: <AdminLoginPage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'auth/register', element: <RegisterPage /> },
       { path: 'register', element: <RegisterPage /> },
@@ -105,12 +151,17 @@ export const router = createBrowserRouter([
       {
         element: <StaffLayout />,
         children: [
-          { index: true, element: <Navigate to="/staff/consultations" replace /> },
+          { index: true, element: <Navigate to="/staff/workspace" replace /> },
+          { path: 'workspace', element: <StaffWorkspacePage /> },
           { path: 'consultations', element: <ConsultationListPage /> },
           { path: 'test-drives', element: <TestDriveSchedulePage /> },
           { path: 'deposit-audit', element: <DepositAuditPage /> },
+          { path: 'refund-dockets', element: <StaffRefundDocketPage /> },
           { path: 'fulfillment', element: <OrderFulfillmentPage /> },
           { path: 'returns', element: <ReturnManagementPage /> },
+          { path: 'inventory-transfer', element: <StockTransferPage /> },
+          { path: 'fleet-maintenance', element: <FleetMaintenancePage /> },
+          { path: 'profile-handover', element: <ShiftHandoverPage /> },
         ],
       },
     ],
@@ -126,10 +177,19 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <Navigate to="/admin/dashboard" replace /> },
           { path: 'dashboard', element: <AdminDashboardPage /> },
+          { path: 'analytics', element: <AdminAnalyticsPage /> },
+          { path: 'system-monitor', element: <SystemMonitorPage /> },
           { path: 'cars-master', element: <CarMasterPage /> },
           { path: 'accessories-master', element: <AccessoryMasterPage /> },
+          { path: 'showrooms', element: <ShowroomNetworkPage /> },
+          { path: 'fees', element: <RegistrationFeePage /> },
+          { path: 'vouchers', element: <VoucherMasterPage /> },
           { path: 'fees-vouchers', element: <FeeVoucherMasterPage /> },
           { path: 'users-rbac', element: <UserRbacPage /> },
+          { path: 'staff-schedules', element: <StaffSchedulePage /> },
+          { path: 'schedules', element: <StaffSchedulePage /> },
+          { path: 'reviews', element: <ReviewModerationPage /> },
+          { path: 'refund-approval', element: <RefundApprovalPage /> },
         ],
       },
     ],
