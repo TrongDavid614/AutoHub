@@ -8,8 +8,8 @@
 
 ## 📌 1. Giới Thiệu Dự Án
 **AutoHub** là giải pháp nền tảng thương mại điện tử chuyên biệt cho lĩnh vực ô tô và phụ kiện chính hãng, được tổ chức theo cấu trúc **Monorepo** chứa cả Frontend và Backend:
-- **Frontend (`frontend/`):** Single-Page Application (SPA) phát triển trên nền tảng **React 19/18+ (TypeScript)** cùng công cụ đóng gói siêu tốc **Vite**, định kiểu hướng tiện ích với **Tailwind CSS**. Tối ưu hiển thị cho môi trường **Desktop Web** (1366×768 đến 1920×1080).
-- **Backend (`backend/`):** Xây dựng trên nền tảng **Java 21 LTS** và **Spring Boot 3.4.1** với công cụ xây dựng **Gradle**, bảo mật đa tầng với Spring Security 6 & Stateless JWT, tích hợp cơ sở dữ liệu Microsoft SQL Server (MSSQL).
+- **Frontend (`autohub-frontend/`):** Single-Page Application (SPA) phát triển trên nền tảng **React 19/18+ (TypeScript)** cùng công cụ đóng gói siêu tốc **Vite**, định kiểu hướng tiện ích với **Tailwind CSS**. Tối ưu hiển thị cho môi trường **Desktop Web** (1366×768 đến 1920×1080).
+- **Backend (`autohub-backend/`):** Xây dựng trên nền tảng **Java 21 LTS** và **Spring Boot 3.4.1** với công cụ xây dựng **Gradle**, bảo mật đa tầng với Spring Security 6 & Stateless JWT, tích hợp cơ sở dữ liệu Microsoft SQL Server (MSSQL).
 
 ---
 
@@ -19,12 +19,12 @@
 AutoHub/
 ├── .agents/                    # Quy chuẩn và tài nguyên AI Coding Assistant
 ├── .github/                    # GitHub Workflows & Issue/PR templates
-├── frontend/                   # Ứng dụng Frontend (React + Vite + Tailwind)
+├── autohub-frontend/           # Ứng dụng Frontend (React + Vite + Tailwind)
 │   ├── src/                    # Mã nguồn các phân hệ (Customer, Staff, Admin)
 │   ├── public/                 # Video và tài nguyên tĩnh
 │   ├── package.json            # Cấu hình dependencies Frontend
 │   └── vite.config.ts          # Cấu hình Vite & Path Alias @/
-├── backend/                    # Dịch vụ Backend (Spring Boot 3 + Java 21)
+├── autohub-backend/            # Dịch vụ Backend (Spring Boot 3 + Java 21)
 │   ├── src/                    # Controller, Service, Security, Domain Entities
 │   ├── gradle/                 # Gradle wrapper binaries & properties
 │   └── build.gradle            # Cấu hình dependencies Spring Boot & JPA
@@ -39,7 +39,7 @@ AutoHub/
 
 ## 🛠️ 3. Công Nghệ Sử Dụng (Tech Stack)
 
-### Frontend (`frontend/`)
+### Frontend (`autohub-frontend/`)
 | Hạng mục | Công nghệ / Thư viện |
 |---|---|
 | **Core Framework** | React 19/18+ & TypeScript Strict Mode |
@@ -50,7 +50,7 @@ AutoHub/
 | **HTTP Client** | Axios Instance (`@/lib/axios`) |
 | **Forms & Validation** | React Hook Form + Zod |
 
-### Backend (`backend/`)
+### Backend (`autohub-backend/`)
 | Hạng mục | Công nghệ / Thư viện |
 |---|---|
 | **Platform** | Java 21 LTS |
@@ -65,11 +65,11 @@ AutoHub/
 
 ## 🚀 4. Hướng Dẫn Cài Đặt & Chạy Dự Án
 
-### 4.1. Khởi chạy Backend (`backend/`)
+### 4.1. Khởi chạy Backend (`autohub-backend/`)
 Yêu cầu: Đã cài đặt **JDK 21** và **Microsoft SQL Server**.
 
 ```bash
-cd backend
+cd autohub-backend
 
 # Chạy trực tiếp qua Gradle Wrapper (Windows PowerShell)
 .\gradlew.bat bootRun
@@ -79,11 +79,11 @@ cd backend
 ```
 *Backend API mặc định khởi chạy tại:* `http://localhost:8080`
 
-### 4.2. Khởi chạy Frontend (`frontend/`)
+### 4.2. Khởi chạy Frontend (`autohub-frontend/`)
 Yêu cầu: Đã cài đặt **Node.js 18+** hoặc **20+**.
 
 ```bash
-cd frontend
+cd autohub-frontend
 
 # Cài đặt thư viện dependencies (nếu chưa có)
 npm install
