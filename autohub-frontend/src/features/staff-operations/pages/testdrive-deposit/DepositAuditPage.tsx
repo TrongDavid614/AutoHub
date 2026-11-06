@@ -3,26 +3,43 @@ import {
   Clock,
   Search,
   X,
+  Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
-import {
-  MOCK_STAFF_DEPOSITS,
-  type StaffDepositRecord,
-} from '@/features/staff-operations/mocks/staff.mock';
+import { staffService } from '@/features/staff-operations/services/staff.service';
+import type { StaffDepositRecord } from '@/types/staff.types';
 import { cn, formatCurrencyVND } from '@/lib/utils';
 
 export const DepositAuditPage: React.FC = () => {
   const { isDarkMode } = useAdminTheme();
-  const [deposits, setDeposits] = useState<StaffDepositRecord[]>(MOCK_STAFF_DEPOSITS);
+  const [deposits, setDeposits] = useState<StaffDepositRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedDepositForVin, setSelectedDepositForVin] = useState<StaffDepositRecord | null>(null);
 
+  // Load real deposits from database via API
+  const fetchDeposits = async () => {
+    try {
+      const data = await staffService.getStaffDeposits();
+      setDeposits(data);
+    } catch (err) {
+      console.error('Lỗi nạp dữ liệu phiếu cọc từ database:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDeposits();
+  }, []);
+
   // Available physical VINs in showroom warehouse inventory
   const availableVins = [
-    { vin: 'VF8-VIN-2026-9921', model: 'VinFast VF8 Plus AWD', color: 'Xanh Deep Ocean', location: 'Kho Showroom Q.7 (Khu B-04)' },
-    { vin: 'VF8-VIN-2026-9925', model: 'VinFast VF8 Plus AWD', color: 'Xanh Deep Ocean', location: 'Kho Showroom Q.7 (Khu B-06)' },
-    { vin: 'VF9-VIN-2026-8802', model: 'VinFast VF9 Plus 6 Chỗ', color: 'Trắng Ngọc Trai', location: 'Kho Showroom Q.7 (Khu A-01)' },
-    { vin: 'HMC-SAN-2026-7711', model: 'Hyundai SantaFe Calligraphy', color: 'Đen Phantom', location: 'Kho Showroom Q.7 (Khu C-02)' },
+    { vin: '1FA6P8CF5H5123456', model: 'GT-e Grand Touring 2026', color: 'Xanh Sonic Blue', location: 'Kho Showroom Q.7 (Khu B-04)' },
+    { vin: '1FA6P8CF5H5789012', model: 'GT-e Grand Touring 2026', color: 'Trắng Pearl White', location: 'Kho Showroom Q.7 (Khu B-06)' },
+    { vin: 'VF8AWD20260012991', model: 'VinFast VF8 Plus AWD', color: 'Xanh Deep Ocean', location: 'Kho Showroom Q.7 (Khu A-01)' },
+    { vin: '1FA6P8CF5H5999888', model: 'Hyundai SantaFe Calligraphy', color: 'Đen Phantom', location: 'Kho Showroom Q.7 (Khu C-02)' },
   ];
 
   // 1-second countdown ticking timer
@@ -46,17 +63,23 @@ export const DepositAuditPage: React.FC = () => {
     return `Còn ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
-  const handleAssignVin = (vin: string) => {
+  const handleAssignVin = async (vin: string) => {
     if (!selectedDepositForVin) return;
-    setDeposits((prev) =>
-      prev.map((d) =>
-        d.id === selectedDepositForVin.id
-          ? { ...d, assignedVin: vin, status: 'VIN_ASSIGNED' as const }
-          : d
-      )
-    );
-    alert(`Đã gán thành công số khung ${vin} cho khách hàng ${selectedDepositForVin.customerName} và gửi email xác nhận!`);
-    setSelectedDepositForVin(null);
+    try {
+      await staffService.assignVinToDeposit(selectedDepositForVin.id, vin);
+      setDeposits((prev) =>
+        prev.map((d) =>
+          d.id === selectedDepositForVin.id
+            ? { ...d, assignedVin: vin, status: 'VIN_ASSIGNED' as const }
+            : d
+        )
+      );
+      alert(`Đã gán thành công số khung ${vin} cho khách hàng ${selectedDepositForVin.customerName} và lưu vào database!`);
+      setSelectedDepositForVin(null);
+    } catch (err) {
+      console.error('Lỗi gán VIN:', err);
+      alert('Không thể gán số khung VIN. Vui lòng thử lại.');
+    }
   };
 
   const handleSignContract = (depositId: string, customerName: string) => {
@@ -95,16 +118,28 @@ export const DepositAuditPage: React.FC = () => {
         )}
       >
         <div>
-          
           <h1 className={cn('text-xl md:text-2xl font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
             Đối Soát Cọc Xe 72 Giờ & Gán Số Khung VIN Xe Vật Lý
           </h1>
           <p className={cn('text-sm mt-0.5', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-            Kiểm tra đối soát thanh toán SePay IPN, số CCCD định danh và gán số khung VIN xe có sẵn trong kho showroom trong thời hạn 72h.
+            Dữ liệu trực tiếp từ SQL Server: Kiểm tra đối soát thanh toán SePay, số CCCD và gán số khung VIN trong kho xe.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={fetchDeposits}
+            className={cn(
+              'px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 cursor-pointer transition-colors',
+              isDarkMode
+                ? 'bg-[#131B2E] border-[#3E4850]/50 hover:bg-[#1C2640] text-slate-200'
+                : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-700'
+            )}
+          >
+            <RefreshCw className={cn('w-3.5 h-3.5', isLoading && 'animate-spin')} />
+            Làm mới
+          </button>
           <span
             className={cn(
               'px-3 py-1.5 rounded-lg border text-xs font-mono font-bold flex items-center gap-1.5',
@@ -114,190 +149,127 @@ export const DepositAuditPage: React.FC = () => {
             )}
           >
             <Clock className="w-4 h-4 text-amber-500" />
-            <span>Quy Tắc Khóa Cọc: Tối đa 72 Giờ</span>
+            <span>Thời hạn giữ chỗ: 72 Giờ</span>
           </span>
         </div>
       </div>
 
-      {/* 2. Search Bar & Status Legend */}
-      <div
-        className={cn(
-          'p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors',
-          isDarkMode
-            ? 'bg-[#0B1326] border-[#3E4850]/40 shadow-sm'
-            : 'bg-white border-slate-200 shadow-xs'
-        )}
-      >
-        <div className="relative w-full sm:w-80">
-          <Search
-            className={cn(
-              'w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2',
-              isDarkMode ? 'text-[#88929B]' : 'text-slate-400'
-            )}
-          />
+      {/* 2. Search & Stats Bar */}
+      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+        <div className="relative w-full sm:w-96">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
+            placeholder="Tìm theo mã cọc, CCCD, tên khách hoặc mẫu xe..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm theo mã cọc, CCCD 12 số, tên khách..."
             className={cn(
-              'w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border outline-none transition-colors',
+              'w-full pl-10 pr-4 py-2.5 rounded-xl border text-xs transition-all focus:outline-none focus:ring-2 focus:ring-blue-500',
               isDarkMode
-                ? 'bg-[#131B2E] border-[#3E4850]/50 text-white placeholder-[#88929B] focus:border-[#89CEFF]'
-                : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-500'
+                ? 'bg-[#0B1326] border-[#3E4850]/40 text-white placeholder-[#88929B]'
+                : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'
             )}
           />
         </div>
-
-        <div className={cn('text-xs font-mono', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-          Tổng số: <strong className={isDarkMode ? 'text-white' : 'text-slate-900'}>{filteredDeposits.length}</strong> phiếu cọc
+        <div className="flex items-center gap-3 text-xs font-mono">
+          <span>Tổng số phiếu cọc: <strong className="text-blue-500">{deposits.length}</strong></span>
         </div>
       </div>
 
-      {/* 3. Data Table (<Datagrid>) */}
-      <div
-        className={cn(
-          'rounded-xl border overflow-hidden transition-colors',
-          isDarkMode
-            ? 'bg-[#0B1326] border-[#3E4850]/40 shadow-lg'
-            : 'bg-white border-slate-200 shadow-sm'
-        )}
-      >
-        <div className="overflow-x-auto">
+      {/* 3. Table / Card List */}
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center p-16 space-y-3">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+          <p className="text-xs font-mono text-slate-400">Đang tải danh sách phiếu cọc từ cơ sở dữ liệu...</p>
+        </div>
+      ) : filteredDeposits.length === 0 ? (
+        <div className={cn('p-12 text-center rounded-xl border text-sm font-mono', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 text-slate-400' : 'bg-white border-slate-200 text-slate-500')}>
+          Không tìm thấy phiếu cọc nào trong cơ sở dữ liệu.
+        </div>
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-[#3E4850]/40 shadow-xs">
           <table className="w-full text-left text-xs">
-            <thead
-              className={cn(
-                'font-mono uppercase text-[11px] border-b',
-                isDarkMode ? 'bg-[#131B2E] text-[#88929B] border-[#3E4850]/40' : 'bg-slate-50 text-slate-500 border-slate-200'
-              )}
-            >
+            <thead className={cn('font-mono uppercase text-[11px] border-b', isDarkMode ? 'bg-[#131B2E] text-slate-400 border-[#3E4850]/40' : 'bg-slate-50 text-slate-500 border-slate-200')}>
               <tr>
-                <th className="py-3 px-4">Mã Phiếu Cọc</th>
-                <th className="py-3 px-4">Khách Hàng & CCCD</th>
-                <th className="py-3 px-4">Dòng Xe & Màu Sơn</th>
-                <th className="py-3 px-4 text-right">Số Tiền Cọc</th>
-                <th className="py-3 px-4 text-center">Thời Hạn 72H</th>
-                <th className="py-3 px-4 text-center">Số Khung VIN Đã Gán</th>
-                <th className="py-3 px-4 text-right">Thao Tác</th>
+                <th className="py-3.5 px-4 font-semibold">Mã Phiếu Cọc</th>
+                <th className="py-3.5 px-4 font-semibold">Khách Hàng</th>
+                <th className="py-3.5 px-4 font-semibold">Số CCCD</th>
+                <th className="py-3.5 px-4 font-semibold">Mẫu Xe Yêu Cầu</th>
+                <th className="py-3.5 px-4 font-semibold">Số Tiền Cọc</th>
+                <th className="py-3.5 px-4 font-semibold">Đếm Ngược 72h</th>
+                <th className="py-3.5 px-4 font-semibold">Số Khung VIN Gán</th>
+                <th className="py-3.5 px-4 font-semibold text-right">Thao Tác</th>
               </tr>
             </thead>
-            <tbody className={cn('divide-y font-sans', isDarkMode ? 'divide-[#3E4850]/30' : 'divide-slate-100')}>
-              {filteredDeposits.map((dep) => {
-                const isUrgent = dep.remainingSeconds < 3600 * 6 && dep.remainingSeconds > 0;
-                return (
-                  <tr
-                    key={dep.id}
-                    className={cn(
-                      'transition-colors',
-                      isDarkMode ? 'hover:bg-[#131B2E]/60' : 'hover:bg-slate-50'
+            <tbody className="divide-y divide-slate-200 dark:divide-[#3E4850]/30">
+              {filteredDeposits.map((item) => (
+                <tr key={item.id} className={cn('hover:bg-slate-50/50 dark:hover:bg-[#131B2E]/50 transition-colors', isDarkMode ? 'bg-[#0B1326]' : 'bg-white')}>
+                  <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-[#89CEFF]">
+                    {item.depositCode}
+                  </td>
+                  <td className="py-3.5 px-4">
+                    <div className="font-semibold">{item.customerName}</div>
+                    <div className="text-[11px] text-slate-400">{item.customerPhone}</div>
+                  </td>
+                  <td className="py-3.5 px-4 font-mono">{item.identityCardNumber}</td>
+                  <td className="py-3.5 px-4">
+                    <div className="font-semibold">{item.carModel}</div>
+                    <div className="text-[11px] text-slate-400">{item.variant}</div>
+                  </td>
+                  <td className="py-3.5 px-4 font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                    {formatCurrencyVND(item.depositAmount)}
+                  </td>
+                  <td className="py-3.5 px-4 font-mono font-semibold text-amber-500">
+                    {formatCountdown(item.remainingSeconds)}
+                  </td>
+                  <td className="py-3.5 px-4 font-mono">
+                    {item.assignedVin ? (
+                      <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800 font-bold">
+                        {item.assignedVin}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400 italic">Chưa gán VIN</span>
                     )}
-                  >
-                    <td className="py-3 px-4">
-                      <div className="font-mono font-bold text-blue-600 dark:text-[#89CEFF]">
-                        {dep.depositCode}
-                      </div>
-                      <div className={cn('font-mono text-[10px]', isDarkMode ? 'text-[#88929B]' : 'text-slate-400')}>
-                        {dep.sepayTxnRef}
-                      </div>
-                    </td>
-
-                    <td className="py-3 px-4">
-                      <div className={cn('font-semibold', isDarkMode ? 'text-white' : 'text-slate-900')}>
-                        {dep.customerName}
-                      </div>
-                      <div className={cn('text-[11px] font-mono', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-                        CCCD: {dep.identityCardNumber} • {dep.customerPhone}
-                      </div>
-                    </td>
-
-                    <td className="py-3 px-4">
-                      <div className={cn('font-medium', isDarkMode ? 'text-white' : 'text-slate-800')}>
-                        {dep.carModel} • {dep.variant}
-                      </div>
-                      <div className={cn('text-[10px]', isDarkMode ? 'text-[#88929B]' : 'text-slate-400')}>
-                        Màu sơn: {dep.exteriorColor}
-                      </div>
-                    </td>
-
-                    <td className="py-3 px-4 text-right font-mono font-bold text-emerald-600 dark:text-[#10B981]">
-                      {formatCurrencyVND(dep.depositAmount)}
-                    </td>
-
-                    <td className="py-3 px-4 text-center font-mono">
-                      {dep.status === 'CONTRACT_SIGNED' ? (
-                        <span className="text-[11px] text-emerald-500 font-bold">
-                          ✓ Đã Ký Hợp Đồng
-                        </span>
-                      ) : (
-                        <span
-                          className={cn(
-                            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold',
-                            isUrgent
-                              ? 'bg-red-500/15 border border-red-500/40 text-red-600 dark:text-red-400 animate-pulse'
-                              : 'bg-amber-500/15 border border-amber-500/40 text-amber-700 dark:text-amber-400'
-                          )}
+                  </td>
+                  <td className="py-3.5 px-4 text-right">
+                    <div className="flex items-center justify-end gap-1.5">
+                      {!item.assignedVin && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDepositForVin(item)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer"
                         >
-                          <Clock className="w-3 h-3" />
-                          <span>{formatCountdown(dep.remainingSeconds)}</span>
-                        </span>
+                          Gán VIN Kho
+                        </button>
                       )}
-                    </td>
-
-                    <td className="py-3 px-4 text-center font-mono">
-                      {dep.assignedVin ? (
-                        <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-[#89CEFF] border border-blue-200 dark:border-blue-800/40">
-                          {dep.assignedVin}
-                        </span>
-                      ) : (
-                        <span className="text-[10px] text-amber-600 dark:text-amber-400 italic">
-                          Chưa Gán Số VIN
-                        </span>
+                      {item.assignedVin && item.status !== 'CONTRACT_SIGNED' && (
+                        <button
+                          type="button"
+                          onClick={() => handleSignContract(item.id, item.customerName)}
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer"
+                        >
+                          Ký Hợp Đồng
+                        </button>
                       )}
-                    </td>
-
-                    <td className="py-3 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {!dep.assignedVin && (
-                          <button
-                            type="button"
-                            onClick={() => setSelectedDepositForVin(dep)}
-                            className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer shadow-sm"
-                          >
-                            Gán Số VIN
-                          </button>
-                        )}
-
-                        {dep.assignedVin && dep.status !== 'CONTRACT_SIGNED' && (
-                          <button
-                            type="button"
-                            onClick={() => handleSignContract(dep.id, dep.customerName)}
-                            className="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer shadow-sm"
-                          >
-                            Ký Hợp Đồng
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                      {item.status === 'CONTRACT_SIGNED' && (
+                        <span className="text-[11px] font-mono text-emerald-500 font-bold">Đã ký HĐMB</span>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
-      </div>
+      )}
 
-      {/* 4. Ngăn kéo trượt chọn số khung VIN từ kho Showroom (<AssignVINSheet> 560px) */}
+      {/* Modal Gán VIN */}
       {selectedDepositForVin && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div
-            className={cn(
-              'w-full max-w-xl h-full overflow-y-auto border-l p-6 space-y-5 shadow-2xl transition-colors',
-              isDarkMode ? 'bg-[#0B1326] border-[#3E4850] text-[#DAE2FD]' : 'bg-white border-slate-200 text-slate-800'
-            )}
-          >
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#3E4850]/40">
-              <div className="space-y-0.5">
-                <span className="text-[10px] font-mono text-blue-500 uppercase font-bold">Khóa Xe Vật Lý Vào Phiếu Cọc</span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className={cn('w-full max-w-lg p-6 rounded-2xl border space-y-4 shadow-2xl', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]' : 'bg-white border-slate-200')}>
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#3E4850]/40">
+              <div>
+                <span className="text-[10px] uppercase font-mono text-blue-500 font-bold block">Thao Tác Gán Số Khung</span>
                 <h3 className={cn('text-base font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
                   Gán Số Khung VIN Cho {selectedDepositForVin.depositCode}
                 </h3>
@@ -311,7 +283,6 @@ export const DepositAuditPage: React.FC = () => {
               </button>
             </div>
 
-            {/* Deposit Info Card */}
             <div className={cn('p-4 rounded-xl border space-y-2 text-xs', isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40' : 'bg-slate-50 border-slate-200')}>
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -327,27 +298,25 @@ export const DepositAuditPage: React.FC = () => {
                 </div>
               </div>
               <div className="pt-2 border-t border-slate-200 dark:border-[#3E4850]/40">
-                <span className={cn('text-[10px] uppercase font-mono block', isDarkMode ? 'text-[#88929B]' : 'text-slate-400')}>Yêu cầu cấu hình</span>
+                <span className={cn('text-[10px] uppercase font-mono block', isDarkMode ? 'text-[#88929B]' : 'text-slate-400')}>Mẫu xe đặt cọc</span>
                 <div className="font-bold">{selectedDepositForVin.carModel} • {selectedDepositForVin.variant}</div>
-                <div className="text-[11px] text-blue-500">Màu sơn ngoại thất: {selectedDepositForVin.exteriorColor}</div>
               </div>
             </div>
 
-            {/* Warehouse Physical Cars */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className={cn('text-xs font-bold uppercase tracking-wider font-mono', isDarkMode ? 'text-white' : 'text-slate-900')}>
                   Xe Khả Dụng Trong Kho Khớp Cấu Hình:
                 </span>
-                <span className="text-[10px] font-mono text-emerald-500 font-bold">2 Xe Có Sẵn</span>
+                <span className="text-[10px] font-mono text-emerald-500 font-bold">{availableVins.length} Xe Có Sẵn</span>
               </div>
 
-              <div className="space-y-2.5">
+              <div className="space-y-2.5 max-h-60 overflow-y-auto">
                 {availableVins.map((item) => (
                   <div
                     key={item.vin}
                     className={cn(
-                      'p-4 rounded-xl border space-y-2 transition-all flex flex-col justify-between',
+                      'p-3.5 rounded-xl border space-y-2 transition-all flex flex-col justify-between',
                       isDarkMode
                         ? 'bg-[#131B2E] border-[#3E4850]/50 hover:border-blue-500'
                         : 'bg-white border-slate-200 hover:border-blue-400 shadow-xs'
@@ -373,7 +342,7 @@ export const DepositAuditPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleAssignVin(item.vin)}
-                        className="px-4 py-2 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer shadow-sm"
+                        className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer shadow-sm"
                       >
                         Khóa VIN Này Cho Khách
                       </button>

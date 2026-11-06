@@ -1,16 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Search,
-  Phone,
-  Mail,
-  Sparkles,
   ChevronRight,
   X,
-  History,
   Send,
+  Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
-import { MOCK_CONSULTATION_LEADS, type ConsultationLead } from '@/features/staff-operations/mocks/staff.mock';
+import { staffService } from '@/features/staff-operations/services/staff.service';
+import type { ConsultationLead } from '@/types/staff.types';
 import { cn } from '@/lib/utils';
 
 export const ConsultationListPage: React.FC = () => {
@@ -19,7 +18,28 @@ export const ConsultationListPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [selectedLead, setSelectedLead] = useState<ConsultationLead | null>(null);
   const [callNotes, setCallNotes] = useState('');
-  const [leads, setLeads] = useState<ConsultationLead[]>(MOCK_CONSULTATION_LEADS);
+  const [leads, setLeads] = useState<ConsultationLead[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchLeads = async () => {
+    try {
+      const data = await staffService.getConsultations();
+      setLeads(data);
+    } catch (err) {
+      console.error('Lỗi tải danh sách yêu cầu tư vấn:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRefresh = () => {
+    setIsLoading(true);
+    fetchLeads();
+  };
+
+  useEffect(() => {
+    fetchLeads();
+  }, []);
 
   const filteredLeads = leads.filter((lead) => {
     const matchTab = lead.status === activeTab;
@@ -30,27 +50,37 @@ export const ConsultationListPage: React.FC = () => {
     return matchTab && matchSearch;
   });
 
-  const handleUpdateStatus = (leadId: string, newStatus: 'PENDING' | 'CONTACTED' | 'CLOSED') => {
-    setLeads((prev) =>
-      prev.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l))
-    );
-    if (selectedLead && selectedLead.id === leadId) {
-      setSelectedLead({ ...selectedLead, status: newStatus });
+  const handleUpdateStatus = async (leadId: string, newStatus: 'PENDING' | 'CONTACTED' | 'CLOSED') => {
+    try {
+      await staffService.updateConsultationStatus(leadId, newStatus);
+      setLeads((prev) =>
+        prev.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l))
+      );
+      if (selectedLead && selectedLead.id === leadId) {
+        setSelectedLead({ ...selectedLead, status: newStatus });
+      }
+    } catch (err) {
+      console.error('Lỗi cập nhật trạng thái:', err);
     }
   };
 
-  const handleAddCallNote = () => {
+  const handleAddCallNote = async () => {
     if (!callNotes.trim() || !selectedLead) return;
-    const updated = {
-      ...selectedLead,
-      notes: selectedLead.notes
-        ? `${selectedLead.notes}\n• [Hôm nay]: ${callNotes}`
-        : `• [Hôm nay]: ${callNotes}`,
-      status: 'CONTACTED' as const,
-    };
-    setSelectedLead(updated);
-    setLeads((prev) => prev.map((l) => (l.id === selectedLead.id ? updated : l)));
-    setCallNotes('');
+    try {
+      await staffService.addConsultationNote(selectedLead.id, callNotes);
+      const updated = {
+        ...selectedLead,
+        notes: selectedLead.notes
+          ? `${selectedLead.notes}\n• [Hôm nay]: ${callNotes}`
+          : `• [Hôm nay]: ${callNotes}`,
+        status: 'CONTACTED' as const,
+      };
+      setSelectedLead(updated);
+      setLeads((prev) => prev.map((l) => (l.id === selectedLead.id ? updated : l)));
+      setCallNotes('');
+    } catch (err) {
+      console.error('Lỗi lưu nhật ký cuộc gọi:', err);
+    }
   };
 
   return (
@@ -70,349 +100,213 @@ export const ConsultationListPage: React.FC = () => {
         )}
       >
         <div>
-          
           <h1 className={cn('text-xl md:text-2xl font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
-            Tiếp Nhận & Xử Lý Yêu Cầu Tư Vấn Khách Hàng
+            Tiếp Nhận & Xử Lý Yêu Cầu Tư Vấn Khách Hàng (CRM)
           </h1>
           <p className={cn('text-sm mt-0.5', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-            Tích hợp nhật ký tương tác NhatKyHanhVi (Dwell Time, 360°, Dự toán lăn bánh) và Chân dung AI Persona gợi ý kịch bản mở đầu cuộc gọi.
+            Dữ liệu trực tiếp từ SQL Server: Phân bổ Lead theo thời gian thực, lưu nhật ký cuộc gọi và ghi nhận nhu cầu xe.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <span
+          <button
+            type="button"
+            onClick={handleRefresh}
             className={cn(
-              'px-3 py-1.5 rounded-lg border text-xs font-mono font-bold flex items-center gap-1.5',
+              'px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 cursor-pointer transition-colors',
               isDarkMode
-                ? 'bg-[#171F33] border-[#3E4850]/50 text-[#89CEFF]'
-                : 'bg-sky-50 border-sky-200 text-sky-700'
+                ? 'bg-[#131B2E] border-[#3E4850]/50 hover:bg-[#1C2640] text-slate-200'
+                : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-700'
             )}
           >
-            <Sparkles className="w-4 h-4 text-blue-500" />
-            <span>AI Persona Active</span>
-          </span>
-        </div>
-      </div>
-
-      {/* 2. Tabs Filter & Search Bar */}
-      <div
-        className={cn(
-          'p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors',
-          isDarkMode
-            ? 'bg-[#0B1326] border-[#3E4850]/40 shadow-sm'
-            : 'bg-white border-slate-200 shadow-xs'
-        )}
-      >
-        {/* Tabs */}
-        <div className="flex items-center gap-2">
-          {[
-            { id: 'PENDING', label: 'Chờ Tiếp Nhận', count: leads.filter((l) => l.status === 'PENDING').length },
-            { id: 'CONTACTED', label: 'Đang Chăm Sóc', count: leads.filter((l) => l.status === 'CONTACTED').length },
-            { id: 'CLOSED', label: 'Đã Hoàn Tất', count: leads.filter((l) => l.status === 'CLOSED').length },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              className={cn(
-                'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5',
-                activeTab === tab.id
-                  ? isDarkMode
-                    ? 'bg-[#171F33] text-[#89CEFF] border border-[#89CEFF]/30 shadow-xs'
-                    : 'bg-blue-50 text-blue-600 border border-blue-200 shadow-2xs'
-                  : isDarkMode
-                  ? 'text-[#88929B] hover:text-white'
-                  : 'text-slate-500 hover:text-slate-900'
-              )}
-            >
-              <span>{tab.label}</span>
-              <span
+            <RefreshCw className={cn('w-3.5 h-3.5', isLoading && 'animate-spin')} />
+            Làm mới
+          </button>
+          <div className="flex bg-slate-100 dark:bg-[#131B2E] p-1 rounded-xl border border-slate-200 dark:border-[#3E4850]/40">
+            {(['PENDING', 'CONTACTED', 'CLOSED'] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
                 className={cn(
-                  'text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold',
-                  activeTab === tab.id
-                    ? isDarkMode
-                      ? 'bg-blue-500/20 text-[#89CEFF]'
-                      : 'bg-blue-600 text-white'
+                  'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer',
+                  activeTab === tab
+                    ? 'bg-blue-600 text-white shadow-xs'
                     : isDarkMode
-                    ? 'bg-[#131B2E] text-[#88929B]'
-                    : 'bg-slate-200 text-slate-600'
+                      ? 'text-[#88929B] hover:text-white'
+                      : 'text-slate-600 hover:text-slate-900'
                 )}
               >
-                {tab.count}
-              </span>
-            </button>
+                {tab === 'PENDING' && 'Mới Nhận'}
+                {tab === 'CONTACTED' && 'Đang Tư Vấn'}
+                {tab === 'CLOSED' && 'Đã Hoàn Tất'}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Search Bar */}
+      <div className="relative w-full sm:w-96">
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <input
+          type="text"
+          placeholder="Tìm theo tên khách, SĐT hoặc mẫu xe quan tâm..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className={cn(
+            'w-full pl-10 pr-4 py-2.5 rounded-xl border text-xs transition-all focus:outline-none focus:ring-2 focus:ring-blue-500',
+            isDarkMode
+              ? 'bg-[#0B1326] border-[#3E4850]/40 text-white placeholder-[#88929B]'
+              : 'bg-white border-slate-200 text-slate-900 placeholder-slate-400'
+          )}
+        />
+      </div>
+
+      {/* 3. Lead Cards Grid */}
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center p-16 space-y-3">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+          <p className="text-xs font-mono text-slate-400">Đang tải danh sách tư vấn từ cơ sở dữ liệu...</p>
+        </div>
+      ) : filteredLeads.length === 0 ? (
+        <div className={cn('p-12 text-center rounded-xl border text-sm font-mono', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 text-slate-400' : 'bg-white border-slate-200 text-slate-500')}>
+          Không có yêu cầu tư vấn nào ở trạng thái này.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredLeads.map((lead) => (
+            <div
+              key={lead.id}
+              className={cn(
+                'p-5 rounded-xl border space-y-3 transition-all hover:shadow-md cursor-pointer flex flex-col justify-between',
+                isDarkMode
+                  ? 'bg-[#0B1326] border-[#3E4850]/40 hover:border-blue-500/60'
+                  : 'bg-white border-slate-200 hover:border-blue-300'
+              )}
+              onClick={() => setSelectedLead(lead)}
+            >
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-mono text-xs font-bold text-blue-600 dark:text-[#89CEFF]">
+                    {lead.interestedCar}
+                  </span>
+                  <span
+                    className={cn(
+                      'text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase border',
+                      lead.status === 'PENDING' && 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800/40',
+                      lead.status === 'CONTACTED' && 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800/40',
+                      lead.status === 'CLOSED' && 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/40'
+                    )}
+                  >
+                    {lead.status === 'PENDING' ? 'MỚI NHẬN' : lead.status === 'CONTACTED' ? 'ĐANG TƯ VẤN' : 'HOÀN TẤT'}
+                  </span>
+                </div>
+
+                <h3 className={cn('text-base font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
+                  {lead.customerName}
+                </h3>
+                <div className="flex items-center gap-2 text-xs font-mono text-slate-400 mt-1">
+                  <span>{lead.phone}</span> • <span>{lead.preferredTime}</span>
+                </div>
+
+                <p className={cn('text-xs mt-3 line-clamp-2', isDarkMode ? 'text-[#88929B]' : 'text-slate-600')}>
+                  {lead.notes}
+                </p>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 dark:border-[#3E4850]/30 flex items-center justify-between text-xs font-mono text-slate-400">
+                <span>{lead.receivedAt || 'Hôm nay'}</span>
+                <span className="text-blue-500 font-bold flex items-center gap-1">
+                  Chi tiết <ChevronRight className="w-3.5 h-3.5" />
+                </span>
+              </div>
+            </div>
           ))}
         </div>
+      )}
 
-        {/* Search */}
-        <div className="relative w-full sm:w-72">
-          <Search
-            className={cn(
-              'w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2',
-              isDarkMode ? 'text-[#88929B]' : 'text-slate-400'
-            )}
-          />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm theo tên khách, SĐT, xe..."
-            className={cn(
-              'w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border outline-none transition-colors',
-              isDarkMode
-                ? 'bg-[#131B2E] border-[#3E4850]/50 text-white placeholder-[#88929B] focus:border-[#89CEFF]'
-                : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-500'
-            )}
-          />
-        </div>
-      </div>
-
-      {/* 3. Leads Data Table (<Datagrid>) */}
-      <div
-        className={cn(
-          'rounded-xl border overflow-hidden transition-colors',
-          isDarkMode
-            ? 'bg-[#0B1326] border-[#3E4850]/40 shadow-lg'
-            : 'bg-white border-slate-200 shadow-sm'
-        )}
-      >
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead
-              className={cn(
-                'font-mono uppercase text-[11px] border-b',
-                isDarkMode ? 'bg-[#131B2E] text-[#88929B] border-[#3E4850]/40' : 'bg-slate-50 text-slate-500 border-slate-200'
-              )}
-            >
-              <tr>
-                <th className="py-3 px-4">Thời Điểm</th>
-                <th className="py-3 px-4">Khách Hàng & SĐT</th>
-                <th className="py-3 px-4">Dòng Xe Quan Tâm</th>
-                <th className="py-3 px-4">Khung Giờ Tiện Nghe</th>
-                <th className="py-3 px-4">Nhân Viên Phụ Trách</th>
-                <th className="py-3 px-4 text-center">Trạng Thái</th>
-                <th className="py-3 px-4 text-right">Thao Tác</th>
-              </tr>
-            </thead>
-            <tbody className={cn('divide-y font-sans', isDarkMode ? 'divide-[#3E4850]/30' : 'divide-slate-100')}>
-              {filteredLeads.map((lead) => (
-                <tr
-                  key={lead.id}
-                  className={cn(
-                    'transition-colors',
-                    isDarkMode ? 'hover:bg-[#131B2E]/60' : 'hover:bg-slate-50'
-                  )}
-                >
-                  <td className={cn('py-3 px-4 font-mono text-[11px]', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-                    {lead.createdAt}
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className={cn('font-semibold', isDarkMode ? 'text-white' : 'text-slate-900')}>{lead.customerName}</div>
-                    <div className={cn('text-[11px] font-mono', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>{lead.phone}</div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className={cn('font-medium', isDarkMode ? 'text-white' : 'text-slate-800')}>{lead.interestedCar}</div>
-                    <div className={cn('text-[10px]', isDarkMode ? 'text-[#88929B]' : 'text-slate-400')}>{lead.email}</div>
-                  </td>
-                  <td className={cn('py-3 px-4 text-[11px]', isDarkMode ? 'text-[#88929B]' : 'text-slate-600')}>{lead.preferredTime}</td>
-                  <td className="py-3 px-4">
-                    <span className={cn('font-medium text-xs', isDarkMode ? 'text-white' : 'text-slate-800')}>{lead.assignedStaff}</span>
-                  </td>
-                  <td className="py-3 px-4 text-center font-mono">
-                    <span
-                      className={cn(
-                        'px-2 py-0.5 rounded text-[10px] font-bold uppercase',
-                        lead.status === 'PENDING' &&
-                          (isDarkMode
-                            ? 'bg-red-950/70 text-red-300 border border-red-800/40'
-                            : 'bg-red-50 text-red-700 border border-red-200'),
-                        lead.status === 'CONTACTED' &&
-                          (isDarkMode
-                            ? 'bg-amber-950/60 text-amber-300 border border-amber-800/40'
-                            : 'bg-amber-50 text-amber-700 border border-amber-200'),
-                        lead.status === 'CLOSED' &&
-                          (isDarkMode
-                            ? 'bg-emerald-950/70 text-emerald-300 border border-emerald-800/40'
-                            : 'bg-emerald-50 text-emerald-700 border border-emerald-200')
-                      )}
-                    >
-                      {lead.status === 'PENDING' ? 'Chờ Tiếp Nhận' : lead.status === 'CONTACTED' ? 'Đang Chăm Sóc' : 'Đã Hoàn Tất'}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedLead(lead)}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer inline-flex items-center gap-1 shadow-sm"
-                    >
-                      <span>Hồ Sơ AI</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* 4. Ngăn kéo Hồ sơ tư vấn thông minh (<ConsultationSheet> 580px) */}
+      {/* 4. CRM Detail Drawer / Modal */}
       {selectedLead && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div
-            className={cn(
-              'w-full max-w-2xl h-full overflow-y-auto border-l p-6 space-y-6 shadow-2xl transition-colors',
-              isDarkMode ? 'bg-[#0B1326] border-[#3E4850] text-[#DAE2FD]' : 'bg-white border-slate-200 text-slate-800'
-            )}
-          >
-            {/* Sheet Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#3E4850]/40">
-              <div className="space-y-0.5">
-                <span className="text-[10px] font-mono text-blue-500 uppercase font-bold">Hồ Sơ Tư Vấn & Chân Dung AI</span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className={cn('w-full max-w-xl p-6 rounded-2xl border space-y-4 shadow-2xl', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]' : 'bg-white border-slate-200')}>
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#3E4850]/40">
+              <div>
+                <span className="text-[10px] uppercase font-mono text-blue-500 font-bold block">Nhật Ký Tư Vấn CRM</span>
                 <h3 className={cn('text-base font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
-                  {selectedLead.customerName} - {selectedLead.phone}
+                  {selectedLead.customerName} • {selectedLead.interestedCar}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedLead(null)}
-                className={cn('p-1.5 rounded-lg border cursor-pointer', isDarkMode ? 'border-[#3E4850]/50 hover:bg-[#131B2E]' : 'border-slate-200 hover:bg-slate-100')}
+                className="p-1.5 rounded-lg border cursor-pointer border-slate-200 dark:border-[#3E4850]/50"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Section 1: Customer Contact Info */}
-            <div className={cn('p-4 rounded-xl border space-y-2', isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40' : 'bg-slate-50 border-slate-200')}>
-              <div className="grid grid-cols-2 gap-3 text-xs">
+            <div className="space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-3 p-3 rounded-xl bg-slate-50 dark:bg-[#131B2E] border border-slate-200 dark:border-[#3E4850]/40 font-mono">
                 <div>
-                  <span className={cn('block text-[10px] font-mono uppercase', isDarkMode ? 'text-[#88929B]' : 'text-slate-400')}>Dòng xe quan tâm</span>
-                  <strong className={isDarkMode ? 'text-white' : 'text-slate-900'}>{selectedLead.interestedCar}</strong>
-                </div>
-                <div>
-                  <span className={cn('block text-[10px] font-mono uppercase', isDarkMode ? 'text-[#88929B]' : 'text-slate-400')}>Khung giờ tiện nghe máy</span>
-                  <span className="font-mono">{selectedLead.preferredTime}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-4 pt-2 text-xs font-mono">
-                <a href={`tel:${selectedLead.phone}`} className="flex items-center gap-1.5 text-blue-500 hover:underline">
-                  <Phone className="w-3.5 h-3.5" />
-                  <span>{selectedLead.phone}</span>
-                </a>
-                <a href={`mailto:${selectedLead.email}`} className="flex items-center gap-1.5 text-blue-500 hover:underline">
-                  <Mail className="w-3.5 h-3.5" />
-                  <span>{selectedLead.email}</span>
-                </a>
-              </div>
-            </div>
-
-            {/* Section 2: User Tracking Timeline (<UserJourneyTimeline>) */}
-            <div className={cn('p-4 rounded-xl border space-y-3', isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40' : 'bg-slate-50 border-slate-200')}>
-              <div className="flex items-center gap-2">
-                <History className="w-4 h-4 text-blue-500" />
-                <h4 className={cn('text-xs font-bold uppercase tracking-wider font-mono', isDarkMode ? 'text-white' : 'text-slate-900')}>
-                  Dòng Thời Gian Tương Tác Thực Tế (NhatKyHanhVi)
-                </h4>
-              </div>
-
-              <div className="space-y-2.5 pt-1">
-                {selectedLead.userJourney.map((journey, i) => (
-                  <div key={i} className="flex items-start gap-2.5 text-xs">
-                    <span className="font-mono text-[11px] text-blue-500 font-bold flex-shrink-0 mt-0.5">
-                      [{journey.time}]
-                    </span>
-                    <div className="space-y-0.5">
-                      <div className={isDarkMode ? 'text-white' : 'text-slate-800'}>{journey.detail}</div>
-                      {journey.dwellTime && (
-                        <div className="text-[10px] font-mono text-emerald-500 font-bold">
-                          Dwell Time: {journey.dwellTime}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Section 3: AI Persona Insights (<AIPersonaCard>) */}
-            <div className={cn('p-4 rounded-xl border space-y-3', isDarkMode ? 'bg-[#101F38] border-blue-500/40 text-blue-100' : 'bg-sky-50 border-sky-300 text-slate-800')}>
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-blue-500" />
-                <h4 className="text-xs font-bold uppercase tracking-wider font-mono text-blue-600 dark:text-[#89CEFF]">
-                  Chân Dung Khách Hàng Do AI Gemini & Vector DB Tổng Hợp
-                </h4>
-              </div>
-
-              <div className="space-y-2 text-xs">
-                <div>
-                  <span className="font-mono text-[10px] uppercase font-bold text-blue-500">Nhóm khách hàng:</span>
-                  <div className="font-semibold">{selectedLead.aiPersona.personaGroup}</div>
+                  <span className="text-slate-400 block text-[10px]">SỐ ĐIỆN THOẠI</span>
+                  <strong>{selectedLead.phone}</strong>
                 </div>
                 <div>
-                  <span className="font-mono text-[10px] uppercase font-bold text-blue-500">Mức độ sẵn sàng tài chính:</span>
-                  <div>{selectedLead.aiPersona.financialReadiness}</div>
-                </div>
-                <div>
-                  <span className="font-mono text-[10px] uppercase font-bold text-blue-500">Mối quan tâm cốt lõi:</span>
-                  <div>{selectedLead.aiPersona.primaryConcern}</div>
-                </div>
-
-                <div className={cn('p-3 rounded-lg border space-y-1 mt-2', isDarkMode ? 'bg-[#0B1326] border-blue-500/30' : 'bg-white border-sky-200')}>
-                  <span className="text-[10px] font-mono uppercase font-bold text-emerald-500">Kịch bản mở đầu cuộc gọi gợi ý:</span>
-                  <p className="text-[11px] italic leading-relaxed">{selectedLead.aiPersona.suggestedPitch}</p>
+                  <span className="text-slate-400 block text-[10px]">KHUNG GIỜ HẸN GỌI</span>
+                  <strong>{selectedLead.preferredTime}</strong>
                 </div>
               </div>
-            </div>
 
-            {/* Section 4: Call Notes & Status Update */}
-            <div className="space-y-3 pt-2">
-              <label className={cn('text-xs block font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
-                Ghi Chú Cuộc Gọi & Cập Nhật Trạng Thái:
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={callNotes}
-                  onChange={(e) => setCallNotes(e.target.value)}
-                  placeholder="Ghi nhanh nội dung trao đổi với khách..."
-                  className={cn(
-                    'flex-1 px-3 py-2 text-xs rounded-lg border outline-none',
-                    isDarkMode
-                      ? 'bg-[#131B2E] border-[#3E4850]/50 text-white placeholder-[#88929B] focus:border-[#89CEFF]'
-                      : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-500'
-                  )}
-                />
-                <button
-                  type="button"
-                  onClick={handleAddCallNote}
-                  className="px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold cursor-pointer flex items-center gap-1"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Lưu</span>
-                </button>
-              </div>
-
-              {selectedLead.notes && (
-                <div className={cn('p-3 rounded-lg border text-xs whitespace-pre-line', isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40' : 'bg-slate-50 border-slate-200')}>
+              <div>
+                <span className="font-bold text-slate-400 text-[10px] uppercase block mb-1">Nhu Cầu Khách Hàng Ghi Nhận</span>
+                <div className={cn('p-3 rounded-xl border leading-relaxed', isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40' : 'bg-slate-50 border-slate-200')}>
                   {selectedLead.notes}
                 </div>
-              )}
+              </div>
 
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => handleUpdateStatus(selectedLead.id, 'CONTACTED')}
-                  className="flex-1 py-2 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-700 dark:text-amber-400 text-xs font-bold cursor-pointer hover:bg-amber-500/25 transition-colors"
-                >
-                  Đang Chăm Sóc
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleUpdateStatus(selectedLead.id, 'CLOSED')}
-                  className="flex-1 py-2 rounded-lg bg-emerald-500/15 border border-emerald-500/40 text-emerald-700 dark:text-emerald-400 text-xs font-bold cursor-pointer hover:bg-emerald-500/25 transition-colors"
-                >
-                  Đã Hoàn Tất Chốt
-                </button>
+              <div>
+                <span className="font-bold text-slate-400 text-[10px] uppercase block mb-1">Thêm Nhật Ký Cuộc Gọi Mới</span>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Ghi chú nội dung sau cuộc gọi..."
+                    value={callNotes}
+                    onChange={(e) => setCallNotes(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddCallNote()}
+                    className={cn(
+                      'flex-1 px-3 py-2 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-blue-500',
+                      isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/50 text-white' : 'bg-white border-slate-200'
+                    )}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddCallNote}
+                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer transition-colors flex items-center gap-1.5"
+                  >
+                    <Send className="w-3.5 h-3.5" /> Gửi
+                  </button>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-200 dark:border-[#3E4850]/40 flex items-center justify-between">
+                <span className="font-mono text-[11px] text-slate-400">Trạng thái hiện tại:</span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleUpdateStatus(selectedLead.id, 'CONTACTED')}
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800 cursor-pointer"
+                  >
+                    Đang Tư Vấn
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleUpdateStatus(selectedLead.id, 'CLOSED')}
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+                  >
+                    Chốt Thành Công
+                  </button>
+                </div>
               </div>
             </div>
           </div>

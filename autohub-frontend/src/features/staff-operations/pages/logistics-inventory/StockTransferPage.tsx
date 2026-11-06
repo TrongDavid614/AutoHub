@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Boxes,
   ScanBarcode,
@@ -9,8 +9,10 @@ import {
   Send,
   Warehouse,
   Sparkles,
+  Loader2,
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
+import { staffService } from '@/features/staff-operations/services/staff.service';
 import { MOCK_CROSS_BRANCH_STOCKS, type CrossBranchStock } from '@/features/staff-operations/mocks/staff.mock';
 import { cn } from '@/lib/utils';
 
@@ -19,6 +21,24 @@ export const StockTransferPage: React.FC = () => {
   const [stocks, setStocks] = useState<CrossBranchStock[]>(MOCK_CROSS_BRANCH_STOCKS);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStockForTransfer, setSelectedStockForTransfer] = useState<CrossBranchStock | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchStocks = async () => {
+      setIsLoading(true);
+      try {
+        const data = await staffService.getCrossBranchStocks();
+        if (data && data.length > 0) {
+          setStocks(data);
+        }
+      } catch (err) {
+        console.error('Lỗi tải tồn kho phụ kiện:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchStocks();
+  }, []);
 
   // Transfer Modal Form
   const [fromBranch, setFromBranch] = useState('');
@@ -32,7 +52,8 @@ export const StockTransferPage: React.FC = () => {
   };
 
   const filteredStocks = useMemo(() => {
-    if (!searchQuery.trim()) return stocks;
+    // Khi chưa tìm kiếm: Hiển thị sẵn 5 phụ kiện đầu tiên
+    if (!searchQuery.trim()) return stocks.slice(0, 5);
     const q = searchQuery.toLowerCase();
     return stocks.filter(
       (s) =>
@@ -207,6 +228,28 @@ export const StockTransferPage: React.FC = () => {
             ACC-CARPET-5D
           </button>
         </div>
+      </div>
+
+      {/* Status Bar */}
+      <div className="flex items-center justify-between px-1 text-xs">
+        <div className="flex items-center gap-2">
+          {isLoading ? (
+            <span className="flex items-center gap-1.5 text-cyan-500 font-medium">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              Đang đồng bộ dữ liệu từ Database SQL Server...
+            </span>
+          ) : (
+            <span className={cn('font-medium flex items-center gap-1.5', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+              {!searchQuery.trim()
+                ? `Hiển thị sẵn 5 phụ kiện tiêu biểu (Tổng cộng 10 phụ kiện trong kho dữ liệu)`
+                : `Tìm thấy ${filteredStocks.length} phụ kiện khớp với từ khóa "${searchQuery}"`}
+            </span>
+          )}
+        </div>
+        <span className={cn('text-[11px]', isDarkMode ? 'text-[#88929B]' : 'text-slate-400')}>
+          Quét Barcode hoặc gõ tên để tra cứu toàn bộ 10 phụ kiện
+        </span>
       </div>
 
       {/* Datagrid */}

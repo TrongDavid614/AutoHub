@@ -18,15 +18,15 @@ import java.time.LocalDateTime;
 public class DanhGia extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_nguoi_dung", nullable = false)
+    @JoinColumn(name = "nguoi_dung_id", nullable = false)
     private NguoiDung nguoiDung;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_phu_kien", nullable = false)
+    @JoinColumn(name = "phu_kien_id", nullable = false)
     private PhuKien phuKien;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_chi_tiet_don_hang", nullable = false, unique = true)
+    @JoinColumn(name = "chi_tiet_don_hang_id", nullable = false, unique = true)
     private ChiTietDonHang chiTietDonHang; // Mỗi dòng chi tiết đơn đánh giá tối đa 1 lần (DR33)
 
     @Column(name = "so_sao", nullable = false)

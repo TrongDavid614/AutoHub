@@ -24,7 +24,7 @@ public class DonHangPhuKien extends BaseEntity {
     private String maDonHang;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_nguoi_dung", nullable = false)
+    @JoinColumn(name = "nguoi_dung_id", nullable = false)
     private NguoiDung nguoiDung;
 
     @Column(name = "ngay_dat")
@@ -38,6 +38,12 @@ public class DonHangPhuKien extends BaseEntity {
     @Column(name = "dia_chi_giao_hang", nullable = false, length = 255)
     private String diaChiGiaoHang;
 
+    @Column(name = "ho_ten_nguoi_nhan", length = 100)
+    private String hoTenNguoiNhan;
+
+    @Column(name = "so_dien_thoai_nhan", length = 15)
+    private String soDienThoaiNhan;
+
     @Column(name = "phi_van_chuyen", precision = 18, scale = 2)
     private BigDecimal phiVanChuyen;
 
@@ -45,7 +51,7 @@ public class DonHangPhuKien extends BaseEntity {
     private BigDecimal soTienGiamVoucher;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_voucher")
+    @JoinColumn(name = "voucher_id")
     private Voucher voucher;
 
     @Column(name = "don_vi_van_chuyen", length = 100)

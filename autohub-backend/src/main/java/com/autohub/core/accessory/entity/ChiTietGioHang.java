@@ -20,7 +20,7 @@ public class ChiTietGioHang extends BaseEntity {
     private GioHang gioHang;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_phu_kien", nullable = false)
+    @JoinColumn(name = "phu_kien_id", nullable = false)
     private PhuKien phuKien;
 
     @Column(name = "so_luong", nullable = false)

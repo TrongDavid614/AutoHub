@@ -14,9 +14,8 @@ import java.io.Serializable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class XeDinhDanh implements Serializable {
+public class XeDinhDanh extends com.autohub.common.entity.BaseEntity {
 
-    @Id
     @Column(name = "so_khung_vin", length = 17, nullable = false, unique = true)
     private String soKhungVIN; // 17 ký tự duy nhất
 
@@ -26,6 +25,6 @@ public class XeDinhDanh implements Serializable {
     private TrangThaiXeVIN trangThai = TrangThaiXeVIN.CO_SAN;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_ton_kho", nullable = false)
+    @JoinColumn(name = "ton_kho_id", nullable = false)
     private TonKhoXe tonKhoXe;
 }

@@ -49,10 +49,10 @@ public class GiaoDichThanhToan extends BaseEntity {
     private TrangThaiThanhToan trangThai = TrangThaiThanhToan.PENDING;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_phieu_coc")
+    @JoinColumn(name = "phieu_dat_coc_id")
     private PhieuDatCoc phieuDatCoc; // Hoặc phiếu cọc
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_don_hang")
+    @JoinColumn(name = "don_hang_id")
     private DonHangPhuKien donHangPhuKien; // Hoặc đơn hàng (DR35)
 }

@@ -6,8 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
-public interface XeDinhDanhRepository extends JpaRepository<XeDinhDanh, String> {
+public interface XeDinhDanhRepository extends JpaRepository<XeDinhDanh, Long> {
     List<XeDinhDanh> findByTrangThai(TrangThaiXeVIN trangThai);
+    Optional<XeDinhDanh> findBySoKhungVIN(String soKhungVIN);
 }

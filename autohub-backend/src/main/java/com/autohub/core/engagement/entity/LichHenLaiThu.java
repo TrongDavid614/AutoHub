@@ -20,15 +20,15 @@ import java.time.LocalDateTime;
 public class LichHenLaiThu extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_nguoi_dung", nullable = false)
+    @JoinColumn(name = "nguoi_dung_id", nullable = false)
     private NguoiDung nguoiDung;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_phien_ban", nullable = false)
+    @JoinColumn(name = "phien_ban_id", nullable = false)
     private PhienBanXe phienBanXe;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_xe_demo")
+    @JoinColumn(name = "xe_demo_id")
     private XeDemo xeDemo; // Staff gán khi duyệt lịch
 
     @Column(name = "thoi_gian_hen", nullable = false)

@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 public class YeuCauDoiTra extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_don_hang", nullable = false)
+    @JoinColumn(name = "don_hang_id", nullable = false)
     private DonHangPhuKien donHang;
 
     @Column(name = "ly_do", length = 500)

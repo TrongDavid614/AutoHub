@@ -24,15 +24,15 @@ public class PhieuDatCoc extends BaseEntity {
     private String maPhieuCoc; // #DEP-GTE-2026-8812
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_nguoi_dung", nullable = false)
+    @JoinColumn(name = "nguoi_dung_id", nullable = false)
     private NguoiDung nguoiDung;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_ton_kho", nullable = false)
+    @JoinColumn(name = "ton_kho_id", nullable = false)
     private TonKhoXe tonKhoXe;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "so_khung_vin")
+    @JoinColumn(name = "xe_dinh_danh_id")
     private XeDinhDanh xeDinhDanh; // Gán VIN sau khi đối soát (DR12)
 
     @Column(name = "so_cccd", nullable = false, length = 20)

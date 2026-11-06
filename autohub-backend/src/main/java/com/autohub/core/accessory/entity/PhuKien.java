@@ -18,7 +18,7 @@ import java.util.List;
 public class PhuKien extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_danh_muc", nullable = false)
+    @JoinColumn(name = "danh_muc_id", nullable = false)
     private DanhMucPhuKien danhMucPhuKien;
 
     @Column(name = "ten_phu_kien", nullable = false, length = 150)
@@ -51,8 +51,8 @@ public class PhuKien extends BaseEntity {
     @ManyToMany
     @JoinTable(
         name = "phu_kien_dong_xe_tuong_thich",
-        joinColumns = @JoinColumn(name = "ma_phu_kien"),
-        inverseJoinColumns = @JoinColumn(name = "ma_dong_xe")
+        joinColumns = @JoinColumn(name = "phu_kien_id"),
+        inverseJoinColumns = @JoinColumn(name = "dong_xe_id")
     )
     private List<DongXe> dongXes;
 }

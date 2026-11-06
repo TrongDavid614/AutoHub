@@ -24,11 +24,11 @@ public class XeDemo extends BaseEntity {
     private TrangThaiXeDemo trangThai = TrangThaiXeDemo.SAN_SANG;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_showroom", nullable = false)
+    @JoinColumn(name = "showroom_id", nullable = false)
     private Showroom showroom;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_phien_ban", nullable = false)
+    @JoinColumn(name = "phien_ban_id", nullable = false)
     private PhienBanXe phienBanXe;
 
     @Column(name = "dang_hoat_dong")

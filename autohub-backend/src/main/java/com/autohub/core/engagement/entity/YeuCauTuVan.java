@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
 public class YeuCauTuVan extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_nguoi_dung")
+    @JoinColumn(name = "nguoi_dung_id")
     private NguoiDung nguoiDung; // Khách hàng (có thể rỗng)
 
     @Column(name = "ho_ten", nullable = false, length = 100)
@@ -32,7 +32,7 @@ public class YeuCauTuVan extends BaseEntity {
     private String email;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_phien_ban")
+    @JoinColumn(name = "phien_ban_id")
     private PhienBanXe phienBanXe; // Mẫu xe quan tâm (có thể rỗng theo DR24)
 
     @Column(name = "noi_dung_can_tu_van", length = 500)
@@ -54,6 +54,6 @@ public class YeuCauTuVan extends BaseEntity {
     private String ghiChuCSKH; // Lịch sử chăm sóc của Staff
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_nhan_vien_phu_trach")
+    @JoinColumn(name = "nhan_vien_id")
     private NguoiDung nhanVienPhuTrach; // Staff nhận xử lý
 }
