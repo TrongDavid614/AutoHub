@@ -51,10 +51,18 @@ export const API_CONFIG = {
       RETURNS: '/staff/returns',
     },
     ADMIN: {
-      DASHBOARD: '/admin/dashboard-stats',
+      DASHBOARD: '/admin/dashboard/metrics',
+      ANALYTICS: '/admin/analytics/overview',
       USERS: '/admin/users',
+      REVIEWS: '/admin/reviews',
+      REFUNDS: '/admin/refunds',
+      AI_COPILOT: '/admin/ai/copilot',
+      AI_ANALYZE_REVIEW: '/admin/ai/analyze-review',
       VOUCHERS: '/admin/vouchers',
       FEE_TABLE: '/admin/registration-fees',
+    },
+    TRACKING: {
+      COLLECT: '/tracking/collect',
     },
   },
 };
