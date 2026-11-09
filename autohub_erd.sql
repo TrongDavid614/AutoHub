@@ -368,7 +368,7 @@ CREATE TABLE dbo.phieu_dat_coc (
     CONSTRAINT CK_pdc_tt CHECK (trang_thai IN ('PENDING_PAYMENT','PAID','EXPIRED','REFUND_REQUESTED',
                                                'REFUNDED','COMPLETED','CANCELLED','REFUND_REQUIRED')),
     CONSTRAINT CK_pdc_cccd CHECK (LEN(so_cccd) = 12 AND so_cccd NOT LIKE '%[^0-9]%'),
-    CONSTRAINT CK_pdc_coc  CHECK (so_tien_coc IN (10000000, 20000000)),
+    CONSTRAINT CK_pdc_coc  CHECK (so_tien_coc > 0),
     CONSTRAINT CK_pdc_han  CHECK (han_thanh_toan > ngay_dat_coc)
 );
 CREATE UNIQUE INDEX UX_pdc_vin_active ON dbo.phieu_dat_coc(xe_dinh_danh_id)
@@ -760,26 +760,26 @@ INSERT INTO dbo.danh_muc_phu_kien (ten_danh_muc, dang_hoat_dong) VALUES
 GO
 
 INSERT INTO dbo.phu_kien (danh_muc_id, ten_phu_kien, thuong_hieu, gia_ban, so_luong_ton, quy_cach_lap_dat, hinh_anh, dung_chung, dang_hoat_dong) VALUES
--- ID 1 (Khớp mock ID 101)
-(1, N'Bộ sạc treo tường thông minh Wallbox 22kW', N'AutoHub Power', 25000000, 15, N'Trạm sạc AC 3 pha công suất 22kW chuẩn Type-2 chống nước IP65', 'https://api.builder.io/api/v1/image/assets/TEMP/7269dd36880bc2985679ba0fa9b24225a24cda98?width=768', 1, 1),
--- ID 2 (Khớp mock ID 102)
-(2, N'Camera hành trình 4K tích hợp LiDAR AutoHub Eye', N'AutoHub Vision', 6500000, 28, N'Camera ghi hình 4K Sony Starvis 2 tích hợp LiDAR cảnh báo sớm va chạm', 'https://api.builder.io/api/v1/image/assets/TEMP/db5eb82bcba16029a46329580714b1ac751f5a4d?width=768', 1, 1),
--- ID 3 (Khớp mock ID 103)
-(4, N'Bộ thảm lót sàn đúc nguyên khối chống nước GT-e', N'AutoHub Craft', 2800000, 42, N'Scan 3D Laser nhựa TPE sinh học nguyên khối viền cao 5cm không mùi', 'https://api.builder.io/api/v1/image/assets/TEMP/bc2fdd51e6e50efbc4440d46477d00b7d69fe4a1?width=768', 0, 1),
--- ID 4 (Khớp mock ID 104)
-(3, N'Gói phim cách nhiệt Nano Ceramic AutoHub Shield', N'AutoHub Shield', 14500000, 10, N'Cản nhiệt cabin 99% tia UV/IR, không cản sóng 5G/GPS, bảo hành 10 năm', 'https://api.builder.io/api/v1/image/assets/TEMP/18b57253ac2342092e966b261e1b3751c6617d08?width=768', 1, 1),
--- ID 5 (Khớp mock ID 105)
-(1, N'Bộ sạc di động khẩn cấp 3.5kW Portable Booster', N'AutoHub Power', 5200000, 20, N'Cắm điện 220V Schuko 16A dài 5m màn hình OLED hiển thị công suất', 'https://api.builder.io/api/v1/image/assets/TEMP/7269dd36880bc2985679ba0fa9b24225a24cda98?width=768', 1, 1),
--- ID 6 (Khớp mock ID 106)
-(1, N'Bộ chuyển nguồn cắm điện 2 chiều V2L 3.3kW', N'AutoHub Power', 3800000, 35, N'Cổng chuyển đổi lấy điện từ pin xe ra ổ cắm 220V cho thiết bị dã ngoại', 'https://api.builder.io/api/v1/image/assets/TEMP/7269dd36880bc2985679ba0fa9b24225a24cda98?width=768', 1, 1),
--- ID 7
-(2, N'Bơm lốp điện tử tự ngắt không dây AutoHub Air Pro', N'AutoHub Vision', 1850000, 35, N'Động cơ đồng nguyên chất 150 PSI tự ngắt khi đủ áp suất kèm đèn LED cứu hộ', 'https://api.builder.io/api/v1/image/assets/TEMP/db5eb82bcba16029a46329580714b1ac751f5a4d?width=768', 1, 1),
--- ID 8
-(4, N'Máy lọc không khí ion âm PureAir 360', N'AutoHub Craft', 2450000, 22, N'Màng lọc HEPA H13 khử mùi xe mới và bụi mịn PM2.5 khuếch tán tinh dầu tự nhiên', 'https://api.builder.io/api/v1/image/assets/TEMP/bc2fdd51e6e50efbc4440d46477d00b7d69fe4a1?width=768', 1, 1),
--- ID 9
-(2, N'Cảm biến áp suất lốp van trong TPMS Solar', N'AutoHub Vision', 1950000, 40, N'Màn hình năng lượng mặt trời cảm biến van trong siêu nhạy chống nước IP67', 'https://api.builder.io/api/v1/image/assets/TEMP/db5eb82bcba16029a46329580714b1ac751f5a4d?width=768', 1, 1),
--- ID 10
-(4, N'Bộ gối tựa đầu cao su non công thái học Ergonomic', N'AutoHub Craft', 950000, 60, N'Cao su non đúc chậm nguyên khối nâng đỡ đốt sống cổ vải sợi dệt thoáng khí', 'https://api.builder.io/api/v1/image/assets/TEMP/bc2fdd51e6e50efbc4440d46477d00b7d69fe4a1?width=768', 1, 1);
+-- ID 1 (Khớp mock ID 101) - Giá test: 99.000 đ
+(1, N'Bộ sạc treo tường thông minh Wallbox 22kW', N'AutoHub Power', 99000, 15, N'Trạm sạc AC 3 pha công suất 22kW chuẩn Type-2 chống nước IP65', 'https://api.builder.io/api/v1/image/assets/TEMP/7269dd36880bc2985679ba0fa9b24225a24cda98?width=768', 1, 1),
+-- ID 2 (Khớp mock ID 102) - Giá test: 85.000 đ
+(2, N'Camera hành trình 4K tích hợp LiDAR AutoHub Eye', N'AutoHub Vision', 85000, 28, N'Camera ghi hình 4K Sony Starvis 2 tích hợp LiDAR cảnh báo sớm va chạm', 'https://api.builder.io/api/v1/image/assets/TEMP/db5eb82bcba16029a46329580714b1ac751f5a4d?width=768', 1, 1),
+-- ID 3 (Khớp mock ID 103) - Giá test: 65.000 đ
+(4, N'Bộ thảm lót sàn đúc nguyên khối chống nước GT-e', N'AutoHub Craft', 65000, 42, N'Scan 3D Laser nhựa TPE sinh học nguyên khối viền cao 5cm không mùi', 'https://api.builder.io/api/v1/image/assets/TEMP/bc2fdd51e6e50efbc4440d46477d00b7d69fe4a1?width=768', 0, 1),
+-- ID 4 (Khớp mock ID 104) - Giá test: 95.000 đ
+(3, N'Gói phim cách nhiệt Nano Ceramic AutoHub Shield', N'AutoHub Shield', 95000, 10, N'Cản nhiệt cabin 99% tia UV/IR, không cản sóng 5G/GPS, bảo hành 10 năm', 'https://api.builder.io/api/v1/image/assets/TEMP/18b57253ac2342092e966b261e1b3751c6617d08?width=768', 1, 1),
+-- ID 5 (Khớp mock ID 105) - Giá test: 79.000 đ
+(1, N'Bộ sạc di động khẩn cấp 3.5kW Portable Booster', N'AutoHub Power', 79000, 20, N'Cắm điện 220V Schuko 16A dài 5m màn hình OLED hiển thị công suất', 'https://api.builder.io/api/v1/image/assets/TEMP/7269dd36880bc2985679ba0fa9b24225a24cda98?width=768', 1, 1),
+-- ID 6 (Khớp mock ID 106) - Giá test: 70.000 đ
+(1, N'Bộ chuyển nguồn cắm điện 2 chiều V2L 3.3kW', N'AutoHub Power', 70000, 35, N'Cổng chuyển đổi lấy điện từ pin xe ra ổ cắm 220V cho thiết bị dã ngoại', 'https://api.builder.io/api/v1/image/assets/TEMP/7269dd36880bc2985679ba0fa9b24225a24cda98?width=768', 1, 1),
+-- ID 7 - Giá test: 55.000 đ
+(2, N'Bơm lốp điện tử tự ngắt không dây AutoHub Air Pro', N'AutoHub Vision', 55000, 35, N'Động cơ đồng nguyên chất 150 PSI tự ngắt khi đủ áp suất kèm đèn LED cứu hộ', 'https://api.builder.io/api/v1/image/assets/TEMP/db5eb82bcba16029a46329580714b1ac751f5a4d?width=768', 1, 1),
+-- ID 8 - Giá test: 60.000 đ
+(4, N'Máy lọc không khí ion âm PureAir 360', N'AutoHub Craft', 60000, 22, N'Màng lọc HEPA H13 khử mùi xe mới và bụi mịn PM2.5 khuếch tán tinh dầu tự nhiên', 'https://api.builder.io/api/v1/image/assets/TEMP/bc2fdd51e6e50efbc4440d46477d00b7d69fe4a1?width=768', 1, 1),
+-- ID 9 - Giá test: 50.000 đ
+(2, N'Cảm biến áp suất lốp van trong TPMS Solar', N'AutoHub Vision', 50000, 40, N'Màn hình năng lượng mặt trời cảm biến van trong siêu nhạy chống nước IP67', 'https://api.builder.io/api/v1/image/assets/TEMP/db5eb82bcba16029a46329580714b1ac751f5a4d?width=768', 1, 1),
+-- ID 10 - Giá test: 50.000 đ
+(4, N'Bộ gối tựa đầu cao su non công thái học Ergonomic', N'AutoHub Craft', 50000, 60, N'Cao su non đúc chậm nguyên khối nâng đỡ đốt sống cổ vải sợi dệt thoáng khí', 'https://api.builder.io/api/v1/image/assets/TEMP/bc2fdd51e6e50efbc4440d46477d00b7d69fe4a1?width=768', 1, 1);
 GO
 
 -- Liên kết tương thích đời xe
@@ -815,23 +815,23 @@ GO
 -- 15. PHIẾU ĐẶT CỌC XE 72H & THANH TOÁN CỌC (Khớp StaffDepositRecord #DEP-GTE-2026-8812 & Mock Refund Dockets)
 INSERT INTO dbo.phieu_dat_coc (ma_phieu_coc, nguoi_dung_id, ton_kho_id, xe_dinh_danh_id, so_cccd, so_tien_coc, ngay_dat_coc, han_thanh_toan, thoi_gian_thanh_toan, han_giu_xe, trang_thai, thoi_gian_hoan_tat) VALUES
 -- Cọc 1: Khách VIP Lê Hoàng Long đặt cọc xe GT-e, đã thanh toán đủ 100% và hoàn tất bàn giao xe PDI
-('DEP-GTE-2026-8812', 8, 1, 3, '001201009988', 20000000, DATEADD(DAY, -2, SYSDATETIME()), DATEADD(MINUTE, -1425, SYSDATETIME()), DATEADD(DAY, -2, SYSDATETIME()), DATEADD(DAY, 1, SYSDATETIME()), 'COMPLETED', DATEADD(HOUR, -2, SYSDATETIME())),
+('DEP-GTE-2026-8812', 8, 1, 3, '001201009988', 50000, DATEADD(DAY, -2, SYSDATETIME()), DATEADD(MINUTE, -1425, SYSDATETIME()), DATEADD(DAY, -2, SYSDATETIME()), DATEADD(DAY, 1, SYSDATETIME()), 'COMPLETED', DATEADD(HOUR, -2, SYSDATETIME())),
 -- Cọc 2: Khách Trần Hoàng Nam đặt cọc VinFast VF8 (#DEP-8841), ngân hàng từ chối tín dụng, gửi yêu cầu hoàn cọc
-('DEP-VF8-2026-8841', 6, 5, 5, '001202008819', 20000000, DATEADD(DAY, -1, SYSDATETIME()), DATEADD(MINUTE, -1400, SYSDATETIME()), DATEADD(DAY, -1, SYSDATETIME()), DATEADD(DAY, 2, SYSDATETIME()), 'REFUND_REQUESTED', NULL),
+('DEP-VF8-2026-8841', 6, 5, 5, '001202008819', 50000, DATEADD(DAY, -1, SYSDATETIME()), DATEADD(MINUTE, -1400, SYSDATETIME()), DATEADD(DAY, -1, SYSDATETIME()), DATEADD(DAY, 2, SYSDATETIME()), 'REFUND_REQUESTED', NULL),
 -- Cọc 3: Khách Nguyễn Bích Thủy đặt cọc Hyundai SantaFe (#DEP-8832), xin rút cọc ngoại lệ gia đình, đã được Admin duyệt và hoàn tiền
-('DEP-STF-2026-8832', 7, 3, 4, '079195004321', 10000000, DATEADD(DAY, -3, SYSDATETIME()), DATEADD(MINUTE, -4000, SYSDATETIME()), DATEADD(DAY, -3, SYSDATETIME()), DATEADD(DAY, -1, SYSDATETIME()), 'REFUNDED', DATEADD(HOUR, -6, SYSDATETIME()));
+('DEP-STF-2026-8832', 7, 3, 4, '079195004321', 30000, DATEADD(DAY, -3, SYSDATETIME()), DATEADD(MINUTE, -4000, SYSDATETIME()), DATEADD(DAY, -3, SYSDATETIME()), DATEADD(DAY, -1, SYSDATETIME()), 'REFUNDED', DATEADD(HOUR, -6, SYSDATETIME()));
 GO
 
 -- Giao dịch thanh toán cọc & hoàn tiền qua VNPay
 INSERT INTO dbo.giao_dich_thanh_toan (phieu_dat_coc_id, don_hang_id, ma_tham_chieu, ma_giao_dich_vnpay, loai_giao_dich, phuong_thuc, so_tien, thoi_gian_khoi_tao, thoi_gian_thanh_toan, ma_ket_qua, trang_thai) VALUES
 -- Thanh toán cọc thành công cho Cọc 1
-(1, NULL, 'TXN_DEP_8812_01', '14238812', 'THANH_TOAN', 'VNPAY', 20000000, DATEADD(DAY, -2, SYSDATETIME()), DATEADD(DAY, -2, SYSDATETIME()), '00', 'SUCCESS'),
+(1, NULL, 'TXN_DEP_8812_01', '14238812', 'THANH_TOAN', 'VNPAY', 50000, DATEADD(DAY, -2, SYSDATETIME()), DATEADD(DAY, -2, SYSDATETIME()), '00', 'SUCCESS'),
 -- Thanh toán cọc thành công cho Cọc 2
-(2, NULL, 'TXN_DEP_8841_01', '14238841', 'THANH_TOAN', 'VNPAY', 20000000, DATEADD(DAY, -1, SYSDATETIME()), DATEADD(DAY, -1, SYSDATETIME()), '00', 'SUCCESS'),
+(2, NULL, 'TXN_DEP_8841_01', '14238841', 'THANH_TOAN', 'VNPAY', 50000, DATEADD(DAY, -1, SYSDATETIME()), DATEADD(DAY, -1, SYSDATETIME()), '00', 'SUCCESS'),
 -- Thanh toán cọc ban đầu cho Cọc 3
-(3, NULL, 'TXN_DEP_8832_01', '14238832', 'THANH_TOAN', 'VNPAY', 10000000, DATEADD(DAY, -3, SYSDATETIME()), DATEADD(DAY, -3, SYSDATETIME()), '00', 'SUCCESS'),
+(3, NULL, 'TXN_DEP_8832_01', '14238832', 'THANH_TOAN', 'VNPAY', 30000, DATEADD(DAY, -3, SYSDATETIME()), DATEADD(DAY, -3, SYSDATETIME()), '00', 'SUCCESS'),
 -- Giao dịch hoàn tiền cọc cho Cọc 3 sau khi Admin phê duyệt
-(3, NULL, 'TXN_REFUND_8832_01', 'REF99883210', 'HOAN_TIEN', 'VNPAY', 10000000, DATEADD(HOUR, -7, SYSDATETIME()), DATEADD(HOUR, -6, SYSDATETIME()), '00', 'SUCCESS');
+(3, NULL, 'TXN_REFUND_8832_01', 'REF99883210', 'HOAN_TIEN', 'VNPAY', 30000, DATEADD(HOUR, -7, SYSDATETIME()), DATEADD(HOUR, -6, SYSDATETIME()), '00', 'SUCCESS');
 GO
 
 -- 16. BIÊN BẢN BÀN GIAO XE & PDI CHECKLIST (UC22b: Hoàn tất bàn giao xe ô tô)
