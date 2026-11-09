@@ -82,15 +82,21 @@ export const DepositAuditPage: React.FC = () => {
     }
   };
 
-  const handleSignContract = (depositId: string, customerName: string) => {
+  const handleSignContract = async (depositId: string, customerName: string) => {
     if (confirm(`Xác nhận khách hàng ${customerName} đã đến Showroom hoàn tất ký Hợp Đồng Mua Bán xe vật lý?`)) {
-      setDeposits((prev) =>
-        prev.map((d) =>
-          d.id === depositId
-            ? { ...d, status: 'CONTRACT_SIGNED' as const }
-            : d
-        )
-      );
+      try {
+        await staffService.signContract(depositId);
+        setDeposits((prev) =>
+          prev.map((d) =>
+            d.id === depositId
+              ? { ...d, status: 'COMPLETED' as const }
+              : d
+          )
+        );
+      } catch (err) {
+        console.error('Lỗi ký hợp đồng vào CSDL:', err);
+        alert('Không thể cập nhật ký hợp đồng vào CSDL. Vui lòng thử lại!');
+      }
     }
   };
 
@@ -242,7 +248,7 @@ export const DepositAuditPage: React.FC = () => {
                           Gán VIN Kho
                         </button>
                       )}
-                      {item.assignedVin && item.status !== 'CONTRACT_SIGNED' && (
+                      {item.assignedVin && item.status !== 'CONTRACT_SIGNED' && item.status !== 'COMPLETED' && (
                         <button
                           type="button"
                           onClick={() => handleSignContract(item.id, item.customerName)}
@@ -251,7 +257,7 @@ export const DepositAuditPage: React.FC = () => {
                           Ký Hợp Đồng
                         </button>
                       )}
-                      {item.status === 'CONTRACT_SIGNED' && (
+                      {(item.status === 'CONTRACT_SIGNED' || item.status === 'COMPLETED') && (
                         <span className="text-[11px] font-mono text-emerald-500 font-bold">Đã ký HĐMB</span>
                       )}
                     </div>

@@ -46,6 +46,12 @@ export const staffService = {
     return apiRes.data;
   },
 
+  async signContract(depositId: string): Promise<string> {
+    const res = await axiosClient.post<ApiResponse<string>>(`/staff/deposits/${depositId}/sign-contract`, {});
+    const apiRes = res as unknown as ApiResponse<string>;
+    return apiRes.data;
+  },
+
   // 3. Thẩm định hồ sơ hoàn cọc (UC40)
   async getRefundDockets(): Promise<StaffRefundDocket[]> {
     const res = await axiosClient.get<ApiResponse<StaffRefundDocket[]>>('/staff/refunds');

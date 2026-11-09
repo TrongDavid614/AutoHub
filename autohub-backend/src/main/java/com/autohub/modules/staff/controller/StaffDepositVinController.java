@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @RestController
@@ -67,5 +68,17 @@ public class StaffDepositVinController {
         depositRepository.save(deposit);
 
         return ResponseEntity.ok(ApiResponse.ok(vin, "Gán số khung VIN thành công cho phiếu cọc 72h trong database"));
+    }
+
+    @PostMapping("/{depositId}/sign-contract")
+    public ResponseEntity<ApiResponse<String>> signContract(@PathVariable Long depositId) {
+        PhieuDatCoc deposit = depositRepository.findById(depositId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu cọc ID: " + depositId));
+
+        deposit.setTrangThai(TrangThaiPhieuCoc.COMPLETED);
+        deposit.setThoiGianHoanTat(LocalDateTime.now());
+        depositRepository.save(deposit);
+
+        return ResponseEntity.ok(ApiResponse.ok("COMPLETED", "Ký hợp đồng mua bán thành công, đã cập nhật CSDL"));
     }
 }
