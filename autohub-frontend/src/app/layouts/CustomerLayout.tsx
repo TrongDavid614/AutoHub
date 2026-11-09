@@ -10,9 +10,11 @@ import {
   ChevronRight,
   LogOut,
   Headphones,
+  Bot,
 } from 'lucide-react';
 import { Header, Footer } from '@/components';
 import { useAuthStore } from '@/store/useAuthStore';
+import { AiConsultantWidget } from '@/features/customer';
 
 interface NavItem {
   to: string;
@@ -32,6 +34,7 @@ export const CustomerLayout: React.FC = () => {
     { to: '/customer/test-drives', label: 'Lịch Hẹn Lái Thử', icon: Calendar },
     { to: '/customer/deposits', label: 'Phiếu Đặt Cọc Xe (72h)', icon: CreditCard, badge: '72h' },
     { to: '/customer/orders', label: 'Đơn Hàng Phụ Kiện', icon: Package },
+    { to: '/ai-consultant', label: 'Trợ Lý Tư Vấn AI', icon: Bot, badge: 'AI' },
   ];
 
   // Tìm nav item đang active để hiển thị breadcrumb trên thanh công cụ
@@ -241,6 +244,23 @@ export const CustomerLayout: React.FC = () => {
           <Outlet />
         </div>
       </main>
+
+      {/* FLOATING AI CONSULTANT TRIGGER & MODAL WIDGET */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <button
+          type="button"
+          onClick={() => {
+            const el = document.getElementById('ai-consultant-modal');
+            if (el) el.classList.toggle('hidden');
+          }}
+          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#171F33] to-[#222A3D] text-[#89CEFF] border border-[#3E4850]/80 font-bold text-xs rounded-full shadow-2xl hover:border-[#89CEFF] hover:scale-105 transition-all cursor-pointer"
+        >
+          <Bot className="w-4 h-4 text-[#89CEFF]" />
+          <span>Trợ Lý Ảo AI</span>
+        </button>
+      </div>
+
+      <AiConsultantWidget />
 
       {/* 5. GLOBAL FOOTER */}
       <Footer />

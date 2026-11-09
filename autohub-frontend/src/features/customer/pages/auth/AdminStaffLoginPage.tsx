@@ -166,7 +166,7 @@ export const AdminStaffLoginPage: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() => fillQuickAccount('staff@autohub.vn', 'staff123')}
+                onClick={() => fillQuickAccount('tuan.nguyen@autohub.vn', 'staff123')}
                 className="p-2.5 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-left transition-colors cursor-pointer group"
               >
                 <div className="flex items-center gap-1.5 text-xs font-bold text-blue-400 mb-0.5">
@@ -174,7 +174,7 @@ export const AdminStaffLoginPage: React.FC = () => {
                   <span>Staff Showroom</span>
                 </div>
                 <div className="text-[11px] text-slate-400 group-hover:text-slate-200">
-                  staff@autohub.vn
+                  tuan.nguyen@autohub.vn
                 </div>
                 <div className="text-[10px] text-slate-500 font-mono">Pass: staff123</div>
               </button>

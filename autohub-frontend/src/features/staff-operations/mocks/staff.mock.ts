@@ -1,5 +1,5 @@
 // NOTE: Toàn bộ dữ liệu tác nghiệp của Staff hiện được nạp 100% trực tiếp từ Database SQL Server qua Spring Boot API (/staff/*).
-// Đã xóa toàn bộ cơ chế fallback theo yêu cầu kiểm thử kết nối FE-BE.
+// Đã xóa toàn bộ dữ liệu mẫu (mockup) theo yêu cầu kiểm thử kết nối FE-BE.
 
 export * from '@/types/staff.types';
 import type {
@@ -27,3 +27,4 @@ export const MOCK_STAFF_RETURN_ITEMS: StaffReturnItem[] = [];
 export const MOCK_CROSS_BRANCH_STOCKS: CrossBranchStock[] = [];
 export const MOCK_DEMO_FLEET: DemoFleetCar[] = [];
 export const MOCK_HANDOVER_HISTORY: ShiftHandoverRecord[] = [];
+

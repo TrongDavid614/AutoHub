@@ -40,7 +40,7 @@ export const LoginPage: React.FC = () => {
 
     try {
       setIsLoading(true);
-      const res = await authService.login(email);
+      const res = await authService.login(email, password);
 
       // Cập nhật vào Zustand auth store (tự động đồng bộ localStorage)
       login(res.accessToken, res.user);
