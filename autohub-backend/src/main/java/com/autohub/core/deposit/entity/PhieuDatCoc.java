@@ -20,39 +20,39 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class PhieuDatCoc extends BaseEntity {
 
-    @Column(name = "ma_phieu_coc", nullable = false, unique = true, length = 50)
-    private String maPhieuCoc; // #DEP-GTE-2026-8812
+    @Column(name = "ma_phieu_coc", nullable = false, unique = true, length = 30)
+    private String maPhieuCoc;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_nguoi_dung", nullable = false)
+    @JoinColumn(name = "nguoi_dung_id", nullable = false)
     private NguoiDung nguoiDung;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_ton_kho", nullable = false)
+    @JoinColumn(name = "ton_kho_id", nullable = false)
     private TonKhoXe tonKhoXe;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "so_khung_vin")
-    private XeDinhDanh xeDinhDanh; // Gán VIN sau khi đối soát (DR12)
+    @JoinColumn(name = "xe_dinh_danh_id")
+    private XeDinhDanh xeDinhDanh;
 
-    @Column(name = "so_cccd", nullable = false, length = 20)
-    private String soCCCD; // Sao chụp 12 chữ số khi cọc (DR02)
+    @Column(name = "so_cccd", nullable = false, length = 12)
+    private String soCCCD;
 
-    @Column(name = "so_tien_coc", nullable = false, precision = 18, scale = 2)
+    @Column(name = "so_tien_coc", nullable = false, precision = 18, scale = 0)
     private BigDecimal soTienCoc;
 
     @Column(name = "ngay_dat_coc")
     @Builder.Default
     private LocalDateTime ngayDatCoc = LocalDateTime.now();
 
-    @Column(name = "han_thanh_toan")
-    private LocalDateTime hanThanhToan; // ngayDatCoc + 15 phút (DR11)
+    @Column(name = "han_thanh_toan", nullable = false)
+    private LocalDateTime hanThanhToan;
 
     @Column(name = "thoi_gian_thanh_toan")
-    private LocalDateTime thoiGianThanhToan; // Khi SePay báo Webhook
+    private LocalDateTime thoiGianThanhToan;
 
     @Column(name = "han_giu_xe")
-    private LocalDateTime hanGiuXe; // thoiGianThanhToan + 72 giờ
+    private LocalDateTime hanGiuXe;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trang_thai", nullable = false, length = 30)
@@ -60,5 +60,5 @@ public class PhieuDatCoc extends BaseEntity {
     private TrangThaiPhieuCoc trangThai = TrangThaiPhieuCoc.PENDING_PAYMENT;
 
     @Column(name = "thoi_gian_hoan_tat")
-    private LocalDateTime thoiGianHoanTat; // Ký hợp đồng mua bán
+    private LocalDateTime thoiGianHoanTat;
 }

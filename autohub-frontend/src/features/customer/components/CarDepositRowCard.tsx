@@ -12,6 +12,7 @@ import {
   RefreshCcw,
   X,
   Building,
+  CreditCard,
 } from 'lucide-react';
 import type { CarDepositItem, CarDepositStatus } from '@/features/customer/types/car-deposit.types';
 
@@ -23,6 +24,7 @@ interface CarDepositRowCardProps {
   onCopy: (code: string) => void;
   onSelectReceipt: (item: CarDepositItem) => void;
   onRequestRefund: (item: CarDepositItem) => void;
+  onPayDeposit?: (item: CarDepositItem) => void;
 }
 
 export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
@@ -33,6 +35,7 @@ export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
   onCopy,
   onSelectReceipt,
   onRequestRefund,
+  onPayDeposit,
 }) => {
   const renderStatusBadge = (status: CarDepositStatus) => {
     switch (status) {
@@ -198,6 +201,18 @@ export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          {/* Nút Xác nhận đặt cọc nếu chưa thanh toán */}
+          {item.status === 'PENDING_PAYMENT' && onPayDeposit && (
+            <button
+              type="button"
+              onClick={() => onPayDeposit(item)}
+              className="px-4 py-2 rounded-[2px] bg-accent-action hover:bg-accent-primary text-xs font-bold text-accent-contrast flex items-center gap-1.5 cursor-pointer shadow-sm transition-colors"
+            >
+              <CreditCard className="w-3.5 h-3.5 text-accent-contrast" />
+              <span>Xác nhận đặt cọc giữ xe</span>
+            </button>
+          )}
+
           {/* Nút Xem biên nhận cọc điện tử */}
           <button
             type="button"

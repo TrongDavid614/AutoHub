@@ -16,32 +16,33 @@ import java.math.BigDecimal;
 public class PhienBanXe extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_dong_xe", nullable = false)
+    @JoinColumn(name = "dong_xe_id", nullable = false)
     private DongXe dongXe;
 
     @Column(name = "ten_phien_ban", nullable = false, length = 150)
     private String tenPhienBan;
 
-    @Column(name = "nam_san_xuat")
+    @Column(name = "nam_san_xuat", nullable = false)
     private Integer namSanXuat;
 
-    @Column(name = "hop_so", length = 50)
+    @Column(name = "hop_so", nullable = false, length = 50)
     private String hopSo;
 
-    @Column(name = "loai_nhien_lieu", length = 50)
-    private String loaiNhienLieu; // Thuần điện 800V SiC
+    @Column(name = "loai_nhien_lieu", nullable = false, length = 50)
+    private String loaiNhienLieu;
 
-    @Column(name = "so_cho_ngoi")
+    @Column(name = "so_cho_ngoi", nullable = false)
     private Integer soChoNgoi;
 
-    @Column(name = "gia_niem_yet", nullable = false, precision = 18, scale = 2)
+    @Column(name = "gia_niem_yet", nullable = false, precision = 18, scale = 0)
     private BigDecimal giaNiemYet;
 
-    @Column(name = "muc_tien_coc", nullable = false, precision = 18, scale = 2)
-    private BigDecimal mucTienCoc; // 10.000.000 hoặc 20.000.000 VNĐ (DR08)
+    @Column(name = "muc_tien_coc", nullable = false, precision = 18, scale = 0)
+    @Builder.Default
+    private BigDecimal mucTienCoc = new BigDecimal("20000000");
 
     @Column(name = "thong_so_ky_thuat", columnDefinition = "NVARCHAR(MAX)")
-    private String thongSoKyThuat; // JSON hoặc text thông số công suất, pin, LiDAR
+    private String thongSoKyThuat;
 
     @Column(name = "dang_hoat_dong")
     @Builder.Default

@@ -36,7 +36,7 @@ public class StaffDepositVinController {
         PhieuDatCoc deposit = depositRepository.findById(depositId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu cọc ID: " + depositId));
 
-        XeDinhDanh xeDinhDanh = xeDinhDanhRepository.findById(vin)
+        XeDinhDanh xeDinhDanh = xeDinhDanhRepository.findBySoKhungVin(vin)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy xe định danh với số khung VIN: " + vin));
 
         xeDinhDanh.setTrangThai(TrangThaiXeVIN.DA_GIU_CHO);

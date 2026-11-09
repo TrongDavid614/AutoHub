@@ -18,7 +18,7 @@ public class ShowroomCarController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<PhienBanXe>>> getShowroomCars() {
-        List<PhienBanXe> cars = phienBanXeRepository.findAll();
+        List<PhienBanXe> cars = phienBanXeRepository.findAllWithDetails();
         return ResponseEntity.ok(ApiResponse.ok(cars, "Lấy danh mục xe showroom thành công"));
     }
 

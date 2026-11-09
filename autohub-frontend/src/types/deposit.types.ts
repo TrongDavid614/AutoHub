@@ -24,8 +24,8 @@ export interface CarDeposit {
   assignedShowroom: string;
   expiresAt: string;
   paidAt?: string;
-  paymentMethod: 'SEPAY';
-  sepayTransactionId?: string;
+  paymentMethod: 'VNPAY' | 'COD' | 'SEPAY';
   vnpayTransactionId?: string;
+  sepayTransactionId?: string;
   createdAt: string;
 }

@@ -20,39 +20,44 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class GiaoDichThanhToan extends BaseEntity {
 
-    @Column(name = "ma_tham_chieu", nullable = false, unique = true, length = 100)
-    private String maThamChieu; // Mã gửi SePay (sepay_reference_code)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "phieu_dat_coc_id")
+    private PhieuDatCoc phieuDatCoc;
 
-    @Column(name = "ma_giao_dich_sepay", unique = true, length = 100)
-    private String maGiaoDichSePay; // Mã SePay trả về (sepay_transaction_id)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "don_hang_id")
+    private DonHangPhuKien donHangPhuKien;
+
+    @Column(name = "ma_tham_chieu", nullable = false, unique = true, length = 64)
+    private String maThamChieu; // vnp_TxnRef
+
+    @Column(name = "ma_giao_dich_vnpay", length = 64)
+    private String maGiaoDichVnpay; // vnp_TransactionNo
+
+    @Column(name = "loai_giao_dich", nullable = false, length = 20)
+    @Builder.Default
+    private String loaiGiaoDich = "THANH_TOAN"; // THANH_TOAN hoặc HOAN_TIEN
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "phuong_thuc", nullable = false, length = 20)
-    private PhuongThucThanhToan phuongThuc;
+    @Column(name = "phuong_thuc", nullable = false, length = 10)
+    @Builder.Default
+    private PhuongThucThanhToan phuongThuc = PhuongThucThanhToan.VNPAY;
 
-    @Column(name = "so_tien", nullable = false, precision = 18, scale = 2)
+    @Column(name = "so_tien", nullable = false, precision = 18, scale = 0)
     private BigDecimal soTien;
 
-    @Column(name = "thoi_gian_khoi_tao")
+    @Column(name = "thoi_gian_khoi_tao", nullable = false)
     @Builder.Default
     private LocalDateTime thoiGianKhoiTao = LocalDateTime.now();
 
     @Column(name = "thoi_gian_thanh_toan")
     private LocalDateTime thoiGianThanhToan;
 
-    @Column(name = "ma_ket_qua", length = 50)
-    private String maKetQua; // sepay_status
+    @Column(name = "ma_ket_qua", length = 10)
+    private String maKetQua; // vnp_ResponseCode (00 là thành công)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trang_thai", nullable = false, length = 20)
     @Builder.Default
     private TrangThaiThanhToan trangThai = TrangThaiThanhToan.PENDING;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_phieu_coc")
-    private PhieuDatCoc phieuDatCoc; // Hoặc phiếu cọc
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_don_hang")
-    private DonHangPhuKien donHangPhuKien; // Hoặc đơn hàng (DR35)
 }

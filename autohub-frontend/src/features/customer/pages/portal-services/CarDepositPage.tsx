@@ -89,6 +89,21 @@ export const CarDepositPage: React.FC = () => {
   const [showRefundModal, setShowRefundModal] = useState(false);
   const [refundTarget, setRefundTarget] = useState<CarDepositItem | null>(null);
 
+  const handleDirectConfirmDeposit = (item: CarDepositItem) => {
+    setDeposits((prev) =>
+      prev.map((d) =>
+        d.id === item.id
+          ? {
+              ...d,
+              status: 'PAID' as CarDepositStatus,
+              paidAt: new Date().toISOString(),
+            }
+          : d
+      )
+    );
+    showToast(`Đã xác nhận thanh toán cọc thành công cho phiếu cọc ${item.depositCode}!`);
+  };
+
   // Giả lập đồng hồ đếm ngược 72 giờ (còn lại khoảng 57 giờ 42 phút cho đơn 1)
   const [remainingSeconds, setRemainingSeconds] = useState(57 * 3600 + 42 * 60 + 15);
 
@@ -194,6 +209,7 @@ export const CarDepositPage: React.FC = () => {
                 setRefundTarget(target);
                 setShowRefundModal(true);
               }}
+              onPayDeposit={handleDirectConfirmDeposit}
             />
           ))
         )}
@@ -215,6 +231,7 @@ export const CarDepositPage: React.FC = () => {
         }}
         onSubmit={handleRefundSubmit}
       />
+
     </div>
   );
 };

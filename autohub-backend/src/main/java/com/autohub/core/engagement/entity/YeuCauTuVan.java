@@ -19,26 +19,30 @@ import java.time.LocalDateTime;
 public class YeuCauTuVan extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_nguoi_dung")
-    private NguoiDung nguoiDung; // Khách hàng (có thể rỗng)
+    @JoinColumn(name = "nguoi_dung_id")
+    private NguoiDung nguoiDung;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "phien_ban_id")
+    private PhienBanXe phienBanXe;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "nhan_vien_id")
+    private NguoiDung nhanVien;
 
     @Column(name = "ho_ten", nullable = false, length = 100)
     private String hoTen;
 
-    @Column(name = "so_dien_thoai", nullable = false, length = 15)
+    @Column(name = "so_dien_thoai", nullable = false, length = 10)
     private String soDienThoai;
 
-    @Column(length = 100)
+    @Column(nullable = false, length = 100)
     private String email;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_phien_ban")
-    private PhienBanXe phienBanXe; // Mẫu xe quan tâm (có thể rỗng theo DR24)
-
-    @Column(name = "noi_dung_can_tu_van", length = 500)
+    @Column(name = "noi_dung_can_tu_van", nullable = false, length = 1000)
     private String noiDungCanTuVan;
 
-    @Column(name = "khung_gio_tiep_nhan", length = 50)
+    @Column(name = "khung_gio_tiep_nhan", length = 100)
     private String khungGioTiepNhan;
 
     @Column(name = "ngay_gui")
@@ -51,9 +55,5 @@ public class YeuCauTuVan extends BaseEntity {
     private TrangThaiYeuCauTuVan trangThai = TrangThaiYeuCauTuVan.PENDING;
 
     @Column(name = "ghi_chu_cskh", columnDefinition = "NVARCHAR(MAX)")
-    private String ghiChuCSKH; // Lịch sử chăm sóc của Staff
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_nhan_vien_phu_trach")
-    private NguoiDung nhanVienPhuTrach; // Staff nhận xử lý
+    private String ghiChuCSKH;
 }

@@ -14,13 +14,13 @@ import lombok.*;
 public class SoDiaChi extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_nguoi_dung", nullable = false)
+    @JoinColumn(name = "nguoi_dung_id", nullable = false)
     private NguoiDung nguoiDung;
 
     @Column(name = "ho_ten_nguoi_nhan", nullable = false, length = 100)
     private String hoTenNguoiNhan;
 
-    @Column(name = "so_dien_thoai", nullable = false, length = 15)
+    @Column(name = "so_dien_thoai", nullable = false, length = 10)
     private String soDienThoai;
 
     @Column(name = "tinh_thanh", nullable = false, length = 100)
@@ -37,5 +37,5 @@ public class SoDiaChi extends BaseEntity {
 
     @Column(name = "mac_dinh")
     @Builder.Default
-    private boolean macDinh = false; // Tối đa 1 địa chỉ mặc định (DR06)
+    private boolean macDinh = false;
 }

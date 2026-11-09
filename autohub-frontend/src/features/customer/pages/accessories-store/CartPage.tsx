@@ -1,4 +1,6 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/store/useAuthStore';
 import { useCartCheckout } from '@/features/customer/hooks/useCartCheckout';
 import { CartSubHeaderBanner } from '@/features/customer/components/CartSubHeaderBanner';
 import { CartItemListPanel } from '@/features/customer/components/CartItemListPanel';
@@ -10,6 +12,9 @@ import { AddressEditModal } from '@/features/customer/components/AddressEditModa
 import { OrderSuccessModal } from '@/features/customer/components/OrderSuccessModal';
 
 export const CartPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuthStore();
+
   const {
     cartItems,
     removeFromCart,
@@ -38,8 +43,15 @@ export const CartPage: React.FC = () => {
     orderSuccess,
     setOrderSuccess,
     orderId,
-    handleCheckout,
   } = useCartCheckout();
+
+  const onCheckoutClick = () => {
+    if (!isAuthenticated) {
+      navigate('/login?redirect=/checkout');
+      return;
+    }
+    navigate('/checkout');
+  };
 
   return (
     <div className="w-full bg-[#060E20] text-[#DAE2FD] min-h-screen">
@@ -91,8 +103,9 @@ export const CartPage: React.FC = () => {
             onVoucherCodeChange={setVoucherCode}
             onApplyVoucher={() => applyVoucher(voucherCode)}
             onRemoveVoucher={removeVoucher}
-            onCheckout={handleCheckout}
+            onCheckout={onCheckoutClick}
             isSubmitting={isSubmitting}
+            isAuthenticated={isAuthenticated}
           />
         </div>
       </div>

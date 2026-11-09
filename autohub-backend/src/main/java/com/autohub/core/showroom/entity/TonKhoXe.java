@@ -8,7 +8,7 @@ import lombok.*;
 
 @Entity
 @Table(name = "ton_kho_xe", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"ma_phien_ban", "ma_mau", "ma_showroom"})
+    @UniqueConstraint(columnNames = {"phien_ban_id", "mau_sac_id", "showroom_id"})
 })
 @Getter
 @Setter
@@ -18,22 +18,22 @@ import lombok.*;
 public class TonKhoXe extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_phien_ban", nullable = false)
+    @JoinColumn(name = "phien_ban_id", nullable = false)
     private PhienBanXe phienBanXe;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_mau", nullable = false)
+    @JoinColumn(name = "mau_sac_id", nullable = false)
     private MauSac mauSac;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_showroom", nullable = false)
+    @JoinColumn(name = "showroom_id", nullable = false)
     private Showroom showroom;
 
     @Column(name = "so_luong_kha_dung", nullable = false)
     @Builder.Default
-    private Integer soLuongKhaDung = 0; // CHECK (soLuongKhaDung >= 0)
+    private Integer soLuongKhaDung = 0;
 
     @Column(name = "so_luong_dang_giu_cho", nullable = false)
     @Builder.Default
-    private Integer soLuongDangGiuCho = 0; // Đang giữ tạm 15p hoặc giữ cọc 72h
+    private Integer soLuongDangGiuCho = 0;
 }

@@ -14,17 +14,17 @@ import lombok.*;
 public class DongXe extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_hang_xe", nullable = false)
+    @JoinColumn(name = "hang_xe_id", nullable = false)
     private HangXe hangXe;
 
     @Column(name = "ten_dong_xe", nullable = false, length = 100)
     private String tenDongXe;
 
-    @Column(name = "phan_khuc", length = 50)
-    private String phanKhuc; // Sedan, SUV, Bán tải, Thương mại
+    @Column(name = "phan_khuc", nullable = false, length = 30)
+    private String phanKhuc;
 
-    @Column(name = "xuat_xu", length = 50)
-    private String xuatXu; // Nhập khẩu hoặc Lắp ráp
+    @Column(name = "xuat_xu", nullable = false, length = 100)
+    private String xuatXu;
 
     @Column(name = "mo_ta", columnDefinition = "NVARCHAR(MAX)")
     private String moTa;

@@ -18,41 +18,41 @@ import java.util.List;
 public class PhuKien extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_danh_muc", nullable = false)
+    @JoinColumn(name = "danh_muc_id", nullable = false)
     private DanhMucPhuKien danhMucPhuKien;
 
-    @Column(name = "ten_phu_kien", nullable = false, length = 150)
+    @Column(name = "ten_phu_kien", nullable = false, length = 200)
     private String tenPhuKien;
 
-    @Column(name = "thuong_hieu", length = 50)
+    @Column(name = "thuong_hieu", nullable = false, length = 100)
     private String thuongHieu;
 
-    @Column(name = "gia_ban", nullable = false, precision = 18, scale = 2)
+    @Column(name = "gia_ban", nullable = false, precision = 18, scale = 0)
     private BigDecimal giaBan;
 
     @Column(name = "so_luong_ton", nullable = false)
     @Builder.Default
-    private Integer soLuongTon = 0; // CHECK (soLuongTon >= 0)
+    private Integer soLuongTon = 0;
 
-    @Column(name = "quy_cach_lap_dat", length = 255)
+    @Column(name = "quy_cach_lap_dat", length = 500)
     private String quyCachLapDat;
 
     @Column(name = "hinh_anh", length = 500)
     private String hinhAnh;
 
-    @Column(name = "dung_chung")
+    @Column(name = "dung_chung", nullable = false)
     @Builder.Default
-    private boolean dungChung = false; // true nếu dùng chung cho mọi dòng xe (DR34)
+    private boolean dungChung = false;
 
-    @Column(name = "dang_hoat_dong")
+    @Column(name = "dang_hoat_dong", nullable = false)
     @Builder.Default
     private boolean dangHoatDong = true;
 
     @ManyToMany
     @JoinTable(
         name = "phu_kien_dong_xe_tuong_thich",
-        joinColumns = @JoinColumn(name = "ma_phu_kien"),
-        inverseJoinColumns = @JoinColumn(name = "ma_dong_xe")
+        joinColumns = @JoinColumn(name = "phu_kien_id"),
+        inverseJoinColumns = @JoinColumn(name = "dong_xe_id")
     )
-    private List<DongXe> dongXes;
+    private List<DongXe> dongXeTuongThichs;
 }

@@ -20,8 +20,8 @@ export function useCheckoutFlow() {
   const [shippingMethods] = useState<ShippingMethod[]>(MOCK_SHIPPING_METHODS);
   const [selectedShippingId, setSelectedShippingId] = useState<'standard' | 'express-technician'>('standard');
 
-  // Payment method selection
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'sepay' | 'cod'>('sepay');
+  // Payment method selection (VNPAY | COD)
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'vnpay' | 'cod'>('vnpay');
 
   // 15-Minute countdown timer
   const [timeLeft, setTimeLeft] = useState<number>(15 * 60);
@@ -69,7 +69,7 @@ export function useCheckoutFlow() {
   // Checkout submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
-  const [orderCode, setOrderCode] = useState('GT-8842');
+  const [orderCode, setOrderCode] = useState('AH-ACC-2026-9952');
 
   const applyVoucher = (code: string) => {
     setVoucherError('');
@@ -91,9 +91,29 @@ export function useCheckoutFlow() {
 
   const handleProcessCheckout = async () => {
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    const newCode = `AH-ACC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    setOrderCode(newCode);
+
+    // Thử gửi request lưu đơn hàng tới backend
+    try {
+      await fetch('http://localhost:8080/api/customer/orders/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipientName: selectedAddress.recipientName,
+          phone: selectedAddress.phone,
+          shippingAddress: selectedAddress.fullAddress,
+          paymentMethod: selectedPaymentMethod.toUpperCase(),
+          voucherCode: isVoucherApplied ? voucherCode : '',
+          shippingFee,
+          items: items.map((i) => ({ accessoryId: i.id, quantity: i.quantity, unitPrice: i.price })),
+        }),
+      }).catch(() => null);
+    } catch {
+      // Offline fallback
+    }
+
     setIsSubmitting(false);
-    setOrderCode(`GT-${Math.floor(1000 + Math.random() * 9000)}`);
     setIsSuccessModalOpen(true);
   };
 

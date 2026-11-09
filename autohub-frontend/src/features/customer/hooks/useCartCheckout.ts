@@ -23,7 +23,7 @@ export function useCartCheckout() {
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
   // Payment state
-  const [paymentMethod, setPaymentMethod] = useState<'sepay' | 'cod'>('sepay');
+  const [paymentMethod, setPaymentMethod] = useState<'vnpay' | 'cod' | 'sepay'>('vnpay');
 
   // Voucher state
   const [voucherCode, setVoucherCode] = useState('AUTOHUBGT500');

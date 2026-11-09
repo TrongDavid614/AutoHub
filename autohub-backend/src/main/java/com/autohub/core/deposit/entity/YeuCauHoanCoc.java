@@ -18,17 +18,25 @@ import java.time.LocalDateTime;
 public class YeuCauHoanCoc extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_phieu_coc", nullable = false)
+    @JoinColumn(name = "phieu_dat_coc_id", nullable = false)
     private PhieuDatCoc phieuDatCoc;
 
-    @Column(name = "loai_ly_do", length = 50)
-    private String loaiLyDo; // NGAN_HANG_TU_CHOI_TIN_DUNG hoặc NGOAI_LE_ADMIN (DR14)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "nhan_vien_doi_soat_id")
+    private NguoiDung nhanVienDoiSoat;
 
-    @Column(name = "ly_do", length = 500)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quan_tri_phe_duyet_id")
+    private NguoiDung quanTriPheDuyet;
+
+    @Column(name = "loai_ly_do", nullable = false, length = 40)
+    private String loaiLyDo;
+
+    @Column(nullable = false, length = 1000)
     private String lyDo;
 
-    @Column(name = "minh_chung", length = 500)
-    private String minhChung; // File đính kèm văn bản ngân hàng
+    @Column(length = 500)
+    private String minhChung;
 
     @Column(name = "ngay_gui")
     @Builder.Default
@@ -44,12 +52,4 @@ public class YeuCauHoanCoc extends BaseEntity {
 
     @Column(name = "ngay_xu_ly")
     private LocalDateTime ngayXuLy;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_nhan_vien_doi_soat")
-    private NguoiDung nhanVienDoiSoat;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_admin_phe_duyet")
-    private NguoiDung adminPheDuyet;
 }
