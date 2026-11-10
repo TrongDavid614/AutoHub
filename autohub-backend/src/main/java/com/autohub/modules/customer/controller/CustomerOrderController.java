@@ -2,12 +2,15 @@ package com.autohub.modules.customer.controller;
 
 import com.autohub.common.dto.ApiResponse;
 import com.autohub.core.accessory.entity.ChiTietDonHang;
+import com.autohub.core.accessory.entity.DanhGia;
 import com.autohub.core.accessory.entity.DonHangPhuKien;
 import com.autohub.core.accessory.entity.PhuKien;
 import com.autohub.core.accessory.repository.ChiTietDonHangRepository;
+import com.autohub.core.accessory.repository.DanhGiaRepository;
 import com.autohub.core.accessory.repository.DonHangPhuKienRepository;
 import com.autohub.core.accessory.repository.PhuKienRepository;
 import com.autohub.core.enums.PhuongThucThanhToan;
+import com.autohub.core.enums.TrangThaiDanhGia;
 import com.autohub.core.enums.TrangThaiDonHang;
 import com.autohub.core.pricing.entity.Voucher;
 import com.autohub.core.pricing.repository.VoucherRepository;
@@ -37,6 +40,7 @@ public class CustomerOrderController {
     private final VoucherRepository voucherRepository;
     private final NguoiDungRepository nguoiDungRepository;
     private final VNPayService vnPayService;
+    private final DanhGiaRepository danhGiaRepository;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getOrders(@RequestParam(required = false) Long customerId) {
@@ -95,6 +99,48 @@ public class CustomerOrderController {
         DonHangPhuKien saved = donHangRepository.save(order);
         List<ChiTietDonHang> items = chiTietDonHangRepository.findByDonHangIdWithDetails(id);
         return ResponseEntity.ok(ApiResponse.ok(mapOrderToDto(saved, items), "Gửi yêu cầu đổi trả thành công"));
+    }
+
+    @PostMapping("/{id}/review")
+    @Transactional
+    public ResponseEntity<ApiResponse<String>> submitReview(
+            @PathVariable Long id,
+            @RequestBody(required = false) Map<String, Object> body
+    ) {
+        DonHangPhuKien order = donHangRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng ID: " + id));
+
+        List<ChiTietDonHang> items = chiTietDonHangRepository.findByDonHangIdWithDetails(id);
+        if (items.isEmpty()) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(400, "Đơn hàng không có sản phẩm để đánh giá"));
+        }
+
+        Integer stars = 5;
+        if (body != null && body.get("rating") != null) {
+            stars = Integer.valueOf(body.get("rating").toString());
+        }
+        String comment = (body != null && body.get("comment") != null)
+                ? body.get("comment").toString()
+                : "Sản phẩm chất lượng cao chính hãng AutoHub.";
+
+        for (ChiTietDonHang item : items) {
+            DanhGia dg = DanhGia.builder()
+                    .nguoiDung(order.getNguoiDung())
+                    .phuKien(item.getPhuKien())
+                    .chiTietDonHang(item)
+                    .soSao(stars)
+                    .noiDung(comment)
+                    .ngayDanhGia(LocalDateTime.now())
+                    .trangThaiDuyet(TrangThaiDanhGia.PENDING)
+                    .build();
+            try {
+                danhGiaRepository.save(dg);
+            } catch (Exception ignored) {
+                // Ignore duplicate review on same order item
+            }
+        }
+
+        return ResponseEntity.ok(ApiResponse.ok("Đánh giá đơn hàng đã được lưu và gửi tới Admin kiểm duyệt.", "Gửi đánh giá thành công"));
     }
 
     @Getter

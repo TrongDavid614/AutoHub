@@ -55,4 +55,17 @@ export const orderService = {
       return false;
     }
   },
+
+  async submitReview(orderId: number, rating: number, comment: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_BASE}/customer/orders/${orderId}/review`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating, comment }),
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  },
 };

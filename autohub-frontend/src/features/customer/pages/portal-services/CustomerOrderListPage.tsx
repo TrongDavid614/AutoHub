@@ -115,16 +115,18 @@ export const CustomerOrderListPage: React.FC = () => {
   };
 
   // 4. Chức năng Gửi đánh giá sản phẩm (UC14)
-  const handleSubmitReview = (orderId: number) => {
+  const handleSubmitReview = async (orderId: number, rating: number, comment: string) => {
     setShowReviewModal(false);
-    showToast(`Đã gửi đánh giá đơn hàng #${orderId} thành công! Đánh giá đang được kiểm duyệt trước khi hiển thị.`);
+    await orderService.submitReview(orderId, rating, comment);
+    showToast(`Đã gửi đánh giá đơn hàng #${orderId} (${rating} sao) thành công! Đánh giá đang được kiểm duyệt trước khi hiển thị.`);
     setSelectedOrder(null);
   };
 
   // 5. Chức năng Gửi yêu cầu đổi trả (UC25)
-  const handleSubmitReturn = async (orderId: number) => {
+  const handleSubmitReturn = async (orderId: number, reason?: string, note?: string) => {
     setShowReturnModal(false);
-    await orderService.requestReturn(orderId);
+    const returnReasonText = reason ? `${reason}${note ? ': ' + note : ''}` : 'Đổi trả phụ kiện kỹ thuật';
+    await orderService.requestReturn(orderId, returnReasonText);
     setOrders((prev) =>
       prev.map((o) =>
         o.id === orderId ? { ...o, status: 'RETURNED' as AccessoryOrderStatus } : o
