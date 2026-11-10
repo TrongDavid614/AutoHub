@@ -54,7 +54,7 @@ public class CustomerProfileController {
         map.put("fullName", user.getHoTen());
         map.put("email", user.getEmail());
         map.put("phoneNumber", user.getSoDienThoai());
-        map.put("identityCardNumber", user.getSoCccd());
+        map.put("identityCardNumber", user.getSoCCCD());
         map.put("avatarUrl", user.getAnhDaiDien());
         map.put("role", user.getVaiTro());
         map.put("createdAt", user.getNgayTao());
@@ -69,7 +69,7 @@ public class CustomerProfileController {
 
         if (req.getFullName() != null && !req.getFullName().isBlank()) user.setHoTen(req.getFullName());
         if (req.getPhoneNumber() != null && !req.getPhoneNumber().isBlank()) user.setSoDienThoai(req.getPhoneNumber());
-        if (req.getIdentityCardNumber() != null && !req.getIdentityCardNumber().isBlank()) user.setSoCccd(req.getIdentityCardNumber());
+        if (req.getIdentityCardNumber() != null && !req.getIdentityCardNumber().isBlank()) user.setSoCCCD(req.getIdentityCardNumber());
         if (req.getAvatarUrl() != null && !req.getAvatarUrl().isBlank()) user.setAnhDaiDien(req.getAvatarUrl());
 
         NguoiDung saved = nguoiDungRepository.save(user);
@@ -79,7 +79,7 @@ public class CustomerProfileController {
         map.put("fullName", saved.getHoTen());
         map.put("email", saved.getEmail());
         map.put("phoneNumber", saved.getSoDienThoai());
-        map.put("identityCardNumber", saved.getSoCccd());
+        map.put("identityCardNumber", saved.getSoCCCD());
         return ResponseEntity.ok(ApiResponse.ok(map, "Cập nhật hồ sơ tài khoản thành công"));
     }
 

@@ -52,7 +52,12 @@ export const engagementService = {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      const json = await res.json();
+      let json: any = null;
+      try {
+        json = await res.json();
+      } catch {
+        json = null;
+      }
       if (res.ok && json?.data) {
         return { success: true, data: json.data, message: json.message || 'Đặt lịch hẹn lái thử thành công' };
       }
@@ -61,7 +66,7 @@ export const engagementService = {
         message: json?.message || 'Không thể đặt lịch hẹn lái thử do trùng lịch hoặc vi phạm quy chế hệ thống.',
       };
     } catch {
-      return { success: false, message: 'Lỗi kết nối máy chủ khi đăng ký lái thử.' };
+      return { success: false, message: 'Lỗi kết nối máy chủ khi đăng ký lái thử. Vui lòng kiểm tra backend!' };
     }
   },
 

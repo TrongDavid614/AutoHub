@@ -24,9 +24,18 @@ public interface LichHenLaiThuRepository extends JpaRepository<LichHenLaiThu, Lo
            "LEFT JOIN FETCH l.showroom sr " +
            "LEFT JOIN FETCH l.xeDemo xd " +
            "LEFT JOIN FETCH l.nguoiDung nd " +
-           "WHERE (:nguoiDungId IS NULL OR nd.id = :nguoiDungId) " +
+           "WHERE l.nguoiDung.id = :nguoiDungId " +
            "ORDER BY l.thoiGianHen DESC")
     List<LichHenLaiThu> findAllWithDetails(@Param("nguoiDungId") Long nguoiDungId);
+
+    @Query("SELECT l FROM LichHenLaiThu l " +
+           "LEFT JOIN FETCH l.phienBanXe pb " +
+           "LEFT JOIN FETCH pb.dongXe dx " +
+           "LEFT JOIN FETCH l.showroom sr " +
+           "LEFT JOIN FETCH l.xeDemo xd " +
+           "LEFT JOIN FETCH l.nguoiDung nd " +
+           "ORDER BY l.thoiGianHen DESC")
+    List<LichHenLaiThu> findAllWithDetails();
 
     @Query("SELECT l FROM LichHenLaiThu l " +
            "LEFT JOIN FETCH l.phienBanXe pb " +
@@ -38,32 +47,38 @@ public interface LichHenLaiThuRepository extends JpaRepository<LichHenLaiThu, Lo
     Optional<LichHenLaiThu> findByIdWithDetails(@Param("id") Long id);
 
     @Query("SELECT l FROM LichHenLaiThu l " +
-           "WHERE l.nguoiDung.id = :nguoiDungId AND l.trangThai = 'PENDING'")
-    List<LichHenLaiThu> findPendingByNguoiDungId(@Param("nguoiDungId") Long nguoiDungId);
+           "WHERE l.nguoiDung.id = :nguoiDungId AND l.trangThai = :trangThai")
+    List<LichHenLaiThu> findPendingByNguoiDungId(
+            @Param("nguoiDungId") Long nguoiDungId,
+            @Param("trangThai") TrangThaiLichHen trangThai
+    );
 
     @Query("SELECT l FROM LichHenLaiThu l " +
-           "WHERE l.trangThai NOT IN ('CANCELLED', 'EXPIRED') " +
+           "WHERE l.trangThai NOT IN (:excludedStatuses) " +
            "AND l.thoiGianHen = :thoiGianHen " +
            "AND (:phienBanId IS NULL OR l.phienBanXe.id = :phienBanId)")
     List<LichHenLaiThu> findConflictingAppointments(
             @Param("thoiGianHen") LocalDateTime thoiGianHen,
-            @Param("phienBanId") Long phienBanId
+            @Param("phienBanId") Long phienBanId,
+            @Param("excludedStatuses") List<TrangThaiLichHen> excludedStatuses
     );
 
     @Query("SELECT l FROM LichHenLaiThu l " +
-           "WHERE l.trangThai NOT IN ('CANCELLED', 'EXPIRED') " +
+           "WHERE l.trangThai NOT IN (:excludedStatuses) " +
            "AND l.nguoiDung.id = :nguoiDungId " +
            "AND l.thoiGianHen = :thoiGianHen")
     List<LichHenLaiThu> findUserConflictingAppointments(
             @Param("nguoiDungId") Long nguoiDungId,
-            @Param("thoiGianHen") LocalDateTime thoiGianHen
+            @Param("thoiGianHen") LocalDateTime thoiGianHen,
+            @Param("excludedStatuses") List<TrangThaiLichHen> excludedStatuses
     );
 
     @Query("SELECT l FROM LichHenLaiThu l " +
-           "WHERE l.trangThai NOT IN ('CANCELLED', 'EXPIRED') " +
+           "WHERE l.trangThai NOT IN (:excludedStatuses) " +
            "AND l.thoiGianHen >= :startOfDay AND l.thoiGianHen <= :endOfDay")
     List<LichHenLaiThu> findActiveAppointmentsOnDate(
             @Param("startOfDay") LocalDateTime startOfDay,
-            @Param("endOfDay") LocalDateTime endOfDay
+            @Param("endOfDay") LocalDateTime endOfDay,
+            @Param("excludedStatuses") List<TrangThaiLichHen> excludedStatuses
     );
 }

@@ -61,7 +61,7 @@ public class CustomerEngagementController {
                 ? lichHenLaiThuRepository.findAllWithDetails(customerId)
                 : Collections.emptyList();
         if (list.isEmpty()) {
-            list = lichHenLaiThuRepository.findAllWithDetails(null);
+            list = lichHenLaiThuRepository.findAllWithDetails();
         }
 
         List<Map<String, Object>> dtos = list.stream().map(this::mapTestDriveToDto).collect(Collectors.toList());
@@ -84,7 +84,10 @@ public class CustomerEngagementController {
         LocalDateTime startOfDay = targetDate.atStartOfDay();
         LocalDateTime endOfDay = targetDate.atTime(23, 59, 59);
 
-        List<LichHenLaiThu> activeOnDate = lichHenLaiThuRepository.findActiveAppointmentsOnDate(startOfDay, endOfDay);
+        List<LichHenLaiThu> activeOnDate = lichHenLaiThuRepository.findActiveAppointmentsOnDate(
+                startOfDay, endOfDay,
+                List.of(TrangThaiLichHen.CANCELLED, TrangThaiLichHen.EXPIRED)
+        );
 
         List<String> bookedSlots = new ArrayList<>();
         for (LichHenLaiThu lh : activeOnDate) {
@@ -111,10 +114,9 @@ public class CustomerEngagementController {
 
         // RÀNG BUỘC 1: Kiểm tra người dùng đã có lịch PENDING hay chưa (Theo Unique index UX_lh_pending)
         if (user != null) {
-            List<LichHenLaiThu> pendingList = lichHenLaiThuRepository.findPendingByNguoiDungId(user.getId());
+            List<LichHenLaiThu> pendingList = lichHenLaiThuRepository.findPendingByNguoiDungId(user.getId(), TrangThaiLichHen.PENDING);
             if (!pendingList.isEmpty()) {
                 return ResponseEntity.badRequest().body(ApiResponse.error(
-                        400,
                         "Quý khách đang có lịch hẹn lái thử đang chờ duyệt (Mã #" + pendingList.get(0).getId() +
                         "). Vui lòng hoàn thành hoặc hủy lịch hẹn cũ trước khi đăng ký mới theo quy chế hệ thống!"
                 ));
@@ -152,17 +154,18 @@ public class CustomerEngagementController {
         // RÀNG BUỘC 2: Kiểm tra thời gian hẹn phải trước ít nhất 24 giờ (Theo CHECK CK_lh_24h)
         if (bookingTime.isBefore(LocalDateTime.now().plusHours(24))) {
             return ResponseEntity.badRequest().body(ApiResponse.error(
-                    400,
                     "Quy định hệ thống: Lịch hẹn lái thử bắt buộc phải đặt trước tối thiểu 24 giờ để Showroom chuẩn bị kỹ thuật và sạc pin 100% cho xe Demo!"
             ));
         }
 
         // RÀNG BUỘC 3: Trùng lịch của cùng một khách hàng tại khung giờ này (1 khách không thể thử 2 xe cùng giờ)
         if (user != null) {
-            List<LichHenLaiThu> userConflicts = lichHenLaiThuRepository.findUserConflictingAppointments(user.getId(), bookingTime);
+            List<LichHenLaiThu> userConflicts = lichHenLaiThuRepository.findUserConflictingAppointments(
+                    user.getId(), bookingTime,
+                    List.of(TrangThaiLichHen.CANCELLED, TrangThaiLichHen.EXPIRED)
+            );
             if (!userConflicts.isEmpty()) {
                 return ResponseEntity.badRequest().body(ApiResponse.error(
-                        400,
                         "Quý khách đã có một lịch hẹn lái thử khác vào đúng khung giờ này (" +
                         bookingTime.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")) +
                         ") rồi! Không thể đăng ký trùng lịch."
@@ -171,10 +174,12 @@ public class CustomerEngagementController {
         }
 
         // RÀNG BUỘC 4: Trùng lịch của chính mẫu xe Demo / phiên bản xe này tại khung giờ này
-        List<LichHenLaiThu> carConflicts = lichHenLaiThuRepository.findConflictingAppointments(bookingTime, pb != null ? pb.getId() : null);
+        List<LichHenLaiThu> carConflicts = lichHenLaiThuRepository.findConflictingAppointments(
+                bookingTime, pb != null ? pb.getId() : null,
+                List.of(TrangThaiLichHen.CANCELLED, TrangThaiLichHen.EXPIRED)
+        );
         if (!carConflicts.isEmpty()) {
             return ResponseEntity.badRequest().body(ApiResponse.error(
-                    400,
                     "Mẫu xe Demo này đã có khách hàng đăng ký trước trong khung giờ " +
                     bookingTime.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")) +
                     ". Vui lòng chọn khung giờ khác hoặc đổi sang dòng xe khác!"

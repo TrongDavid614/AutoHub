@@ -112,7 +112,7 @@ public class CustomerOrderController {
 
         List<ChiTietDonHang> items = chiTietDonHangRepository.findByDonHangIdWithDetails(id);
         if (items.isEmpty()) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(400, "Đơn hàng không có sản phẩm để đánh giá"));
+            return ResponseEntity.badRequest().body(ApiResponse.error("Đơn hàng không có sản phẩm để đánh giá"));
         }
 
         Integer stars = 5;

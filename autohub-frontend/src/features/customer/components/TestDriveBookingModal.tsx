@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { X, ShieldCheck, Check, Sparkles, AlertCircle } from 'lucide-react';
 import { VehicleDemoCard } from './VehicleDemoCard';
 import { LocationSelector, type LocationType } from './LocationSelector';
-import { DateTimeSelector, generateUpcomingDates } from './DateTimeSelector';
+import { DateTimeSelector, getFirstValidBookingDateAndSlot } from './DateTimeSelector';
 import { CustomerInfoForm } from './CustomerInfoForm';
 import { useAuthStore } from '@/store/useAuthStore';
 import { engagementService } from '@/features/customer/services/engagement.service';
@@ -31,11 +31,11 @@ export const TestDriveBookingModal: React.FC<TestDriveBookingModalProps> = ({
   const [cars, setCars] = useState<MockCar[]>([]);
   const [selectedCarId, setSelectedCarId] = useState<string>('1');
 
-  const availableDates = useMemo(() => generateUpcomingDates(), []);
+  const initialBooking = useMemo(() => getFirstValidBookingDateAndSlot(), []);
 
   const [selectedLocation, setSelectedLocation] = useState<LocationType>('SHOWROOM');
-  const [selectedDate, setSelectedDate] = useState<string>(availableDates[0]?.id || '2026-11-11');
-  const [selectedSlot, setSelectedSlot] = useState<string>('09:00 - 10:00');
+  const [selectedDate, setSelectedDate] = useState<string>(initialBooking.date);
+  const [selectedSlot, setSelectedSlot] = useState<string>(initialBooking.slot);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
 
   const [fullName, setFullName] = useState<string>(user?.fullName || 'Nguyễn Văn A');

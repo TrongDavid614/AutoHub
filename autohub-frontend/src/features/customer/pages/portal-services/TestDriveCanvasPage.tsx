@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { X, ShieldCheck, Check, Sparkles, AlertCircle, ArrowLeft } from 'lucide-react';
 import { VehicleDemoCard } from '@/features/customer/components/VehicleDemoCard';
 import { LocationSelector, type LocationType } from '@/features/customer/components/LocationSelector';
-import { DateTimeSelector, generateUpcomingDates } from '@/features/customer/components/DateTimeSelector';
+import { DateTimeSelector, getFirstValidBookingDateAndSlot } from '@/features/customer/components/DateTimeSelector';
 import { CustomerInfoForm } from '@/features/customer/components/CustomerInfoForm';
 import { useAuthStore } from '@/store/useAuthStore';
 import { engagementService } from '@/features/customer/services/engagement.service';
@@ -21,12 +21,12 @@ export const TestDriveCanvasPage: React.FC = () => {
   const [cars, setCars] = useState<MockCar[]>([]);
   const [selectedCarId, setSelectedCarId] = useState<string>(carIdParam || '1');
 
-  // Dynamic available dates starting tomorrow
-  const availableDates = useMemo(() => generateUpcomingDates(), []);
+  // Dynamic available dates starting from valid 24h window
+  const initialBooking = useMemo(() => getFirstValidBookingDateAndSlot(), []);
 
   const [selectedLocation, setSelectedLocation] = useState<LocationType>('SHOWROOM');
-  const [selectedDate, setSelectedDate] = useState<string>(availableDates[0]?.id || '2026-11-11');
-  const [selectedSlot, setSelectedSlot] = useState<string>('09:00 - 10:00');
+  const [selectedDate, setSelectedDate] = useState<string>(initialBooking.date);
+  const [selectedSlot, setSelectedSlot] = useState<string>(initialBooking.slot);
   const [bookedSlots, setBookedSlots] = useState<string[]>([]);
 
   const [fullName, setFullName] = useState<string>(user?.fullName || 'Nguyễn Văn A');
