@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/customer/orders")
@@ -38,24 +39,62 @@ public class CustomerOrderController {
     private final VNPayService vnPayService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<DonHangPhuKien>>> getOrders(@RequestParam(required = false) Long customerId) {
-        List<DonHangPhuKien> orders = (customerId != null)
-                ? donHangRepository.findByNguoiDungId(customerId)
-                : donHangRepository.findAll();
-        return ResponseEntity.ok(ApiResponse.ok(orders, "Lấy danh sách đơn hàng phụ kiện thành công"));
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getOrders(@RequestParam(required = false) Long customerId) {
+        List<DonHangPhuKien> orders = donHangRepository.findAllWithDetails(customerId);
+        if (orders.isEmpty()) {
+            return ResponseEntity.ok(ApiResponse.ok(Collections.emptyList(), "Lấy danh sách đơn hàng thành công"));
+        }
+
+        List<Long> orderIds = orders.stream().map(DonHangPhuKien::getId).collect(Collectors.toList());
+        List<ChiTietDonHang> allItems = chiTietDonHangRepository.findByDonHangIdInWithDetails(orderIds);
+        Map<Long, List<ChiTietDonHang>> itemsByOrderId = allItems.stream()
+                .collect(Collectors.groupingBy(item -> item.getDonHang().getId()));
+
+        List<Map<String, Object>> result = orders.stream()
+                .map(order -> mapOrderToDto(order, itemsByOrderId.getOrDefault(order.getId(), Collections.emptyList())))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(ApiResponse.ok(result, "Lấy danh sách đơn hàng phụ kiện thành công"));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getOrderDetail(@PathVariable Long id) {
         DonHangPhuKien order = donHangRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng ID: " + id));
-        List<ChiTietDonHang> items = chiTietDonHangRepository.findByDonHangId(id);
+        List<ChiTietDonHang> items = chiTietDonHangRepository.findByDonHangIdWithDetails(id);
 
-        Map<String, Object> res = new HashMap<>();
-        res.put("order", order);
-        res.put("items", items);
+        return ResponseEntity.ok(ApiResponse.ok(mapOrderToDto(order, items), "Lấy chi tiết đơn hàng thành công"));
+    }
 
-        return ResponseEntity.ok(ApiResponse.ok(res, "Lấy chi tiết đơn hàng thành công"));
+    @PostMapping("/{id}/delivered")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> confirmDelivered(@PathVariable Long id) {
+        DonHangPhuKien order = donHangRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng ID: " + id));
+        order.setTrangThai(TrangThaiDonHang.DELIVERED);
+        order.setNgayGiaoHang(LocalDateTime.now());
+        DonHangPhuKien saved = donHangRepository.save(order);
+        List<ChiTietDonHang> items = chiTietDonHangRepository.findByDonHangIdWithDetails(id);
+        return ResponseEntity.ok(ApiResponse.ok(mapOrderToDto(saved, items), "Xác nhận nhận hàng thành công"));
+    }
+
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> cancelOrder(@PathVariable Long id) {
+        DonHangPhuKien order = donHangRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng ID: " + id));
+        order.setTrangThai(TrangThaiDonHang.CANCELLED);
+        DonHangPhuKien saved = donHangRepository.save(order);
+        List<ChiTietDonHang> items = chiTietDonHangRepository.findByDonHangIdWithDetails(id);
+        return ResponseEntity.ok(ApiResponse.ok(mapOrderToDto(saved, items), "Hủy đơn hàng thành công"));
+    }
+
+    @PostMapping("/{id}/return")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> returnOrder(@PathVariable Long id, @RequestBody(required = false) Map<String, String> body) {
+        DonHangPhuKien order = donHangRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng ID: " + id));
+        order.setTrangThai(TrangThaiDonHang.RETURNED);
+        DonHangPhuKien saved = donHangRepository.save(order);
+        List<ChiTietDonHang> items = chiTietDonHangRepository.findByDonHangIdWithDetails(id);
+        return ResponseEntity.ok(ApiResponse.ok(mapOrderToDto(saved, items), "Gửi yêu cầu đổi trả thành công"));
     }
 
     @Getter
@@ -85,7 +124,6 @@ public class CustomerOrderController {
             HttpServletRequest servletRequest,
             @RequestBody CheckoutRequestDto req
     ) {
-        // Lấy khách hàng hoặc gán khách mặc định (ID 5)
         Long custId = req.getCustomerId() != null ? req.getCustomerId() : 5L;
         NguoiDung customer = nguoiDungRepository.findById(custId)
                 .orElseGet(() -> nguoiDungRepository.findAll().stream().findFirst().orElse(null));
@@ -104,7 +142,6 @@ public class CustomerOrderController {
             }
         }
 
-        // Voucher check
         BigDecimal discount = BigDecimal.ZERO;
         Voucher appliedVoucher = null;
         if (req.getVoucherCode() != null && !req.getVoucherCode().isBlank()) {
@@ -147,7 +184,6 @@ public class CustomerOrderController {
 
         DonHangPhuKien savedOrder = donHangRepository.save(order);
 
-        // Lưu từng chi tiết đơn hàng
         if (req.getItems() != null) {
             for (CheckoutItemDto item : req.getItems()) {
                 PhuKien pk = phuKienRepository.findById(item.getAccessoryId()).orElse(null);
@@ -170,7 +206,6 @@ public class CustomerOrderController {
         responseData.put("shippingFee", shippingFee);
         responseData.put("grandTotal", grandTotal);
 
-        // Nếu thanh toán VNPay, tạo URL & QR Code
         if (isVnPay) {
             VNPayPaymentResponseDto vnpayInfo = vnPayService.createOrderPaymentUrl(servletRequest, savedOrder.getId());
             responseData.put("vnpay", vnpayInfo);
@@ -178,5 +213,70 @@ public class CustomerOrderController {
 
         return ResponseEntity.ok(ApiResponse.ok(responseData, "Đặt hàng thành công!"));
     }
-}
 
+    private Map<String, Object> mapOrderToDto(DonHangPhuKien order, List<ChiTietDonHang> items) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", order.getId());
+        String code = order.getMaDonHang() != null ? order.getMaDonHang() : "AH-ACC-2026-" + order.getId();
+        map.put("orderCode", code.startsWith("#") ? code : "#" + code);
+        map.put("customerId", order.getNguoiDung() != null ? order.getNguoiDung().getId() : 1L);
+        map.put("customerName", order.getHoTenNguoiNhan() != null ? order.getHoTenNguoiNhan() : "Nguyễn Văn A");
+        map.put("customerPhone", order.getSoDienThoaiNhan() != null ? order.getSoDienThoaiNhan() : "0912345678");
+        map.put("shippingAddress", order.getDiaChiGiaoHang() != null ? order.getDiaChiGiaoHang() : "TP. Hồ Chí Minh");
+        map.put("paymentMethod", order.getPhuongThucThanhToan() != null ? order.getPhuongThucThanhToan().name() : "VNPAY");
+        map.put("status", order.getTrangThai() != null ? order.getTrangThai().name() : "PAID");
+
+        BigDecimal total = order.getTongTien() != null ? order.getTongTien() : BigDecimal.ZERO;
+        BigDecimal discount = order.getSoTienGiamVoucher() != null ? order.getSoTienGiamVoucher() : BigDecimal.ZERO;
+        BigDecimal ship = order.getPhiVanChuyen() != null ? order.getPhiVanChuyen() : BigDecimal.ZERO;
+        BigDecimal subtotal = total.add(discount).subtract(ship);
+        if (subtotal.compareTo(BigDecimal.ZERO) < 0) subtotal = total;
+
+        map.put("subtotalAmount", subtotal);
+        map.put("shippingFee", ship);
+        map.put("voucherDiscount", discount);
+        map.put("finalTotalAmount", total);
+        map.put("trackingNumber", order.getMaVanDon() != null ? order.getMaVanDon() : "AH-EXPRESS-" + order.getId());
+        map.put("vnpayTransactionId", "vnp_" + (Math.abs(code.hashCode()) % 10000000));
+        map.put("createdAt", order.getNgayDat() != null ? order.getNgayDat().toString() : LocalDateTime.now().toString());
+
+        List<Map<String, Object>> mappedItems = new ArrayList<>();
+        if (items != null && !items.isEmpty()) {
+            for (ChiTietDonHang it : items) {
+                Map<String, Object> itemMap = new HashMap<>();
+                itemMap.put("id", it.getId());
+                itemMap.put("quantity", it.getSoLuong());
+                itemMap.put("unitPrice", it.getDonGia());
+                itemMap.put("totalPrice", it.getDonGia().multiply(BigDecimal.valueOf(it.getSoLuong())));
+
+                PhuKien pk = it.getPhuKien();
+                Map<String, Object> accMap = new HashMap<>();
+                if (pk != null) {
+                    itemMap.put("accessoryId", pk.getId());
+                    accMap.put("id", pk.getId());
+                    accMap.put("name", pk.getTenPhuKien());
+                    accMap.put("sku", pk.getThuongHieu() != null ? pk.getThuongHieu().toUpperCase().replace(" ", "-") : "AH-ACC-" + pk.getId());
+                    accMap.put("brand", pk.getThuongHieu() != null ? pk.getThuongHieu() : "AutoHub Genuine");
+                    accMap.put("price", pk.getGiaBan());
+                    accMap.put("thumbnailUrl", pk.getHinhAnh() != null ? pk.getHinhAnh() : "https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=400");
+                    accMap.put("categoryName", pk.getDanhMucPhuKien() != null ? pk.getDanhMucPhuKien().getTenDanhMuc() : "Phụ kiện cao cấp");
+                    accMap.put("categoryBadge", pk.getDanhMucPhuKien() != null ? pk.getDanhMucPhuKien().getTenDanhMuc() : "Chính hãng");
+                } else {
+                    itemMap.put("accessoryId", 1L);
+                    accMap.put("id", 1L);
+                    accMap.put("name", "Phụ kiện ô tô điện cao cấp");
+                    accMap.put("sku", "AH-ACC-GENUINE");
+                    accMap.put("brand", "AutoHub Genuine");
+                    accMap.put("price", it.getDonGia());
+                    accMap.put("thumbnailUrl", "https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=400");
+                    accMap.put("categoryName", "Phụ kiện chính hãng");
+                    accMap.put("categoryBadge", "Chính hãng");
+                }
+                itemMap.put("accessory", accMap);
+                mappedItems.add(itemMap);
+            }
+        }
+        map.put("orderItems", mappedItems);
+        return map;
+    }
+}

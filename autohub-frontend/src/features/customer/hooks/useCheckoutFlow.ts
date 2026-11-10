@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useCartStore } from '@/store/useCartStore';
+import { useAuthStore } from '@/store/useAuthStore';
 import {
   MOCK_CHECKOUT_ADDRESSES,
   MOCK_SHIPPING_METHODS,
@@ -11,6 +12,7 @@ import {
 
 export function useCheckoutFlow() {
   const { cartItems, clearCart } = useCartStore();
+  const { user } = useAuthStore();
 
   // Address selection
   const [addresses, setAddresses] = useState<CheckoutAddress[]>(MOCK_CHECKOUT_ADDRESSES);
@@ -91,15 +93,16 @@ export function useCheckoutFlow() {
 
   const handleProcessCheckout = async () => {
     setIsSubmitting(true);
-    const newCode = `AH-ACC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    let newCode = `AH-ACC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
     setOrderCode(newCode);
 
-    // Thử gửi request lưu đơn hàng tới backend
+    // Gửi request lưu đơn hàng trực tiếp tới database backend
     try {
-      await fetch('http://localhost:8080/api/customer/orders/checkout', {
+      const res = await fetch('http://localhost:8080/api/customer/orders/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          customerId: user?.id || 5,
           recipientName: selectedAddress.recipientName,
           phone: selectedAddress.phone,
           shippingAddress: selectedAddress.fullAddress,
@@ -108,11 +111,18 @@ export function useCheckoutFlow() {
           shippingFee,
           items: items.map((i) => ({ accessoryId: i.id, quantity: i.quantity, unitPrice: i.price })),
         }),
-      }).catch(() => null);
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.data?.maDonHang) {
+          newCode = json.data.maDonHang;
+        }
+      }
     } catch {
       // Offline fallback
     }
 
+    setOrderCode(newCode);
     setIsSubmitting(false);
     setIsSuccessModalOpen(true);
   };

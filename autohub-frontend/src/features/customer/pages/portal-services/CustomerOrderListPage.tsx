@@ -4,10 +4,13 @@ import {
   Package,
   ShoppingBag,
   Check,
+  RefreshCw,
 } from 'lucide-react';
 import type { AccessoryOrder, AccessoryOrderStatus } from '@/types/order.types';
 import { MOCK_CUSTOMER_ORDERS } from '@/features/customer/mocks/orders.mock';
 import { useCartStore } from '@/store/useCartStore';
+import { useAuthStore } from '@/store/useAuthStore';
+import { orderService } from '@/features/customer/services/order.service';
 import { OrderFilterTabs, type FilterTab } from '@/features/customer/components/OrderFilterTabs';
 import { CustomerOrderRowCard } from '@/features/customer/components/CustomerOrderRowCard';
 import { OrderReviewModal } from '@/features/customer/components/OrderReviewModal';
@@ -18,9 +21,10 @@ import { OrderTimelineModal } from '@/features/customer/components/OrderTimeline
 
 export const CustomerOrderListPage: React.FC = () => {
   const addToCart = useCartStore((s) => s.addToCart);
+  const { user } = useAuthStore();
 
-  // Danh sách đơn hàng trong state để người dùng có thể tương tác (Hủy, Xác nhận nhận hàng...)
   const [orders, setOrders] = useState<AccessoryOrder[]>(MOCK_CUSTOMER_ORDERS);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<FilterTab>('ALL');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
@@ -35,8 +39,26 @@ export const CustomerOrderListPage: React.FC = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
 
-  // Countdown timer cho đơn PENDING_PAYMENT (giả lập 15 phút theo UC34)
-  const [timeLeft, setTimeLeft] = useState(12 * 60 + 45); // 12m 45s
+  // Countdown timer cho đơn PENDING_PAYMENT (15 phút)
+  const [timeLeft, setTimeLeft] = useState(12 * 60 + 45);
+
+  const loadOrders = async () => {
+    setIsLoading(true);
+    try {
+      const data = await orderService.getMyOrders(user?.id);
+      if (data && data.length > 0) {
+        setOrders(data);
+      }
+    } catch {
+      // offline fallback
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadOrders();
+  }, [user?.id]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -71,7 +93,8 @@ export const CustomerOrderListPage: React.FC = () => {
   };
 
   // 2. Chức năng Xác nhận đã nhận hàng (Chuyển sang DELIVERED)
-  const handleConfirmDelivered = (orderId: number) => {
+  const handleConfirmDelivered = async (orderId: number) => {
+    await orderService.confirmDelivered(orderId);
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status: 'DELIVERED' as AccessoryOrderStatus } : o))
     );
@@ -79,8 +102,9 @@ export const CustomerOrderListPage: React.FC = () => {
   };
 
   // 3. Chức năng Hủy đơn hàng (Hoàn tồn kho theo UC34)
-  const handleConfirmCancelOrder = () => {
+  const handleConfirmCancelOrder = async () => {
     if (!selectedOrder) return;
+    await orderService.cancelOrder(selectedOrder.id);
     setOrders((prev) =>
       prev.map((o) =>
         o.id === selectedOrder.id ? { ...o, status: 'CANCELLED' as AccessoryOrderStatus } : o
@@ -99,8 +123,9 @@ export const CustomerOrderListPage: React.FC = () => {
   };
 
   // 5. Chức năng Gửi yêu cầu đổi trả (UC25)
-  const handleSubmitReturn = (orderId: number) => {
+  const handleSubmitReturn = async (orderId: number) => {
     setShowReturnModal(false);
+    await orderService.requestReturn(orderId);
     setOrders((prev) =>
       prev.map((o) =>
         o.id === orderId ? { ...o, status: 'RETURNED' as AccessoryOrderStatus } : o
@@ -121,7 +146,7 @@ export const CustomerOrderListPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fadeIn">
       {/* 1. Header trang */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-surface-highlight">
         <div>
@@ -134,13 +159,24 @@ export const CustomerOrderListPage: React.FC = () => {
           </p>
         </div>
 
-        <Link
-          to="/accessories"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-[4px] bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight hover:border-accent-primary/50 text-xs font-semibold text-accent-primary transition-all cursor-pointer self-start sm:self-auto shadow-sm"
-        >
-          <ShoppingBag className="w-4 h-4" />
-          <span>Khám phá thêm phụ kiện</span>
-        </Link>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={loadOrders}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[4px] bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors cursor-pointer shadow-sm"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-accent-primary' : ''}`} />
+            <span>Làm mới</span>
+          </button>
+
+          <Link
+            to="/accessories"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-[4px] bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight hover:border-accent-primary/50 text-xs font-semibold text-accent-primary transition-all cursor-pointer shadow-sm"
+          >
+            <ShoppingBag className="w-4 h-4" />
+            <span>Khám phá thêm</span>
+          </Link>
+        </div>
       </div>
 
       {/* 2. Menu Bộ lọc ngang hiển thị các chức năng theo Enum TrangThaiDonHang */}

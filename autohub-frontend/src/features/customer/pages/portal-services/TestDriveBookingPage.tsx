@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Check, Plus } from 'lucide-react';
+import { Calendar, Check, Plus, RefreshCw } from 'lucide-react';
+import { useAuthStore } from '@/store/useAuthStore';
 import type { TestDriveStatus, TestDriveItem } from '@/features/customer/types/test-drive.types';
 import { TestDriveFilterTabs } from '@/features/customer/components/TestDriveFilterTabs';
 import { TestDriveRowCard } from '@/features/customer/components/TestDriveRowCard';
 import { TestDriveEvaluationModal } from '@/features/customer/components/TestDriveEvaluationModal';
 import { TestDriveBookingModal } from '@/features/customer/components/TestDriveBookingModal';
+import { engagementService } from '@/features/customer/services/engagement.service';
 
 const INITIAL_TEST_DRIVES: TestDriveItem[] = [
   {
@@ -66,12 +68,32 @@ const INITIAL_TEST_DRIVES: TestDriveItem[] = [
 
 export const TestDriveBookingPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [testDrives, setTestDrives] = useState<TestDriveItem[]>(INITIAL_TEST_DRIVES);
+  const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'ALL' | TestDriveStatus>('ALL');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   // Modal xem biên bản đánh giá lái thử
   const [selectedEvaluation, setSelectedEvaluation] = useState<TestDriveItem | null>(null);
+
+  const loadTestDrives = async () => {
+    setIsLoading(true);
+    try {
+      const data = await engagementService.getMyTestDrives(user?.id);
+      if (data && data.length > 0) {
+        setTestDrives(data);
+      }
+    } catch {
+      // offline fallback
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadTestDrives();
+  }, [user?.id]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -79,7 +101,8 @@ export const TestDriveBookingPage: React.FC = () => {
   };
 
   // 1. Hủy lịch hẹn lái thử (UC21)
-  const handleCancelBooking = (id: number) => {
+  const handleCancelBooking = async (id: number) => {
+    await engagementService.cancelTestDrive(id);
     setTestDrives((prev) =>
       prev.map((td) => (td.id === id ? { ...td, status: 'CANCELLED' as TestDriveStatus } : td))
     );
@@ -102,14 +125,24 @@ export const TestDriveBookingPage: React.FC = () => {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsBookingModalOpen(true)}
-          className="py-2.5 px-4 rounded-lg bg-accent-action hover:bg-accent-primary text-accent-contrast font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_0_15px_rgba(14,165,233,0.3)] hover:shadow-[0_0_25px_rgba(137,206,255,0.4)] transition-all cursor-pointer shrink-0"
-        >
-          <Plus className="w-4 h-4 text-accent-contrast" />
-          <span>Đăng ký lái thử mới</span>
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={loadTestDrives}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-accent-primary' : ''}`} />
+            <span>Làm mới</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsBookingModalOpen(true)}
+            className="py-2.5 px-4 rounded-lg bg-accent-action hover:bg-accent-primary text-accent-contrast font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_0_15px_rgba(14,165,233,0.3)] hover:shadow-[0_0_25px_rgba(137,206,255,0.4)] transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4 text-accent-contrast" />
+            <span>Đăng ký lái thử mới</span>
+          </button>
+        </div>
       </div>
 
       {/* 2. Tabs lọc theo Enum TrangThaiLichHen */}

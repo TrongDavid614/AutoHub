@@ -6,13 +6,54 @@ import {
   type CarModelInfo,
 } from '../mocks/accessory.mock';
 
+const API_BASE = 'http://localhost:8080/api';
+
 export const accessoryService = {
   /**
    * Get list of accessories based on filter criteria
    */
   async getAccessories(params?: AccessoryFilterParams): Promise<Accessory[]> {
-    // Simulate real network delay
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    try {
+      const queryParts: string[] = [];
+      if (params?.categoryId) queryParts.push(`categoryId=${params.categoryId}`);
+      if (params?.search) queryParts.push(`search=${encodeURIComponent(params.search)}`);
+      if (params?.minPrice !== undefined) queryParts.push(`minPrice=${params.minPrice}`);
+      if (params?.maxPrice !== undefined) queryParts.push(`maxPrice=${params.maxPrice}`);
+
+      const url = `${API_BASE}/customer/accessories${queryParts.length ? '?' + queryParts.join('&') : ''}`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.data && Array.isArray(json.data) && json.data.length > 0) {
+          let items: Accessory[] = json.data;
+          if (params?.carModelId) {
+            items = items.filter((item) =>
+              item.compatibilities?.some((c) => c.carModelId === params.carModelId)
+            );
+          }
+          if (params?.sortBy) {
+            switch (params.sortBy) {
+              case 'price-asc':
+                items.sort((a, b) => a.price - b.price);
+                break;
+              case 'price-desc':
+                items.sort((a, b) => b.price - a.price);
+                break;
+              case 'newest':
+                items.sort((a, b) => b.id - a.id);
+                break;
+              case 'popular':
+              default:
+                items.sort((a, b) => (b.stockQuantity || 0) - (a.stockQuantity || 0));
+                break;
+            }
+          }
+          return items;
+        }
+      }
+    } catch {
+      // offline fallback
+    }
 
     let items = [...MOCK_ACCESSORIES];
 
@@ -92,7 +133,17 @@ export const accessoryService = {
    * Get single accessory by ID
    */
   async getAccessoryById(id: number): Promise<Accessory | undefined> {
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    try {
+      const res = await fetch(`${API_BASE}/customer/accessories/${id}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.data) {
+          return json.data;
+        }
+      }
+    } catch {
+      // offline fallback
+    }
     return MOCK_ACCESSORIES.find((item) => item.id === id);
   },
 
@@ -100,6 +151,22 @@ export const accessoryService = {
    * Get all categories with counts
    */
   async getCategories(): Promise<AccessoryCategory[]> {
+    try {
+      const res = await fetch(`${API_BASE}/customer/accessories/categories`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.data && Array.isArray(json.data) && json.data.length > 0) {
+          return json.data.map((c: any) => ({
+            id: c.id,
+            name: c.tenDanhMuc || c.name,
+            itemCount: 4,
+            iconName: 'Zap',
+          }));
+        }
+      }
+    } catch {
+      // offline fallback
+    }
     return MOCK_ACCESSORY_CATEGORIES;
   },
 
@@ -110,3 +177,4 @@ export const accessoryService = {
     return MOCK_CAR_MODELS;
   },
 };
+

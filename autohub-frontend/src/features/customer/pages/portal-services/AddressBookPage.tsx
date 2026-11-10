@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
-import { MapPin, Plus, Check, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MapPin, Plus, Check, AlertCircle, RefreshCw } from 'lucide-react';
+import { useAuthStore } from '@/store/useAuthStore';
 import { AddressCard, type ExtendedAddress } from '@/features/customer/components/AddressCard';
 import { AddressModal } from '@/features/customer/components/AddressModal';
+import { addressService } from '@/features/customer/services/address.service';
 
 const INITIAL_ADDRESSES: ExtendedAddress[] = [
   {
     id: 1,
-    userId: 1,
+    userId: 5,
     recipientName: 'Nguyễn Văn A',
     phoneNumber: '0912345678',
     provinceCity: 'TP. Hồ Chí Minh',
@@ -18,7 +20,7 @@ const INITIAL_ADDRESSES: ExtendedAddress[] = [
   },
   {
     id: 2,
-    userId: 1,
+    userId: 5,
     recipientName: 'Nguyễn Văn A (Văn phòng)',
     phoneNumber: '0912345678',
     provinceCity: 'TP. Hồ Chí Minh',
@@ -31,13 +33,33 @@ const INITIAL_ADDRESSES: ExtendedAddress[] = [
 ];
 
 export const AddressBookPage: React.FC = () => {
+  const { user } = useAuthStore();
   const [addresses, setAddresses] = useState<ExtendedAddress[]>(INITIAL_ADDRESSES);
+  const [isLoading, setIsLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Modal thêm/sửa địa chỉ
   const [showModal, setShowModal] = useState(false);
   const [editingAddress, setEditingAddress] = useState<ExtendedAddress | null>(null);
+
+  const loadAddresses = async () => {
+    setIsLoading(true);
+    try {
+      const data = await addressService.getMyAddresses(user?.id);
+      if (data && data.length > 0) {
+        setAddresses(data);
+      }
+    } catch {
+      // fallback
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadAddresses();
+  }, [user?.id]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -60,7 +82,7 @@ export const AddressBookPage: React.FC = () => {
   };
 
   // 1. Lưu địa chỉ (Thêm mới hoặc Cập nhật)
-  const handleSaveAddress = (data: {
+  const handleSaveAddress = async (data: {
     recipientName: string;
     phoneNumber: string;
     provinceCity: string;
@@ -81,59 +103,35 @@ export const AddressBookPage: React.FC = () => {
     }
 
     if (editingAddress) {
-      // Cập nhật địa chỉ
-      setAddresses((prev) =>
-        prev.map((addr) => {
-          if (addr.id === editingAddress.id) {
-            return {
-              ...addr,
-              ...data,
-              isDefault: data.isDefault || (addr.isDefault && addresses.length === 1),
-            };
-          }
-          // Nếu địa chỉ sửa được đặt làm mặc định thì bỏ cờ mặc định của các địa chỉ khác (DR06)
-          return data.isDefault ? { ...addr, isDefault: false } : addr;
-        })
-      );
+      await addressService.updateAddress(editingAddress.id, {
+        ...data,
+        customerId: user?.id || 5,
+      });
       showToast('Cập nhật địa chỉ nhận hàng thành công!');
     } else {
-      // Thêm mới địa chỉ
-      const newAddr: ExtendedAddress = {
-        id: Math.floor(1000 + Math.random() * 9000),
-        userId: 1,
+      await addressService.addAddress({
         ...data,
-        isDefault: data.isDefault || addresses.length === 0,
-      };
-
-      setAddresses((prev) => {
-        if (newAddr.isDefault) {
-          return [...prev.map((a) => ({ ...a, isDefault: false })), newAddr];
-        }
-        return [...prev, newAddr];
+        customerId: user?.id || 5,
       });
       showToast('Đã thêm địa chỉ mới vào sổ địa chỉ thành công!');
     }
 
+    await loadAddresses();
     setShowModal(false);
   };
 
   // 2. Thiết lập làm địa chỉ mặc định (DR06)
-  const handleSetDefault = (id: number) => {
-    setAddresses((prev) =>
-      prev.map((addr) => ({
-        ...addr,
-        isDefault: addr.id === id,
-      }))
-    );
+  const handleSetDefault = async (id: number) => {
+    await addressService.setDefaultAddress(id);
+    await loadAddresses();
     showToast('Đã thiết lập địa chỉ mặc định mới cho giao hàng phụ kiện!');
   };
 
   // 3. Xóa địa chỉ (Bảo đảm ràng buộc ngoại lệ UC03)
-  const handleDeleteAddress = (id: number) => {
+  const handleDeleteAddress = async (id: number) => {
     const target = addresses.find((a) => a.id === id);
     if (!target) return;
 
-    // Ràng buộc ngoại lệ UC03: "Không thể xóa địa chỉ mặc định khi còn các địa chỉ khác"
     if (target.isDefault && addresses.length > 1) {
       showError(
         'Không thể xóa địa chỉ mặc định. Vui lòng thiết lập một địa chỉ khác làm mặc định trước khi xóa.'
@@ -141,7 +139,8 @@ export const AddressBookPage: React.FC = () => {
       return;
     }
 
-    setAddresses((prev) => prev.filter((a) => a.id !== id));
+    await addressService.deleteAddress(id);
+    await loadAddresses();
     showToast('Đã xóa địa chỉ khỏi sổ địa chỉ thành công.');
   };
 
@@ -159,14 +158,24 @@ export const AddressBookPage: React.FC = () => {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={handleOpenAddModal}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-[4px] bg-accent-action hover:bg-accent-primary text-xs font-bold text-accent-contrast transition-all cursor-pointer shadow-md self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Thêm Địa Chỉ Mới</span>
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={loadAddresses}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[4px] bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-accent-primary' : ''}`} />
+            <span>Làm mới</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleOpenAddModal}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-[4px] bg-accent-action hover:bg-accent-primary text-xs font-bold text-accent-contrast transition-all cursor-pointer shadow-md"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Thêm Địa Chỉ Mới</span>
+          </button>
+        </div>
       </div>
 
       {/* Thông báo Toast / Error */}

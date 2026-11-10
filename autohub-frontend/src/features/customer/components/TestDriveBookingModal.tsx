@@ -6,6 +6,7 @@ import { LocationSelector, type LocationType } from './LocationSelector';
 import { DateTimeSelector } from './DateTimeSelector';
 import { CustomerInfoForm } from './CustomerInfoForm';
 import { useAuthStore } from '@/store/useAuthStore';
+import { engagementService } from '@/features/customer/services/engagement.service';
 
 export interface TestDriveBookingModalProps {
   isOpen: boolean;
@@ -42,7 +43,7 @@ export const TestDriveBookingModal: React.FC<TestDriveBookingModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
@@ -64,19 +65,29 @@ export const TestDriveBookingModal: React.FC<TestDriveBookingModalProps> = ({
     }
 
     setIsSubmitting(true);
+    try {
+      await engagementService.bookTestDrive({
+        customerId: user?.id || 5,
+        hoTenKhach: fullName.trim(),
+        soDienThoaiKhach: phoneNumber.replace(/\s/g, ''),
+        diaDiemLaiThu: selectedLocation === 'SHOWROOM' ? 'Showroom AutoHub Flagship Thủ Đức' : 'Tại địa chỉ nhà riêng khách hàng',
+        camKetGplx: licenseAgreed,
+        ghiChu: `${note} - Đăng ký lái thử ${carModelName} - ${variantName} ngày ${selectedDate} khung giờ ${selectedSlot}`,
+      });
+    } catch {
+      // offline fallback
+    }
+    setIsSubmitting(false);
+    setIsSuccess(true);
     setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSuccess(true);
-      setTimeout(() => {
-        setIsSuccess(false);
-        onClose();
-        if (onSubmitSuccess) {
-          onSubmitSuccess();
-        } else {
-          navigate('/customer/test-drives');
-        }
-      }, 1500);
-    }, 1000);
+      setIsSuccess(false);
+      onClose();
+      if (onSubmitSuccess) {
+        onSubmitSuccess();
+      } else {
+        navigate('/customer/test-drives');
+      }
+    }, 1500);
   };
 
   return (
