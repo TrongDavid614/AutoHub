@@ -5,36 +5,9 @@ import { AddressCard, type ExtendedAddress } from '@/features/customer/component
 import { AddressModal } from '@/features/customer/components/AddressModal';
 import { addressService } from '@/features/customer/services/address.service';
 
-const INITIAL_ADDRESSES: ExtendedAddress[] = [
-  {
-    id: 1,
-    userId: 5,
-    recipientName: 'Nguyễn Văn A',
-    phoneNumber: '0912345678',
-    provinceCity: 'TP. Hồ Chí Minh',
-    district: 'Quận Bình Thạnh',
-    ward: 'Phường 22',
-    detailedAddress: 'Tòa Landmark 81, 720A Điện Biên Phủ',
-    isDefault: true,
-    tag: 'NHÀ RIÊNG',
-  },
-  {
-    id: 2,
-    userId: 5,
-    recipientName: 'Nguyễn Văn A (Văn phòng)',
-    phoneNumber: '0912345678',
-    provinceCity: 'TP. Hồ Chí Minh',
-    district: 'Quận 1',
-    ward: 'Phường Bến Nghé',
-    detailedAddress: 'Tầng 25, Tòa nhà Bitexco Financial Tower, Số 2 Hải Triều',
-    isDefault: false,
-    tag: 'VĂN PHÒNG',
-  },
-];
-
 export const AddressBookPage: React.FC = () => {
   const { user } = useAuthStore();
-  const [addresses, setAddresses] = useState<ExtendedAddress[]>(INITIAL_ADDRESSES);
+  const [addresses, setAddresses] = useState<ExtendedAddress[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -47,9 +20,7 @@ export const AddressBookPage: React.FC = () => {
     setIsLoading(true);
     try {
       const data = await addressService.getMyAddresses(user?.id);
-      if (data && data.length > 0) {
-        setAddresses(data);
-      }
+      setAddresses(data || []);
     } catch {
       // fallback
     } finally {

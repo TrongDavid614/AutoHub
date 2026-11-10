@@ -1,4 +1,4 @@
-import { MOCK_CARS, type MockCar } from '../mocks/car.mock';
+import type { MockCar } from '../mocks/car.mock';
 
 const API_BASE = 'http://localhost:8080/api';
 
@@ -121,9 +121,9 @@ export const carService = {
         }
       }
     } catch {
-      // Network error, fallback to mock
+      // Network error
     }
-    return MOCK_CARS;
+    return [];
   },
 
   async getCarById(id: string): Promise<MockCar | null> {
@@ -136,12 +136,10 @@ export const carService = {
         }
       }
     } catch {
-      // Network error, fallback to mock
+      // Network error
     }
 
-    const matched = MOCK_CARS.find((c) => c.id === id);
-    if (matched) return matched;
-    return MOCK_CARS[0] || null;
+    return null;
   },
 
   async getProvinces(): Promise<ProvinceDto[]> {

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { type MockCar, MOCK_CARS } from '../mocks/car.mock';
+import type { MockCar } from '../mocks/car.mock';
 import { carService } from '../services/car.service';
 
 export const useCarCatalog = () => {
@@ -7,16 +7,16 @@ export const useCarCatalog = () => {
   const [selectedSegment, setSelectedSegment] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<'PRICE_ASC' | 'PRICE_DESC' | 'POWER'>('PRICE_ASC');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [cars, setCars] = useState<MockCar[]>(MOCK_CARS);
+  const [cars, setCars] = useState<MockCar[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     let isMounted = true;
     carService.getAllCars().then((data) => {
-      if (isMounted && data && data.length > 0) {
-        setCars(data);
+      if (isMounted) {
+        setCars(data || []);
+        setLoading(false);
       }
-      if (isMounted) setLoading(false);
     });
     return () => {
       isMounted = false;

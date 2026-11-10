@@ -13,7 +13,7 @@ import {
   Scale,
   CheckCircle2
 } from 'lucide-react';
-import { MOCK_CARS, type MockCar } from '@/features/customer/mocks/car.mock';
+import type { MockCar } from '@/features/customer/mocks/car.mock';
 import { carService } from '@/features/customer/services/car.service';
 import { useCompareStore } from '@/store/useCompareStore';
 import { useStickySidebar } from '@/hooks/useStickySidebar';
@@ -27,16 +27,16 @@ export const CarListPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'row' | 'grid'>('row');
 
   // Real Database Cars state
-  const [cars, setCars] = useState<MockCar[]>(MOCK_CARS);
+  const [cars, setCars] = useState<MockCar[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     let isMounted = true;
     carService.getAllCars().then((data) => {
-      if (isMounted && data && data.length > 0) {
-        setCars(data);
+      if (isMounted) {
+        setCars(data || []);
+        setLoading(false);
       }
-      if (isMounted) setLoading(false);
     });
     return () => {
       isMounted = false;

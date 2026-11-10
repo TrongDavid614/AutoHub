@@ -1,5 +1,4 @@
 import type { AccessoryOrder } from '@/types/order.types';
-import { MOCK_CUSTOMER_ORDERS } from '../mocks/orders.mock';
 
 const API_BASE = 'http://localhost:8080/api';
 
@@ -12,14 +11,14 @@ export const orderService = {
       const res = await fetch(url);
       if (res.ok) {
         const json = await res.json();
-        if (json?.data && Array.isArray(json.data) && json.data.length > 0) {
+        if (json?.data && Array.isArray(json.data)) {
           return json.data;
         }
       }
     } catch {
-      // offline fallback
+      // network error
     }
-    return MOCK_CUSTOMER_ORDERS;
+    return [];
   },
 
   async confirmDelivered(orderId: number): Promise<boolean> {

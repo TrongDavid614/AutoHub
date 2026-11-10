@@ -9,67 +9,10 @@ import { TestDriveEvaluationModal } from '@/features/customer/components/TestDri
 import { TestDriveBookingModal } from '@/features/customer/components/TestDriveBookingModal';
 import { engagementService } from '@/features/customer/services/engagement.service';
 
-const INITIAL_TEST_DRIVES: TestDriveItem[] = [
-  {
-    id: 1,
-    bookingCode: '#TD-GTE-2026-101',
-    carModelName: 'AutoHub GT-e',
-    carVariant: 'Performance Dual-Motor AWD (800V SiC)',
-    carImageUrl:
-      'https://api.builder.io/api/v1/image/assets/TEMP/f8563407750402a5ec748ad5da036903aa27d5e0?width=600',
-    showroomName: 'Showroom AutoHub Flagship Thủ Đức',
-    showroomAddress: 'Đại lộ Mai Chí Thọ, Phường An Phú, TP. Thủ Đức, TP. Hồ Chí Minh',
-    locationType: 'SHOWROOM',
-    bookingDate: '28/10/2026',
-    timeSlot: '09:00 - 10:30',
-    status: 'CONFIRMED',
-    hasDrivingLicense: true,
-    demoCarPlate: '51K-999.88 (Xe Demo)',
-    consultantName: 'Kỹ sư Trịnh Hoài Nam',
-    createdAt: '2026-10-25T10:00:00Z',
-  },
-  {
-    id: 2,
-    bookingCode: '#TD-SUV-2026-088',
-    carModelName: 'AutoHub e-SUV Ultra',
-    carVariant: 'Long Range 7-Chỗ (Pin 110 kWh)',
-    carImageUrl:
-      'https://api.builder.io/api/v1/image/assets/TEMP/3bea387701c2ccce27dbf0d9a6bf1b65ca48da5d?width=600',
-    showroomName: 'Lái thử tại địa chỉ khách hàng',
-    showroomAddress: 'Tòa Landmark 81, 720A Điện Biên Phủ, Phường 22, Quận Bình Thạnh, TP. HCM',
-    locationType: 'HOME',
-    bookingDate: '30/10/2026',
-    timeSlot: '14:30 - 16:00',
-    status: 'PENDING',
-    hasDrivingLicense: true,
-    createdAt: '2026-10-25T14:30:00Z',
-  },
-  {
-    id: 3,
-    bookingCode: '#TD-GTE-2026-042',
-    carModelName: 'AutoHub GT-e',
-    carVariant: 'Standard RWD City Commuter',
-    carImageUrl:
-      'https://api.builder.io/api/v1/image/assets/TEMP/f8563407750402a5ec748ad5da036903aa27d5e0?width=600',
-    showroomName: 'Showroom AutoHub Quận 1',
-    showroomAddress: 'Số 2 Tôn Đức Thắng, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh',
-    locationType: 'SHOWROOM',
-    bookingDate: '18/10/2026',
-    timeSlot: '10:00 - 11:30',
-    status: 'COMPLETED',
-    hasDrivingLicense: true,
-    demoCarPlate: '51K-888.66 (Xe Demo)',
-    consultantName: 'Chuyên viên Lê Minh Tuấn',
-    evaluationNote:
-      'Khách hàng đánh giá cảm giác lái thể thao xuất sắc, khả năng cách âm vòm lốp êm ái, quan tâm phiên bản Performance.',
-    createdAt: '2026-10-15T08:00:00Z',
-  },
-];
-
 export const TestDriveBookingPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const [testDrives, setTestDrives] = useState<TestDriveItem[]>(INITIAL_TEST_DRIVES);
+  const [testDrives, setTestDrives] = useState<TestDriveItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'ALL' | TestDriveStatus>('ALL');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -81,9 +24,7 @@ export const TestDriveBookingPage: React.FC = () => {
     setIsLoading(true);
     try {
       const data = await engagementService.getMyTestDrives(user?.id);
-      if (data && data.length > 0) {
-        setTestDrives(data);
-      }
+      setTestDrives(data || []);
     } catch {
       // offline fallback
     } finally {

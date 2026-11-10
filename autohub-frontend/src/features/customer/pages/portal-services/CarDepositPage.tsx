@@ -8,33 +8,9 @@ import { CarDepositRefundModal } from '@/features/customer/components/CarDeposit
 import { depositService } from '@/features/customer/services/deposit.service';
 import { useAuthStore } from '@/store/useAuthStore';
 
-const INITIAL_DEPOSITS: CarDepositItem[] = [
-  {
-    id: 1,
-    depositCode: '#DEP-GTE-2026-8812',
-    carModelName: 'AutoHub GT-e',
-    carVariant: 'AutoHub GT-e Grand Touring',
-    exteriorColor: 'Xanh Riviera',
-    colorHex: '#0284C7',
-    carImageUrl: 'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=1200',
-    depositAmount: 20000000,
-    identityCardNumber: '001201009988',
-    customerName: 'Lê Hoàng Long',
-    customerPhone: '0977441223',
-    showroomName: 'AutoHub Quận 7 - TP. Hồ Chí Minh',
-    showroomAddress: 'Số 104 Nguyễn Thị Thập, Tân Phú, Quận 7, TP.HCM',
-    status: 'PAID',
-    vinNumber: '1FA6P8CF5H5345678',
-    vnpayTransactionId: 'vnp_2203111',
-    paidAt: new Date(Date.now() - 14 * 60 * 60 * 1000).toISOString(),
-    expireAt: new Date(Date.now() + 58 * 60 * 60 * 1000).toISOString(),
-    createdAt: new Date(Date.now() - 14 * 60 * 60 * 1000).toISOString(),
-  },
-];
-
 export const CarDepositPage: React.FC = () => {
   const { user } = useAuthStore();
-  const [deposits, setDeposits] = useState<CarDepositItem[]>(INITIAL_DEPOSITS);
+  const [deposits, setDeposits] = useState<CarDepositItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<'ALL' | CarDepositStatus>('ALL');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
@@ -52,9 +28,7 @@ export const CarDepositPage: React.FC = () => {
     setIsLoading(true);
     try {
       const data = await depositService.getMyDeposits(user?.id);
-      if (data && data.length > 0) {
-        setDeposits(data);
-      }
+      setDeposits(data || []);
     } catch {
       // offline fallback
     } finally {

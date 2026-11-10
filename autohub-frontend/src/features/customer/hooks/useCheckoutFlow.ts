@@ -3,9 +3,7 @@ import { useCartStore } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { addressService } from '../services/address.service';
 import {
-  MOCK_CHECKOUT_ADDRESSES,
   MOCK_SHIPPING_METHODS,
-  MOCK_CHECKOUT_ITEMS,
   type CheckoutAddress,
   type ShippingMethod,
   type CheckoutOrderItem,
@@ -16,8 +14,8 @@ export function useCheckoutFlow() {
   const { user } = useAuthStore();
 
   // Address selection
-  const [addresses, setAddresses] = useState<CheckoutAddress[]>(MOCK_CHECKOUT_ADDRESSES);
-  const [selectedAddressId, setSelectedAddressId] = useState<string>(MOCK_CHECKOUT_ADDRESSES[0].id);
+  const [addresses, setAddresses] = useState<CheckoutAddress[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string>('');
 
   useEffect(() => {
     let isMounted = true;
@@ -73,18 +71,15 @@ export function useCheckoutFlow() {
   const [voucherError, setVoucherError] = useState('');
 
   // Items
-  const items: CheckoutOrderItem[] =
-    cartItems.length > 0
-      ? cartItems.map((ci) => ({
-          id: ci.accessory.id,
-          name: ci.accessory.name,
-          subtitle: ci.accessory.description || 'Phụ kiện chính hãng AutoHub OEM',
-          sku: ci.accessory.sku,
-          price: ci.accessory.discountPrice || ci.accessory.price,
-          quantity: ci.quantity,
-          thumbnailUrl: ci.accessory.thumbnailUrl,
-        }))
-      : MOCK_CHECKOUT_ITEMS;
+  const items: CheckoutOrderItem[] = cartItems.map((ci) => ({
+    id: ci.accessory.id,
+    name: ci.accessory.name,
+    subtitle: ci.accessory.description || 'Phụ kiện chính hãng AutoHub OEM',
+    sku: ci.accessory.sku,
+    price: ci.accessory.discountPrice || ci.accessory.price,
+    quantity: ci.quantity,
+    thumbnailUrl: ci.accessory.thumbnailUrl,
+  }));
 
   // Pricing calculations
   const rawSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);

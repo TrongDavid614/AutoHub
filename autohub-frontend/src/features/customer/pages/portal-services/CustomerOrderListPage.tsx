@@ -7,7 +7,6 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import type { AccessoryOrder, AccessoryOrderStatus } from '@/types/order.types';
-import { MOCK_CUSTOMER_ORDERS } from '@/features/customer/mocks/orders.mock';
 import { useCartStore } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { orderService } from '@/features/customer/services/order.service';
@@ -23,7 +22,7 @@ export const CustomerOrderListPage: React.FC = () => {
   const addToCart = useCartStore((s) => s.addToCart);
   const { user } = useAuthStore();
 
-  const [orders, setOrders] = useState<AccessoryOrder[]>(MOCK_CUSTOMER_ORDERS);
+  const [orders, setOrders] = useState<AccessoryOrder[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<FilterTab>('ALL');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);

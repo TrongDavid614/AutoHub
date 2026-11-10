@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Check, Layers } from 'lucide-react';
-import { MOCK_CAR_MODELS, type CarModelInfo } from '@/features/customer/mocks/accessory.mock';
+import type { CarModelInfo } from '@/features/customer/mocks/accessory.mock';
+import { accessoryService } from '@/features/customer/services/accessory.service';
 
 export interface ChangeCarModelModalProps {
   isOpen: boolean;
@@ -15,6 +16,16 @@ export const ChangeCarModelModal: React.FC<ChangeCarModelModalProps> = ({
   selectedModel,
   onSelectModel,
 }) => {
+  const [carModels, setCarModels] = useState<CarModelInfo[]>([]);
+
+  useEffect(() => {
+    if (isOpen) {
+      accessoryService.getCarModels().then((models) => {
+        setCarModels(models || []);
+      });
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -78,7 +89,7 @@ export const ChangeCarModelModal: React.FC<ChangeCarModelModalProps> = ({
             </div>
           </div>
 
-          {MOCK_CAR_MODELS.map((model) => {
+          {carModels.map((model) => {
             const isSelected = selectedModel?.id === model.id;
             return (
               <div
