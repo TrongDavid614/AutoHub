@@ -1,19 +1,35 @@
-import { useState, useMemo } from 'react';
-import { MOCK_CARS } from '../mocks/car.mock';
+import { useState, useMemo, useEffect } from 'react';
+import { type MockCar, MOCK_CARS } from '../mocks/car.mock';
+import { carService } from '../services/car.service';
 
 export const useCarCatalog = () => {
   const [viewMode, setViewMode] = useState<'GRID' | 'ROW'>('GRID');
   const [selectedSegment, setSelectedSegment] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<'PRICE_ASC' | 'PRICE_DESC' | 'POWER'>('PRICE_ASC');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [cars, setCars] = useState<MockCar[]>(MOCK_CARS);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  const segments = useMemo(() => {
-    const list = Array.from(new Set(MOCK_CARS.map((c) => c.segment)));
-    return ['ALL', ...list];
+  useEffect(() => {
+    let isMounted = true;
+    carService.getAllCars().then((data) => {
+      if (isMounted && data && data.length > 0) {
+        setCars(data);
+      }
+      if (isMounted) setLoading(false);
+    });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
+  const segments = useMemo(() => {
+    const list = Array.from(new Set(cars.map((c) => c.segment)));
+    return ['ALL', ...list];
+  }, [cars]);
+
   const filteredCars = useMemo(() => {
-    return MOCK_CARS.filter((car) => {
+    return cars.filter((car) => {
       const matchSegment = selectedSegment === 'ALL' || car.segment === selectedSegment;
       const matchSearch =
         car.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -29,7 +45,7 @@ export const useCarCatalog = () => {
       }
       return 0;
     });
-  }, [selectedSegment, searchQuery, sortBy]);
+  }, [cars, selectedSegment, searchQuery, sortBy]);
 
   return {
     viewMode,
@@ -42,5 +58,7 @@ export const useCarCatalog = () => {
     setSearchQuery,
     segments,
     filteredCars,
+    cars,
+    loading,
   };
 };

@@ -15,6 +15,7 @@ interface CarStudioVisualizerProps {
   activeTrim: string;
   activeColorHex: string;
   activeColorName: string;
+  carImages?: string[];
 }
 
 const VIEW_TABS = [
@@ -66,11 +67,15 @@ const PERSPECTIVES = [
 export const CarStudioVisualizer: React.FC<CarStudioVisualizerProps> = ({
   carName,
   activeTrim,
+  carImages,
 }) => {
   const [activeTab, setActiveTab] = useState<string>('exterior');
   const [activePerspective, setActivePerspective] = useState<number>(0);
 
-  const currentMainImage = PERSPECTIVES[activePerspective]?.mainImage || PERSPECTIVES[0].mainImage;
+  const currentMainImage =
+    carImages && carImages.length > 0
+      ? carImages[activePerspective % carImages.length]
+      : PERSPECTIVES[activePerspective]?.mainImage || PERSPECTIVES[0].mainImage;
 
   return (
     <div className="flex flex-col gap-4">

@@ -17,6 +17,7 @@ export interface MockCar {
   depositNote: string;
   estimatedOnRoad: number;
   image: string;
+  images?: string[];
   availableColors: { name: string; hex: string }[];
   gridSpecs?: {
     s1Label: string;

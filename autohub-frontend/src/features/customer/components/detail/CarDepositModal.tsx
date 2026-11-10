@@ -270,7 +270,7 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
                 type="button"
                 onClick={() => {
                   onClose();
-                  navigate('/portal/deposits');
+                  navigate('/customer/deposits');
                 }}
                 className="w-full sm:flex-1 py-3 px-5 rounded-lg bg-[#0EA5E9] hover:bg-[#89CEFF] text-[#003751] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-lg cursor-pointer"
               >

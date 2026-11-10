@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Filter, 
@@ -14,6 +14,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { MOCK_CARS, type MockCar } from '@/features/customer/mocks/car.mock';
+import { carService } from '@/features/customer/services/car.service';
 import { useCompareStore } from '@/store/useCompareStore';
 import { useStickySidebar } from '@/hooks/useStickySidebar';
 
@@ -25,28 +26,42 @@ export const CarListPage: React.FC = () => {
   // View Mode: 'row' (Bộ Sưu tập dòng xe dạng row) vs 'grid' (Bộ Sưu tập dòng xe)
   const [viewMode, setViewMode] = useState<'row' | 'grid'>('row');
 
-  // Filters state matching Figma
-  const [selectedSegment, setSelectedSegment] = useState<string>('Sedan thể thao');
-  const [priceRange, setPriceRange] = useState<string>('2 - 3 tỷ');
-  const [selectedPowertrains, setSelectedPowertrains] = useState<string[]>(['Thuần điện EV 800V SiC']);
+  // Real Database Cars state
+  const [cars, setCars] = useState<MockCar[]>(MOCK_CARS);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    carService.getAllCars().then((data) => {
+      if (isMounted && data && data.length > 0) {
+        setCars(data);
+      }
+      if (isMounted) setLoading(false);
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Filters state
+  const [selectedSegment, setSelectedSegment] = useState<string>('all');
+  const [priceRange, setPriceRange] = useState<string>('all');
+  const [selectedPowertrains, setSelectedPowertrains] = useState<string[]>([]);
   const [selectedSeats, setSelectedSeats] = useState<string>('all');
   const [selectedColor, setSelectedColor] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('recommended');
 
+  const filterSegments = useMemo(() => {
+    const map = new Map<string, number>();
+    cars.forEach((car) => {
+      map.set(car.segment, (map.get(car.segment) || 0) + 1);
+    });
+    return Array.from(map.entries()).map(([label, count]) => ({ label, count }));
+  }, [cars]);
 
-
-  const filterSegments = [
-    { label: 'Sedan thể thao', count: 4 },
-    { label: 'SUV Đa dụng', count: 2 },
-    { label: 'GT Hypercar', count: 1 },
-    { label: 'Shooting Brake', count: 1 },
-  ];
-
-  const powertrains = [
-    'Thuần điện EV 800V SiC',
-    'Dual-Motor AWD',
-    'Tri-Motor Hyper AWD',
-  ];
+  const powertrains = useMemo(() => {
+    return Array.from(new Set(cars.map((c) => c.powertrain)));
+  }, [cars]);
 
   const colors = [
     { name: 'Xanh Phantom', hex: '#00A6E0' },
@@ -70,12 +85,23 @@ export const CarListPage: React.FC = () => {
   };
 
   const filteredCars = useMemo(() => {
-    return MOCK_CARS.filter((car) => {
+    return cars.filter((car) => {
       if (selectedSegment !== 'all' && car.segment !== selectedSegment) return false;
       if (selectedPowertrains.length > 0 && !selectedPowertrains.includes(car.powertrain)) return false;
+      if (selectedSeats !== 'all') {
+        const seatsNum = car.seats.match(/\d+/)?.[0];
+        if (seatsNum !== selectedSeats) return false;
+      }
+      if (priceRange === '< 2 tỷ' && car.listedPrice >= 2000000000) return false;
+      if (priceRange === '2 - 3 tỷ' && (car.listedPrice < 2000000000 || car.listedPrice > 3000000000)) return false;
+      if (priceRange === '> 3 tỷ' && car.listedPrice <= 3000000000) return false;
       return true;
+    }).sort((a, b) => {
+      if (sortBy === 'price-asc') return a.listedPrice - b.listedPrice;
+      if (sortBy === 'price-desc') return b.listedPrice - a.listedPrice;
+      return 0;
     });
-  }, [selectedSegment, selectedPowertrains]);
+  }, [cars, selectedSegment, selectedPowertrains, selectedSeats, priceRange, sortBy]);
 
   const handleCompare = (car: MockCar) => {
     addVariantToCompare({
@@ -313,20 +339,52 @@ export const CarListPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-[#131B2E] border border-[#3E4850]/50 rounded-[4px] shadow-sm text-xs">
             <div className="flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-2 px-2.5 py-1 rounded-[2px] bg-[#171F33]">
-                <div className="w-2 h-2 rounded-full bg-[#00A6E0]" />
+                <div className={`w-2 h-2 rounded-full ${loading ? 'bg-amber-400 animate-ping' : 'bg-[#00A6E0]'}`} />
                 <span className="font-semibold text-[#DAE2FD]">
-                  Hiển thị {filteredCars.length} mẫu xe sẵn sàng giao
+                  {loading ? 'Đang đồng bộ dữ liệu từ cơ sở dữ liệu...' : `Hiển thị ${filteredCars.length} mẫu xe sẵn sàng giao`}
                 </span>
               </div>
-              <span className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#89CEFF] text-[10px] font-mono font-bold flex items-center gap-1.5">
-                Sedan thể thao <span className="cursor-pointer hover:text-white">✕</span>
-              </span>
-              <span className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#89CEFF] text-[10px] font-mono font-bold flex items-center gap-1.5">
-                Thuần điện EV 800V <span className="cursor-pointer hover:text-white">✕</span>
-              </span>
-              <span className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#89CEFF] text-[10px] font-mono font-bold flex items-center gap-1.5">
-                1.5 - 3.5 tỷ <span className="cursor-pointer hover:text-white">✕</span>
-              </span>
+              {selectedSegment !== 'all' && (
+                <span className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#89CEFF] text-[10px] font-mono font-bold flex items-center gap-1.5">
+                  {selectedSegment}{' '}
+                  <span
+                    onClick={() => setSelectedSegment('all')}
+                    className="cursor-pointer hover:text-white"
+                  >
+                    ✕
+                  </span>
+                </span>
+              )}
+              {priceRange !== 'all' && (
+                <span className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#89CEFF] text-[10px] font-mono font-bold flex items-center gap-1.5">
+                  {priceRange}{' '}
+                  <span
+                    onClick={() => setPriceRange('all')}
+                    className="cursor-pointer hover:text-white"
+                  >
+                    ✕
+                  </span>
+                </span>
+              )}
+              {selectedPowertrains.map((pt) => (
+                <span
+                  key={pt}
+                  className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#89CEFF] text-[10px] font-mono font-bold flex items-center gap-1.5"
+                >
+                  {pt}{' '}
+                  <span
+                    onClick={() => togglePowertrain(pt)}
+                    className="cursor-pointer hover:text-white"
+                  >
+                    ✕
+                  </span>
+                </span>
+              ))}
+              {selectedSegment === 'all' && priceRange === 'all' && selectedPowertrains.length === 0 && (
+                <span className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#88929B] text-[10px] font-mono">
+                  Đang xem toàn bộ xe AutoHub
+                </span>
+              )}
             </div>
 
             <div className="flex items-center gap-2.5 self-end sm:self-auto">
