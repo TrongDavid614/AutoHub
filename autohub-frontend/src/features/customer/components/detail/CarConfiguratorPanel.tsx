@@ -301,7 +301,7 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
 
         <button
           type="button"
-          onClick={() => navigate('/test-drive')}
+          onClick={() => navigate(car?.id ? `/test-drive?carId=${car.id}` : '/test-drive')}
           className="w-full py-3.5 px-6 rounded-lg bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight hover:border-accent-primary/50 text-text-primary hover:text-accent-primary font-bold text-xs tracking-wider uppercase flex items-center justify-center gap-2 transition-all cursor-pointer"
         >
           <Calendar className="w-4 h-4 text-accent-primary" />

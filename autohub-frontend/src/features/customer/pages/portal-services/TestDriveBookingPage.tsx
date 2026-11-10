@@ -136,6 +136,7 @@ export const TestDriveBookingPage: React.FC = () => {
         onClose={() => setIsBookingModalOpen(false)}
         onSubmitSuccess={() => {
           setIsBookingModalOpen(false);
+          loadTestDrives();
           showToast('Đăng ký lái thử xe Demo thành công! Lịch hẹn mới đã được ghi nhận.');
         }}
       />

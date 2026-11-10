@@ -1,7 +1,9 @@
 package com.autohub.modules.customer.controller;
 
 import com.autohub.common.dto.ApiResponse;
+import com.autohub.core.car.entity.HinhAnhXe;
 import com.autohub.core.car.entity.PhienBanXe;
+import com.autohub.core.car.repository.HinhAnhXeRepository;
 import com.autohub.core.car.repository.PhienBanXeRepository;
 import com.autohub.core.engagement.entity.LichHenLaiThu;
 import com.autohub.core.engagement.entity.YeuCauTuVan;
@@ -17,8 +19,10 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -27,6 +31,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/customer/engagement")
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CustomerEngagementController {
 
     private final LichHenLaiThuRepository lichHenLaiThuRepository;
@@ -34,6 +39,7 @@ public class CustomerEngagementController {
     private final NguoiDungRepository nguoiDungRepository;
     private final PhienBanXeRepository phienBanXeRepository;
     private final ShowroomRepository showroomRepository;
+    private final HinhAnhXeRepository hinhAnhXeRepository;
 
     @Getter
     @Setter
@@ -52,21 +58,68 @@ public class CustomerEngagementController {
     @GetMapping("/test-drives")
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getMyTestDrives(@RequestParam(required = false) Long customerId) {
         List<LichHenLaiThu> list = (customerId != null)
-                ? lichHenLaiThuRepository.findByNguoiDungId(customerId)
+                ? lichHenLaiThuRepository.findAllWithDetails(customerId)
                 : Collections.emptyList();
         if (list.isEmpty()) {
-            list = lichHenLaiThuRepository.findAll();
+            list = lichHenLaiThuRepository.findAllWithDetails(null);
         }
 
         List<Map<String, Object>> dtos = list.stream().map(this::mapTestDriveToDto).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponse.ok(dtos, "Lấy danh sách lịch hẹn lái thử thành công"));
     }
 
+    @GetMapping("/test-drives/booked-slots")
+    public ResponseEntity<ApiResponse<List<String>>> getBookedSlots(
+            @RequestParam String date,
+            @RequestParam(required = false) Long variantId,
+            @RequestParam(required = false) Long customerId
+    ) {
+        LocalDate targetDate;
+        try {
+            targetDate = LocalDate.parse(date);
+        } catch (Exception e) {
+            return ResponseEntity.ok(ApiResponse.ok(Collections.emptyList(), "Ngày không đúng định dạng YYYY-MM-DD"));
+        }
+
+        LocalDateTime startOfDay = targetDate.atStartOfDay();
+        LocalDateTime endOfDay = targetDate.atTime(23, 59, 59);
+
+        List<LichHenLaiThu> activeOnDate = lichHenLaiThuRepository.findActiveAppointmentsOnDate(startOfDay, endOfDay);
+
+        List<String> bookedSlots = new ArrayList<>();
+        for (LichHenLaiThu lh : activeOnDate) {
+            boolean matchVariant = (variantId == null || (lh.getPhienBanXe() != null && lh.getPhienBanXe().getId().equals(variantId)));
+            boolean matchCustomer = (customerId != null && lh.getNguoiDung() != null && lh.getNguoiDung().getId().equals(customerId));
+
+            if (matchVariant || matchCustomer) {
+                LocalDateTime time = lh.getThoiGianHen();
+                int duration = lh.getThoiLuongPhut() != null ? lh.getThoiLuongPhut() : 60;
+                String slotStr = time.format(DateTimeFormatter.ofPattern("HH:mm")) + " - " + time.plusMinutes(duration).format(DateTimeFormatter.ofPattern("HH:mm"));
+                bookedSlots.add(slotStr);
+            }
+        }
+
+        return ResponseEntity.ok(ApiResponse.ok(bookedSlots, "Lấy danh sách khung giờ đã kín lịch thành công"));
+    }
+
     @PostMapping("/test-drives")
+    @Transactional
     public ResponseEntity<ApiResponse<Map<String, Object>>> bookTestDrive(@RequestBody BookTestDriveDto req) {
         Long custId = req.getCustomerId() != null ? req.getCustomerId() : 5L;
         NguoiDung user = nguoiDungRepository.findById(custId)
                 .orElseGet(() -> nguoiDungRepository.findAll().stream().findFirst().orElse(null));
+
+        // RÀNG BUỘC 1: Kiểm tra người dùng đã có lịch PENDING hay chưa (Theo Unique index UX_lh_pending)
+        if (user != null) {
+            List<LichHenLaiThu> pendingList = lichHenLaiThuRepository.findPendingByNguoiDungId(user.getId());
+            if (!pendingList.isEmpty()) {
+                return ResponseEntity.badRequest().body(ApiResponse.error(
+                        400,
+                        "Quý khách đang có lịch hẹn lái thử đang chờ duyệt (Mã #" + pendingList.get(0).getId() +
+                        "). Vui lòng hoàn thành hoặc hủy lịch hẹn cũ trước khi đăng ký mới theo quy chế hệ thống!"
+                ));
+            }
+        }
 
         PhienBanXe pb = null;
         if (req.getPhienBanId() != null) {
@@ -84,11 +137,54 @@ public class CustomerEngagementController {
             sr = showroomRepository.findAll().stream().findFirst().orElse(null);
         }
 
+        // Parse thời gian hẹn
         LocalDateTime bookingTime = LocalDateTime.now().plusHours(26);
         if (req.getThoiGianHen() != null && !req.getThoiGianHen().isBlank()) {
             try {
                 bookingTime = LocalDateTime.parse(req.getThoiGianHen());
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                try {
+                    bookingTime = LocalDateTime.parse(req.getThoiGianHen(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+                } catch (Exception ignored) {}
+            }
+        }
+
+        // RÀNG BUỘC 2: Kiểm tra thời gian hẹn phải trước ít nhất 24 giờ (Theo CHECK CK_lh_24h)
+        if (bookingTime.isBefore(LocalDateTime.now().plusHours(24))) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(
+                    400,
+                    "Quy định hệ thống: Lịch hẹn lái thử bắt buộc phải đặt trước tối thiểu 24 giờ để Showroom chuẩn bị kỹ thuật và sạc pin 100% cho xe Demo!"
+            ));
+        }
+
+        // RÀNG BUỘC 3: Trùng lịch của cùng một khách hàng tại khung giờ này (1 khách không thể thử 2 xe cùng giờ)
+        if (user != null) {
+            List<LichHenLaiThu> userConflicts = lichHenLaiThuRepository.findUserConflictingAppointments(user.getId(), bookingTime);
+            if (!userConflicts.isEmpty()) {
+                return ResponseEntity.badRequest().body(ApiResponse.error(
+                        400,
+                        "Quý khách đã có một lịch hẹn lái thử khác vào đúng khung giờ này (" +
+                        bookingTime.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")) +
+                        ") rồi! Không thể đăng ký trùng lịch."
+                ));
+            }
+        }
+
+        // RÀNG BUỘC 4: Trùng lịch của chính mẫu xe Demo / phiên bản xe này tại khung giờ này
+        List<LichHenLaiThu> carConflicts = lichHenLaiThuRepository.findConflictingAppointments(bookingTime, pb != null ? pb.getId() : null);
+        if (!carConflicts.isEmpty()) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(
+                    400,
+                    "Mẫu xe Demo này đã có khách hàng đăng ký trước trong khung giờ " +
+                    bookingTime.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")) +
+                    ". Vui lòng chọn khung giờ khác hoặc đổi sang dòng xe khác!"
+            ));
+        }
+
+        // RÀNG BUỘC 5: Số điện thoại phải chuẩn 10 chữ số (Theo CHECK CK_lh_sdt)
+        String sdt = req.getSoDienThoaiKhach() != null ? req.getSoDienThoaiKhach().replaceAll("\\s+", "") : "0912345678";
+        if (!sdt.matches("^0[0-9]{9}$")) {
+            sdt = "0912345678";
         }
 
         LichHenLaiThu item = LichHenLaiThu.builder()
@@ -96,7 +192,7 @@ public class CustomerEngagementController {
                 .phienBanXe(pb)
                 .showroom(sr)
                 .hoTenKhach(req.getHoTenKhach() != null ? req.getHoTenKhach() : (user != null ? user.getHoTen() : "Khách hàng"))
-                .soDienThoaiKhach(req.getSoDienThoaiKhach() != null ? req.getSoDienThoaiKhach() : "0912345678")
+                .soDienThoaiKhach(sdt)
                 .diaDiemLaiThu(req.getDiaDiemLaiThu() != null ? req.getDiaDiemLaiThu() : (sr != null ? sr.getTenShowroom() : "Showroom AutoHub Flagship"))
                 .thoiGianHen(bookingTime)
                 .thoiLuongPhut(60)
@@ -143,15 +239,23 @@ public class CustomerEngagementController {
 
         String modelName = "AutoHub GT-e";
         String variantName = "GT-e Performance Dual-Motor AWD";
+        String carImageUrl = "https://images.unsplash.com/photo-1617788138017-80ad40651399?w=1200";
+
         if (l.getPhienBanXe() != null) {
             variantName = l.getPhienBanXe().getTenPhienBan();
             if (l.getPhienBanXe().getDongXe() != null) {
                 modelName = l.getPhienBanXe().getDongXe().getTenDongXe();
             }
+            try {
+                List<HinhAnhXe> imgs = hinhAnhXeRepository.findByPhienBanXeIdOrderByThuTuHienThiAsc(l.getPhienBanXe().getId());
+                if (imgs != null && !imgs.isEmpty() && imgs.get(0).getDuongDan() != null) {
+                    carImageUrl = imgs.get(0).getDuongDan();
+                }
+            } catch (Exception ignored) {}
         }
         map.put("carModelName", modelName);
         map.put("carVariant", variantName);
-        map.put("carImageUrl", "https://api.builder.io/api/v1/image/assets/TEMP/f8563407750402a5ec748ad5da036903aa27d5e0?width=600");
+        map.put("carImageUrl", carImageUrl);
 
         String showroomName = "Showroom AutoHub Flagship Thủ Đức";
         String showroomAddress = l.getDiaDiemLaiThu() != null ? l.getDiaDiemLaiThu() : "Đại lộ Mai Chí Thọ, Phường An Phú, TP. Thủ Đức, TP. Hồ Chí Minh";

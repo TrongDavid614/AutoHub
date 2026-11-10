@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Clock, Info, Check } from 'lucide-react';
 
 export interface DateItem {
-  id: string;
+  id: string; // YYYY-MM-DD
   dayLabel: string;
   dateStr: string;
   badge?: string;
@@ -15,21 +15,40 @@ export interface TimeSlotItem {
   isBooked?: boolean;
 }
 
-const AVAILABLE_DATES: DateItem[] = [
-  { id: '25/10', dayLabel: 'NGÀY MAI', dateStr: '25/10', badge: 'Được chọn', badgeVariant: 'primary' },
-  { id: '26/10', dayLabel: 'THỨ BẢY', dateStr: '26/10', badge: 'Còn chỗ', badgeVariant: 'emerald' },
-  { id: '27/10', dayLabel: 'CHỦ NHẬT', dateStr: '27/10', badge: 'Sắp kín', badgeVariant: 'primary' },
-  { id: '28/10', dayLabel: 'THỨ HAI', dateStr: '28/10' },
-  { id: '29/10', dayLabel: 'THỨ BA', dateStr: '29/10' },
-  { id: '30/10', dayLabel: 'THỨ TƯ', dateStr: '30/10' },
-];
+export function generateUpcomingDates(): DateItem[] {
+  const dates: DateItem[] = [];
+  const dayNames = ['CHỦ NHẬT', 'THỨ HAI', 'THỨ BA', 'THỨ TƯ', 'THỨ NĂM', 'THỨ SÁU', 'THỨ BẢY'];
 
-const TIME_SLOTS: TimeSlotItem[] = [
-  { id: '09:00 - 10:00', timeRange: '09:00 - 10:00' },
-  { id: '10:30 - 11:30', timeRange: '10:30 - 11:30' },
-  { id: '11:30 - 12:30', timeRange: '11:30 - 12:30', isBooked: true },
-  { id: '14:00 - 15:00', timeRange: '14:00 - 15:00' },
-  { id: '15:30 - 16:30', timeRange: '15:30 - 16:30' },
+  const now = new Date();
+  for (let i = 1; i <= 6; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() + i);
+
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const isoDate = `${year}-${month}-${day}`;
+    const dateStr = `${day}/${month}`;
+    const dayLabel = i === 1 ? 'NGÀY MAI' : dayNames[d.getDay()];
+
+    dates.push({
+      id: isoDate,
+      dayLabel,
+      dateStr,
+      badge: i === 1 ? 'Khuyên dùng' : i === 2 ? 'Còn chỗ' : undefined,
+      badgeVariant: i === 1 ? 'primary' : 'emerald',
+    });
+  }
+  return dates;
+}
+
+export const BASE_TIME_SLOTS: string[] = [
+  '09:00 - 10:00',
+  '10:30 - 11:30',
+  '11:30 - 12:30',
+  '14:00 - 15:00',
+  '15:30 - 16:30',
+  '17:00 - 18:00',
 ];
 
 interface DateTimeSelectorProps {
@@ -37,6 +56,7 @@ interface DateTimeSelectorProps {
   onSelectDate: (date: string) => void;
   selectedSlot: string;
   onSelectSlot: (slot: string) => void;
+  bookedSlots?: string[];
 }
 
 export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
@@ -44,7 +64,17 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
   onSelectDate,
   selectedSlot,
   onSelectSlot,
+  bookedSlots = [],
 }) => {
+  const availableDates = useMemo(() => generateUpcomingDates(), []);
+
+  const timeSlots = useMemo(() => {
+    return BASE_TIME_SLOTS.map((slotRange) => ({
+      id: slotRange,
+      timeRange: slotRange,
+      isBooked: bookedSlots.includes(slotRange),
+    }));
+  }, [bookedSlots]);
   return (
     <div className="p-4 sm:p-5 rounded bg-surface-container/60 border border-surface-highlight space-y-4">
       {/* Notice Header Banner */}
@@ -69,7 +99,7 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
         </span>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-          {AVAILABLE_DATES.map((date) => {
+          {availableDates.map((date) => {
             const isSelected = selectedDate === date.id;
             return (
               <button
@@ -115,8 +145,8 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
           CHỌN KHUNG GIỜ LÁI THỬ
         </span>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
-          {TIME_SLOTS.map((slot) => {
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+          {timeSlots.map((slot) => {
             const isSelected = selectedSlot === slot.id;
             const isBooked = !!slot.isBooked;
 

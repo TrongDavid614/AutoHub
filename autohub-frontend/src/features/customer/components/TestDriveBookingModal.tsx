@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, ShieldCheck, Check, Sparkles, AlertCircle } from 'lucide-react';
 import { VehicleDemoCard } from './VehicleDemoCard';
 import { LocationSelector, type LocationType } from './LocationSelector';
-import { DateTimeSelector } from './DateTimeSelector';
+import { DateTimeSelector, generateUpcomingDates } from './DateTimeSelector';
 import { CustomerInfoForm } from './CustomerInfoForm';
 import { useAuthStore } from '@/store/useAuthStore';
 import { engagementService } from '@/features/customer/services/engagement.service';
+import { carService } from '@/features/customer/services/car.service';
+import type { MockCar } from '@/features/customer/mocks/car.mock';
 
 export interface TestDriveBookingModalProps {
   isOpen: boolean;
@@ -26,9 +28,15 @@ export const TestDriveBookingModal: React.FC<TestDriveBookingModalProps> = ({
   const navigate = useNavigate();
   const { user } = useAuthStore();
 
+  const [cars, setCars] = useState<MockCar[]>([]);
+  const [selectedCarId, setSelectedCarId] = useState<string>('1');
+
+  const availableDates = useMemo(() => generateUpcomingDates(), []);
+
   const [selectedLocation, setSelectedLocation] = useState<LocationType>('SHOWROOM');
-  const [selectedDate, setSelectedDate] = useState<string>('25/10');
+  const [selectedDate, setSelectedDate] = useState<string>(availableDates[0]?.id || '2026-11-11');
   const [selectedSlot, setSelectedSlot] = useState<string>('09:00 - 10:00');
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
 
   const [fullName, setFullName] = useState<string>(user?.fullName || 'Nguyễn Văn A');
   const [phoneNumber, setPhoneNumber] = useState<string>(user?.phoneNumber || '0912345678');
@@ -40,6 +48,37 @@ export const TestDriveBookingModal: React.FC<TestDriveBookingModalProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let isMounted = true;
+    carService.getAllCars().then((list) => {
+      if (isMounted && list && list.length > 0) {
+        setCars(list);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen]);
+
+  const selectedCar = useMemo(() => {
+    return cars.find((c) => String(c.id) === String(selectedCarId)) || cars[0];
+  }, [cars, selectedCarId]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let isMounted = true;
+    const variantId = selectedCar ? Number(selectedCar.id) : undefined;
+    engagementService.getBookedSlots(selectedDate, variantId, user?.id).then((slots) => {
+      if (isMounted) {
+        setBookedSlots(slots || []);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, selectedDate, selectedCar?.id, user?.id]);
 
   if (!isOpen) return null;
 
@@ -64,19 +103,35 @@ export const TestDriveBookingModal: React.FC<TestDriveBookingModalProps> = ({
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      await engagementService.bookTestDrive({
-        customerId: user?.id || 5,
-        hoTenKhach: fullName.trim(),
-        soDienThoaiKhach: phoneNumber.replace(/\s/g, ''),
-        diaDiemLaiThu: selectedLocation === 'SHOWROOM' ? 'Showroom AutoHub Flagship Thủ Đức' : 'Tại địa chỉ nhà riêng khách hàng',
-        camKetGplx: licenseAgreed,
-        ghiChu: `${note} - Đăng ký lái thử ${carModelName} - ${variantName} ngày ${selectedDate} khung giờ ${selectedSlot}`,
-      });
-    } catch {
-      // offline fallback
+    if (bookedSlots.includes(selectedSlot)) {
+      setErrorMessage(
+        `Khung giờ ${selectedSlot} ngày ${selectedDate} đã có khách đăng ký kín lịch hoặc bạn đã có lịch khác. Vui lòng chọn khung giờ khác!`
+      );
+      return;
     }
+
+    setIsSubmitting(true);
+    const startTime = selectedSlot.split(' - ')[0] || '09:00';
+    const fullIso = `${selectedDate}T${startTime}:00`;
+
+    const res = await engagementService.bookTestDrive({
+      customerId: user?.id || 5,
+      phienBanId: selectedCar ? Number(selectedCar.id) : 1,
+      showroomId: 2,
+      hoTenKhach: fullName.trim(),
+      soDienThoaiKhach: phoneNumber.replace(/\s/g, ''),
+      diaDiemLaiThu: selectedLocation === 'SHOWROOM' ? 'Showroom AutoHub Flagship Thủ Đức' : 'Tại địa chỉ nhà riêng khách hàng',
+      thoiGianHen: fullIso,
+      camKetGplx: licenseAgreed,
+      ghiChu: `${note} - Đăng ký lái thử ${selectedCar?.name || carModelName} ngày ${selectedDate} khung giờ ${selectedSlot}`,
+    });
+
+    if (!res.success) {
+      setErrorMessage(res.message || 'Không thể đăng ký lịch lái thử do trùng lịch hoặc vi phạm quy định.');
+      setIsSubmitting(false);
+      return;
+    }
+
     setIsSubmitting(false);
     setIsSuccess(true);
     setTimeout(() => {
@@ -154,12 +209,24 @@ export const TestDriveBookingModal: React.FC<TestDriveBookingModalProps> = ({
 
               {/* SECTION 2: VEHICLE DEMO SELECTION CARD */}
               <VehicleDemoCard
-                modelName={carModelName}
-                variantName={variantName}
-                year="MY 2025"
-                power="680"
-                acceleration="3.2"
-                range="680"
+                modelName={selectedCar?.name || carModelName}
+                variantName={selectedCar?.subtitle || selectedCar?.name || variantName}
+                year="MY 2026"
+                power={selectedCar?.power ? selectedCar.power.replace(/[^0-9]/g, '') : '680'}
+                acceleration={selectedCar?.acceleration ? selectedCar.acceleration.replace(/[^0-9.]/g, '') : '3.2'}
+                range={selectedCar?.range ? selectedCar.range.replace(/[^0-9]/g, '') : '680'}
+                imageUrl={selectedCar?.images?.[0]}
+                availableCars={cars.map((c) => ({
+                  id: c.id,
+                  name: c.name,
+                  subtitle: c.subtitle,
+                  power: c.power,
+                  acceleration: c.acceleration,
+                  range: c.range,
+                  image: c.images?.[0],
+                }))}
+                selectedCarId={selectedCarId}
+                onSelectCar={setSelectedCarId}
               />
 
               {/* SECTION 3: TEST DRIVE LOCATION SELECTION */}
@@ -174,6 +241,7 @@ export const TestDriveBookingModal: React.FC<TestDriveBookingModalProps> = ({
                 onSelectDate={setSelectedDate}
                 selectedSlot={selectedSlot}
                 onSelectSlot={setSelectedSlot}
+                bookedSlots={bookedSlots}
               />
 
               {/* SECTION 5: CUSTOMER INFORMATION FORM & SECTION 6: COMPLIANCE CHECKBOX */}
