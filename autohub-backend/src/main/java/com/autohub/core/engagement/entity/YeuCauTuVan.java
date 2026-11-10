@@ -19,8 +19,16 @@ import java.time.LocalDateTime;
 public class YeuCauTuVan extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_nguoi_dung")
+    @JoinColumn(name = "nguoi_dung_id")
     private NguoiDung nguoiDung; // Khách hàng (có thể rỗng)
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "phien_ban_id")
+    private PhienBanXe phienBanXe; // Mẫu xe quan tâm (có thể rỗng theo DR24)
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "nhan_vien_id")
+    private NguoiDung nhanVien; // Staff nhận xử lý
 
     @Column(name = "ho_ten", nullable = false, length = 100)
     private String hoTen;
@@ -28,12 +36,8 @@ public class YeuCauTuVan extends BaseEntity {
     @Column(name = "so_dien_thoai", nullable = false, length = 15)
     private String soDienThoai;
 
-    @Column(length = 100)
+    @Column(name = "email", length = 100)
     private String email;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_phien_ban")
-    private PhienBanXe phienBanXe; // Mẫu xe quan tâm (có thể rỗng theo DR24)
 
     @Column(name = "noi_dung_can_tu_van", length = 500)
     private String noiDungCanTuVan;
@@ -53,7 +57,11 @@ public class YeuCauTuVan extends BaseEntity {
     @Column(name = "ghi_chu_cskh", columnDefinition = "NVARCHAR(MAX)")
     private String ghiChuCSKH; // Lịch sử chăm sóc của Staff
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_nhan_vien_phu_trach")
-    private NguoiDung nhanVienPhuTrach; // Staff nhận xử lý
+    public NguoiDung getNhanVienPhuTrach() {
+        return this.nhanVien;
+    }
+
+    public void setNhanVienPhuTrach(NguoiDung nhanVien) {
+        this.nhanVien = nhanVien;
+    }
 }

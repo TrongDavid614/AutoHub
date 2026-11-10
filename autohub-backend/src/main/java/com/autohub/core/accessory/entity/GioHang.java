@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 public class GioHang extends BaseEntity {
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_nguoi_dung", nullable = false, unique = true)
+    @JoinColumn(name = "nguoi_dung_id", nullable = false, unique = true)
     private NguoiDung nguoiDung;
 
     @Column(name = "ngay_cap_nhat")

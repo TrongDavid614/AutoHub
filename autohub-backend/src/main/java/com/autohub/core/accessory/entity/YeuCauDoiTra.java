@@ -17,8 +17,16 @@ import java.time.LocalDateTime;
 public class YeuCauDoiTra extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_don_hang", nullable = false)
+    @JoinColumn(name = "don_hang_id", nullable = false)
     private DonHangPhuKien donHang;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "chi_tiet_don_hang_id")
+    private ChiTietDonHang chiTietDonHang;
+
+    @Column(name = "so_luong_doi_tra")
+    @Builder.Default
+    private Integer soLuongDoiTra = 1;
 
     @Column(name = "ly_do", length = 500)
     private String lyDo;
@@ -31,6 +39,9 @@ public class YeuCauDoiTra extends BaseEntity {
 
     @Column(name = "phuong_an_giai_quyet", length = 50)
     private String phuongAnGiaiQuyet;
+
+    @Column(name = "ma_van_don_moi", length = 50)
+    private String maVanDonMoi;
 
     @Column(name = "ngay_gui")
     @Builder.Default

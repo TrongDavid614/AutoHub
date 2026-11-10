@@ -3,6 +3,7 @@ package com.autohub.core.engagement.entity;
 import com.autohub.common.entity.BaseEntity;
 import com.autohub.core.car.entity.PhienBanXe;
 import com.autohub.core.enums.TrangThaiLichHen;
+import com.autohub.core.showroom.entity.Showroom;
 import com.autohub.core.showroom.entity.XeDemo;
 import com.autohub.core.user.entity.NguoiDung;
 import jakarta.persistence.*;
@@ -20,19 +21,27 @@ import java.time.LocalDateTime;
 public class LichHenLaiThu extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_nguoi_dung", nullable = false)
+    @JoinColumn(name = "nguoi_dung_id", nullable = false)
     private NguoiDung nguoiDung;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_phien_ban", nullable = false)
+    @JoinColumn(name = "phien_ban_id", nullable = false)
     private PhienBanXe phienBanXe;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_xe_demo")
+    @JoinColumn(name = "xe_demo_id")
     private XeDemo xeDemo; // Staff gán khi duyệt lịch
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "showroom_id")
+    private Showroom showroom;
 
     @Column(name = "thoi_gian_hen", nullable = false)
     private LocalDateTime thoiGianHen;
+
+    @Column(name = "thoi_luong_phut")
+    @Builder.Default
+    private Integer thoiLuongPhut = 45;
 
     @Column(name = "dia_diem_lai_thu", length = 255)
     private String diaDiemLaiThu; // Showroom hoặc Lái thử tại nhà
@@ -47,6 +56,24 @@ public class LichHenLaiThu extends BaseEntity {
     @Builder.Default
     private boolean camKetGPLX = true; // Bắt buộc true (DR21)
 
+    @Column(name = "so_gplx_kiem_tra", length = 20)
+    private String soGplxKiemTra;
+
+    @Column(name = "odo_bat_dau")
+    private Integer odoBatDau;
+
+    @Column(name = "odo_ket_thuc")
+    private Integer odoKetThuc;
+
+    @Column(name = "thoi_gian_checkin")
+    private LocalDateTime thoiGianCheckin;
+
+    @Column(name = "thoi_gian_checkout")
+    private LocalDateTime thoiGianCheckout;
+
+    @Column(name = "chu_ky_khach_hang", length = 500)
+    private String chuKyKhachHang;
+
     @Column(name = "ngay_tao")
     @Builder.Default
     private LocalDateTime ngayTao = LocalDateTime.now();
@@ -56,7 +83,7 @@ public class LichHenLaiThu extends BaseEntity {
     @Builder.Default
     private TrangThaiLichHen trangThai = TrangThaiLichHen.PENDING;
 
-    @Column(length = 255)
+    @Column(name = "ghi_chu", length = 255)
     private String ghiChu;
 
     @Column(name = "da_gui_nhac_lich")

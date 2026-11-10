@@ -20,11 +20,26 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class GiaoDichThanhToan extends BaseEntity {
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "phieu_dat_coc_id")
+    private PhieuDatCoc phieuDatCoc; // Hoặc phiếu cọc
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "don_hang_id")
+    private DonHangPhuKien donHangPhuKien; // Hoặc đơn hàng (DR35)
+
     @Column(name = "ma_tham_chieu", nullable = false, unique = true, length = 100)
     private String maThamChieu; // Mã gửi SePay (sepay_reference_code)
 
+    @Column(name = "ma_giao_dich_vnpay", length = 100)
+    private String maGiaoDichVnpay;
+
     @Column(name = "ma_giao_dich_sepay", unique = true, length = 100)
     private String maGiaoDichSePay; // Mã SePay trả về (sepay_transaction_id)
+
+    @Column(name = "loai_giao_dich", nullable = false, length = 30)
+    @Builder.Default
+    private String loaiGiaoDich = "DAT_COC_XE"; // DAT_COC_XE hoặc DON_HANG_PHU_KIEN
 
     @Enumerated(EnumType.STRING)
     @Column(name = "phuong_thuc", nullable = false, length = 20)
@@ -43,16 +58,11 @@ public class GiaoDichThanhToan extends BaseEntity {
     @Column(name = "ma_ket_qua", length = 50)
     private String maKetQua; // sepay_status
 
+    @Column(name = "du_lieu_webhook", columnDefinition = "NVARCHAR(MAX)")
+    private String duLieuWebhook;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "trang_thai", nullable = false, length = 20)
     @Builder.Default
     private TrangThaiThanhToan trangThai = TrangThaiThanhToan.PENDING;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_phieu_coc")
-    private PhieuDatCoc phieuDatCoc; // Hoặc phiếu cọc
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_don_hang")
-    private DonHangPhuKien donHangPhuKien; // Hoặc đơn hàng (DR35)
 }

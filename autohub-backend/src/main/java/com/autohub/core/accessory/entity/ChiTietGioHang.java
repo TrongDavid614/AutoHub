@@ -1,9 +1,9 @@
 package com.autohub.core.accessory.entity;
 
-import com.autohub.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Entity
@@ -13,18 +13,24 @@ import java.math.BigDecimal;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChiTietGioHang extends BaseEntity {
+public class ChiTietGioHang implements Serializable {
+
+    @EmbeddedId
+    private ChiTietGioHangId id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_gio_hang", nullable = false)
+    @MapsId("gioHangId")
+    @JoinColumn(name = "gio_hang_id", nullable = false)
     private GioHang gioHang;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_phu_kien", nullable = false)
+    @MapsId("phuKienId")
+    @JoinColumn(name = "phu_kien_id", nullable = false)
     private PhuKien phuKien;
 
     @Column(name = "so_luong", nullable = false)
-    private Integer soLuong;
+    @Builder.Default
+    private Integer soLuong = 1;
 
     @Column(name = "don_gia_tam_tinh", precision = 18, scale = 2)
     private BigDecimal donGiaTamTinh;

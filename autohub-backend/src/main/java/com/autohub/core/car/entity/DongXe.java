@@ -14,7 +14,7 @@ import lombok.*;
 public class DongXe extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_hang_xe", nullable = false)
+    @JoinColumn(name = "hang_xe_id", nullable = false)
     private HangXe hangXe;
 
     @Column(name = "ten_dong_xe", nullable = false, length = 100)

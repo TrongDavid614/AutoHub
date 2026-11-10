@@ -16,11 +16,11 @@ import java.math.BigDecimal;
 public class ChiTietDonHang extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_don_hang", nullable = false)
+    @JoinColumn(name = "don_hang_id", nullable = false)
     private DonHangPhuKien donHang;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_phu_kien", nullable = false)
+    @JoinColumn(name = "phu_kien_id", nullable = false)
     private PhuKien phuKien;
 
     @Column(name = "so_luong", nullable = false)
@@ -28,4 +28,7 @@ public class ChiTietDonHang extends BaseEntity {
 
     @Column(name = "don_gia", nullable = false, precision = 18, scale = 2)
     private BigDecimal donGia; // Chốt tại thời điểm đặt (BR07)
+
+    @Column(name = "thanh_tien", nullable = false, precision = 18, scale = 2)
+    private BigDecimal thanhTien;
 }

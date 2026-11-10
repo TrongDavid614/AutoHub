@@ -14,7 +14,7 @@ import lombok.*;
 public class SoDiaChi extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_nguoi_dung", nullable = false)
+    @JoinColumn(name = "nguoi_dung_id", nullable = false)
     private NguoiDung nguoiDung;
 
     @Column(name = "ho_ten_nguoi_nhan", nullable = false, length = 100)

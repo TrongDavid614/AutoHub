@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 public class YeuCauHoanCoc extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_phieu_coc", nullable = false)
+    @JoinColumn(name = "phieu_dat_coc_id", nullable = false)
     private PhieuDatCoc phieuDatCoc;
 
     @Column(name = "loai_ly_do", length = 50)
@@ -46,10 +46,18 @@ public class YeuCauHoanCoc extends BaseEntity {
     private LocalDateTime ngayXuLy;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_nhan_vien_doi_soat")
+    @JoinColumn(name = "nhan_vien_doi_soat_id")
     private NguoiDung nhanVienDoiSoat;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_admin_phe_duyet")
-    private NguoiDung adminPheDuyet;
+    @JoinColumn(name = "quan_tri_phe_duyet_id")
+    private NguoiDung quanTriPheDuyet;
+
+    public NguoiDung getAdminPheDuyet() {
+        return this.quanTriPheDuyet;
+    }
+
+    public void setAdminPheDuyet(NguoiDung adminPheDuyet) {
+        this.quanTriPheDuyet = adminPheDuyet;
+    }
 }

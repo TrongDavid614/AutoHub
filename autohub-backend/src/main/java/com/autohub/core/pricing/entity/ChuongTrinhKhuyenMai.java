@@ -40,9 +40,9 @@ public class ChuongTrinhKhuyenMai extends BaseEntity {
 
     @ManyToMany
     @JoinTable(
-        name = "khuyen_mai_phien_ban_xe",
-        joinColumns = @JoinColumn(name = "ma_chuong_trinh"),
-        inverseJoinColumns = @JoinColumn(name = "ma_phien_ban")
+        name = "khuyen_mai_phien_ban",
+        joinColumns = @JoinColumn(name = "chuong_trinh_id"),
+        inverseJoinColumns = @JoinColumn(name = "phien_ban_id")
     )
     private List<PhienBanXe> phienBanXes;
 }

@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 public class NhatKyHanhVi extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ma_nguoi_dung")
+    @JoinColumn(name = "nguoi_dung_id")
     private NguoiDung nguoiDung; // Có thể null với khách vãng lai
 
     @Column(name = "ma_phien", length = 100)
