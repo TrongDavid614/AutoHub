@@ -116,7 +116,7 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
 
             <button
               type="button"
-              onClick={() => navigate('/car-estimator')}
+              onClick={() => navigate(car?.id ? `/car-estimator?carId=${car.id}` : '/car-estimator')}
               className="inline-flex items-center gap-1 text-xs text-accent-primary hover:underline font-semibold cursor-pointer"
             >
               <Calculator className="w-3.5 h-3.5" />

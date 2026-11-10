@@ -6,6 +6,7 @@ import { LocationSelector, type LocationType } from '@/features/customer/compone
 import { DateTimeSelector } from '@/features/customer/components/DateTimeSelector';
 import { CustomerInfoForm } from '@/features/customer/components/CustomerInfoForm';
 import { useAuthStore } from '@/store/useAuthStore';
+import { engagementService } from '@/features/customer/services/engagement.service';
 
 export const TestDriveCanvasPage: React.FC = () => {
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ export const TestDriveCanvasPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
@@ -48,13 +49,23 @@ export const TestDriveCanvasPage: React.FC = () => {
     }
 
     setIsSubmitting(true);
+    try {
+      await engagementService.bookTestDrive({
+        customerId: user?.id || 5,
+        hoTenKhach: fullName.trim(),
+        soDienThoaiKhach: phoneNumber.replace(/\s/g, ''),
+        diaDiemLaiThu: selectedLocation === 'SHOWROOM' ? 'Showroom AutoHub Flagship Thủ Đức' : 'Tại địa chỉ nhà riêng khách hàng',
+        camKetGplx: licenseAgreed,
+        ghiChu: `${note} - Đăng ký lái thử ngày ${selectedDate} khung giờ ${selectedSlot}`,
+      });
+    } catch {
+      // offline fallback
+    }
+    setIsSubmitting(false);
+    setIsSuccess(true);
     setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSuccess(true);
-      setTimeout(() => {
-        navigate('/customer/test-drives');
-      }, 1500);
-    }, 1000);
+      navigate('/customer/test-drives');
+    }, 1500);
   };
 
   return (

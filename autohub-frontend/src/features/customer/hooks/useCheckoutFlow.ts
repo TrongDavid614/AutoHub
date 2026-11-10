@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useCartStore } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
+import { addressService } from '../services/address.service';
 import {
   MOCK_CHECKOUT_ADDRESSES,
   MOCK_SHIPPING_METHODS,
@@ -17,6 +18,30 @@ export function useCheckoutFlow() {
   // Address selection
   const [addresses, setAddresses] = useState<CheckoutAddress[]>(MOCK_CHECKOUT_ADDRESSES);
   const [selectedAddressId, setSelectedAddressId] = useState<string>(MOCK_CHECKOUT_ADDRESSES[0].id);
+
+  useEffect(() => {
+    let isMounted = true;
+    addressService.getMyAddresses(user?.id).then((list) => {
+      if (isMounted && list && list.length > 0) {
+        const mapped: CheckoutAddress[] = list.map((a: any) => ({
+          id: String(a.id),
+          recipientName: a.recipientName || user?.fullName || 'Khách hàng',
+          phone: a.phoneNumber || user?.phoneNumber || '0912345678',
+          fullAddress: `${a.detailedAddress || a.addressLine || ''}, ${a.ward || ''}, ${a.district || ''}, ${a.provinceCity || a.province || ''}`.replace(/^,\s*|,\s*$/g, ''),
+          tag: a.tag || (a.isDefault ? 'MẶC ĐỊNH' : 'ĐỊA CHỈ'),
+          isDefault: !!a.isDefault,
+        }));
+        setAddresses(mapped);
+        const defaultAddr = mapped.find((m) => m.isDefault) || mapped[0];
+        if (defaultAddr) {
+          setSelectedAddressId(defaultAddr.id);
+        }
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id, user?.fullName, user?.phoneNumber]);
 
   // Shipping method selection
   const [shippingMethods] = useState<ShippingMethod[]>(MOCK_SHIPPING_METHODS);
@@ -91,6 +116,8 @@ export function useCheckoutFlow() {
     setVoucherCode('');
   };
 
+  const selectedAddress = addresses.find((a) => a.id === selectedAddressId) || addresses[0];
+
   const handleProcessCheckout = async () => {
     setIsSubmitting(true);
     let newCode = `AH-ACC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -131,8 +158,6 @@ export function useCheckoutFlow() {
     setIsSuccessModalOpen(false);
     clearCart();
   };
-
-  const selectedAddress = addresses.find((a) => a.id === selectedAddressId) || addresses[0];
 
   return {
     addresses,

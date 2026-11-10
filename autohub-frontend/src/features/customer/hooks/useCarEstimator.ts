@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { TrimId, TrimOption, CityOption, CostBreakdown } from '../types/estimator.types';
 import { carService, type EstimatorCalculationDto } from '../services/car.service';
 
@@ -68,10 +69,13 @@ export const FIXED_FEES = {
 };
 
 export const useCarEstimator = () => {
+  const [searchParams] = useSearchParams();
+  const initialCarId = searchParams.get('carId') || searchParams.get('trimId') || '1';
+
   const [trims, setTrims] = useState<TrimOption[]>(DEFAULT_TRIM_OPTIONS);
   const [cities, setCities] = useState<CityOption[]>(DEFAULT_CITY_OPTIONS);
 
-  const [selectedTrimId, setSelectedTrimId] = useState<TrimId>('1');
+  const [selectedTrimId, setSelectedTrimId] = useState<TrimId>(initialCarId);
   const [selectedCityId, setSelectedCityId] = useState<string>('1');
 
   const [apiCalculation, setApiCalculation] = useState<EstimatorCalculationDto | null>(null);
@@ -101,7 +105,9 @@ export const useCarEstimator = () => {
           isRecommended: index === 0 || c.badge.includes('KHUYÊN DÙNG'),
         }));
         setTrims(mappedTrims);
-        if (!mappedTrims.some((t) => t.id === selectedTrimId)) {
+        if (mappedTrims.some((t) => t.id === initialCarId)) {
+          setSelectedTrimId(initialCarId);
+        } else if (!mappedTrims.some((t) => t.id === selectedTrimId)) {
           setSelectedTrimId(mappedTrims[0].id);
         }
       }
