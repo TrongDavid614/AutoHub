@@ -70,14 +70,25 @@ export const engagementService = {
     }
   },
 
-  async cancelTestDrive(id: number): Promise<boolean> {
+  async cancelTestDrive(id: number, reason?: string): Promise<{ success: boolean; message?: string }> {
     try {
       const res = await fetch(`${API_BASE}/customer/engagement/test-drives/${id}/cancel`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: reason || 'Khách hàng yêu cầu hủy lịch' }),
       });
-      return res.ok;
+      let json: any = null;
+      try {
+        json = await res.json();
+      } catch {
+        json = null;
+      }
+      if (res.ok) {
+        return { success: true, message: json?.message || 'Đã hủy lịch hẹn lái thử thành công.' };
+      }
+      return { success: false, message: json?.message || 'Không thể hủy lịch hẹn lái thử.' };
     } catch {
-      return false;
+      return { success: false, message: 'Lỗi kết nối máy chủ khi hủy lịch hẹn.' };
     }
   },
 };

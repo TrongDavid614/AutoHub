@@ -10,6 +10,7 @@ import com.autohub.core.engagement.entity.YeuCauTuVan;
 import com.autohub.core.engagement.repository.LichHenLaiThuRepository;
 import com.autohub.core.engagement.repository.YeuCauTuVanRepository;
 import com.autohub.core.enums.TrangThaiLichHen;
+import com.autohub.core.enums.TrangThaiXeDemo;
 import com.autohub.core.enums.TrangThaiYeuCauTuVan;
 import com.autohub.core.showroom.entity.Showroom;
 import com.autohub.core.showroom.repository.ShowroomRepository;
@@ -212,12 +213,43 @@ public class CustomerEngagementController {
     }
 
     @PostMapping("/test-drives/{id}/cancel")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> cancelTestDrive(@PathVariable Long id) {
+    @Transactional
+    public ResponseEntity<ApiResponse<Map<String, Object>>> cancelTestDrive(
+            @PathVariable Long id,
+            @RequestBody(required = false) Map<String, Object> body
+    ) {
         LichHenLaiThu item = lichHenLaiThuRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy lịch hẹn ID: " + id));
+
+        if (item.getTrangThai() == TrangThaiLichHen.COMPLETED) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(
+                    "Lịch hẹn này đã hoàn thành trải nghiệm thực tế tại Showroom, không thể hủy."
+            ));
+        }
+
+        if (item.getTrangThai() == TrangThaiLichHen.CANCELLED) {
+            return ResponseEntity.ok(ApiResponse.ok(mapTestDriveToDto(item), "Lịch hẹn này đã được hủy trước đó."));
+        }
+
+        String reason = "Khách hàng yêu cầu hủy lịch";
+        if (body != null && body.get("reason") != null && !body.get("reason").toString().isBlank()) {
+            reason = body.get("reason").toString();
+        }
+
         item.setTrangThai(TrangThaiLichHen.CANCELLED);
-        LichHenLaiThu saved = lichHenLaiThuRepository.save(item);
-        return ResponseEntity.ok(ApiResponse.ok(mapTestDriveToDto(saved), "Đã hủy lịch hẹn lái thử"));
+        if (item.getGhiChu() != null) {
+            item.setGhiChu(item.getGhiChu() + " | [Lý do hủy: " + reason + "]");
+        } else {
+            item.setGhiChu("[Lý do hủy: " + reason + "]");
+        }
+
+        // Giải phóng xe Demo nếu đã được gán trước đó
+        if (item.getXeDemo() != null) {
+            item.getXeDemo().setTrangThai(TrangThaiXeDemo.SAN_SANG);
+        }
+
+        LichHenLaiThu saved = lichHenLaiThuRepository.saveAndFlush(item);
+        return ResponseEntity.ok(ApiResponse.ok(mapTestDriveToDto(saved), "Đã hủy lịch hẹn lái thử thành công. Xe Demo đã được giải phóng khung giờ."));
     }
 
     @GetMapping("/consultations")
@@ -226,6 +258,7 @@ public class CustomerEngagementController {
     }
 
     @PostMapping("/consultations")
+    @Transactional
     public ResponseEntity<ApiResponse<YeuCauTuVan>> submitConsultation(@RequestBody YeuCauTuVan request) {
         if (request.getNgayGui() == null) {
             request.setNgayGui(LocalDateTime.now());

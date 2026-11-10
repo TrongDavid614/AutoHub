@@ -43,11 +43,16 @@ export const TestDriveBookingPage: React.FC = () => {
 
   // 1. Hủy lịch hẹn lái thử (UC21)
   const handleCancelBooking = async (id: number) => {
-    await engagementService.cancelTestDrive(id);
-    setTestDrives((prev) =>
-      prev.map((td) => (td.id === id ? { ...td, status: 'CANCELLED' as TestDriveStatus } : td))
-    );
-    showToast('Đã hủy lịch hẹn lái thử thành công. Xe Demo đã được giải phóng khung giờ.');
+    if (!window.confirm('Quý khách có chắc chắn muốn hủy lịch hẹn lái thử này không? Khung giờ xe Demo sẽ được giải phóng để phục vụ khách hàng khác.')) {
+      return;
+    }
+    const res = await engagementService.cancelTestDrive(id, 'Khách hàng tự hủy trên cổng Portal');
+    if (res.success) {
+      await loadTestDrives();
+      showToast('Đã hủy lịch hẹn lái thử thành công. Xe Demo đã được giải phóng khung giờ.');
+    } else {
+      showToast(res.message || 'Không thể hủy lịch hẹn lái thử. Vui lòng kiểm tra lại.');
+    }
   };
 
   const filteredItems =
