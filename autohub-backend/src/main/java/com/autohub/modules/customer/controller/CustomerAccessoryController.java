@@ -8,6 +8,7 @@ import com.autohub.core.accessory.repository.PhuKienRepository;
 import com.autohub.core.car.entity.DongXe;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -17,14 +18,26 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/customer/accessories")
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CustomerAccessoryController {
 
     private final PhuKienRepository phuKienRepository;
     private final DanhMucPhuKienRepository danhMucPhuKienRepository;
 
     @GetMapping("/categories")
-    public ResponseEntity<ApiResponse<List<DanhMucPhuKien>>> getCategories() {
-        return ResponseEntity.ok(ApiResponse.ok(danhMucPhuKienRepository.findAll(), "Lấy danh mục phụ kiện thành công"));
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getCategories() {
+        List<DanhMucPhuKien> list = danhMucPhuKienRepository.findAll();
+        List<Map<String, Object>> result = list.stream().map(c -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", c.getId());
+            map.put("categoryName", c.getTenDanhMuc());
+            map.put("tenDanhMuc", c.getTenDanhMuc());
+            map.put("name", c.getTenDanhMuc());
+            map.put("slug", c.getId() == 1L ? "charging-energy" : c.getId() == 2L ? "camera-sensors" : c.getId() == 3L ? "window-films" : "floor-mats");
+            map.put("count", 3);
+            return map;
+        }).collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponse.ok(result, "Lấy danh mục phụ kiện thành công"));
     }
 
     @GetMapping
@@ -110,13 +123,22 @@ public class CustomerAccessoryController {
                 c.put("note", "Chuẩn 100%");
                 compatibilities.add(c);
             }
-        } else {
-            Map<String, Object> c = new HashMap<>();
-            c.put("carModelId", 1L);
-            c.put("carModelName", "AutoHub GT-e");
-            c.put("note", "Chuẩn 100%");
-            compatibilities.add(c);
         }
+        if (p.isDungChung() || compatibilities.isEmpty()) {
+            long[] modelIds = {1L, 2L, 3L, 4L};
+            String[] modelNames = {"AutoHub GT-e", "AutoHub SUV-e Flagship", "AutoHub Aero Sedan", "AutoHub City-E Compact"};
+            for (int i = 0; i < modelIds.length; i++) {
+                final long mId = modelIds[i];
+                if (compatibilities.stream().noneMatch(c -> Objects.equals(c.get("carModelId"), mId))) {
+                    Map<String, Object> c = new HashMap<>();
+                    c.put("carModelId", mId);
+                    c.put("carModelName", modelNames[i]);
+                    c.put("note", "Chuẩn 100%");
+                    compatibilities.add(c);
+                }
+            }
+        }
+        map.put("dungChung", p.isDungChung());
         map.put("compatibilities", compatibilities);
         return map;
     }

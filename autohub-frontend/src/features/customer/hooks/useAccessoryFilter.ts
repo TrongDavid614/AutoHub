@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { Accessory, AccessoryCategory, AccessoryFilterParams } from '@/types/accessory.types';
 import { accessoryService } from '../services/accessory.service';
 import { MOCK_CAR_MODELS, type CarModelInfo } from '../mocks/accessory.mock';
 
 export function useAccessoryFilter() {
-  const [selectedCarModel, setSelectedCarModel] = useState<CarModelInfo>(MOCK_CAR_MODELS[0]);
+  const [searchParams] = useSearchParams();
+  const queryCarId = searchParams.get('carModelId') || searchParams.get('carId');
+  const initialCar = queryCarId ? MOCK_CAR_MODELS.find((m) => String(m.id) === queryCarId) || null : null;
+
+  const [selectedCarModel, setSelectedCarModel] = useState<CarModelInfo | null>(initialCar);
   const [isCarModalOpen, setIsCarModalOpen] = useState<boolean>(false);
 
   const [categories, setCategories] = useState<AccessoryCategory[]>([]);
@@ -54,7 +59,7 @@ export function useAccessoryFilter() {
     }
 
     const params: AccessoryFilterParams = {
-      carModelId: selectedCarModel.id,
+      carModelId: selectedCarModel ? selectedCarModel.id : undefined,
       categoryId: selectedCategoryId,
       search: searchQuery,
       minPrice,
@@ -77,7 +82,7 @@ export function useAccessoryFilter() {
       isMounted = false;
     };
   }, [
-    selectedCarModel.id,
+    selectedCarModel?.id,
     selectedCategoryId,
     searchQuery,
     selectedPriceRange,
@@ -89,6 +94,7 @@ export function useAccessoryFilter() {
   ]);
 
   const clearAllFilters = () => {
+    setSelectedCarModel(null);
     setSelectedCategoryId(undefined);
     setSearchQuery('');
     setSelectedPriceRange(null);

@@ -27,8 +27,10 @@ export const accessoryService = {
         if (json?.data && Array.isArray(json.data) && json.data.length > 0) {
           let items: Accessory[] = json.data;
           if (params?.carModelId) {
-            items = items.filter((item) =>
-              item.compatibilities?.some((c) => c.carModelId === params.carModelId)
+            items = items.filter((item: any) =>
+              Boolean(item.dungChung) ||
+              Boolean(item.isUniversal) ||
+              item.compatibilities?.some((c: any) => String(c.carModelId) === String(params.carModelId))
             );
           }
           if (params?.sortBy) {
@@ -61,8 +63,10 @@ export const accessoryService = {
 
     // Filter by car model
     if (params.carModelId) {
-      items = items.filter((item) =>
-        item.compatibilities.some((c) => c.carModelId === params.carModelId)
+      items = items.filter((item: any) =>
+        Boolean(item.dungChung) ||
+        Boolean(item.isUniversal) ||
+        item.compatibilities?.some((c: any) => String(c.carModelId) === String(params.carModelId))
       );
     }
 
@@ -158,9 +162,9 @@ export const accessoryService = {
         if (json?.data && Array.isArray(json.data) && json.data.length > 0) {
           return json.data.map((c: any) => ({
             id: c.id,
-            name: c.tenDanhMuc || c.name,
-            itemCount: 4,
-            iconName: 'Zap',
+            categoryName: c.categoryName || c.tenDanhMuc || c.name || 'Phụ kiện',
+            slug: c.slug || (c.id === 1 ? 'charging-energy' : c.id === 2 ? 'camera-sensors' : c.id === 3 ? 'window-films' : 'floor-mats'),
+            count: c.count || 3,
           }));
         }
       }

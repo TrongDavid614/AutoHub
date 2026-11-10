@@ -1,12 +1,12 @@
 import React from 'react';
-import { X, Check } from 'lucide-react';
+import { X, Check, Layers } from 'lucide-react';
 import { MOCK_CAR_MODELS, type CarModelInfo } from '@/features/customer/mocks/accessory.mock';
 
 export interface ChangeCarModelModalProps {
   isOpen: boolean;
   onClose: () => void;
-  selectedModel: CarModelInfo;
-  onSelectModel: (model: CarModelInfo) => void;
+  selectedModel: CarModelInfo | null;
+  onSelectModel: (model: CarModelInfo | null) => void;
 }
 
 export const ChangeCarModelModal: React.FC<ChangeCarModelModalProps> = ({
@@ -38,8 +38,48 @@ export const ChangeCarModelModal: React.FC<ChangeCarModelModalProps> = ({
 
         {/* List of Models */}
         <div className="space-y-3">
+          {/* Option 0: All Car Models */}
+          <div
+            onClick={() => {
+              onSelectModel(null);
+              onClose();
+            }}
+            className={`flex items-center justify-between p-4 rounded-[2px] border cursor-pointer transition-all ${
+              selectedModel === null
+                ? 'bg-[#171F33] border-[#89CEFF] shadow-lg'
+                : 'bg-[#171F33]/50 border-[#2D3449] hover:bg-[#171F33] hover:border-[#3E4850]'
+            }`}
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-[2px] overflow-hidden bg-[#0EA5E9]/15 border border-[#0EA5E9]/40 flex items-center justify-center flex-shrink-0 text-[#89CEFF]">
+                <Layers className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-sm text-[#DAE2FD]">Tất Cả Dòng Xe</span>
+                  <span className="px-1.5 py-0.5 rounded-[2px] bg-[#222A3D] text-[9px] font-mono text-[#89CEFF]">
+                    TOÀN BỘ DANH MỤC
+                  </span>
+                </div>
+                <div className="text-xs text-[#88929B] mt-1">
+                  Xem tất cả phụ kiện và trạm sạc không phân biệt đời xe
+                </div>
+              </div>
+            </div>
+
+            <div
+              className={`w-5 h-5 rounded-[2px] border flex items-center justify-center ${
+                selectedModel === null
+                  ? 'bg-[#89CEFF] border-[#89CEFF] text-[#060E20]'
+                  : 'border-[#3E4850] bg-[#060E20]'
+              }`}
+            >
+              {selectedModel === null && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+            </div>
+          </div>
+
           {MOCK_CAR_MODELS.map((model) => {
-            const isSelected = selectedModel.id === model.id;
+            const isSelected = selectedModel?.id === model.id;
             return (
               <div
                 key={model.id}
