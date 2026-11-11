@@ -41,7 +41,7 @@ public class AuthController {
         // Hỗ trợ alias email tiện lợi khi test demo
         if ("staff@autohub.vn".equals(inputEmail) || "staff".equals(inputEmail)) {
             inputEmail = "tuan.nguyen@autohub.vn";
-        } else if ("admin".equals(inputEmail)) {
+        } else if ("admin".equals(inputEmail) || "manager".equals(inputEmail) || "manager@autohub.vn".equals(inputEmail)) {
             inputEmail = "admin@autohub.vn";
         }
 

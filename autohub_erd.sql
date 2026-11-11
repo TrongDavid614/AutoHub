@@ -599,6 +599,54 @@ CREATE TABLE dbo.giao_dich_thanh_toan (
 CREATE UNIQUE INDEX UX_gd_vnpay ON dbo.giao_dich_thanh_toan(ma_giao_dich_vnpay) WHERE ma_giao_dich_vnpay IS NOT NULL;
 GO
 
+-- 33. nhat_ky_hanh_vi (Theo dõi hành vi người dùng, phục vụ Analytics & AI Recommendation)
+CREATE TABLE dbo.nhat_ky_hanh_vi (
+    id                   BIGINT IDENTITY(1,1) NOT NULL,
+    nguoi_dung_id        BIGINT        NULL,
+    ma_phien             VARCHAR(100)  NOT NULL,
+    loai_hanh_vi         VARCHAR(50)   NOT NULL,
+    loai_thuc_the        VARCHAR(50)   NULL,
+    ma_thuc_the          BIGINT        NULL,
+    thoi_gian_dung_xem   INT           NOT NULL CONSTRAINT DF_nkhv_time DEFAULT 0,
+    thoi_gian_tao        DATETIME2(0)  NOT NULL CONSTRAINT DF_nkhv_tg DEFAULT SYSDATETIME(),
+    du_lieu_bo_sung      NVARCHAR(MAX) NULL,
+    CONSTRAINT PK_nhat_ky_hanh_vi PRIMARY KEY (id),
+    CONSTRAINT FK_nkhv_nguoi_dung FOREIGN KEY (nguoi_dung_id) REFERENCES dbo.nguoi_dung(id) ON DELETE SET NULL,
+    CONSTRAINT CK_nkhv_time CHECK (thoi_gian_dung_xem >= 0),
+    CONSTRAINT CK_nkhv_json CHECK (du_lieu_bo_sung IS NULL OR ISJSON(du_lieu_bo_sung) = 1)
+);
+CREATE INDEX IX_nkhv_nguoi_dung ON dbo.nhat_ky_hanh_vi(nguoi_dung_id);
+CREATE INDEX IX_nkhv_loai_hanh_vi ON dbo.nhat_ky_hanh_vi(loai_hanh_vi);
+CREATE INDEX IX_nkhv_thoi_gian_tao ON dbo.nhat_ky_hanh_vi(thoi_gian_tao DESC);
+GO
+
+-- 34. phan_ca_nhan_vien (Lịch phân ca làm việc của Admin/Manager cho nhân viên Showroom)
+CREATE TABLE dbo.phan_ca_nhan_vien (
+    id                   BIGINT IDENTITY(1,1) NOT NULL,
+    nhan_vien_id         BIGINT        NOT NULL,
+    showroom_id          BIGINT        NOT NULL,
+    ngay_truc            DATE          NOT NULL,
+    ca_truc              VARCHAR(20)   NOT NULL,
+    gio_bat_dau          TIME(0)       NOT NULL,
+    gio_ket_thuc         TIME(0)       NOT NULL,
+    vai_tro_ca           VARCHAR(30)   NOT NULL CONSTRAINT DF_pcnv_vtr DEFAULT 'SALES',
+    nhiem_vu_cu_the      NVARCHAR(255) NULL,
+    trang_thai           VARCHAR(30)   NOT NULL CONSTRAINT DF_pcnv_tt DEFAULT 'CONFIRMED',
+    ghi_chu              NVARCHAR(500) NULL,
+    nguoi_phan_ca_id     BIGINT        NULL,
+    ngay_tao             DATETIME2(0)  NOT NULL CONSTRAINT DF_pcnv_tg DEFAULT SYSDATETIME(),
+    CONSTRAINT PK_phan_ca_nhan_vien PRIMARY KEY (id),
+    CONSTRAINT FK_pcnv_nhan_vien FOREIGN KEY (nhan_vien_id) REFERENCES dbo.nguoi_dung(id),
+    CONSTRAINT FK_pcnv_showroom FOREIGN KEY (showroom_id) REFERENCES dbo.showroom(id),
+    CONSTRAINT FK_pcnv_nguoi_phan_ca FOREIGN KEY (nguoi_phan_ca_id) REFERENCES dbo.nguoi_dung(id),
+    CONSTRAINT CK_pcnv_ca_truc CHECK (ca_truc IN ('MORNING', 'AFTERNOON', 'FULL_DAY', 'EVENING')),
+    CONSTRAINT CK_pcnv_vai_tro CHECK (vai_tro_ca IN ('SALES', 'TEST_DRIVE', 'WAREHOUSE', 'SUPERVISOR')),
+    CONSTRAINT CK_pcnv_trang_thai CHECK (trang_thai IN ('CONFIRMED', 'IN_PROGRESS', 'COMPLETED', 'LEAVE_REQUESTED'))
+);
+CREATE INDEX IX_pcnv_nhan_vien ON dbo.phan_ca_nhan_vien(nhan_vien_id);
+CREATE INDEX IX_pcnv_showroom_ngay ON dbo.phan_ca_nhan_vien(showroom_id, ngay_truc);
+GO
+
 -- ====================================================================================================
 -- PHẦN 2: NẠP DỮ LIỆU MẪU MOCKUP FRONTEND VÀO DATABASE (SEED DATA)
 -- ====================================================================================================
@@ -622,11 +670,13 @@ INSERT INTO dbo.showroom (tinh_thanh_id, ten_showroom, dia_chi, so_dien_thoai, g
 (3, N'AutoHub Cẩm Lệ - Đà Nẵng', N'Số 356 Điện Biên Phủ, Thanh Khê, Đà Nẵng', '02363777888', '08:00:00', '18:00:00', 1);
 GO
 
--- 3. NẠP NGƯỜI DÙNG (Admin, Staff từ staff.mock.ts, Khách hàng từ orders.mock.ts)
+-- 3. NẠP NGƯỜI DÙNG (Admin / Manager, Staff từ staff.mock.ts, Khách hàng từ orders.mock.ts)
 -- Mật khẩu chung: Password123@ (đã băm BCrypt chuẩn)
 INSERT INTO dbo.nguoi_dung (showroom_id, ho_ten, email, mat_khau_bam, so_dien_thoai, anh_dai_dien, so_cccd, vai_tro, trang_thai_tai_khoan, ngay_tao) VALUES
--- Admin điều hành toàn hệ thống
-(NULL, N'Trần Đức Nam (Admin)', 'admin@autohub.vn', '$2a$10$E8783h59h9oY6z3i/oPj0uY1b8/bE5eC7N9nFzEa.7X6cZpM4D8nS', '0988888888', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200', '001099001234', 'ROLE_ADMIN', 'HOAT_DONG', SYSDATETIME()),
+-- Ban Quản trị & Điều hành hệ thống (Admin / Manager)
+(NULL, N'Trần Đức Nam (Tổng Quản Trị - Admin)', 'admin@autohub.vn', '$2a$10$E8783h59h9oY6z3i/oPj0uY1b8/bE5eC7N9nFzEa.7X6cZpM4D8nS', '0988888888', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200', '001099001234', 'ROLE_ADMIN', 'HOAT_DONG', SYSDATETIME()),
+(1, N'Lê Minh Trí (Giám Đốc Chi Nhánh Q.7 - Manager)', 'manager.hcm@autohub.vn', '$2a$10$E8783h59h9oY6z3i/oPj0uY1b8/bE5eC7N9nFzEa.7X6cZpM4D8nS', '0912999888', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200', '001088005678', 'ROLE_ADMIN', 'HOAT_DONG', SYSDATETIME()),
+(2, N'Phạm Hải Đăng (Quản Lý Showroom Mỹ Đình - Manager)', 'manager.hn@autohub.vn', '$2a$10$E8783h59h9oY6z3i/oPj0uY1b8/bE5eC7N9nFzEa.7X6cZpM4D8nS', '0913777666', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200', '001088009999', 'ROLE_ADMIN', 'HOAT_DONG', SYSDATETIME()),
 -- Các nhân sự trong staff.mock.ts
 (1, N'Nguyễn Văn Tuấn', 'tuan.nguyen@autohub.vn', '$2a$10$E8783h59h9oY6z3i/oPj0uY1b8/bE5eC7N9nFzEa.7X6cZpM4D8nS', '0977112233', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200', '001098005678', 'ROLE_STAFF', 'HOAT_DONG', SYSDATETIME()),
 (2, N'Lê Quốc Bảo', 'bao.le@autohub.vn', '$2a$10$E8783h59h9oY6z3i/oPj0uY1b8/bE5eC7N9nFzEa.7X6cZpM4D8nS', '0977334455', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200', '079097008899', 'ROLE_STAFF', 'HOAT_DONG', SYSDATETIME()),
@@ -920,19 +970,28 @@ INSERT INTO dbo.nhat_ky_tu_van (yeu_cau_tu_van_id, nhan_vien_id, loai_tuong_tac,
 (3, 2, 'ZALO_CHAT', N'Liên hệ anh Long giải đáp thủ tục xuất hóa đơn VAT tên Công ty TNHH và khấu trừ thuế theo biểu thông tư mới.', 2200000000, N'Khách hài lòng và đã tiến hành nạp cọc giữ xe.', DATEADD(HOUR, -2, SYSDATETIME()));
 GO
 
--- 25. NHẬT KÝ HÀNH VI NGƯỜI DÙNG (TRACKING)
-IF OBJECT_ID('dbo.nhat_ky_hanh_vi', 'U') IS NOT NULL
-BEGIN
-    INSERT INTO dbo.nhat_ky_hanh_vi (nguoi_dung_id, ma_phien, loai_hanh_vi, loai_thuc_the, ma_thuc_the, thoi_gian_dung_xem, thoi_gian_tao, du_lieu_bo_sung) VALUES
-    (6, 'SESSION_CUST_6_01', 'VIEW_PRODUCT', 'CAR', 7, 180, DATEADD(HOUR, -5, SYSDATETIME()), N'{"referrer": "/cars", "model": "VinFast VF8 Plus"}'),
-    (6, 'SESSION_CUST_6_01', 'INTERACT_360', 'CAR', 7, 95, DATEADD(HOUR, -4, SYSDATETIME()), N'{"color": "Xanh Deep Ocean", "rotationAngle": 180}'),
-    (7, 'SESSION_CUST_7_02', 'GALLERY_SLIDE', 'CAR', 9, 240, DATEADD(HOUR, -3, SYSDATETIME()), N'{"model": "SantaFe Calligraphy", "slideIndex": 3}'),
-    (5, 'SESSION_CUST_5_03', 'VIEW_PRODUCT', 'ACCESSORY', 1, 45, DATEADD(HOUR, -2, SYSDATETIME()), N'{"item": "Bộ sạc Wallbox 22kW"}'),
-    (8, 'SESSION_CUST_8_04', 'DWELL_TIME', 'CAR', 10, 310, DATEADD(HOUR, -1, SYSDATETIME()), N'{"model": "VF9 Plus 6 Chỗ"}');
-END;
+-- 25. NHẬT KÝ HÀNH VI NGƯỜI DÙNG (TRACKING AI & ANALYTICS)
+INSERT INTO dbo.nhat_ky_hanh_vi (nguoi_dung_id, ma_phien, loai_hanh_vi, loai_thuc_the, ma_thuc_the, thoi_gian_dung_xem, thoi_gian_tao, du_lieu_bo_sung) VALUES
+(6, 'SESSION_CUST_6_01', 'VIEW_PRODUCT', 'CAR', 7, 180, DATEADD(HOUR, -5, SYSDATETIME()), N'{"referrer": "/cars", "model": "VinFast VF8 Plus"}'),
+(6, 'SESSION_CUST_6_01', 'INTERACT_360', 'CAR', 7, 95, DATEADD(HOUR, -4, SYSDATETIME()), N'{"color": "Xanh Deep Ocean", "rotationAngle": 180}'),
+(7, 'SESSION_CUST_7_02', 'GALLERY_SLIDE', 'CAR', 9, 240, DATEADD(HOUR, -3, SYSDATETIME()), N'{"model": "SantaFe Calligraphy", "slideIndex": 3}'),
+(5, 'SESSION_CUST_5_03', 'VIEW_PRODUCT', 'ACCESSORY', 1, 45, DATEADD(HOUR, -2, SYSDATETIME()), N'{"item": "Bộ sạc Wallbox 22kW"}'),
+(8, 'SESSION_CUST_8_04', 'DWELL_TIME', 'CAR', 10, 310, DATEADD(HOUR, -1, SYSDATETIME()), N'{"model": "VF9 Plus 6 Chỗ"}'),
+(6, 'SESSION_CUST_6_02', 'COMPARE_CAR', 'CAR', 7, 210, DATEADD(MINUTE, -45, SYSDATETIME()), N'{"comparedWith": [8, 9], "duration": "3m30s"}'),
+(7, 'SESSION_CUST_7_03', 'ESTIMATE_COST', 'CAR', 9, 130, DATEADD(MINUTE, -30, SYSDATETIME()), N'{"province": "TP. Hồ Chí Minh", "calculatedFee": 1520000000}'),
+(8, 'SESSION_CUST_8_05', 'AI_CONSULT_CHAT', 'SYSTEM', NULL, 185, DATEADD(MINUTE, -15, SYSDATETIME()), N'{"intent": "Hỏi chính sách ưu đãi pin xe điện", "turns": 4}');
+GO
+
+-- 26. PHÂN CA TRỰC NHÂN VIÊN SHOWROOM (ADMIN & MANAGER)
+INSERT INTO dbo.phan_ca_nhan_vien (nhan_vien_id, showroom_id, ngay_truc, ca_truc, gio_bat_dau, gio_ket_thuc, vai_tro_ca, nhiem_vu_cu_the, trang_thai, ghi_chu, nguoi_phan_ca_id) VALUES
+(2, 1, CAST(GETDATE() AS DATE), 'MORNING', '08:00:00', '12:00:00', 'SALES', N'Trực showroom tư vấn trực tiếp và nhận cọc xe điện', 'CONFIRMED', N'Trực bàn tư vấn số 1', 1),
+(2, 1, CAST(GETDATE() AS DATE), 'AFTERNOON', '13:30:00', '17:30:00', 'TEST_DRIVE', N'Điều phối lái thử xe AutoHub GT-e cho khách VIP', 'IN_PROGRESS', N'Xe Demo biển số 51K-999.88', 1),
+(4, 1, CAST(GETDATE() AS DATE), 'FULL_DAY', '08:00:00', '17:30:00', 'WAREHOUSE', N'Kiểm kê phụ kiện và nhặt hàng đóng gói giao bưu tá', 'CONFIRMED', N'Kho phụ kiện tầng 1', 1),
+(3, 2, CAST(GETDATE() AS DATE), 'MORNING', '08:00:00', '12:00:00', 'SUPERVISOR', N'Giám sát ca trực Showroom Mỹ Đình và phê duyệt hồ sơ', 'CONFIRMED', N'Bàn trưởng ca', 1),
+(3, 2, CAST(GETDATE() AS DATE), 'AFTERNOON', '13:30:00', '17:30:00', 'SALES', N'Tiếp nhận 3 ca hẹn tư vấn xe SantaFe', 'CONFIRMED', N'Khu vực đón khách', 1);
 GO
 
 PRINT N'====================================================================================================';
-PRINT N'>>> ĐÃ TẠO MỚI TOÀN BỘ CƠ SỞ DỮ LIỆU AutoHubDB VÀ NẠP ĐẦY ĐỦ DỮ LIỆU 32/32 BẢNG THÀNH CÔNG! <<<';
+PRINT N'>>> ĐÃ TẠO MỚI TOÀN BỘ CƠ SỞ DỮ LIỆU AutoHubDB VÀ NẠP ĐẦY ĐỦ DỮ LIỆU 34/34 BẢNG THÀNH CÔNG! <<<';
 PRINT N'====================================================================================================';
 GO
