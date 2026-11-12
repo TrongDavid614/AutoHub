@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { useCarDetail } from '@/features/customer/hooks/useCarDetail';
 import { CarStudioVisualizer } from '@/features/customer/components/detail/CarStudioVisualizer';
@@ -7,8 +7,13 @@ import { CarConfiguratorPanel } from '@/features/customer/components/detail/CarC
 import { CarDepositModal } from '@/features/customer/components/detail/CarDepositModal';
 import { EXTERIOR_COLORS } from '@/features/customer/types/detail.types';
 import { CarEngineeringSpecs } from '@/features/customer/components/detail/CarEngineeringSpecs';
+import { carService } from '@/features/customer/services/car.service';
+import type { MockCar } from '@/features/customer/mocks/car.mock';
 
 export const CarDetailPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const [car, setCar] = useState<MockCar | null>(null);
+
   const {
     activeTrim,
     setActiveTrim,
@@ -19,11 +24,27 @@ export const CarDetailPage: React.FC = () => {
     currentTrimData,
   } = useCarDetail();
 
+  useEffect(() => {
+    let isMounted = true;
+    carService.getCarById(id || '1').then((data) => {
+      if (isMounted) {
+        setCar(data);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
+
   const activeColorObj =
     EXTERIOR_COLORS.find((c) => c.id === activeColor) || EXTERIOR_COLORS[0];
 
+  const carName = car?.name || 'AutoHub GT-e Performance Sedan';
+  const trimName = car?.subtitle || currentTrimData?.name || 'GT-e Performance';
+  const depositAmount = car?.depositAmount || 20000000;
+
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 space-y-6">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 space-y-6 animate-fadeIn">
       {/* 1. Top Meta & Breadcrumb Navigation Path */}
       <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-text-muted py-2 border-b border-surface-highlight/50">
         <Link
@@ -41,7 +62,7 @@ export const CarDetailPage: React.FC = () => {
         </Link>
         <ChevronRight className="w-3.5 h-3.5 text-border-subtle" />
         <span className="text-text-primary font-semibold truncate">
-          AutoHub GT-e Performance Sedan
+          {carName}
         </span>
       </nav>
 
@@ -50,10 +71,11 @@ export const CarDetailPage: React.FC = () => {
         {/* Left Column: Master Visualizer & Studio Gallery (7 Cols) */}
         <div className="lg:col-span-7 w-full">
           <CarStudioVisualizer
-            carName="AutoHub GT-e"
+            carName={carName}
             activeTrim={activeTrim}
             activeColorHex={activeColorObj.hex}
             activeColorName={activeColorObj.name}
+            carImages={car?.images}
           />
         </div>
 
@@ -65,6 +87,7 @@ export const CarDetailPage: React.FC = () => {
             activeColor={activeColor}
             onSelectColor={setActiveColor}
             onOpenDeposit={() => setIsDepositOpen(true)}
+            car={car}
           />
         </div>
       </div>
@@ -76,10 +99,11 @@ export const CarDetailPage: React.FC = () => {
       <CarDepositModal
         isOpen={isDepositOpen}
         onClose={() => setIsDepositOpen(false)}
-        carName="AutoHub GT-e"
-        trimName={currentTrimData?.name || 'GT-e Performance'}
+        variantId={car?.id || activeTrim}
+        carName={carName}
+        trimName={trimName}
         colorName={activeColorObj.name}
-        depositAmount={20000000}
+        depositAmount={depositAmount}
       />
     </div>
   );

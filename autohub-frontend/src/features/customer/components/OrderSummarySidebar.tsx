@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, ShieldCheck, Check, ArrowRight } from 'lucide-react';
+import { Phone, ShieldCheck, Check, ArrowRight, Lock } from 'lucide-react';
 
 export interface OrderSummarySidebarProps {
   orderId: string;
@@ -17,6 +17,7 @@ export interface OrderSummarySidebarProps {
   onRemoveVoucher: () => void;
   onCheckout: () => void;
   isSubmitting: boolean;
+  isAuthenticated?: boolean;
 }
 
 export const OrderSummarySidebar: React.FC<OrderSummarySidebarProps> = ({
@@ -35,6 +36,7 @@ export const OrderSummarySidebar: React.FC<OrderSummarySidebarProps> = ({
   onRemoveVoucher,
   onCheckout,
   isSubmitting,
+  isAuthenticated = true,
 }) => {
   const formatPrice = (val: number) => val.toLocaleString('vi-VN');
 
@@ -142,17 +144,33 @@ export const OrderSummarySidebar: React.FC<OrderSummarySidebarProps> = ({
         </div>
 
         {/* Primary Checkout CTA Button */}
-        <div className="pt-2 relative z-10">
+        <div className="pt-2 relative z-10 space-y-2">
+          {!isAuthenticated && (
+            <div className="p-2.5 rounded bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-300 flex items-center gap-2">
+              <Lock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span>Cần đăng nhập tài khoản để tiến hành đặt hàng & giao nhận.</span>
+            </div>
+          )}
+
           <button
             onClick={onCheckout}
             disabled={isSubmitting || itemCount === 0}
-            className="w-full py-3.5 px-4 rounded-[2px] bg-[#0EA5E9] hover:bg-[#89CEFF] text-[#003751] font-bold text-xs tracking-wider uppercase flex items-center justify-center gap-2 transition-all shadow-xl active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`w-full py-3.5 px-4 rounded-[2px] font-bold text-xs tracking-wider uppercase flex items-center justify-center gap-2 transition-all shadow-xl active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+              !isAuthenticated
+                ? 'bg-amber-500 hover:bg-amber-400 text-neutral-950'
+                : 'bg-[#0EA5E9] hover:bg-[#89CEFF] text-[#003751]'
+            }`}
           >
             {isSubmitting ? (
               <span>ĐANG XỬ LÝ ĐƠN HÀNG...</span>
+            ) : !isAuthenticated ? (
+              <>
+                <Lock className="w-4 h-4" />
+                <span>ĐĂNG NHẬP ĐỂ ĐẶT HÀNG</span>
+              </>
             ) : (
               <>
-                <span>XÁC NHẬN ĐẶT HÀNG & THANH TOÁN</span>
+                <span>XÁC NHẬN ĐẶT HÀNG</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}

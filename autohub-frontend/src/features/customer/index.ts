@@ -20,6 +20,7 @@ export * from './pages/portal-services/TestDriveBookingPage';
 export * from './pages/portal-services/TestDriveCanvasPage';
 export * from './pages/portal-services/CarDepositPage';
 export * from './pages/portal-services/CustomerOrderListPage';
+export * from './pages/portal-services/VNPayReturnPage';
 
 // 4. AI Consultant
 export * from './pages/ai-consultant/AiConsultantPage';
@@ -37,6 +38,7 @@ export * from './pages/landing/LandingPage';
 
 // Common Modals & Components
 export * from './components/detail/CarDepositModal';
+export * from './components/VNPayQRModal';
 export * from './components/TestDriveBookingModal';
 export * from './components/AddressEditModal';
 export * from './components/ChangeCarModelModal';

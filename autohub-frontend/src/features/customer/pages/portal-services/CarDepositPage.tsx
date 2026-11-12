@@ -1,83 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { CreditCard, Check } from 'lucide-react';
+import { CreditCard, Check, RefreshCw } from 'lucide-react';
 import type { CarDepositStatus, CarDepositItem } from '@/features/customer/types/car-deposit.types';
 import { CarDepositFilterTabs } from '@/features/customer/components/CarDepositFilterTabs';
 import { CarDepositRowCard } from '@/features/customer/components/CarDepositRowCard';
 import { CarDepositReceiptModal } from '@/features/customer/components/CarDepositReceiptModal';
 import { CarDepositRefundModal } from '@/features/customer/components/CarDepositRefundModal';
-
-const INITIAL_DEPOSITS: CarDepositItem[] = [
-  // 1. Phiếu cọc đã thanh toán và đang giữ suất xe 72h (PAID)
-  {
-    id: 1,
-    depositCode: '#DEP-GTE-2026-8812',
-    carModelName: 'AutoHub GT-e',
-    carVariant: 'Performance Dual-Motor AWD (800V SiC)',
-    exteriorColor: 'Xanh Băng Apex Cyan',
-    colorHex: '#89CEFF',
-    carImageUrl:
-      'https://api.builder.io/api/v1/image/assets/TEMP/f8563407750402a5ec748ad5da036903aa27d5e0?width=600',
-    depositAmount: 20000000,
-    identityCardNumber: '079204001234',
-    customerName: 'Nguyễn Văn A',
-    customerPhone: '0912345678',
-    showroomName: 'Showroom AutoHub Flagship Thủ Đức',
-    showroomAddress: 'Đại lộ Mai Chí Thọ, Phường An Phú, TP. Thủ Đức, TP. Hồ Chí Minh',
-    status: 'PAID',
-    vnpayTransactionId: 'vnp_9921448',
-    paidAt: new Date(Date.now() - 14 * 60 * 60 * 1000).toISOString(), // Đã cọc cách đây 14h
-    createdAt: new Date(Date.now() - 14 * 60 * 60 * 1000).toISOString(),
-  },
-
-  // 2. Phiếu cọc đã được Staff đối soát và gán số khung VIN (RESERVED)
-  {
-    id: 2,
-    depositCode: '#DEP-SUV-2026-7733',
-    carModelName: 'AutoHub e-SUV Ultra',
-    carVariant: 'Long Range 7-Chỗ (Pin 110 kWh)',
-    exteriorColor: 'Đen Huyền Bí Obsidian',
-    colorHex: '#1E293B',
-    carImageUrl:
-      'https://api.builder.io/api/v1/image/assets/TEMP/3bea387701c2ccce27dbf0d9a6bf1b65ca48da5d?width=600',
-    depositAmount: 20000000,
-    identityCardNumber: '079204001234',
-    customerName: 'Nguyễn Văn A',
-    customerPhone: '0912345678',
-    showroomName: 'Showroom AutoHub Quận 1',
-    showroomAddress: 'Số 2 Tôn Đức Thắng, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh',
-    status: 'RESERVED',
-    vinNumber: 'VF8-AUTOHUB-2026-VN-009921',
-    vnpayTransactionId: 'vnp_8812001',
-    paidAt: new Date(Date.now() - 28 * 60 * 60 * 1000).toISOString(),
-    createdAt: new Date(Date.now() - 28 * 60 * 60 * 1000).toISOString(),
-  },
-
-  // 3. Phiếu cọc đã ký hợp đồng mua bán hoàn tất (COMPLETED)
-  {
-    id: 3,
-    depositCode: '#DEP-GTE-2026-3301',
-    carModelName: 'AutoHub GT-e',
-    carVariant: 'Standard RWD City Commuter',
-    exteriorColor: 'Trắng Ngọc Trai Alpine White',
-    colorHex: '#FFFFFF',
-    carImageUrl:
-      'https://api.builder.io/api/v1/image/assets/TEMP/f8563407750402a5ec748ad5da036903aa27d5e0?width=600',
-    depositAmount: 10000000,
-    identityCardNumber: '079204001234',
-    customerName: 'Nguyễn Văn A',
-    customerPhone: '0912345678',
-    showroomName: 'Showroom AutoHub Flagship Thủ Đức',
-    showroomAddress: 'Đại lộ Mai Chí Thọ, Phường An Phú, TP. Thủ Đức, TP. Hồ Chí Minh',
-    status: 'COMPLETED',
-    vinNumber: 'VF8-AUTOHUB-2026-VN-003310',
-    vnpayTransactionId: 'vnp_1120934',
-    paidAt: '2026-09-10T10:00:00Z',
-    createdAt: '2026-09-10T10:00:00Z',
-  },
-];
+import { depositService } from '@/features/customer/services/deposit.service';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export const CarDepositPage: React.FC = () => {
-  const [deposits, setDeposits] = useState<CarDepositItem[]>(INITIAL_DEPOSITS);
+  const { user } = useAuthStore();
+  const [deposits, setDeposits] = useState<CarDepositItem[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<'ALL' | CarDepositStatus>('ALL');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -89,7 +23,41 @@ export const CarDepositPage: React.FC = () => {
   const [showRefundModal, setShowRefundModal] = useState(false);
   const [refundTarget, setRefundTarget] = useState<CarDepositItem | null>(null);
 
-  // Giả lập đồng hồ đếm ngược 72 giờ (còn lại khoảng 57 giờ 42 phút cho đơn 1)
+  // Fetch real deposits from database
+  const loadDeposits = async () => {
+    setIsLoading(true);
+    try {
+      const data = await depositService.getMyDeposits(user?.id);
+      setDeposits(data || []);
+    } catch {
+      // offline fallback
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadDeposits();
+  }, [user?.id]);
+
+  const handleDirectConfirmDeposit = async (item: CarDepositItem) => {
+    await depositService.confirmPayment(item.id);
+    setDeposits((prev) =>
+      prev.map((d) =>
+        d.id === item.id
+          ? {
+              ...d,
+              status: 'PAID' as CarDepositStatus,
+              paidAt: new Date().toISOString(),
+              expireAt: new Date(Date.now() + 72 * 3600 * 1000).toISOString(),
+            }
+          : d
+      )
+    );
+    showToast(`Đã xác nhận thanh toán cọc thành công cho phiếu cọc ${item.depositCode}!`);
+  };
+
+  // Đồng hồ đếm ngược 72 giờ
   const [remainingSeconds, setRemainingSeconds] = useState(57 * 3600 + 42 * 60 + 15);
 
   useEffect(() => {
@@ -118,9 +86,10 @@ export const CarDepositPage: React.FC = () => {
   };
 
   // Xử lý gửi yêu cầu hoàn cọc theo quy tắc BR05 & UC18
-  const handleRefundSubmit = (data: { reason: string; document: string; bankAccount: string }) => {
+  const handleRefundSubmit = async (data: { reason: string; document: string; bankAccount: string }) => {
     setShowRefundModal(false);
     if (refundTarget) {
+      await depositService.requestRefund(refundTarget.id, data);
       setDeposits((prev) =>
         prev.map((d) =>
           d.id === refundTarget.id
@@ -141,7 +110,7 @@ export const CarDepositPage: React.FC = () => {
     activeTab === 'ALL' ? deposits : deposits.filter((d) => d.status === activeTab);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fadeIn">
       {/* 1. Header trang */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-surface-highlight">
         <div>
@@ -153,6 +122,15 @@ export const CarDepositPage: React.FC = () => {
             Theo dõi trạng thái tạm khóa suất xe trong kho trong thời hạn 72 giờ liên tục, đối soát số khung VIN và trích xuất biên lai điện tử.
           </p>
         </div>
+
+        <button
+          type="button"
+          onClick={loadDeposits}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors cursor-pointer self-start sm:self-auto"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-accent-primary' : ''}`} />
+          <span>Làm mới dữ liệu</span>
+        </button>
       </div>
 
       {/* 2. Tabs lọc theo Enum TrangThaiPhieuCoc */}
@@ -194,6 +172,7 @@ export const CarDepositPage: React.FC = () => {
                 setRefundTarget(target);
                 setShowRefundModal(true);
               }}
+              onPayDeposit={handleDirectConfirmDeposit}
             />
           ))
         )}

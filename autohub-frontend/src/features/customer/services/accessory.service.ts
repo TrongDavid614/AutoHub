@@ -1,112 +1,128 @@
-import type { Accessory, AccessoryCategory, AccessoryFilterParams } from '@/types/accessory.types';
-import {
-  MOCK_ACCESSORIES,
-  MOCK_ACCESSORY_CATEGORIES,
-  MOCK_CAR_MODELS,
-  type CarModelInfo,
-} from '../mocks/accessory.mock';
+import { axiosClient } from '@/lib/axios';
+import type { ApiResponse } from '@/types/api.types';
+import type { Accessory, AccessoryCategory, AccessoryFilterParams, AccessoryCompatibility } from '@/types/accessory.types';
+import { type CarModelInfo } from '../mocks/accessory.mock';
+import { carService } from './car.service';
+
+interface RawCategoryDto {
+  id: number;
+  categoryName?: string;
+  tenDanhMuc?: string;
+  name?: string;
+  slug?: string;
+  count?: number;
+}
+
+interface RawAccessoryDto extends Accessory {
+  dungChung?: boolean;
+  isUniversal?: boolean;
+}
 
 export const accessoryService = {
   /**
    * Get list of accessories based on filter criteria
    */
   async getAccessories(params?: AccessoryFilterParams): Promise<Accessory[]> {
-    // Simulate real network delay
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    try {
+      const queryParts: string[] = [];
+      if (params?.categoryId) queryParts.push(`categoryId=${params.categoryId}`);
+      if (params?.search) queryParts.push(`search=${encodeURIComponent(params.search)}`);
+      if (params?.minPrice !== undefined) queryParts.push(`minPrice=${params.minPrice}`);
+      if (params?.maxPrice !== undefined) queryParts.push(`maxPrice=${params.maxPrice}`);
 
-    let items = [...MOCK_ACCESSORIES];
-
-    if (!params) return items;
-
-    // Filter by car model
-    if (params.carModelId) {
-      items = items.filter((item) =>
-        item.compatibilities.some((c) => c.carModelId === params.carModelId)
-      );
-    }
-
-    // Filter by category
-    if (params.categoryId) {
-      items = items.filter((item) => item.categoryId === params.categoryId);
-    }
-
-    // Filter by search query
-    if (params.search?.trim()) {
-      const q = params.search.toLowerCase().trim();
-      items = items.filter(
-        (item) =>
-          item.name.toLowerCase().includes(q) ||
-          item.description.toLowerCase().includes(q) ||
-          item.categoryName.toLowerCase().includes(q) ||
-          item.specPills?.some((p) => p.toLowerCase().includes(q))
-      );
-    }
-
-    // Filter by price range
-    if (params.minPrice !== undefined) {
-      items = items.filter((item) => item.price >= (params.minPrice ?? 0));
-    }
-    if (params.maxPrice !== undefined) {
-      items = items.filter((item) => item.price <= (params.maxPrice ?? Infinity));
-    }
-
-    // Filter by stock / delivery
-    if (params.readyInShowroom) {
-      items = items.filter((item) => item.readyInShowroom);
-    }
-    if (params.homeInstallation) {
-      items = items.filter((item) => item.homeInstallation);
-    }
-
-    // Filter by certification / warranty
-    if (params.isGenuine) {
-      items = items.filter((item) => item.isGenuine);
-    }
-    if (params.warrantyYears) {
-      items = items.filter((item) => (item.warrantyYears ?? 0) >= (params.warrantyYears ?? 0));
-    }
-
-    // Sorting
-    if (params.sortBy) {
-      switch (params.sortBy) {
-        case 'price-asc':
-          items.sort((a, b) => a.price - b.price);
-          break;
-        case 'price-desc':
-          items.sort((a, b) => b.price - a.price);
-          break;
-        case 'newest':
-          items.sort((a, b) => b.id - a.id);
-          break;
-        case 'popular':
-        default:
-          items.sort((a, b) => b.stockQuantity - a.stockQuantity);
-          break;
+      const url = `/customer/accessories${queryParts.length ? '?' + queryParts.join('&') : ''}`;
+      const res = await axiosClient.get<unknown, ApiResponse<RawAccessoryDto[]>>(url);
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+        let items: Accessory[] = res.data;
+        if (params?.carModelId) {
+          const modelIdStr = String(params.carModelId);
+          items = items.filter((item: RawAccessoryDto) =>
+            Boolean(item.dungChung) ||
+            Boolean(item.isUniversal) ||
+            item.compatibilities?.some((c: AccessoryCompatibility) => String(c.carModelId) === modelIdStr)
+          );
+        }
+        if (params?.sortBy) {
+          switch (params.sortBy) {
+            case 'price-asc':
+              items.sort((a, b) => a.price - b.price);
+              break;
+            case 'price-desc':
+              items.sort((a, b) => b.price - a.price);
+              break;
+            case 'newest':
+              items.sort((a, b) => b.id - a.id);
+              break;
+            case 'popular':
+            default:
+              items.sort((a, b) => (b.stockQuantity || 0) - (a.stockQuantity || 0));
+              break;
+          }
+        }
+        return items;
       }
+    } catch {
+      // network error
     }
 
-    return items;
+    return [];
   },
 
   /**
-   * Get single accessory by ID
+   * Get accessory details by id
    */
-  async getAccessoryById(id: number): Promise<Accessory | undefined> {
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    return MOCK_ACCESSORIES.find((item) => item.id === id);
+  async getAccessoryById(id: number): Promise<Accessory | null> {
+    try {
+      const res = await axiosClient.get<unknown, ApiResponse<Accessory>>(`/customer/accessories/${id}`);
+      if (res?.data) {
+        return res.data;
+      }
+    } catch {
+      // network error
+    }
+
+    return null;
   },
 
   /**
-   * Get all categories with counts
+   * Get all categories from database
    */
   async getCategories(): Promise<AccessoryCategory[]> {
-    return MOCK_ACCESSORY_CATEGORIES;
+    try {
+      const res = await axiosClient.get<unknown, ApiResponse<RawCategoryDto[]>>('/customer/accessories/categories');
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+        return res.data.map((c) => ({
+          id: c.id,
+          categoryName: c.categoryName || c.tenDanhMuc || c.name || 'Phụ kiện',
+          slug: c.slug || (c.id === 1 ? 'charging-energy' : c.id === 2 ? 'camera-sensors' : c.id === 3 ? 'window-films' : 'floor-mats'),
+          count: c.count || 3,
+        }));
+      }
+    } catch {
+      // network error
+    }
+    return [];
   },
 
   /**
-   * Get all compatible car models
+   * Get all compatible car models from database
    */
   async getCarModels(): Promise<CarModelInfo[]> {
-    return MOCK_CAR_MODELS;
+    try {
+      const cars = await carService.getAllCars();
+      if (cars && cars.length > 0) {
+        return cars.map((c) => ({
+          id: Number(c.id),
+          name: c.name,
+          yearRange: '2024 – 2026',
+          architecture: c.powertrain || 'Thuần điện 800V SiC',
+          thumbnailUrl: c.image || 'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=1200',
+          accessoryCount: 12,
+        }));
+      }
+    } catch {
+      // network error
+    }
+    return [];
   },
 };

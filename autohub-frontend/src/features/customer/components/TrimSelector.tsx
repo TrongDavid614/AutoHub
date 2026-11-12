@@ -25,8 +25,8 @@ export const TrimSelector: React.FC<TrimSelectorProps> = ({
         </span>
       </div>
 
-      {/* 3 Tiles Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      {/* Tiles Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {trims.map((trim) => {
           const isSelected = selectedTrimId === trim.id;
           return (

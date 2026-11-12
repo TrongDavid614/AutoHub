@@ -2,8 +2,8 @@ import React from 'react';
 import { ShieldCheck, Check } from 'lucide-react';
 
 export interface PaymentMethodSelectorProps {
-  selectedMethod: 'sepay' | 'cod';
-  onSelectMethod: (method: 'sepay' | 'cod') => void;
+  selectedMethod: 'vnpay' | 'cod' | 'sepay';
+  onSelectMethod: (method: 'vnpay' | 'cod') => void;
 }
 
 export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
@@ -19,16 +19,16 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
         </span>
         <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold tracking-wider text-[#88929B] uppercase">
           <ShieldCheck className="w-3.5 h-3.5 text-[#89CEFF]" />
-          <span>MÃ HÓA CỔNG AN TOÀN</span>
+          <span>MÃ HÓA CỔNG AN TOÀN VNPAY</span>
         </div>
       </div>
 
       <div className="space-y-4">
-        {/* Option 1: SEPAY */}
+        {/* Option 1: VNPAY */}
         <label
-          onClick={() => onSelectMethod('sepay')}
+          onClick={() => onSelectMethod('vnpay')}
           className={`block rounded-[2px] border p-5 cursor-pointer transition-all ${
-            selectedMethod === 'sepay'
+            selectedMethod === 'vnpay' || selectedMethod === 'sepay'
               ? 'bg-[#060E20] border-[#89CEFF] shadow-lg'
               : 'bg-[#060E20]/60 border-[#2D3449] hover:bg-[#060E20] hover:border-[#3E4850]'
           }`}
@@ -37,23 +37,25 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
             <div className="flex items-start gap-3">
               <div
                 className={`w-5 h-5 rounded-[2px] border flex items-center justify-center mt-0.5 transition-colors ${
-                  selectedMethod === 'sepay'
+                  selectedMethod === 'vnpay' || selectedMethod === 'sepay'
                     ? 'bg-[#89CEFF] border-[#89CEFF] text-[#060E20]'
                     : 'border-[#3E4850] bg-[#171F33]'
                 }`}
               >
-                {selectedMethod === 'sepay' && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                {(selectedMethod === 'vnpay' || selectedMethod === 'sepay') && (
+                  <Check className="w-3.5 h-3.5 stroke-[3]" />
+                )}
               </div>
 
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-bold text-sm text-[#DAE2FD]">Cổng thanh toán tự động SePay (Chuyển khoản QR)</span>
+                  <span className="font-bold text-sm text-[#DAE2FD]">Cổng thanh toán điện tử VNPAY (Quét mã QR 1 phút)</span>
                   <span className="px-2 py-0.5 rounded-[2px] bg-[#0EA5E9]/20 text-[#89CEFF] font-mono text-[9px] font-bold uppercase border border-[#0EA5E9]/30">
                     KHUYÊN DÙNG • XÁC NHẬN TỨC THÌ
                   </span>
                 </div>
                 <p className="text-xs text-[#BEC8D2] leading-relaxed">
-                  Quét mã VietQR tự động khớp giao dịch tức thì qua SePay, xác nhận đơn hàng thành công trong 3 giây không cần nhân viên duyệt.
+                  Quét mã QR động qua ứng dụng ngân hàng hoặc VNPAY, bảo mật 60 giây tự động xác thực đơn hàng tức thì.
                 </p>
                 <p className="text-[11px] text-[#89CEFF]">
                   ✓ Kích hoạt lệnh đóng gói & phân công kỹ thuật viên tự động ngay khi thanh toán.
@@ -62,7 +64,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
             </div>
 
             <div className="px-2.5 py-1 rounded-[2px] bg-[#222A3D] border border-[#2D3449] font-mono text-[10px] font-bold text-[#89CEFF] tracking-wider uppercase shrink-0">
-              SEPAY
+              VNPAY
             </div>
           </div>
         </label>

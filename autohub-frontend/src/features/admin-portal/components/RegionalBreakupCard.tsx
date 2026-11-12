@@ -26,17 +26,19 @@ export const RegionalBreakupCard: React.FC<RegionalBreakupCardProps> = ({
 
   // Precalculate slice positions
   const slices = useMemo(() => {
-    let accPercent = 0;
-    return revenues.map((item) => {
+    let currentAcc = 0;
+    const result = [];
+    for (const item of revenues) {
       const strokeDasharray = `${(item.percentage / 100) * circumference} ${circumference}`;
-      const strokeDashoffset = -((accPercent / 100) * circumference);
-      accPercent += item.percentage;
-      return {
+      const strokeDashoffset = -((currentAcc / 100) * circumference);
+      currentAcc += item.percentage;
+      result.push({
         ...item,
         strokeDasharray,
         strokeDashoffset,
-      };
-    });
+      });
+    }
+    return result;
   }, [revenues, circumference]);
 
   const handleSliceMouseMove = (e: React.MouseEvent<SVGElement | HTMLDivElement>, item: RegionalRevenue) => {
