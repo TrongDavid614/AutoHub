@@ -5,11 +5,13 @@ import { TrimSelector } from '@/features/customer/components/TrimSelector';
 import { CitySelector } from '@/features/customer/components/CitySelector';
 import { PromoSelector } from '@/features/customer/components/PromoSelector';
 import { CostBreakdownLedger } from '@/features/customer/components/CostBreakdownLedger';
-import { useCarEstimator, TRIM_OPTIONS, CITY_OPTIONS } from '@/features/customer/hooks/useCarEstimator';
+import { useCarEstimator } from '@/features/customer/hooks/useCarEstimator';
 import { CarDepositModal } from '@/features/customer';
 
 export const CarEstimatorPage: React.FC = () => {
   const {
+    trims,
+    cities,
     selectedTrimId,
     setSelectedTrimId,
     selectedTrim,
@@ -49,14 +51,14 @@ export const CarEstimatorPage: React.FC = () => {
 
           {/* Section 2: Trim Switcher & Performance Spec Tiles */}
           <TrimSelector
-            trims={TRIM_OPTIONS}
+            trims={trims}
             selectedTrimId={selectedTrimId}
             onSelectTrim={setSelectedTrimId}
           />
 
           {/* Section 3: City Registration Selector */}
           <CitySelector
-            cities={CITY_OPTIONS}
+            cities={cities}
             selectedCityId={selectedCityId}
             onSelectCity={setSelectedCityId}
           />
@@ -88,8 +90,8 @@ export const CarEstimatorPage: React.FC = () => {
       <CarDepositModal
         isOpen={isDepositModalOpen}
         onClose={() => setIsDepositModalOpen(false)}
-        carName="AutoHub GT-e"
-        trimName={selectedTrim.name}
+        carName={selectedTrim.name}
+        trimName={selectedTrim.spec}
         colorName="Xanh Công Nghệ Hyper Tech Blue"
         depositAmount={20000000}
       />

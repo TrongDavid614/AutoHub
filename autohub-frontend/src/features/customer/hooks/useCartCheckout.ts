@@ -1,29 +1,49 @@
 import { useState, useEffect } from 'react';
 import { useCartStore } from '@/store/useCartStore';
-import {
-  DEFAULT_SHIPPING_ADDRESS,
-  MOCK_ADDRESS_BOOK,
-  WALLBOX_SAMPLE_ACCESSORY,
-  type ShippingAddress,
-} from '../mocks/cart.mock';
+import { useAuthStore } from '@/store/useAuthStore';
+import { addressService } from '../services/address.service';
+import type { ShippingAddress } from '../mocks/cart.mock';
+
+const EMPTY_SHIPPING_ADDRESS: ShippingAddress = {
+  id: '',
+  recipientName: '',
+  phone: '',
+  fullAddress: 'Chưa có địa chỉ nhận hàng',
+  isDefault: true,
+};
 
 export function useCartCheckout() {
-  const { cartItems, addToCart, removeFromCart, updateQuantity, clearCart } = useCartStore();
-
-  // If cart is empty on fresh visit, seed with Wallbox sample item matching Figma
-  useEffect(() => {
-    if (cartItems.length === 0) {
-      addToCart(WALLBOX_SAMPLE_ACCESSORY, 1);
-    }
-  }, [cartItems.length, addToCart]);
+  const { cartItems, removeFromCart, updateQuantity, clearCart } = useCartStore();
+  const { user } = useAuthStore();
 
   // Address state
-  const [addressBook, setAddressBook] = useState<ShippingAddress[]>(MOCK_ADDRESS_BOOK);
-  const [selectedAddress, setSelectedAddress] = useState<ShippingAddress>(DEFAULT_SHIPPING_ADDRESS);
+  const [addressBook, setAddressBook] = useState<ShippingAddress[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<ShippingAddress>(EMPTY_SHIPPING_ADDRESS);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
+  useEffect(() => {
+    let isMounted = true;
+    addressService.getMyAddresses(user?.id).then((list) => {
+      if (isMounted && list && list.length > 0) {
+        const mapped: ShippingAddress[] = list.map((a: any) => ({
+          id: String(a.id),
+          recipientName: a.recipientName || user?.fullName || 'Khách hàng',
+          phone: a.phoneNumber || user?.phoneNumber || '0912345678',
+          fullAddress: `${a.detailedAddress || a.addressLine || ''}, ${a.ward || ''}, ${a.district || ''}, ${a.provinceCity || a.province || ''}`.replace(/^,\s*|,\s*$/g, ''),
+          tag: a.tag || (a.isDefault ? 'MẶC ĐỊNH' : 'ĐỊA CHỈ'),
+          isDefault: !!a.isDefault,
+        }));
+        setAddressBook(mapped);
+        setSelectedAddress(mapped.find((m) => m.isDefault) || mapped[0] || EMPTY_SHIPPING_ADDRESS);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id, user?.fullName, user?.phoneNumber]);
+
   // Payment state
-  const [paymentMethod, setPaymentMethod] = useState<'sepay' | 'cod'>('sepay');
+  const [paymentMethod, setPaymentMethod] = useState<'vnpay' | 'cod' | 'sepay'>('vnpay');
 
   // Voucher state
   const [voucherCode, setVoucherCode] = useState('AUTOHUBGT500');

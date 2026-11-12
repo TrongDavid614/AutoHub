@@ -1,77 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Check, Plus } from 'lucide-react';
+import { Calendar, Check, Plus, RefreshCw } from 'lucide-react';
+import { useAuthStore } from '@/store/useAuthStore';
 import type { TestDriveStatus, TestDriveItem } from '@/features/customer/types/test-drive.types';
 import { TestDriveFilterTabs } from '@/features/customer/components/TestDriveFilterTabs';
 import { TestDriveRowCard } from '@/features/customer/components/TestDriveRowCard';
 import { TestDriveEvaluationModal } from '@/features/customer/components/TestDriveEvaluationModal';
 import { TestDriveBookingModal } from '@/features/customer/components/TestDriveBookingModal';
-
-const INITIAL_TEST_DRIVES: TestDriveItem[] = [
-  {
-    id: 1,
-    bookingCode: '#TD-GTE-2026-101',
-    carModelName: 'AutoHub GT-e',
-    carVariant: 'Performance Dual-Motor AWD (800V SiC)',
-    carImageUrl:
-      'https://api.builder.io/api/v1/image/assets/TEMP/f8563407750402a5ec748ad5da036903aa27d5e0?width=600',
-    showroomName: 'Showroom AutoHub Flagship Thủ Đức',
-    showroomAddress: 'Đại lộ Mai Chí Thọ, Phường An Phú, TP. Thủ Đức, TP. Hồ Chí Minh',
-    locationType: 'SHOWROOM',
-    bookingDate: '28/10/2026',
-    timeSlot: '09:00 - 10:30',
-    status: 'CONFIRMED',
-    hasDrivingLicense: true,
-    demoCarPlate: '51K-999.88 (Xe Demo)',
-    consultantName: 'Kỹ sư Trịnh Hoài Nam',
-    createdAt: '2026-10-25T10:00:00Z',
-  },
-  {
-    id: 2,
-    bookingCode: '#TD-SUV-2026-088',
-    carModelName: 'AutoHub e-SUV Ultra',
-    carVariant: 'Long Range 7-Chỗ (Pin 110 kWh)',
-    carImageUrl:
-      'https://api.builder.io/api/v1/image/assets/TEMP/3bea387701c2ccce27dbf0d9a6bf1b65ca48da5d?width=600',
-    showroomName: 'Lái thử tại địa chỉ khách hàng',
-    showroomAddress: 'Tòa Landmark 81, 720A Điện Biên Phủ, Phường 22, Quận Bình Thạnh, TP. HCM',
-    locationType: 'HOME',
-    bookingDate: '30/10/2026',
-    timeSlot: '14:30 - 16:00',
-    status: 'PENDING',
-    hasDrivingLicense: true,
-    createdAt: '2026-10-25T14:30:00Z',
-  },
-  {
-    id: 3,
-    bookingCode: '#TD-GTE-2026-042',
-    carModelName: 'AutoHub GT-e',
-    carVariant: 'Standard RWD City Commuter',
-    carImageUrl:
-      'https://api.builder.io/api/v1/image/assets/TEMP/f8563407750402a5ec748ad5da036903aa27d5e0?width=600',
-    showroomName: 'Showroom AutoHub Quận 1',
-    showroomAddress: 'Số 2 Tôn Đức Thắng, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh',
-    locationType: 'SHOWROOM',
-    bookingDate: '18/10/2026',
-    timeSlot: '10:00 - 11:30',
-    status: 'COMPLETED',
-    hasDrivingLicense: true,
-    demoCarPlate: '51K-888.66 (Xe Demo)',
-    consultantName: 'Chuyên viên Lê Minh Tuấn',
-    evaluationNote:
-      'Khách hàng đánh giá cảm giác lái thể thao xuất sắc, khả năng cách âm vòm lốp êm ái, quan tâm phiên bản Performance.',
-    createdAt: '2026-10-15T08:00:00Z',
-  },
-];
+import { engagementService } from '@/features/customer/services/engagement.service';
 
 export const TestDriveBookingPage: React.FC = () => {
   const navigate = useNavigate();
-  const [testDrives, setTestDrives] = useState<TestDriveItem[]>(INITIAL_TEST_DRIVES);
+  const { user } = useAuthStore();
+  const [testDrives, setTestDrives] = useState<TestDriveItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'ALL' | TestDriveStatus>('ALL');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   // Modal xem biên bản đánh giá lái thử
   const [selectedEvaluation, setSelectedEvaluation] = useState<TestDriveItem | null>(null);
+
+  const loadTestDrives = async () => {
+    setIsLoading(true);
+    try {
+      const data = await engagementService.getMyTestDrives(user?.id);
+      setTestDrives(data || []);
+    } catch {
+      // offline fallback
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadTestDrives();
+  }, [user?.id]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -79,11 +42,17 @@ export const TestDriveBookingPage: React.FC = () => {
   };
 
   // 1. Hủy lịch hẹn lái thử (UC21)
-  const handleCancelBooking = (id: number) => {
-    setTestDrives((prev) =>
-      prev.map((td) => (td.id === id ? { ...td, status: 'CANCELLED' as TestDriveStatus } : td))
-    );
-    showToast('Đã hủy lịch hẹn lái thử thành công. Xe Demo đã được giải phóng khung giờ.');
+  const handleCancelBooking = async (id: number) => {
+    if (!window.confirm('Quý khách có chắc chắn muốn hủy lịch hẹn lái thử này không? Khung giờ xe Demo sẽ được giải phóng để phục vụ khách hàng khác.')) {
+      return;
+    }
+    const res = await engagementService.cancelTestDrive(id, 'Khách hàng tự hủy trên cổng Portal');
+    if (res.success) {
+      await loadTestDrives();
+      showToast('Đã hủy lịch hẹn lái thử thành công. Xe Demo đã được giải phóng khung giờ.');
+    } else {
+      showToast(res.message || 'Không thể hủy lịch hẹn lái thử. Vui lòng kiểm tra lại.');
+    }
   };
 
   const filteredItems =
@@ -102,14 +71,24 @@ export const TestDriveBookingPage: React.FC = () => {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsBookingModalOpen(true)}
-          className="py-2.5 px-4 rounded-lg bg-accent-action hover:bg-accent-primary text-accent-contrast font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_0_15px_rgba(14,165,233,0.3)] hover:shadow-[0_0_25px_rgba(137,206,255,0.4)] transition-all cursor-pointer shrink-0"
-        >
-          <Plus className="w-4 h-4 text-accent-contrast" />
-          <span>Đăng ký lái thử mới</span>
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={loadTestDrives}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-accent-primary' : ''}`} />
+            <span>Làm mới</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsBookingModalOpen(true)}
+            className="py-2.5 px-4 rounded-lg bg-accent-action hover:bg-accent-primary text-accent-contrast font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_0_15px_rgba(14,165,233,0.3)] hover:shadow-[0_0_25px_rgba(137,206,255,0.4)] transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4 text-accent-contrast" />
+            <span>Đăng ký lái thử mới</span>
+          </button>
+        </div>
       </div>
 
       {/* 2. Tabs lọc theo Enum TrangThaiLichHen */}
@@ -162,6 +141,7 @@ export const TestDriveBookingPage: React.FC = () => {
         onClose={() => setIsBookingModalOpen(false)}
         onSubmitSuccess={() => {
           setIsBookingModalOpen(false);
+          loadTestDrives();
           showToast('Đăng ký lái thử xe Demo thành công! Lịch hẹn mới đã được ghi nhận.');
         }}
       />

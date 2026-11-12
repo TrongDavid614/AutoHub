@@ -6,12 +6,13 @@ import {
   AlertCircle,
   Copy,
   MapPin,
-  Download,
   FileCheck2,
   Sparkles,
   RefreshCcw,
   X,
   Building,
+  CreditCard,
+  FileText,
 } from 'lucide-react';
 import type { CarDepositItem, CarDepositStatus } from '@/features/customer/types/car-deposit.types';
 
@@ -23,6 +24,7 @@ interface CarDepositRowCardProps {
   onCopy: (code: string) => void;
   onSelectReceipt: (item: CarDepositItem) => void;
   onRequestRefund: (item: CarDepositItem) => void;
+  onPayDeposit?: (item: CarDepositItem) => void;
 }
 
 export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
@@ -33,6 +35,7 @@ export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
   onCopy,
   onSelectReceipt,
   onRequestRefund,
+  onPayDeposit,
 }) => {
   const renderStatusBadge = (status: CarDepositStatus) => {
     switch (status) {
@@ -146,7 +149,12 @@ export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
               <Sparkles className="w-3 h-3" />
               <span>SUẤT GIỮ XE ĐIỆN 72H LIÊN TỤC</span>
             </div>
-            <h3 className="text-lg font-bold text-text-primary">{item.carModelName}</h3>
+            <h3
+              onClick={() => onSelectReceipt(item)}
+              className="text-lg font-bold text-text-primary hover:text-[#89CEFF] cursor-pointer transition-colors"
+            >
+              {item.carModelName}
+            </h3>
             <p className="text-xs text-text-secondary">{item.carVariant}</p>
             <div className="flex items-center gap-2 pt-1">
               <span
@@ -198,14 +206,26 @@ export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Nút Xem biên nhận cọc điện tử */}
+          {/* Nút Xác nhận đặt cọc nếu chưa thanh toán */}
+          {item.status === 'PENDING_PAYMENT' && onPayDeposit && (
+            <button
+              type="button"
+              onClick={() => onPayDeposit(item)}
+              className="px-4 py-2 rounded-[2px] bg-accent-action hover:bg-accent-primary text-xs font-bold text-accent-contrast flex items-center gap-1.5 cursor-pointer shadow-sm transition-colors"
+            >
+              <CreditCard className="w-3.5 h-3.5 text-accent-contrast" />
+              <span>Xác nhận đặt cọc giữ xe</span>
+            </button>
+          )}
+
+          {/* Nút Xem chi tiết & Biên nhận cọc điện tử */}
           <button
             type="button"
             onClick={() => onSelectReceipt(item)}
-            className="px-3.5 py-2 rounded-[2px] bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight hover:border-accent-primary/50 text-xs font-semibold text-text-primary flex items-center gap-1.5 cursor-pointer transition-colors"
+            className="px-3.5 py-2 rounded-[2px] bg-[#0EA5E9]/15 hover:bg-[#0EA5E9]/25 border border-[#0EA5E9]/30 text-xs font-semibold text-[#89CEFF] flex items-center gap-1.5 cursor-pointer transition-colors"
           >
-            <Download className="w-3.5 h-3.5 text-accent-primary" />
-            <span>Biên nhận điện tử</span>
+            <FileText className="w-3.5 h-3.5 text-[#89CEFF]" />
+            <span>Chi tiết & Biên nhận</span>
           </button>
 
           {/* Nút Xin hoàn cọc (nếu ngân hàng từ chối tín dụng theo BR05 & UC18) */}

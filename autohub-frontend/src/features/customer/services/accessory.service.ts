@@ -1,112 +1,122 @@
 import type { Accessory, AccessoryCategory, AccessoryFilterParams } from '@/types/accessory.types';
-import {
-  MOCK_ACCESSORIES,
-  MOCK_ACCESSORY_CATEGORIES,
-  MOCK_CAR_MODELS,
-  type CarModelInfo,
-} from '../mocks/accessory.mock';
+import { type CarModelInfo } from '../mocks/accessory.mock';
+import { carService } from './car.service';
+
+const API_BASE = 'http://localhost:8080/api';
 
 export const accessoryService = {
   /**
    * Get list of accessories based on filter criteria
    */
   async getAccessories(params?: AccessoryFilterParams): Promise<Accessory[]> {
-    // Simulate real network delay
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    try {
+      const queryParts: string[] = [];
+      if (params?.categoryId) queryParts.push(`categoryId=${params.categoryId}`);
+      if (params?.search) queryParts.push(`search=${encodeURIComponent(params.search)}`);
+      if (params?.minPrice !== undefined) queryParts.push(`minPrice=${params.minPrice}`);
+      if (params?.maxPrice !== undefined) queryParts.push(`maxPrice=${params.maxPrice}`);
 
-    let items = [...MOCK_ACCESSORIES];
-
-    if (!params) return items;
-
-    // Filter by car model
-    if (params.carModelId) {
-      items = items.filter((item) =>
-        item.compatibilities.some((c) => c.carModelId === params.carModelId)
-      );
-    }
-
-    // Filter by category
-    if (params.categoryId) {
-      items = items.filter((item) => item.categoryId === params.categoryId);
-    }
-
-    // Filter by search query
-    if (params.search?.trim()) {
-      const q = params.search.toLowerCase().trim();
-      items = items.filter(
-        (item) =>
-          item.name.toLowerCase().includes(q) ||
-          item.description.toLowerCase().includes(q) ||
-          item.categoryName.toLowerCase().includes(q) ||
-          item.specPills?.some((p) => p.toLowerCase().includes(q))
-      );
-    }
-
-    // Filter by price range
-    if (params.minPrice !== undefined) {
-      items = items.filter((item) => item.price >= (params.minPrice ?? 0));
-    }
-    if (params.maxPrice !== undefined) {
-      items = items.filter((item) => item.price <= (params.maxPrice ?? Infinity));
-    }
-
-    // Filter by stock / delivery
-    if (params.readyInShowroom) {
-      items = items.filter((item) => item.readyInShowroom);
-    }
-    if (params.homeInstallation) {
-      items = items.filter((item) => item.homeInstallation);
-    }
-
-    // Filter by certification / warranty
-    if (params.isGenuine) {
-      items = items.filter((item) => item.isGenuine);
-    }
-    if (params.warrantyYears) {
-      items = items.filter((item) => (item.warrantyYears ?? 0) >= (params.warrantyYears ?? 0));
-    }
-
-    // Sorting
-    if (params.sortBy) {
-      switch (params.sortBy) {
-        case 'price-asc':
-          items.sort((a, b) => a.price - b.price);
-          break;
-        case 'price-desc':
-          items.sort((a, b) => b.price - a.price);
-          break;
-        case 'newest':
-          items.sort((a, b) => b.id - a.id);
-          break;
-        case 'popular':
-        default:
-          items.sort((a, b) => b.stockQuantity - a.stockQuantity);
-          break;
+      const url = `${API_BASE}/customer/accessories${queryParts.length ? '?' + queryParts.join('&') : ''}`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.data && Array.isArray(json.data) && json.data.length > 0) {
+          let items: Accessory[] = json.data;
+          if (params?.carModelId) {
+            items = items.filter((item: any) =>
+              Boolean(item.dungChung) ||
+              Boolean(item.isUniversal) ||
+              item.compatibilities?.some((c: any) => String(c.carModelId) === String(params.carModelId))
+            );
+          }
+          if (params?.sortBy) {
+            switch (params.sortBy) {
+              case 'price-asc':
+                items.sort((a, b) => a.price - b.price);
+                break;
+              case 'price-desc':
+                items.sort((a, b) => b.price - a.price);
+                break;
+              case 'newest':
+                items.sort((a, b) => b.id - a.id);
+                break;
+              case 'popular':
+              default:
+                items.sort((a, b) => (b.stockQuantity || 0) - (a.stockQuantity || 0));
+                break;
+            }
+          }
+          return items;
+        }
       }
+    } catch {
+      // network error
     }
 
-    return items;
+    return [];
   },
 
   /**
    * Get single accessory by ID
    */
   async getAccessoryById(id: number): Promise<Accessory | undefined> {
-    await new Promise((resolve) => setTimeout(resolve, 100));
-    return MOCK_ACCESSORIES.find((item) => item.id === id);
+    try {
+      const res = await fetch(`${API_BASE}/customer/accessories/${id}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.data) {
+          return json.data;
+        }
+      }
+    } catch {
+      // network error
+    }
+    return undefined;
   },
 
   /**
    * Get all categories with counts
    */
   async getCategories(): Promise<AccessoryCategory[]> {
-    return MOCK_ACCESSORY_CATEGORIES;
+    try {
+      const res = await fetch(`${API_BASE}/customer/accessories/categories`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.data && Array.isArray(json.data) && json.data.length > 0) {
+          return json.data.map((c: any) => ({
+            id: c.id,
+            categoryName: c.categoryName || c.tenDanhMuc || c.name || 'Phụ kiện',
+            slug: c.slug || (c.id === 1 ? 'charging-energy' : c.id === 2 ? 'camera-sensors' : c.id === 3 ? 'window-films' : 'floor-mats'),
+            count: c.count || 3,
+          }));
+        }
+      }
+    } catch {
+      // network error
+    }
+    return [];
   },
 
   /**
-   * Get all compatible car models
+   * Get all compatible car models from database
    */
   async getCarModels(): Promise<CarModelInfo[]> {
-    return MOCK_CAR_MODELS;
+    try {
+      const cars = await carService.getAllCars();
+      if (cars && cars.length > 0) {
+        return cars.map((c) => ({
+          id: Number(c.id),
+          name: c.name,
+          yearRange: '2024 – 2026',
+          architecture: c.powertrain || '800V ARCHITECTURE',
+          thumbnailUrl: c.image,
+          accessoryCount: 6,
+        }));
+      }
+    } catch {
+      // network error
+    }
+    return [];
   },
 };
+

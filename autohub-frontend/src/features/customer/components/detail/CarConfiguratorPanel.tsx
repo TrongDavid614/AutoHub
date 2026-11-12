@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import type { TrimType } from '../../hooks/useCarDetail';
 import { EXTERIOR_COLORS } from '../../types/detail.types';
+import type { MockCar } from '../../mocks/car.mock';
 
 interface CarConfiguratorPanelProps {
   activeTrim: TrimType;
@@ -23,6 +24,7 @@ interface CarConfiguratorPanelProps {
   activeColor: string;
   onSelectColor: (colorId: string) => void;
   onOpenDeposit?: () => void;
+  car?: MockCar | null;
 }
 
 export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
@@ -31,6 +33,7 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
   activeColor,
   onSelectColor,
   onOpenDeposit,
+  car,
 }) => {
   const navigate = useNavigate();
 
@@ -89,10 +92,10 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
         {/* Title & Subtitle */}
         <div className="space-y-1">
           <h1 className="text-xl md:text-2xl font-bold text-text-primary tracking-tight">
-            AutoHub GT-e Grand Touring
+            {car?.name || 'AutoHub GT-e Grand Touring'}
           </h1>
           <p className="text-sm text-text-muted leading-relaxed mt-0.5">
-            Sự giao thoa hoàn mỹ giữa sức mạnh siêu xe và đẳng cấp công nghệ di chuyển bền vững kiến trúc 800V SiC.
+            {car?.subtitle || 'Sự giao thoa hoàn mỹ giữa sức mạnh siêu xe và đẳng cấp công nghệ di chuyển bền vững kiến trúc 800V SiC.'}
           </p>
         </div>
 
@@ -106,14 +109,14 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
           <div className="flex items-baseline justify-between gap-2">
             <div className="flex items-baseline gap-1.5">
               <span className="text-2xl sm:text-3xl font-black font-mono text-accent-primary">
-                {selectedTrimObj.priceNum.toLocaleString('vi-VN')}
+                {(car?.listedPrice || selectedTrimObj.priceNum).toLocaleString('vi-VN')}
               </span>
               <span className="text-xs font-mono font-bold text-text-muted">VNĐ</span>
             </div>
 
             <button
               type="button"
-              onClick={() => navigate('/car-estimator')}
+              onClick={() => navigate(car?.id ? `/car-estimator?carId=${car.id}` : '/car-estimator')}
               className="inline-flex items-center gap-1 text-xs text-accent-primary hover:underline font-semibold cursor-pointer"
             >
               <Calculator className="w-3.5 h-3.5" />
@@ -127,7 +130,7 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs font-bold text-accent-primary">
               <ShieldCheck className="w-4 h-4 text-accent-primary" />
-              <span>Mức tiền cọc cố định: 20.000.000 VNĐ</span>
+              <span>Mức tiền cọc cố định: {(car?.depositAmount || 20000000).toLocaleString('vi-VN')} VNĐ</span>
             </div>
             <span className="px-2 py-0.5 rounded-[2px] bg-accent-action text-[10px] font-mono text-accent-contrast font-bold">
               QUY CHẾ BR05
@@ -298,7 +301,7 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
 
         <button
           type="button"
-          onClick={() => navigate('/test-drive')}
+          onClick={() => navigate(car?.id ? `/test-drive?carId=${car.id}` : '/test-drive')}
           className="w-full py-3.5 px-6 rounded-lg bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight hover:border-accent-primary/50 text-text-primary hover:text-accent-primary font-bold text-xs tracking-wider uppercase flex items-center justify-center gap-2 transition-all cursor-pointer"
         >
           <Calendar className="w-4 h-4 text-accent-primary" />

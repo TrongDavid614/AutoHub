@@ -15,7 +15,8 @@ import {
   FileCheck2,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
-import { MOCK_CARS } from '@/features/customer/mocks/car.mock';
+import { carService } from '@/features/customer/services/car.service';
+import type { MockCar } from '@/features/customer/mocks/car.mock';
 import { formatCurrencyVND } from '@/lib/utils';
 import { Footer } from '@/components/Footer';
 
@@ -24,6 +25,19 @@ export function Scene() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [videoReady, setVideoReady] = useState(false);
   const [clickedFeatureId, setClickedFeatureId] = useState<string | null>(null);
+  const [featuredCars, setFeaturedCars] = useState<MockCar[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    carService.getAllCars().then((data) => {
+      if (isMounted && data) {
+        setFeaturedCars(data);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Video Autoplay and tab focus watchdog
   useEffect(() => {
@@ -415,7 +429,7 @@ export function Scene() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {MOCK_CARS.slice(0, 3).map((car) => (
+          {featuredCars.slice(0, 3).map((car) => (
             <div
               key={car.id}
               className="group bg-[#0B1326]/65 backdrop-blur-xl border border-white/10 hover:border-[#89CEFF]/60 rounded-2xl overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all duration-300 flex flex-col justify-between hover:-translate-y-1.5"

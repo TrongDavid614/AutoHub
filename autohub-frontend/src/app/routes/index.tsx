@@ -31,6 +31,7 @@ import {
   AdminStaffLoginPage,
   AdminLoginPage,
   AiConsultantPage,
+  VNPayReturnPage,
   Scene,
 } from '@/features/customer';
 
@@ -104,6 +105,11 @@ export const router = createBrowserRouter([
       { path: 'checkout', element: <CheckoutPage /> },
       { path: 'checkout/success', element: <OrderSuccessPage /> },
       { path: 'order-success', element: <OrderSuccessPage /> },
+      { path: 'payment/vnpay-return', element: <VNPayReturnPage /> },
+      { path: 'payment/return', element: <VNPayReturnPage /> },
+      { path: 'portal/deposits', element: <Navigate to="/customer/deposits" replace /> },
+      { path: 'portal/*', element: <Navigate to="/customer/profile" replace /> },
+      { path: 'deposits', element: <Navigate to="/customer/deposits" replace /> },
       { path: 'deposit/:variantId', element: <CarDepositPage /> },
       { path: 'test-drive', element: <TestDriveCanvasPage /> },
       { path: 'auth/login', element: <LoginPage /> },
@@ -137,6 +143,7 @@ export const router = createBrowserRouter([
           { path: 'addresses', element: <AddressBookPage /> },
           { path: 'test-drives', element: <TestDriveBookingPage /> },
           { path: 'deposits', element: <CarDepositPage /> },
+          { path: 'deposits/:id', element: <CarDepositPage /> },
           { path: 'orders', element: <CustomerOrderListPage /> },
         ],
       },

@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/store/useAuthStore';
 import { useCheckoutFlow } from '@/features/customer/hooks/useCheckoutFlow';
 import { StepAddressSelection } from '@/features/customer/components/StepAddressSelection';
 import { StepShippingMethod } from '@/features/customer/components/StepShippingMethod';
@@ -8,6 +10,9 @@ import { CheckoutSuccessModal } from '@/features/customer/components/CheckoutSuc
 import { AddressEditModal } from '@/features/customer/components/AddressEditModal';
 
 export const CheckoutPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuthStore();
+
   const {
     addresses,
     setAddresses,
@@ -39,6 +44,24 @@ export const CheckoutPage: React.FC = () => {
   } = useCheckoutFlow();
 
   const [isAddAddressModalOpen, setIsAddAddressModalOpen] = useState(false);
+
+  // AUTH GUARD: Bắt buộc đăng nhập trước khi checkout
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login?redirect=/checkout');
+    }
+  }, [isAuthenticated, navigate]);
+
+  if (!isAuthenticated) {
+    return (
+      <div className="w-full bg-[#060E20] text-[#DAE2FD] min-h-screen flex items-center justify-center p-4">
+        <div className="text-center space-y-3">
+          <div className="w-10 h-10 border-2 border-[#89CEFF] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-sm text-[#88929B]">Đang chuyển hướng tới trang Đăng nhập...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-[#060E20] text-[#DAE2FD] min-h-screen py-8 px-4 md:px-8">
