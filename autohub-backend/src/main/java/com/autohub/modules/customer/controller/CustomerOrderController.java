@@ -106,6 +106,20 @@ public class CustomerOrderController {
         return ResponseEntity.ok(ApiResponse.ok(mapOrderToDto(order, items), "Gửi yêu cầu đổi trả thành công!"));
     }
 
+    @PostMapping("/{id}/delivered")
+    @Transactional
+    public ResponseEntity<ApiResponse<Map<String, Object>>> confirmDelivered(@PathVariable Long id) {
+        DonHangPhuKien order = donHangRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng ID: " + id));
+
+        order.setTrangThai(TrangThaiDonHang.DELIVERED);
+        order.setNgayGiaoHang(LocalDateTime.now());
+        donHangRepository.save(order);
+
+        List<ChiTietDonHang> items = chiTietDonHangRepository.findByDonHangId(id);
+        return ResponseEntity.ok(ApiResponse.ok(mapOrderToDto(order, items), "Xác nhận đã nhận hàng thành công!"));
+    }
+
     @Getter
     @Setter
     public static class ReviewItemDto {
@@ -209,7 +223,7 @@ public class CustomerOrderController {
         private List<CheckoutItemDto> items;
     }
 
-    @PostMapping
+    @PostMapping({"", "/checkout"})
     @Transactional
     public ResponseEntity<ApiResponse<Map<String, Object>>> createOrder(
             HttpServletRequest servletRequest,
