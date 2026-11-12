@@ -1,12 +1,21 @@
 import { axiosClient } from '@/lib/axios';
 import { API_CONFIG } from '@/config/api.config';
 import type { ApiResponse } from '@/types/api.types';
-import type { AiChatMessage } from '@/types/ai.types';
+import type { AiChatMessage, AiModelOption } from '@/types/ai.types';
 import { INITIAL_AI_CHAT_MESSAGES } from '../mocks/ai-consultant.mock';
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK !== 'false';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const MOCK_MODELS: AiModelOption[] = [
+  { id: 'liquid/lfm-3-1.7b:free', name: 'Liquid LFM 3 1.7B (Free)', provider: 'Liquid AI', isFree: true, active: true },
+  { id: 'google/gemma-4-31b-it:free', name: 'Google Gemma 4 31B (Free)', provider: 'Google', isFree: true, active: false },
+  { id: 'nvidia/nemotron-3.5-super-vl:free', name: 'NVIDIA Nemotron 3.5 (Free)', provider: 'NVIDIA', isFree: true, active: false },
+  { id: 'google/gemini-2.0-flash-001', name: 'Google Gemini 2.0 Flash', provider: 'Google Cloud', isFree: false, active: false },
+  { id: 'openai/gpt-4o-mini', name: 'OpenAI GPT-4o Mini', provider: 'OpenAI', isFree: false, active: false },
+  { id: 'deepseek/deepseek-chat', name: 'DeepSeek V3', provider: 'DeepSeek', isFree: false, active: false },
+];
 
 export const aiConsultantService = {
   getInitialMessages: async (): Promise<AiChatMessage[]> => {
@@ -21,7 +30,36 @@ export const aiConsultantService = {
     return response.data;
   },
 
-  sendMessage: async (userPrompt: string): Promise<AiChatMessage> => {
+  getModels: async (): Promise<AiModelOption[]> => {
+    if (USE_MOCK) {
+      await delay(200);
+      return [...MOCK_MODELS];
+    }
+
+    const response = await axiosClient.get<unknown, ApiResponse<AiModelOption[]>>(
+      `${API_CONFIG.BASE_URL}/ai/models`
+    );
+    return response.data;
+  },
+
+  switchModel: async (modelId: string): Promise<AiModelOption> => {
+    if (USE_MOCK) {
+      await delay(200);
+      const target = MOCK_MODELS.find((m) => m.id === modelId);
+      MOCK_MODELS.forEach((m) => {
+        m.active = m.id === modelId;
+      });
+      return target || MOCK_MODELS[0];
+    }
+
+    const response = await axiosClient.post<unknown, ApiResponse<AiModelOption>>(
+      `${API_CONFIG.BASE_URL}/ai/models/switch`,
+      { modelId }
+    );
+    return response.data;
+  },
+
+  sendMessage: async (userPrompt: string, model?: string): Promise<AiChatMessage> => {
     if (USE_MOCK) {
       await delay(800);
 
@@ -35,9 +73,10 @@ export const aiConsultantService = {
         return {
           id: `msg-${Date.now()}`,
           sender: 'AI',
-          senderTitle: 'AutoHub Gemini AI',
+          senderTitle: 'AutoHub AI (OpenRouter)',
           timestamp,
           content: '',
+          currentModel: model || 'liquid/lfm-3-1.7b:free',
           functionCall: {
             querySegment: 'So sánh cấu hình Track Edition vs Grand Touring',
             priceRange: '2.89 - 3.25 Tỷ VNĐ',
@@ -57,9 +96,10 @@ export const aiConsultantService = {
       return {
         id: `msg-${Date.now()}`,
         sender: 'AI',
-        senderTitle: 'AutoHub Gemini AI',
+        senderTitle: 'AutoHub AI (OpenRouter)',
         timestamp,
-        content: `Cảm ơn quý khách đã hỏi: "${userPrompt}". Trợ lý AI AutoHub (sử dụng Gemini API kết hợp Vector Database RAG) đã truy vấn thông số thời gian thực từ showroom và kho xe để cung cấp giải pháp tối ưu nhất cho quý khách. Quý khách có thể lựa chọn lái thử trực tiếp hoặc đặt cọc giữ chỗ 72 giờ qua cổng SePay ngay bên dưới.`,
+        content: `Cảm ơn quý khách đã hỏi: "${userPrompt}". Trợ lý AI AutoHub (kết nối trực tiếp qua OpenRouter AI Proxy) đã truy vấn thông số thời gian thực từ showroom và kho xe để cung cấp giải pháp tối ưu nhất cho quý khách. Quý khách có thể lựa chọn lái thử trực tiếp hoặc đặt cọc giữ chỗ 72 giờ qua cổng SePay ngay bên dưới.`,
+        currentModel: model || 'liquid/lfm-3-1.7b:free',
         suggestedPrompts: [
           'Dự toán chi phí lăn bánh tại Hà Nội',
           'Tư vấn chính sách vay trả góp 80%',
@@ -70,7 +110,7 @@ export const aiConsultantService = {
 
     const response = await axiosClient.post<unknown, ApiResponse<AiChatMessage>>(
       `${API_CONFIG.BASE_URL}/ai/chat`,
-      { prompt: userPrompt }
+      { prompt: userPrompt, model }
     );
     return response.data;
   },

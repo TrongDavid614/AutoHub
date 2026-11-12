@@ -1,33 +1,62 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { AiChatMessage } from '@/types/ai.types';
+import type { AiChatMessage, AiModelOption } from '@/types/ai.types';
 import { aiConsultantService } from '../services/ai-consultant.service';
 
 export interface UseAiConsultantResult {
   messages: AiChatMessage[];
+  models: AiModelOption[];
+  selectedModel: string;
   isLoading: boolean;
   isSending: boolean;
   error: string | null;
   sendMessage: (promptText: string) => Promise<void>;
+  changeModel: (modelId: string) => Promise<void>;
   refetch: () => Promise<void>;
 }
 
 export const useAiConsultant = (): UseAiConsultantResult => {
   const [messages, setMessages] = useState<AiChatMessage[]>([]);
+  const [models, setModels] = useState<AiModelOption[]>([]);
+  const [selectedModel, setSelectedModel] = useState<string>('liquid/lfm-3-1.7b:free');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSending, setIsSending] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchHistory = useCallback(async () => {
+  const fetchHistoryAndModels = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await aiConsultantService.getInitialMessages();
-      setMessages(data);
+      const [messagesData, modelsData] = await Promise.all([
+        aiConsultantService.getInitialMessages(),
+        aiConsultantService.getModels(),
+      ]);
+      setMessages(messagesData);
+      setModels(modelsData);
+      const activeOne = modelsData.find((m) => m.active);
+      if (activeOne) {
+        setSelectedModel(activeOne.id);
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Không thể kết nối đến Trợ lý ảo AI';
       setError(msg);
     } finally {
       setIsLoading(false);
+    }
+  }, []);
+
+  const changeModel = useCallback(async (modelId: string) => {
+    try {
+      await aiConsultantService.switchModel(modelId);
+      setSelectedModel(modelId);
+      setModels((prev) =>
+        prev.map((m) => ({
+          ...m,
+          active: m.id === modelId,
+        }))
+      );
+    } catch (err: unknown) {
+      console.error('Không thể chuyển đổi model:', err);
+      setSelectedModel(modelId);
     }
   }, []);
 
@@ -53,7 +82,7 @@ export const useAiConsultant = (): UseAiConsultantResult => {
       setIsSending(true);
 
       try {
-        const aiReply = await aiConsultantService.sendMessage(promptText);
+        const aiReply = await aiConsultantService.sendMessage(promptText, selectedModel);
         setMessages((prev) => [...prev, aiReply]);
       } catch (err: unknown) {
         const errorMsg = err instanceof Error ? err.message : 'Lỗi khi gửi yêu cầu đến AI';
@@ -64,46 +93,29 @@ export const useAiConsultant = (): UseAiConsultantResult => {
             sender: 'AI',
             senderTitle: 'AutoHub AI',
             timestamp: userTime,
-            content: `Xin lỗi quý khách, hệ thống ghi nhận lỗi: ${errorMsg}. Vui lòng thử lại sau giây lát.`,
+            content: `Xin lỗi quý khách, hệ thống ghi nhận lỗi: ${errorMsg}. Vui lòng thử lại sau giây lát hoặc đổi Model OpenRouter khác.`,
           },
         ]);
       } finally {
         setIsSending(false);
       }
     },
-    []
+    [selectedModel]
   );
 
   useEffect(() => {
-    let isMounted = true;
-
-    aiConsultantService
-      .getInitialMessages()
-      .then((data) => {
-        if (isMounted) {
-          setMessages(data);
-          setIsLoading(false);
-        }
-      })
-      .catch((err: unknown) => {
-        if (isMounted) {
-          const msg = err instanceof Error ? err.message : 'Không thể kết nối đến Trợ lý ảo AI';
-          setError(msg);
-          setIsLoading(false);
-        }
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+    void fetchHistoryAndModels();
+  }, [fetchHistoryAndModels]);
 
   return {
     messages,
+    models,
+    selectedModel,
     isLoading,
     isSending,
     error,
     sendMessage,
-    refetch: fetchHistory,
+    changeModel,
+    refetch: fetchHistoryAndModels,
   };
 };

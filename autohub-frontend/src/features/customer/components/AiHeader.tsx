@@ -1,7 +1,34 @@
-import React from 'react';
-import { Bot, Cpu, Zap, ShieldCheck, SlidersHorizontal } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Bot, Cpu, Zap, ShieldCheck, SlidersHorizontal, ChevronDown, Check, Sparkles } from 'lucide-react';
+import type { AiModelOption } from '@/types/ai.types';
 
-export const AiHeader: React.FC = () => {
+export interface AiHeaderProps {
+  models?: AiModelOption[];
+  selectedModel?: string;
+  onSelectModel?: (modelId: string) => void;
+}
+
+export const AiHeader: React.FC<AiHeaderProps> = ({
+  models = [],
+  selectedModel = 'liquid/lfm-3-1.7b:free',
+  onSelectModel,
+}) => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const activeModelObj = models.find((m) => m.id === selectedModel);
+  const currentModelName = activeModelObj ? activeModelObj.name : selectedModel;
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
     <div className="relative w-full rounded-lg bg-[#131B2E] border border-[#3E4850]/50 shadow-2xl p-6 lg:p-7 overflow-hidden">
       {/* Top ambient gradient glow bar */}
@@ -21,14 +48,64 @@ export const AiHeader: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-lg font-semibold text-[#DAE2FD] tracking-tight">
-                  AutoHub Gemini AI
+                  AutoHub AI Consultant
                 </span>
-                <span className="px-2 py-0.5 rounded-[2px] bg-[#2D3449] text-[#89CEFF] font-mono text-[10px] font-bold tracking-[1.5px] uppercase">
-                  GEMINI 1.5 PRO
-                </span>
+
+                {/* Model Selector Pill / Dropdown */}
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setIsDropdownOpen((prev) => !prev)}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[3px] bg-[#222A3D] hover:bg-[#2D3449] border border-[#3E4850] text-[#89CEFF] font-mono text-[11px] font-bold tracking-[0.5px] transition-colors cursor-pointer"
+                    title="Bấm để chuyển đổi Model OpenRouter"
+                  >
+                    <Sparkles className="w-3 h-3 text-[#89CEFF]" />
+                    <span className="max-w-[180px] truncate">{currentModelName}</span>
+                    <ChevronDown className="w-3 h-3 text-[#89CEFF]/70" />
+                  </button>
+
+                  {isDropdownOpen && (
+                    <div className="absolute left-0 mt-2 w-72 rounded-md bg-[#171F33] border border-[#3E4850] shadow-2xl py-2 z-50">
+                      <div className="px-3 py-1.5 text-[10px] font-mono uppercase text-[#88929B] font-semibold border-b border-[#3E4850]/40">
+                        Chọn Model OpenRouter
+                      </div>
+                      <div className="max-h-60 overflow-y-auto py-1">
+                        {models.map((m) => {
+                          const isSelected = m.id === selectedModel;
+                          return (
+                            <button
+                              key={m.id}
+                              type="button"
+                              onClick={() => {
+                                onSelectModel?.(m.id);
+                                setIsDropdownOpen(false);
+                              }}
+                              className={`w-full text-left px-3 py-2 flex items-center justify-between text-xs transition-colors hover:bg-[#222A3D] cursor-pointer ${
+                                isSelected ? 'bg-[#222A3D] text-[#89CEFF] font-semibold' : 'text-[#BEC8D2]'
+                              }`}
+                            >
+                              <div className="flex flex-col gap-0.5">
+                                <span>{m.name}</span>
+                                <div className="flex items-center gap-1.5 text-[10px] text-[#88929B]">
+                                  <span>{m.provider}</span>
+                                  {m.isFree && (
+                                    <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono text-[9px]">
+                                      Miễn phí
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              {isSelected && <Check className="w-3.5 h-3.5 text-[#89CEFF]" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-              <p className="font-mono text-[10px] font-bold text-[#88929B] tracking-[1.5px] uppercase">
-                GOOGLE GEMINI API & VECTOR DB RAG
+              <p className="font-mono text-[10px] font-bold text-[#88929B] tracking-[1.5px] uppercase mt-0.5">
+                OPENROUTER PROXY & SHOWROOM RAG ENGINE
               </p>
             </div>
           </div>

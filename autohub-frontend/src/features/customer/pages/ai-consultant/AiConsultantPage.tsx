@@ -6,7 +6,17 @@ import { AiMessageItem } from '@/features/customer/components/AiMessageItem';
 import { AiChatInput } from '@/features/customer/components/AiChatInput';
 
 export const AiConsultantPage: React.FC = () => {
-  const { messages, isLoading, isSending, error, sendMessage, refetch } = useAiConsultant();
+  const {
+    messages,
+    models,
+    selectedModel,
+    changeModel,
+    isLoading,
+    isSending,
+    error,
+    sendMessage,
+    refetch,
+  } = useAiConsultant();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
 
@@ -29,7 +39,11 @@ export const AiConsultantPage: React.FC = () => {
 
       <div className="max-w-[1040px] w-full mx-auto space-y-7 relative z-10 flex-1 flex flex-col">
         {/* Top Assistant Header Section */}
-        <AiHeader />
+        <AiHeader
+          models={models}
+          selectedModel={selectedModel}
+          onSelectModel={(id) => void changeModel(id)}
+        />
 
         {/* 1. LOADING STATE */}
         {isLoading && (
