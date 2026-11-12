@@ -1,14 +1,17 @@
 import { axiosClient } from '@/lib/axios';
 import type { ApiResponse } from '@/types/api.types';
 import type {
+  AvailableVinOption,
   ConsultationLead,
-  StaffDepositRecord,
-  StaffRefundDocket,
-  StaffTestDriveBooking,
-  StaffFulfillmentOrder,
-  StaffReturnItem,
-  DemoFleetCar,
   CrossBranchStock,
+  DemoCarOption,
+  DemoFleetCar,
+  StaffDepositRecord,
+  StaffFulfillmentOrder,
+  StaffRefundDocket,
+  StaffReturnItem,
+  StaffTestDriveBooking,
+  WorkspaceMetricsResponse,
 } from '@/types/staff.types';
 
 export const staffService = {
@@ -35,6 +38,12 @@ export const staffService = {
   async getStaffDeposits(): Promise<StaffDepositRecord[]> {
     const res = await axiosClient.get<ApiResponse<StaffDepositRecord[]>>('/staff/deposits');
     const apiRes = res as unknown as ApiResponse<StaffDepositRecord[]>;
+    return apiRes.data || [];
+  },
+
+  async getAvailableVins(): Promise<AvailableVinOption[]> {
+    const res = await axiosClient.get<ApiResponse<AvailableVinOption[]>>('/staff/deposits/available-vins');
+    const apiRes = res as unknown as ApiResponse<AvailableVinOption[]>;
     return apiRes.data || [];
   },
 
@@ -65,10 +74,22 @@ export const staffService = {
     return apiRes.data;
   },
 
+  async rejectRefundDocket(id: string, reason: string): Promise<string> {
+    const res = await axiosClient.post<ApiResponse<string>>(`/staff/refunds/${id}/reject`, { reason });
+    const apiRes = res as unknown as ApiResponse<string>;
+    return apiRes.data;
+  },
+
   // 4. Quản lý lịch hẹn lái thử (UC21)
   async getTestDriveBookings(): Promise<StaffTestDriveBooking[]> {
     const res = await axiosClient.get<ApiResponse<StaffTestDriveBooking[]>>('/staff/test-drives');
     const apiRes = res as unknown as ApiResponse<StaffTestDriveBooking[]>;
+    return apiRes.data || [];
+  },
+
+  async getAvailableDemoCars(): Promise<DemoCarOption[]> {
+    const res = await axiosClient.get<ApiResponse<DemoCarOption[]>>('/staff/test-drives/demo-cars');
+    const apiRes = res as unknown as ApiResponse<DemoCarOption[]>;
     return apiRes.data || [];
   },
 
@@ -149,10 +170,10 @@ export const staffService = {
   },
 
   // 8. Workspace Metrics & Chỉ số Mini-Chart
-  async getWorkspaceMetrics(): Promise<Record<string, unknown>> {
-    const res = await axiosClient.get<ApiResponse<Record<string, unknown>>>('/staff/workspace');
-    const apiRes = res as unknown as ApiResponse<Record<string, unknown>>;
-    return apiRes.data || {};
+  async getWorkspaceMetrics(): Promise<WorkspaceMetricsResponse> {
+    const res = await axiosClient.get<ApiResponse<WorkspaceMetricsResponse>>('/staff/workspace');
+    const apiRes = res as unknown as ApiResponse<WorkspaceMetricsResponse>;
+    return apiRes.data;
   },
 
   // 9. Tra cứu tồn kho & Điều chuyển chi nhánh (UC23 / F21)

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, Link, useLocation } from 'react-router-dom';
 import {
   Briefcase,
@@ -25,6 +25,8 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { Logo } from '@/components/Logo';
 import { cn } from '@/lib/utils';
 import { AdminThemeProvider, useAdminTheme } from '@/context/AdminThemeContext';
+import { staffService } from '@/features/staff-operations/services/staff.service';
+import type { WorkspaceMetricsResponse } from '@/types/staff.types';
 
 interface StaffNavItem {
   to: string;
@@ -54,6 +56,24 @@ const StaffLayoutContent: React.FC = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [workspaceData, setWorkspaceData] = useState<WorkspaceMetricsResponse | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    staffService
+      .getWorkspaceMetrics()
+      .then((res) => {
+        if (isMounted) setWorkspaceData(res);
+      })
+      .catch(() => {
+        // Keep sidebar clean without fake fallback numbers on error
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [pathname]);
+
+  const counts = workspaceData?.sidebarCounts;
 
   const handleScroll = (e: React.UIEvent<HTMLElement>) => {
     const top = e.currentTarget.scrollTop;
@@ -64,7 +84,7 @@ const StaffLayoutContent: React.FC = () => {
     }
   };
 
-  // 4 Core Groups according to marmelab/shadcn-admin-kit & MoTa_GiaoDien_Admin_Staff_ShadcnAdminKit
+  // 4 Core Groups synced dynamically with live SQL Server counts
   const navigationGroups: StaffNavGroup[] = useMemo(
     () => [
       {
@@ -83,7 +103,7 @@ const StaffLayoutContent: React.FC = () => {
             code: 'STF-02',
             label: 'Tiếp Nhận Tư Vấn',
             icon: MessageSquare,
-            badge: { text: '6 Lead', variant: 'warning' },
+            badge: counts ? { text: `${counts.totalLeads} Lead`, variant: 'warning' } : undefined,
           },
         ],
       },
@@ -96,20 +116,24 @@ const StaffLayoutContent: React.FC = () => {
             code: 'STF-03',
             label: 'Điều Phối Lái Thử',
             icon: CalendarClock,
-            badge: { text: '4 Lịch', variant: 'success' },
+            badge: counts ? { text: `${counts.totalTestDrives} Lịch`, variant: 'success' } : undefined,
           },
           {
             to: '/staff/deposit-audit',
             code: 'STF-04',
             label: 'Đối Soát Cọc & Gán VIN',
             icon: ShieldCheck,
-            badge: { text: '3 Phiếu', variant: 'danger' },
+            badge: counts ? { text: `${counts.totalDeposits} Phiếu`, variant: 'danger' } : undefined,
           },
           {
             to: '/staff/refund-dockets',
             code: 'STF-05',
             label: 'Thẩm Định Hoàn Cọc',
             icon: FileText,
+            badge:
+              counts && counts.pendingRefunds > 0
+                ? { text: `${counts.pendingRefunds} Chờ`, variant: 'warning' }
+                : undefined,
           },
         ],
       },
@@ -122,7 +146,10 @@ const StaffLayoutContent: React.FC = () => {
             code: 'STF-06',
             label: 'Đóng Gói Xuất Kho',
             icon: Package,
-            badge: { text: '8 Đơn', variant: 'warning' },
+            badge:
+              counts && typeof counts.pendingOrders === 'number'
+                ? { text: `${counts.pendingOrders} Đơn`, variant: 'warning' }
+                : undefined,
           },
           {
             to: '/staff/returns',
@@ -157,7 +184,7 @@ const StaffLayoutContent: React.FC = () => {
         ],
       },
     ],
-    []
+    [counts]
   );
 
   return (
@@ -407,9 +434,11 @@ const StaffLayoutContent: React.FC = () => {
                 title="Thông báo nhiệm vụ ca trực"
               >
                 <Bell className="w-4 h-4" />
-                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white font-mono text-[9px] font-bold flex items-center justify-center animate-pulse">
-                  4
-                </span>
+                {((counts?.pendingLeads || 0) + (counts?.activeDeposits || 0)) > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white font-mono text-[9px] font-bold flex items-center justify-center animate-pulse">
+                    {(counts?.pendingLeads || 0) + (counts?.activeDeposits || 0)}
+                  </span>
+                )}
               </button>
 
               {/* Notification Popover */}
@@ -427,17 +456,32 @@ const StaffLayoutContent: React.FC = () => {
                       <Clock className="w-3.5 h-3.5 text-amber-500" />
                       Nhiệm Vụ Ca Trực Cần Xử Lý
                     </span>
-                    <span className="text-[10px] font-mono text-red-500 font-bold">4 MỤC</span>
+                    <span className="text-[10px] font-mono text-red-500 font-bold">
+                      {(workspaceData?.urgentDeposits.length || 0) + (workspaceData?.todayTimeline.length || 0)} MỤC
+                    </span>
                   </div>
-                  <div className="space-y-2">
-                    <div className={cn('p-2.5 rounded-lg border', isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40' : 'bg-slate-50 border-slate-200')}>
-                      <div className="font-semibold text-blue-500">Phiếu cọc #DEP-8835 sắp hết 72h</div>
-                      <div className={cn('text-[11px]', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>Còn 6 tiếng đếm ngược, cần gán số VIN</div>
-                    </div>
-                    <div className={cn('p-2.5 rounded-lg border', isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40' : 'bg-slate-50 border-slate-200')}>
-                      <div className="font-semibold text-emerald-500">Lịch lái thử 09:30 sáng nay</div>
-                      <div className={cn('text-[11px]', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>Khách Trần Hoàng Nam - VinFast VF8</div>
-                    </div>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {(workspaceData?.urgentDeposits || []).slice(0, 2).map((dep) => (
+                      <div key={dep.id} className={cn('p-2.5 rounded-lg border', isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40' : 'bg-slate-50 border-slate-200')}>
+                        <div className="font-semibold text-blue-500">Phiếu cọc {dep.depositCode}</div>
+                        <div className={cn('text-[11px]', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
+                          {dep.customerName} • {dep.assignedVin ? `VIN: ${dep.assignedVin}` : 'Chưa gán VIN'}
+                        </div>
+                      </div>
+                    ))}
+                    {(workspaceData?.todayTimeline || []).slice(0, 2).map((slot) => (
+                      <div key={slot.id} className={cn('p-2.5 rounded-lg border', isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40' : 'bg-slate-50 border-slate-200')}>
+                        <div className="font-semibold text-emerald-500">Lái thử {slot.timeSlot}</div>
+                        <div className={cn('text-[11px]', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
+                          Khách {slot.customerName} • {slot.carModel}
+                        </div>
+                      </div>
+                    ))}
+                    {(!workspaceData || (workspaceData.urgentDeposits.length === 0 && workspaceData.todayTimeline.length === 0)) && (
+                      <div className="text-[11px] text-slate-400 text-center py-2">
+                        Chưa có nhiệm vụ mới trong cơ sở dữ liệu.
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

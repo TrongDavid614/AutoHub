@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
 import { staffService } from '@/features/staff-operations/services/staff.service';
-import type { StaffTestDriveBooking } from '@/types/staff.types';
+import type { DemoCarOption, StaffTestDriveBooking } from '@/types/staff.types';
 import { cn } from '@/lib/utils';
 
 export const TestDriveSchedulePage: React.FC = () => {
@@ -19,21 +19,33 @@ export const TestDriveSchedulePage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'CONFIRMED' | 'COMPLETED'>('ALL');
   const [bookings, setBookings] = useState<StaffTestDriveBooking[]>([]);
+  const [demoCars, setDemoCars] = useState<DemoCarOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Modals state
   const [dispatchItem, setDispatchItem] = useState<StaffTestDriveBooking | null>(null);
   const [evaluationItem, setEvaluationItem] = useState<StaffTestDriveBooking | null>(null);
-  const [selectedDemoPlate, setSelectedDemoPlate] = useState('51K-992.14');
+  const [selectedDemoPlate, setSelectedDemoPlate] = useState('');
   const [evalRating, setEvalRating] = useState(5);
   const [evalIntent, setEvalIntent] = useState('Rất cao (Dự kiến đặt cọc trong tuần)');
 
   const fetchBookings = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
-      const data = await staffService.getTestDriveBookings();
-      setBookings(data);
+      const [bookingsData, demoCarsData] = await Promise.all([
+        staffService.getTestDriveBookings(),
+        staffService.getAvailableDemoCars(),
+      ]);
+      setBookings(bookingsData);
+      setDemoCars(demoCarsData);
+      if (demoCarsData.length > 0 && !selectedDemoPlate) {
+        setSelectedDemoPlate(demoCarsData[0].bienSo);
+      }
     } catch (err) {
       console.error('Lỗi tải lịch hẹn lái thử từ database:', err);
+      setError('Không thể tải danh sách lịch hẹn lái thử hoặc xe Demo từ SQL Server.');
     } finally {
       setIsLoading(false);
     }
@@ -195,6 +207,17 @@ export const TestDriveSchedulePage: React.FC = () => {
           <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
           <p className="text-xs font-mono text-slate-400">Đang tải lịch hẹn lái thử từ cơ sở dữ liệu...</p>
         </div>
+      ) : error ? (
+        <div className={cn('p-10 text-center rounded-xl border space-y-3', isDarkMode ? 'bg-[#0B1326] border-red-900/50 text-red-300' : 'bg-red-50 border-red-200 text-red-700')}>
+          <p className="text-sm font-semibold">{error}</p>
+          <button
+            type="button"
+            onClick={fetchBookings}
+            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold cursor-pointer"
+          >
+            Thử lại
+          </button>
+        </div>
       ) : filteredBookings.length === 0 ? (
         <div className={cn('p-12 text-center rounded-xl border text-sm font-mono', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 text-slate-400' : 'bg-white border-slate-200 text-slate-500')}>
           Không tìm thấy ca lái thử nào trong cơ sở dữ liệu.
@@ -292,22 +315,31 @@ export const TestDriveSchedulePage: React.FC = () => {
             </div>
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block text-slate-400 font-bold mb-1">Chọn biển số xe Demo sẵn sàng:</label>
-                <select
-                  value={selectedDemoPlate}
-                  onChange={(e) => setSelectedDemoPlate(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border text-xs bg-white dark:bg-[#131B2E] border-slate-200 dark:border-[#3E4850]"
-                >
-                  <option value="51K-992.14">51K-992.14 (GT-e Grand Touring 2026)</option>
-                  <option value="51K-881.23">51K-881.23 (Hyundai SantaFe 2026)</option>
-                  <option value="51K-773.09">51K-773.09 (VinFast VF9 Plus)</option>
-                </select>
+                <label className="block text-slate-400 font-bold mb-1">Chọn biển số xe Demo từ Database:</label>
+                {demoCars.length === 0 ? (
+                  <div className="p-3 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-300 text-xs">
+                    Không có xe Demo nào đang hoạt động trong cơ sở dữ liệu.
+                  </div>
+                ) : (
+                  <select
+                    value={selectedDemoPlate}
+                    onChange={(e) => setSelectedDemoPlate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border text-xs bg-white dark:bg-[#131B2E] border-slate-200 dark:border-[#3E4850]"
+                  >
+                    {demoCars.map((car) => (
+                      <option key={car.id} value={car.bienSo}>
+                        {car.bienSo} ({car.model}{car.showroom ? ` - ${car.showroom}` : ''})
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
+                  disabled={!selectedDemoPlate}
                   onClick={handleConfirmDispatch}
-                  className="px-4 py-2 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                  className="px-4 py-2 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer disabled:opacity-50"
                 >
                   Xác Nhận Xuất Xe Lái Thử
                 </button>

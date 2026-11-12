@@ -8,23 +8,32 @@ import {
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
 import { staffService } from '@/features/staff-operations/services/staff.service';
-import type { StaffDepositRecord } from '@/types/staff.types';
+import type { AvailableVinOption, StaffDepositRecord } from '@/types/staff.types';
 import { cn, formatCurrencyVND } from '@/lib/utils';
 
 export const DepositAuditPage: React.FC = () => {
   const { isDarkMode } = useAdminTheme();
   const [deposits, setDeposits] = useState<StaffDepositRecord[]>([]);
+  const [availableVins, setAvailableVins] = useState<AvailableVinOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [selectedDepositForVin, setSelectedDepositForVin] = useState<StaffDepositRecord | null>(null);
 
-  // Load real deposits from database via API
+  // Load real deposits and physical VINs from database via API
   const fetchDeposits = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
-      const data = await staffService.getStaffDeposits();
-      setDeposits(data);
+      const [depositsData, vinsData] = await Promise.all([
+        staffService.getStaffDeposits(),
+        staffService.getAvailableVins(),
+      ]);
+      setDeposits(depositsData);
+      setAvailableVins(vinsData);
     } catch (err) {
-      console.error('Lỗi nạp dữ liệu phiếu cọc từ database:', err);
+      console.error('Lỗi nạp dữ liệu phiếu cọc hoặc VIN kho từ database:', err);
+      setError('Không thể nạp dữ liệu phiếu cọc và số khung VIN từ SQL Server.');
     } finally {
       setIsLoading(false);
     }
@@ -33,14 +42,6 @@ export const DepositAuditPage: React.FC = () => {
   useEffect(() => {
     fetchDeposits();
   }, []);
-
-  // Available physical VINs in showroom warehouse inventory
-  const availableVins = [
-    { vin: '1FA6P8CF5H5123456', model: 'GT-e Grand Touring 2026', color: 'Xanh Sonic Blue', location: 'Kho Showroom Q.7 (Khu B-04)' },
-    { vin: '1FA6P8CF5H5789012', model: 'GT-e Grand Touring 2026', color: 'Trắng Pearl White', location: 'Kho Showroom Q.7 (Khu B-06)' },
-    { vin: 'VF8AWD20260012991', model: 'VinFast VF8 Plus AWD', color: 'Xanh Deep Ocean', location: 'Kho Showroom Q.7 (Khu A-01)' },
-    { vin: '1FA6P8CF5H5999888', model: 'Hyundai SantaFe Calligraphy', color: 'Đen Phantom', location: 'Kho Showroom Q.7 (Khu C-02)' },
-  ];
 
   // 1-second countdown ticking timer
   useEffect(() => {
@@ -67,13 +68,7 @@ export const DepositAuditPage: React.FC = () => {
     if (!selectedDepositForVin) return;
     try {
       await staffService.assignVinToDeposit(selectedDepositForVin.id, vin);
-      setDeposits((prev) =>
-        prev.map((d) =>
-          d.id === selectedDepositForVin.id
-            ? { ...d, assignedVin: vin, status: 'VIN_ASSIGNED' as const }
-            : d
-        )
-      );
+      await fetchDeposits();
       alert(`Đã gán thành công số khung ${vin} cho khách hàng ${selectedDepositForVin.customerName} và lưu vào database!`);
       setSelectedDepositForVin(null);
     } catch (err) {
@@ -187,6 +182,17 @@ export const DepositAuditPage: React.FC = () => {
         <div className="flex flex-col items-center justify-center p-16 space-y-3">
           <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
           <p className="text-xs font-mono text-slate-400">Đang tải danh sách phiếu cọc từ cơ sở dữ liệu...</p>
+        </div>
+      ) : error ? (
+        <div className={cn('p-10 text-center rounded-xl border space-y-3', isDarkMode ? 'bg-[#0B1326] border-red-900/50 text-red-300' : 'bg-red-50 border-red-200 text-red-700')}>
+          <p className="text-sm font-semibold">{error}</p>
+          <button
+            type="button"
+            onClick={fetchDeposits}
+            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold cursor-pointer"
+          >
+            Thử lại
+          </button>
         </div>
       ) : filteredDeposits.length === 0 ? (
         <div className={cn('p-12 text-center rounded-xl border text-sm font-mono', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 text-slate-400' : 'bg-white border-slate-200 text-slate-500')}>
@@ -318,43 +324,49 @@ export const DepositAuditPage: React.FC = () => {
               </div>
 
               <div className="space-y-2.5 max-h-60 overflow-y-auto">
-                {availableVins.map((item) => (
-                  <div
-                    key={item.vin}
-                    className={cn(
-                      'p-3.5 rounded-xl border space-y-2 transition-all flex flex-col justify-between',
-                      isDarkMode
-                        ? 'bg-[#131B2E] border-[#3E4850]/50 hover:border-blue-500'
-                        : 'bg-white border-slate-200 hover:border-blue-400 shadow-xs'
-                    )}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono font-bold text-xs text-blue-600 dark:text-[#89CEFF]">
-                        VIN: {item.vin}
-                      </span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40 font-bold">
-                        CÓ SẴN
-                      </span>
-                    </div>
+                {availableVins.length === 0 ? (
+                  <div className={cn('p-6 text-center rounded-xl border text-xs font-mono', isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-500')}>
+                    Hiện không còn số khung VIN nào ở trạng thái CO_SAN trong cơ sở dữ liệu.
+                  </div>
+                ) : (
+                  availableVins.map((item) => (
+                    <div
+                      key={item.vin}
+                      className={cn(
+                        'p-3.5 rounded-xl border space-y-2 transition-all flex flex-col justify-between',
+                        isDarkMode
+                          ? 'bg-[#131B2E] border-[#3E4850]/50 hover:border-blue-500'
+                          : 'bg-white border-slate-200 hover:border-blue-400 shadow-xs'
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono font-bold text-xs text-blue-600 dark:text-[#89CEFF]">
+                          VIN: {item.vin}
+                        </span>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40 font-bold">
+                          CÓ SẴN
+                        </span>
+                      </div>
 
-                    <div className="text-xs space-y-0.5">
-                      <div className="font-semibold">{item.model}</div>
-                      <div className={cn('text-[11px]', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-                        Màu: {item.color} • {item.location}
+                      <div className="text-xs space-y-0.5">
+                        <div className="font-semibold">{item.model}</div>
+                        <div className={cn('text-[11px]', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
+                          Màu: {item.color} • {item.location}
+                        </div>
+                      </div>
+
+                      <div className="pt-2 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => handleAssignVin(item.vin)}
+                          className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer shadow-sm"
+                        >
+                          Khóa VIN Này Cho Khách
+                        </button>
                       </div>
                     </div>
-
-                    <div className="pt-2 flex justify-end">
-                      <button
-                        type="button"
-                        onClick={() => handleAssignVin(item.vin)}
-                        className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer shadow-sm"
-                      >
-                        Khóa VIN Này Cho Khách
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </div>

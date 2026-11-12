@@ -7,6 +7,72 @@ export interface StaffKpiStat {
   badgeType: 'success' | 'warning' | 'danger' | 'info';
 }
 
+export interface HourlyTestDriveSlot {
+  slot: string;
+  count: number;
+  max: number;
+  label: string;
+  highlight: boolean;
+}
+
+export interface DepositStatusSegment {
+  label: string;
+  count: number;
+  percent: number;
+  color: string;
+  text: string;
+}
+
+export interface WorkspaceUrgentDeposit {
+  id: string;
+  depositCode: string;
+  customerName: string;
+  customerPhone: string;
+  carModel: string;
+  variant: string;
+  depositAmount: number;
+  remainingSeconds: number;
+  assignedVin?: string | null;
+  status: string;
+}
+
+export interface WorkspaceSidebarCounts {
+  totalLeads: number;
+  pendingLeads: number;
+  totalTestDrives: number;
+  totalDeposits: number;
+  activeDeposits: number;
+  pendingRefunds: number;
+  pendingOrders?: number;
+}
+
+export interface WorkspaceMetricsResponse {
+  kpis: StaffKpiStat[];
+  hourlyTestDrives: HourlyTestDriveSlot[];
+  totalTestDrivesCount: number;
+  depositBreakdown: DepositStatusSegment[];
+  totalDepositsCount: number;
+  todayTimeline: TodayTimelineSlot[];
+  urgentDeposits: WorkspaceUrgentDeposit[];
+  sidebarCounts: WorkspaceSidebarCounts;
+}
+
+export interface AvailableVinOption {
+  id: string;
+  vin: string;
+  model: string;
+  color: string;
+  location: string;
+}
+
+export interface DemoCarOption {
+  id: string;
+  bienSo: string;
+  model: string;
+  showroom: string;
+  trangThai: string;
+}
+
 export interface TodayTimelineSlot {
   id: string;
   carModel: string;
@@ -86,12 +152,15 @@ export interface StaffDepositRecord {
 
 export interface StaffRefundDocket {
   id: string;
+  docketCode?: string;
   depositCode: string;
   customerName: string;
   identityCardNumber: string;
   carModel: string;
   depositAmount: number;
   reason: string;
+  reasonType?: string;
+  rejectionReason?: string | null;
   bankName: string;
   bankAccountNumber: string;
   bankAccountHolder: string;
@@ -103,7 +172,7 @@ export interface StaffRefundDocket {
     validBankLetter: boolean;
     noVatInvoice: boolean;
   };
-  status: 'REFUND_REQUESTED' | 'VERIFIED' | 'APPROVED' | 'REFUNDED' | 'REJECTED';
+  status: 'REFUND_REQUESTED' | 'PENDING' | 'VERIFIED' | 'APPROVED' | 'REFUNDED' | 'REJECTED';
 }
 
 export interface StaffFulfillmentOrder {

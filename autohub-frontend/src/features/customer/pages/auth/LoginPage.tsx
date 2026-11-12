@@ -46,8 +46,17 @@ export const LoginPage: React.FC = () => {
       login(res.accessToken, res.user);
 
       setIsLoading(false);
-      // Chuyển hướng tới trang đích hoặc trang chủ
-      navigate(redirectUrl);
+      // Điều hướng tự động theo vai trò nếu không có tham số redirect cụ thể
+      const explicitRedirect = searchParams.get('redirect');
+      if (explicitRedirect) {
+        navigate(explicitRedirect);
+      } else if (res.user.role === 'ROLE_ADMIN') {
+        navigate('/admin/dashboard');
+      } else if (res.user.role === 'ROLE_STAFF') {
+        navigate('/staff/consultations');
+      } else {
+        navigate('/');
+      }
     } catch {
       setIsLoading(false);
       setErrorMessage('Email hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại.');

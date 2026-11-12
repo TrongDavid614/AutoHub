@@ -6,8 +6,10 @@ import com.autohub.core.engagement.repository.YeuCauTuVanRepository;
 import com.autohub.core.enums.TrangThaiYeuCauTuVan;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @RestController
@@ -18,20 +20,22 @@ public class StaffConsultationController {
     private final YeuCauTuVanRepository consultationRepository;
 
     @GetMapping
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getConsultations() {
         List<YeuCauTuVan> list = consultationRepository.findAll();
         List<Map<String, Object>> result = new ArrayList<>();
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
         for (YeuCauTuVan y : list) {
             Map<String, Object> map = new HashMap<>();
             map.put("id", String.valueOf(y.getId()));
-            map.put("customerName", y.getHoTen() != null ? y.getHoTen() : "Khách hàng");
+            map.put("customerName", y.getHoTen() != null ? y.getHoTen() : "-");
             map.put("phone", y.getSoDienThoai() != null ? y.getSoDienThoai() : "");
             map.put("email", y.getEmail() != null ? y.getEmail() : "");
             map.put("interestedCar", y.getPhienBanXe() != null ? y.getPhienBanXe().getTenPhienBan() : "Chưa chọn dòng xe");
-            map.put("preferredTime", y.getKhungGioTiepNhan() != null ? y.getKhungGioTiepNhan() : "09:00 - 11:30 sáng");
+            map.put("preferredTime", y.getKhungGioTiepNhan() != null ? y.getKhungGioTiepNhan() : "-");
             map.put("notes", y.getNoiDungCanTuVan() != null ? y.getNoiDungCanTuVan() : "");
-            map.put("receivedAt", y.getNgayGui() != null ? y.getNgayGui().toString() : "Hôm nay");
+            map.put("receivedAt", y.getNgayGui() != null ? y.getNgayGui().format(fmt) : "-");
             map.put("status", y.getTrangThai() != null ? y.getTrangThai().name() : "PENDING");
             map.put("callHistory", y.getGhiChuCSKH() != null ? List.of(y.getGhiChuCSKH()) : List.of());
             result.add(map);
@@ -41,6 +45,7 @@ public class StaffConsultationController {
     }
 
     @PutMapping("/{id}/status")
+    @Transactional
     public ResponseEntity<ApiResponse<String>> updateStatus(
             @PathVariable Long id,
             @RequestBody Map<String, String> payload
@@ -59,6 +64,7 @@ public class StaffConsultationController {
     }
 
     @PostMapping("/{id}/notes")
+    @Transactional
     public ResponseEntity<ApiResponse<String>> addNote(
             @PathVariable Long id,
             @RequestBody Map<String, String> payload

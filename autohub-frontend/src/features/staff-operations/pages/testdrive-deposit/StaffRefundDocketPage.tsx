@@ -14,16 +14,20 @@ export const StaffRefundDocketPage: React.FC = () => {
   const { isDarkMode } = useAdminTheme();
   const [dockets, setDockets] = useState<StaffRefundDocket[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'ALL' | 'REFUND_REQUESTED' | 'VERIFIED' | 'REFUNDED' | 'REJECTED'>('ALL');
   const [search, setSearch] = useState('');
   const [selectedDocket, setSelectedDocket] = useState<StaffRefundDocket | null>(null);
 
   const fetchDockets = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
       const data = await staffService.getRefundDockets();
       setDockets(data);
     } catch (err) {
       console.error('Lỗi tải hồ sơ hoàn cọc từ database:', err);
+      setError('Không thể tải danh sách hồ sơ hoàn cọc từ SQL Server.');
     } finally {
       setIsLoading(false);
     }
@@ -34,7 +38,8 @@ export const StaffRefundDocketPage: React.FC = () => {
   }, []);
 
   const filteredDockets = dockets.filter((d) => {
-    const matchTab = activeTab === 'ALL' || d.status === activeTab;
+    const normalizedStatus = d.status === 'PENDING' ? 'REFUND_REQUESTED' : d.status;
+    const matchTab = activeTab === 'ALL' || normalizedStatus === activeTab;
     const matchSearch =
       d.customerName.toLowerCase().includes(search.toLowerCase()) ||
       d.depositCode.toLowerCase().includes(search.toLowerCase()) ||
@@ -44,12 +49,9 @@ export const StaffRefundDocketPage: React.FC = () => {
 
   const handleVerifyDocket = async (id: string) => {
     try {
-      // Extract numeric id if format is REF-DOC-0X
-      const cleanId = id.replace(/\D/g, '') || '1';
+      const cleanId = id.replace(/\D/g, '') || id;
       await staffService.verifyRefundDocket(cleanId);
-      setDockets((prev) =>
-        prev.map((d) => (d.id === id ? { ...d, status: 'VERIFIED' as const } : d))
-      );
+      await fetchDockets();
       alert('Đã hoàn tất biên bản thẩm định đối soát và lưu vào database!');
       setSelectedDocket(null);
     } catch (err) {
@@ -58,13 +60,19 @@ export const StaffRefundDocketPage: React.FC = () => {
     }
   };
 
-  const handleRejectDocket = (id: string) => {
+  const handleRejectDocket = async (id: string) => {
     const reason = prompt('Nhập lý do bác bỏ yêu cầu hoàn cọc:');
-    if (!reason) return;
-    setDockets((prev) =>
-      prev.map((d) => (d.id === id ? { ...d, status: 'REJECTED' as const } : d))
-    );
-    setSelectedDocket(null);
+    if (!reason || !reason.trim()) return;
+    try {
+      const cleanId = id.replace(/\D/g, '') || id;
+      await staffService.rejectRefundDocket(cleanId, reason.trim());
+      await fetchDockets();
+      alert('Đã bác bỏ hồ sơ hoàn cọc và lưu lý do vào database!');
+      setSelectedDocket(null);
+    } catch (err) {
+      console.error('Lỗi bác bỏ hồ sơ hoàn cọc:', err);
+      alert('Không thể bác bỏ hồ sơ hoàn cọc trên máy chủ. Vui lòng thử lại.');
+    }
   };
 
   return (
@@ -127,7 +135,7 @@ export const StaffRefundDocketPage: React.FC = () => {
           />
         </div>
         <div className="flex bg-slate-100 dark:bg-[#131B2E] p-1 rounded-xl border border-slate-200 dark:border-[#3E4850]/40 text-xs">
-          {(['ALL', 'REFUND_REQUESTED', 'VERIFIED', 'REFUNDED'] as const).map((tab) => (
+          {(['ALL', 'REFUND_REQUESTED', 'VERIFIED', 'REFUNDED', 'REJECTED'] as const).map((tab) => (
             <button
               key={tab}
               type="button"
@@ -145,6 +153,7 @@ export const StaffRefundDocketPage: React.FC = () => {
               {tab === 'REFUND_REQUESTED' && 'Chờ Thẩm Định'}
               {tab === 'VERIFIED' && 'Đã Đối Soát'}
               {tab === 'REFUNDED' && 'Đã Hoàn Tiền'}
+              {tab === 'REJECTED' && 'Từ Chối'}
             </button>
           ))}
         </div>
@@ -155,6 +164,17 @@ export const StaffRefundDocketPage: React.FC = () => {
         <div className="flex flex-col items-center justify-center p-16 space-y-3">
           <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
           <p className="text-xs font-mono text-slate-400">Đang tải hồ sơ hoàn cọc từ cơ sở dữ liệu...</p>
+        </div>
+      ) : error ? (
+        <div className={cn('p-10 text-center rounded-xl border space-y-3', isDarkMode ? 'bg-[#0B1326] border-red-900/50 text-red-300' : 'bg-red-50 border-red-200 text-red-700')}>
+          <p className="text-sm font-semibold">{error}</p>
+          <button
+            type="button"
+            onClick={fetchDockets}
+            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold cursor-pointer"
+          >
+            Thử lại
+          </button>
         </div>
       ) : filteredDockets.length === 0 ? (
         <div className={cn('p-12 text-center rounded-xl border text-sm font-mono', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 text-slate-400' : 'bg-white border-slate-200 text-slate-500')}>
@@ -179,12 +199,21 @@ export const StaffRefundDocketPage: React.FC = () => {
                   <span
                     className={cn(
                       'text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase border',
-                      item.status === 'REFUND_REQUESTED' && 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200',
-                      item.status === 'VERIFIED' && 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border-blue-200',
-                      item.status === 'REFUNDED' && 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-200'
+                      (item.status === 'REFUND_REQUESTED' || item.status === 'PENDING') && 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200',
+                      (item.status === 'VERIFIED' || item.status === 'APPROVED') && 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border-blue-200',
+                      item.status === 'REFUNDED' && 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-200',
+                      item.status === 'REJECTED' && 'bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-400 border-red-200'
                     )}
                   >
-                    {item.status === 'REFUND_REQUESTED' ? 'CHỜ ĐỐI SOÁT' : item.status === 'VERIFIED' ? 'ĐÃ ĐỐI SOÁT' : 'ĐÃ HOÀN TIỀN'}
+                    {(item.status === 'REFUND_REQUESTED' || item.status === 'PENDING')
+                      ? 'CHỜ ĐỐI SOÁT'
+                      : item.status === 'VERIFIED'
+                        ? 'ĐÃ ĐỐI SOÁT'
+                        : item.status === 'APPROVED'
+                          ? 'ĐÃ DUYỆT'
+                          : item.status === 'REJECTED'
+                            ? 'ĐÃ TỪ CHỐI'
+                            : 'ĐÃ HOÀN TIỀN'}
                   </span>
                 </div>
 
@@ -250,21 +279,34 @@ export const StaffRefundDocketPage: React.FC = () => {
                 </div>
               </div>
 
+              {selectedDocket.rejectionReason && (
+                <div>
+                  <span className="font-bold text-red-400 text-[10px] uppercase block mb-1">Lý Do Từ Chối Đã Lưu</span>
+                  <div className="p-3 rounded-xl border bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800/40 text-red-600 dark:text-red-300">
+                    {selectedDocket.rejectionReason}
+                  </div>
+                </div>
+              )}
+
               <div className="pt-3 border-t border-slate-200 dark:border-[#3E4850]/40 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleRejectDocket(selectedDocket.id)}
-                  className="px-4 py-2 rounded-lg text-xs font-bold border border-red-300 dark:border-red-800 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer"
-                >
-                  Từ Chối
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleVerifyDocket(selectedDocket.id)}
-                  className="px-4 py-2 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-                >
-                  Xác Nhận Thẩm Định
-                </button>
+                {selectedDocket.status !== 'REFUNDED' && selectedDocket.status !== 'REJECTED' && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleRejectDocket(selectedDocket.id)}
+                      className="px-4 py-2 rounded-lg text-xs font-bold border border-red-300 dark:border-red-800 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer"
+                    >
+                      Từ Chối
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleVerifyDocket(selectedDocket.id)}
+                      className="px-4 py-2 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                    >
+                      Xác Nhận Thẩm Định
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
