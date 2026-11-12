@@ -34,6 +34,9 @@ public class GiaoDichThanhToan extends BaseEntity {
     @Column(name = "ma_giao_dich_vnpay", length = 64)
     private String maGiaoDichVnpay; // vnp_TransactionNo
 
+    @Column(name = "ma_giao_dich_sepay", length = 100)
+    private String maGiaoDichSepay; // Mã tham chiếu SePay
+
     @Column(name = "loai_giao_dich", nullable = false, length = 20)
     @Builder.Default
     private String loaiGiaoDich = "THANH_TOAN"; // THANH_TOAN hoặc HOAN_TIEN
@@ -53,8 +56,11 @@ public class GiaoDichThanhToan extends BaseEntity {
     @Column(name = "thoi_gian_thanh_toan")
     private LocalDateTime thoiGianThanhToan;
 
-    @Column(name = "ma_ket_qua", length = 10)
-    private String maKetQua; // vnp_ResponseCode (00 là thành công)
+    @Column(name = "ma_ket_qua", length = 50)
+    private String maKetQua; // Mã phản hồi kết quả giao dịch
+
+    @Column(name = "du_lieu_webhook", columnDefinition = "NVARCHAR(MAX)")
+    private String duLieuWebhook;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trang_thai", nullable = false, length = 20)

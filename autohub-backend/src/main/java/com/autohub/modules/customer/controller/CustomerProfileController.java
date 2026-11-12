@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,6 +30,8 @@ public class CustomerProfileController {
         private String phoneNumber;
         private String identityCardNumber;
         private String avatarUrl;
+        private LocalDate dateOfBirth;
+        private String gender;
     }
 
     @Getter
@@ -56,6 +59,8 @@ public class CustomerProfileController {
         map.put("phoneNumber", user.getSoDienThoai());
         map.put("identityCardNumber", user.getSoCCCD());
         map.put("avatarUrl", user.getAnhDaiDien());
+        map.put("dateOfBirth", user.getNgaySinh());
+        map.put("gender", user.getGioiTinh());
         map.put("role", user.getVaiTro());
         map.put("createdAt", user.getNgayTao());
         return ResponseEntity.ok(ApiResponse.ok(map, "Lấy thông tin tài khoản thành công"));
@@ -71,6 +76,8 @@ public class CustomerProfileController {
         if (req.getPhoneNumber() != null && !req.getPhoneNumber().isBlank()) user.setSoDienThoai(req.getPhoneNumber());
         if (req.getIdentityCardNumber() != null && !req.getIdentityCardNumber().isBlank()) user.setSoCCCD(req.getIdentityCardNumber());
         if (req.getAvatarUrl() != null && !req.getAvatarUrl().isBlank()) user.setAnhDaiDien(req.getAvatarUrl());
+        if (req.getDateOfBirth() != null) user.setNgaySinh(req.getDateOfBirth());
+        if (req.getGender() != null && !req.getGender().isBlank()) user.setGioiTinh(req.getGender());
 
         NguoiDung saved = nguoiDungRepository.save(user);
 
@@ -80,6 +87,8 @@ public class CustomerProfileController {
         map.put("email", saved.getEmail());
         map.put("phoneNumber", saved.getSoDienThoai());
         map.put("identityCardNumber", saved.getSoCCCD());
+        map.put("dateOfBirth", saved.getNgaySinh());
+        map.put("gender", saved.getGioiTinh());
         return ResponseEntity.ok(ApiResponse.ok(map, "Cập nhật hồ sơ tài khoản thành công"));
     }
 

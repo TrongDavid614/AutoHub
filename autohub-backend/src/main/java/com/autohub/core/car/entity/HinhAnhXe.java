@@ -27,6 +27,9 @@ public class HinhAnhXe extends BaseEntity {
     @Column(name = "loai_anh", nullable = false, length = 20)
     private String loaiAnh;
 
+    @Column(name = "goc_quay")
+    private Integer gocQuay;
+
     @Column(name = "thu_tu_hien_thi")
     @Builder.Default
     private Integer thuTuHienThi = 0;

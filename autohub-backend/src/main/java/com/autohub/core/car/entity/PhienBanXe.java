@@ -41,10 +41,20 @@ public class PhienBanXe extends BaseEntity {
     @Builder.Default
     private BigDecimal mucTienCoc = new BigDecimal("20000000");
 
+    @Column(name = "tam_hoat_dong_km")
+    private Integer tamHoatDongKm;
+
+    @Column(name = "dung_luong_pin_kwh", precision = 6, scale = 1)
+    private BigDecimal dungLuongPinKwh;
+
     @Column(name = "thong_so_ky_thuat", columnDefinition = "NVARCHAR(MAX)")
     private String thongSoKyThuat;
 
     @Column(name = "dang_hoat_dong")
     @Builder.Default
     private boolean dangHoatDong = true;
+
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    private boolean isDeleted = false;
 }

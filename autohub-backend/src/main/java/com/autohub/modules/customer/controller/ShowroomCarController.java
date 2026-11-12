@@ -49,7 +49,10 @@ public class ShowroomCarController {
         dto.put("loaiNhienLieu", car.getLoaiNhienLieu());
         dto.put("soChoNgoi", car.getSoChoNgoi());
         dto.put("thongSoKyThuat", car.getThongSoKyThuat());
+        dto.put("tamHoatDongKm", car.getTamHoatDongKm());
+        dto.put("dungLuongPinKwh", car.getDungLuongPinKwh());
         dto.put("dangHoatDong", car.isDangHoatDong());
+        dto.put("isDeleted", car.isDeleted());
 
         if (car.getDongXe() != null) {
             Map<String, Object> dongXeMap = new HashMap<>();

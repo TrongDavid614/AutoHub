@@ -158,7 +158,8 @@ public class CustomerOrderController {
         private String recipientName;
         private String phone;
         private String shippingAddress;
-        private String paymentMethod; // COD hoặc VNPAY
+        private String customerNote;
+        private String paymentMethod; // COD, VNPAY hoặc SEPAY
         private String voucherCode;
         private BigDecimal shippingFee;
         private List<CheckoutItemDto> items;
@@ -209,8 +210,13 @@ public class CustomerOrderController {
             grandTotal = BigDecimal.ZERO;
         }
 
-        boolean isVnPay = "VNPAY".equalsIgnoreCase(req.getPaymentMethod()) || "SEPAY".equalsIgnoreCase(req.getPaymentMethod());
-        PhuongThucThanhToan pttt = isVnPay ? PhuongThucThanhToan.VNPAY : PhuongThucThanhToan.COD;
+        PhuongThucThanhToan pttt = PhuongThucThanhToan.COD;
+        if ("VNPAY".equalsIgnoreCase(req.getPaymentMethod())) {
+            pttt = PhuongThucThanhToan.VNPAY;
+        } else if ("SEPAY".equalsIgnoreCase(req.getPaymentMethod())) {
+            pttt = PhuongThucThanhToan.SEPAY;
+        }
+        boolean isOnlinePayment = pttt == PhuongThucThanhToan.VNPAY || pttt == PhuongThucThanhToan.SEPAY;
 
         DonHangPhuKien order = DonHangPhuKien.builder()
                 .maDonHang("AH-ACC-2026-" + (1000 + (int)(Math.random() * 9000)))
@@ -219,13 +225,14 @@ public class CustomerOrderController {
                 .hoTenNguoiNhan(req.getRecipientName() != null ? req.getRecipientName() : "Khách hàng AutoHub")
                 .soDienThoaiNhan(req.getPhone() != null ? req.getPhone() : "0912345678")
                 .diaChiGiaoHang(req.getShippingAddress() != null ? req.getShippingAddress() : "TP. Hồ Chí Minh")
+                .ghiChuKhachHang(req.getCustomerNote())
                 .ngayDat(LocalDateTime.now())
                 .phuongThucThanhToan(pttt)
                 .phiVanChuyen(shippingFee)
                 .soTienGiamVoucher(discount)
                 .tongTien(grandTotal)
-                .trangThai(isVnPay ? TrangThaiDonHang.PENDING_PAYMENT : TrangThaiDonHang.PENDING)
-                .hanThanhToan(isVnPay ? LocalDateTime.now().plusMinutes(15) : null)
+                .trangThai(isOnlinePayment ? TrangThaiDonHang.PENDING_PAYMENT : TrangThaiDonHang.PENDING)
+                .hanThanhToan(isOnlinePayment ? LocalDateTime.now().plusMinutes(15) : null)
                 .build();
 
         DonHangPhuKien savedOrder = donHangRepository.save(order);
@@ -252,7 +259,7 @@ public class CustomerOrderController {
         responseData.put("shippingFee", shippingFee);
         responseData.put("grandTotal", grandTotal);
 
-        if (isVnPay) {
+        if (isOnlinePayment) {
             VNPayPaymentResponseDto vnpayInfo = vnPayService.createOrderPaymentUrl(servletRequest, savedOrder.getId());
             responseData.put("vnpay", vnpayInfo);
         }
@@ -269,6 +276,7 @@ public class CustomerOrderController {
         map.put("customerName", order.getHoTenNguoiNhan() != null ? order.getHoTenNguoiNhan() : "Nguyễn Văn A");
         map.put("customerPhone", order.getSoDienThoaiNhan() != null ? order.getSoDienThoaiNhan() : "0912345678");
         map.put("shippingAddress", order.getDiaChiGiaoHang() != null ? order.getDiaChiGiaoHang() : "TP. Hồ Chí Minh");
+        map.put("customerNote", order.getGhiChuKhachHang());
         map.put("paymentMethod", order.getPhuongThucThanhToan() != null ? order.getPhuongThucThanhToan().name() : "VNPAY");
         map.put("status", order.getTrangThai() != null ? order.getTrangThai().name() : "PAID");
 

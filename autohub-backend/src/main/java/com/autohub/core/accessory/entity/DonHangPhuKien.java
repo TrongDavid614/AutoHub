@@ -40,6 +40,9 @@ public class DonHangPhuKien extends BaseEntity {
     @Column(name = "dia_chi_giao_hang", nullable = false, length = 500)
     private String diaChiGiaoHang;
 
+    @Column(name = "ghi_chu_khach_hang", length = 500)
+    private String ghiChuKhachHang;
+
     @Column(name = "ngay_dat")
     @Builder.Default
     private LocalDateTime ngayDat = LocalDateTime.now();

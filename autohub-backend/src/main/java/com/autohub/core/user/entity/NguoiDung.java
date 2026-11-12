@@ -7,6 +7,7 @@ import com.autohub.core.showroom.entity.Showroom;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -40,6 +41,12 @@ public class NguoiDung extends BaseEntity {
     @Column(name = "so_cccd", length = 12)
     private String soCCCD;
 
+    @Column(name = "ngay_sinh")
+    private LocalDate ngaySinh;
+
+    @Column(name = "gioi_tinh", length = 10)
+    private String gioiTinh;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "vai_tro", nullable = false, length = 30)
     @Builder.Default
@@ -49,6 +56,10 @@ public class NguoiDung extends BaseEntity {
     @Column(name = "trang_thai_tai_khoan", nullable = false, length = 30)
     @Builder.Default
     private TrangThaiTaiKhoan trangThaiTaiKhoan = TrangThaiTaiKhoan.CHUA_KICH_HOAT;
+
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    private boolean isDeleted = false;
 
     @Column(name = "ngay_tao")
     @Builder.Default
