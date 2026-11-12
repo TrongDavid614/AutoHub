@@ -10,6 +10,6 @@ import java.util.Optional;
 
 @Repository
 public interface XeDinhDanhRepository extends JpaRepository<XeDinhDanh, Long> {
-    List<XeDinhDanh> findByTrangThai(TrangThaiXeVIN trangThai);
     Optional<XeDinhDanh> findBySoKhungVIN(String soKhungVIN);
+    List<XeDinhDanh> findByTrangThai(TrangThaiXeVIN trangThai);
 }

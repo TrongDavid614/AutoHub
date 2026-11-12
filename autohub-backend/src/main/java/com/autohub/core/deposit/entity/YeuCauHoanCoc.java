@@ -51,5 +51,13 @@ public class YeuCauHoanCoc extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quan_tri_phe_duyet_id")
-    private NguoiDung adminPheDuyet;
+    private NguoiDung quanTriPheDuyet;
+
+    public NguoiDung getAdminPheDuyet() {
+        return this.quanTriPheDuyet;
+    }
+
+    public void setAdminPheDuyet(NguoiDung adminPheDuyet) {
+        this.quanTriPheDuyet = adminPheDuyet;
+    }
 }

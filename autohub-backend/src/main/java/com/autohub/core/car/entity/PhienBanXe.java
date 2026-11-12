@@ -40,10 +40,20 @@ public class PhienBanXe extends BaseEntity {
     @Column(name = "muc_tien_coc", nullable = false, precision = 18, scale = 2)
     private BigDecimal mucTienCoc; // 10.000.000 hoặc 20.000.000 VNĐ (DR08)
 
+    @Column(name = "tam_hoat_dong_km")
+    private Integer tamHoatDongKm;
+
+    @Column(name = "dung_luong_pin_kwh", precision = 6, scale = 2)
+    private BigDecimal dungLuongPinKwh;
+
     @Column(name = "thong_so_ky_thuat", columnDefinition = "NVARCHAR(MAX)")
     private String thongSoKyThuat; // JSON hoặc text thông số công suất, pin, LiDAR
 
     @Column(name = "dang_hoat_dong")
     @Builder.Default
     private boolean dangHoatDong = true;
+
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    private boolean isDeleted = false;
 }

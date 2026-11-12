@@ -40,7 +40,7 @@ public class ChuongTrinhKhuyenMai extends BaseEntity {
 
     @ManyToMany
     @JoinTable(
-        name = "khuyen_mai_phien_ban_xe",
+        name = "khuyen_mai_phien_ban",
         joinColumns = @JoinColumn(name = "chuong_trinh_id"),
         inverseJoinColumns = @JoinColumn(name = "phien_ban_id")
     )

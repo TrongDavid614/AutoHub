@@ -1,6 +1,7 @@
 package com.autohub.core.showroom.entity;
 
 import com.autohub.common.entity.BaseEntity;
+import com.autohub.core.pricing.entity.TinhThanh;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -14,6 +15,10 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Showroom extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tinh_thanh_id", nullable = false)
+    private TinhThanh tinhThanh;
 
     @Column(name = "ten_showroom", nullable = false, length = 150)
     private String tenShowroom;

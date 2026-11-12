@@ -8,7 +8,7 @@ import lombok.*;
 
 @Entity
 @Table(name = "ton_kho_xe", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"ma_phien_ban", "ma_mau", "ma_showroom"})
+    @UniqueConstraint(columnNames = {"phien_ban_id", "mau_sac_id", "showroom_id"})
 })
 @Getter
 @Setter
@@ -36,4 +36,8 @@ public class TonKhoXe extends BaseEntity {
     @Column(name = "so_luong_dang_giu_cho", nullable = false)
     @Builder.Default
     private Integer soLuongDangGiuCho = 0; // Đang giữ tạm 15p hoặc giữ cọc 72h
+
+    @Version
+    @Column(name = "row_version")
+    private byte[] rowVersion;
 }

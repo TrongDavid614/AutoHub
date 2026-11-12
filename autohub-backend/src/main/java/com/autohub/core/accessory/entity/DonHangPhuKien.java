@@ -27,6 +27,22 @@ public class DonHangPhuKien extends BaseEntity {
     @JoinColumn(name = "nguoi_dung_id", nullable = false)
     private NguoiDung nguoiDung;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "voucher_id")
+    private Voucher voucher;
+
+    @Column(name = "ho_ten_nguoi_nhan", length = 100)
+    private String hoTenNguoiNhan;
+
+    @Column(name = "so_dien_thoai_nhan", length = 15)
+    private String soDienThoaiNhan;
+
+    @Column(name = "dia_chi_giao_hang", nullable = false, length = 255)
+    private String diaChiGiaoHang;
+
+    @Column(name = "ghi_chu_khach_hang", length = 500)
+    private String ghiChuKhachHang;
+
     @Column(name = "ngay_dat")
     @Builder.Default
     private LocalDateTime ngayDat = LocalDateTime.now();
@@ -35,24 +51,11 @@ public class DonHangPhuKien extends BaseEntity {
     @Column(name = "phuong_thuc_thanh_toan", nullable = false, length = 20)
     private PhuongThucThanhToan phuongThucThanhToan;
 
-    @Column(name = "dia_chi_giao_hang", nullable = false, length = 255)
-    private String diaChiGiaoHang;
-
-    @Column(name = "ho_ten_nguoi_nhan", length = 100)
-    private String hoTenNguoiNhan;
-
-    @Column(name = "so_dien_thoai_nhan", length = 15)
-    private String soDienThoaiNhan;
-
     @Column(name = "phi_van_chuyen", precision = 18, scale = 2)
     private BigDecimal phiVanChuyen;
 
     @Column(name = "so_tien_giam_voucher", precision = 18, scale = 2)
     private BigDecimal soTienGiamVoucher;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "voucher_id")
-    private Voucher voucher;
 
     @Column(name = "don_vi_van_chuyen", length = 100)
     private String donViVanChuyen; // GHN Express...
