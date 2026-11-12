@@ -20,4 +20,3 @@ public class ChiTietGioHangId implements Serializable {
     @Column(name = "phu_kien_id")
     private Long phuKienId;
 }
-

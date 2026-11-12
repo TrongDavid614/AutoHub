@@ -35,7 +35,7 @@ export const aiConsultantService = {
         return {
           id: `msg-${Date.now()}`,
           sender: 'AI',
-          senderTitle: 'AutoHub Gemini AI',
+          senderTitle: 'AutoHub AI Consultant',
           timestamp,
           content: '',
           functionCall: {
@@ -57,9 +57,9 @@ export const aiConsultantService = {
       return {
         id: `msg-${Date.now()}`,
         sender: 'AI',
-        senderTitle: 'AutoHub Gemini AI',
+        senderTitle: 'AutoHub AI Consultant',
         timestamp,
-        content: `Cảm ơn quý khách đã hỏi: "${userPrompt}". Trợ lý AI AutoHub (sử dụng Gemini API kết hợp Vector Database RAG) đã truy vấn thông số thời gian thực từ showroom và kho xe để cung cấp giải pháp tối ưu nhất cho quý khách. Quý khách có thể lựa chọn lái thử trực tiếp hoặc đặt cọc giữ chỗ 72 giờ qua cổng SePay ngay bên dưới.`,
+        content: `Cảm ơn quý khách đã hỏi: "${userPrompt}". Trợ lý AI AutoHub (hệ thống tự động tối ưu hóa điều phối OpenRouter AI) đã truy vấn thông số thời gian thực từ showroom và kho xe để cung cấp giải pháp tối ưu nhất cho quý khách. Quý khách có thể lựa chọn lái thử trực tiếp hoặc đặt cọc giữ chỗ 72 giờ qua cổng SePay ngay bên dưới.`,
         suggestedPrompts: [
           'Dự toán chi phí lăn bánh tại Hà Nội',
           'Tư vấn chính sách vay trả góp 80%',

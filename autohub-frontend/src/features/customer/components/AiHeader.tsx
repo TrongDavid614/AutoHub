@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bot, Cpu, Zap, ShieldCheck, SlidersHorizontal } from 'lucide-react';
+import { Bot, Cpu, Zap, ShieldCheck, SlidersHorizontal, Sparkles } from 'lucide-react';
 
 export const AiHeader: React.FC = () => {
   return (
@@ -21,14 +21,15 @@ export const AiHeader: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-lg font-semibold text-[#DAE2FD] tracking-tight">
-                  AutoHub Gemini AI
+                  AutoHub AI Consultant
                 </span>
-                <span className="px-2 py-0.5 rounded-[2px] bg-[#2D3449] text-[#89CEFF] font-mono text-[10px] font-bold tracking-[1.5px] uppercase">
-                  GEMINI 1.5 PRO
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[2px] bg-[#2D3449] text-[#89CEFF] font-mono text-[10px] font-bold tracking-[1.5px] uppercase">
+                  <Sparkles className="w-3 h-3 text-[#89CEFF]" />
+                  SMART HYBRID ENGINE
                 </span>
               </div>
-              <p className="font-mono text-[10px] font-bold text-[#88929B] tracking-[1.5px] uppercase">
-                GOOGLE GEMINI API & VECTOR DB RAG
+              <p className="font-mono text-[10px] font-bold text-[#88929B] tracking-[1.5px] uppercase mt-0.5">
+                SHOWROOM RAG & AUTO-OPTIMIZED INFERENCE
               </p>
             </div>
           </div>
@@ -40,7 +41,7 @@ export const AiHeader: React.FC = () => {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-[#89CEFF]" />
             </span>
             <span className="font-mono text-[10px] font-bold text-[#89CEFF] tracking-[0.5px] uppercase">
-              TRỰC TUYẾN 24/7
+              TRỰC TUYẾN 24/7 (TỐI ƯU TỰ ĐỘNG)
             </span>
           </div>
         </div>
@@ -51,7 +52,7 @@ export const AiHeader: React.FC = () => {
             Trợ lý Tư vấn Xe điện Thông minh AutoHub
           </h1>
           <p className="text-sm text-[#BEC8D2] max-w-2xl leading-relaxed mt-0.5">
-            Phân tích nhu cầu, ngân sách và gợi ý mẫu xe cùng hệ sinh thái phụ kiện tối ưu cho gia đình bạn với dữ liệu kỹ thuật thời gian thực.
+            Hệ thống AI tự động điều phối mô hình tối ưu theo thời gian thực để phân tích nhu cầu, ngân sách và gợi ý mẫu xe cùng hệ sinh thái phụ kiện tối ưu cho gia đình bạn.
           </p>
         </div>
 

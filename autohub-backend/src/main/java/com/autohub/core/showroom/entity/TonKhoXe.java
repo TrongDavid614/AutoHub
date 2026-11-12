@@ -35,5 +35,9 @@ public class TonKhoXe extends BaseEntity {
 
     @Column(name = "so_luong_dang_giu_cho", nullable = false)
     @Builder.Default
-    private Integer soLuongDangGiuCho = 0;
+    private Integer soLuongDangGiuCho = 0; // Đang giữ tạm 15p hoặc giữ cọc 72h
+
+    @Version
+    @Column(name = "row_version")
+    private byte[] rowVersion;
 }

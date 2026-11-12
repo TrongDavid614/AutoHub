@@ -25,7 +25,8 @@ public class YeuCauDoiTra extends BaseEntity {
     private ChiTietDonHang chiTietDonHang;
 
     @Column(name = "so_luong_doi_tra", nullable = false)
-    private Integer soLuongDoiTra;
+    @Builder.Default
+    private Integer soLuongDoiTra = 1;
 
     @Column(nullable = false, length = 1000)
     private String lyDo;

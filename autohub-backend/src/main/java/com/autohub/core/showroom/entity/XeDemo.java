@@ -25,7 +25,7 @@ public class XeDemo extends BaseEntity {
     @JoinColumn(name = "phien_ban_id", nullable = false)
     private PhienBanXe phienBanXe;
 
-    @Column(name = "bien_so", nullable = false, unique = true, length = 15)
+    @Column(name = "bien_so", nullable = false, unique = true, length = 20)
     private String bienSo;
 
     @Column(name = "so_odo_hien_tai", nullable = false)

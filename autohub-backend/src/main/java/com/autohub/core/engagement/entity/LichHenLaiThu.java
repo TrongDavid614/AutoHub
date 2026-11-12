@@ -30,7 +30,7 @@ public class LichHenLaiThu extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "xe_demo_id")
-    private XeDemo xeDemo;
+    private XeDemo xeDemo; // Staff gán khi duyệt lịch
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "showroom_id")
@@ -83,7 +83,7 @@ public class LichHenLaiThu extends BaseEntity {
     @Builder.Default
     private TrangThaiLichHen trangThai = TrangThaiLichHen.PENDING;
 
-    @Column(length = 500)
+    @Column(name = "ghi_chu", length = 500)
     private String ghiChu;
 
     @Column(name = "da_gui_nhac_lich", nullable = false)

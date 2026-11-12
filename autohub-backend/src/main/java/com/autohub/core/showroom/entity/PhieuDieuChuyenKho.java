@@ -45,7 +45,7 @@ public class PhieuDieuChuyenKho extends BaseEntity {
 
     @Column(name = "trang_thai", nullable = false, length = 30)
     @Builder.Default
-    private String trangThai = "DANG_VAN_CHUYEN";
+    private String trangThai = "PENDING";
 
     @Column(name = "ghi_chu", length = 500)
     private String ghiChu;

@@ -9,5 +9,5 @@ import java.util.List;
 @Repository
 public interface NhatKyTuVanRepository extends JpaRepository<NhatKyTuVan, Long> {
     List<NhatKyTuVan> findByYeuCauTuVanId(Long yeuCauTuVanId);
+    List<NhatKyTuVan> findByNhanVienId(Long nhanVienId);
 }
-

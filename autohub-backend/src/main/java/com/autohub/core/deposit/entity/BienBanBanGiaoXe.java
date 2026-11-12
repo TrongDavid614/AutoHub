@@ -51,4 +51,3 @@ public class BienBanBanGiaoXe extends BaseEntity {
     @Column(name = "chu_ky_nhan_vien", length = 500)
     private String chuKyNhanVien;
 }
-

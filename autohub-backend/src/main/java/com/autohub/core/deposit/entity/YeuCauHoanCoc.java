@@ -52,4 +52,12 @@ public class YeuCauHoanCoc extends BaseEntity {
 
     @Column(name = "ngay_xu_ly")
     private LocalDateTime ngayXuLy;
+
+    public NguoiDung getAdminPheDuyet() {
+        return this.quanTriPheDuyet;
+    }
+
+    public void setAdminPheDuyet(NguoiDung adminPheDuyet) {
+        this.quanTriPheDuyet = adminPheDuyet;
+    }
 }

@@ -33,7 +33,7 @@ public class PhieuDatCoc extends BaseEntity {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "xe_dinh_danh_id")
-    private XeDinhDanh xeDinhDanh;
+    private XeDinhDanh xeDinhDanh; // Gán VIN sau khi đối soát (DR12)
 
     @Column(name = "so_cccd", nullable = false, length = 12)
     private String soCCCD;

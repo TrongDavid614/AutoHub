@@ -20,15 +20,15 @@ public class YeuCauTuVan extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nguoi_dung_id")
-    private NguoiDung nguoiDung;
+    private NguoiDung nguoiDung; // Khách hàng (có thể rỗng)
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "phien_ban_id")
-    private PhienBanXe phienBanXe;
+    private PhienBanXe phienBanXe; // Mẫu xe quan tâm (có thể rỗng theo DR24)
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nhan_vien_id")
-    private NguoiDung nhanVien;
+    private NguoiDung nhanVien; // Staff nhận xử lý
 
     @Column(name = "ho_ten", nullable = false, length = 100)
     private String hoTen;
@@ -55,5 +55,13 @@ public class YeuCauTuVan extends BaseEntity {
     private TrangThaiYeuCauTuVan trangThai = TrangThaiYeuCauTuVan.PENDING;
 
     @Column(name = "ghi_chu_cskh", columnDefinition = "NVARCHAR(MAX)")
-    private String ghiChuCSKH;
+    private String ghiChuCSKH; // Lịch sử chăm sóc của Staff
+
+    public NguoiDung getNhanVienPhuTrach() {
+        return this.nhanVien;
+    }
+
+    public void setNhanVienPhuTrach(NguoiDung nhanVien) {
+        this.nhanVien = nhanVien;
+    }
 }

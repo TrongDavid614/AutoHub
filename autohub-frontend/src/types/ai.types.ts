@@ -1,5 +1,13 @@
 export type AiMessageSender = 'AI' | 'USER';
 
+export interface AiModelOption {
+  id: string;
+  name: string;
+  provider: string;
+  isFree: boolean;
+  active: boolean;
+}
+
 export interface AiFunctionCallNotification {
   querySegment: string;
   priceRange: string;
@@ -46,6 +54,7 @@ export interface AiChatMessage {
   timestamp: string;
   avatarText?: string;
   content: string;
+  currentModel?: string;
   functionCall?: AiFunctionCallNotification;
   rationale?: string;
   recommendedVehicle?: AiRecommendedVehicle;

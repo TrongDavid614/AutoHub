@@ -26,12 +26,12 @@ public class NhatKyTuVan extends BaseEntity {
     private NguoiDung nhanVien;
 
     @Column(name = "loai_tuong_tac", nullable = false, length = 30)
-    private String loaiTuongTac;
+    private String loaiTuongTac; // CUOC_GOI, TIN_NHAN_ZALO, EMAIL, GAP_TRUC_TIEP
 
     @Column(name = "noi_dung_trao_doi", nullable = false, columnDefinition = "NVARCHAR(MAX)")
     private String noiDungTraoDoi;
 
-    @Column(name = "ngan_sach_du_kien", precision = 18, scale = 2)
+    @Column(name = "ngan_sach_du_kien", precision = 18, scale = 0)
     private BigDecimal nganSachDuKien;
 
     @Column(name = "ket_qua_cuoc_goi", length = 100)
@@ -41,4 +41,3 @@ public class NhatKyTuVan extends BaseEntity {
     @Builder.Default
     private LocalDateTime thoiGianTuongTac = LocalDateTime.now();
 }
-

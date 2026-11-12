@@ -34,7 +34,7 @@ public class DonHangPhuKien extends BaseEntity {
     @Column(name = "ho_ten_nguoi_nhan", nullable = false, length = 100)
     private String hoTenNguoiNhan;
 
-    @Column(name = "so_dien_thoai_nhan", nullable = false, length = 10)
+    @Column(name = "so_dien_thoai_nhan", nullable = false, length = 15)
     private String soDienThoaiNhan;
 
     @Column(name = "dia_chi_giao_hang", nullable = false, length = 500)

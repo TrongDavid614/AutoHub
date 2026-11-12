@@ -8,7 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface BienBanBanGiaoXeRepository extends JpaRepository<BienBanBanGiaoXe, Long> {
-    Optional<BienBanBanGiaoXe> findByPhieuDatCocId(Long phieuDatCocId);
     Optional<BienBanBanGiaoXe> findByMaBienBan(String maBienBan);
+    Optional<BienBanBanGiaoXe> findByPhieuDatCocId(Long phieuDatCocId);
 }
-

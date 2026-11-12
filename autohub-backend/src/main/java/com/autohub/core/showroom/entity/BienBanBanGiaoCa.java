@@ -36,7 +36,7 @@ public class BienBanBanGiaoCa extends BaseEntity {
     @Builder.Default
     private LocalDateTime thoiGianBanGiao = LocalDateTime.now();
 
-    @Column(name = "ca_ban_giao", nullable = false, length = 20)
+    @Column(name = "ca_ban_giao", nullable = false, length = 30)
     private String caBanGiao;
 
     @Column(name = "tien_mat_dau_ca", nullable = false, precision = 18, scale = 0)

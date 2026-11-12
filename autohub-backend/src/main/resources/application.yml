@@ -40,6 +40,13 @@ vnpay:
   return-url: ${VNPAY_RETURN_URL:http://localhost:5173/payment/vnpay-return}
   api-url: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
 
+openrouter:
+  api-key: ${OPENROUTER_API_KEY:your_openrouter_api_key_here}
+  base-url: https://openrouter.ai/api/v1
+  default-model: ${OPENROUTER_DEFAULT_MODEL:liquid/lfm-3-1.7b:free}
+  site-url: http://localhost:5173
+  app-name: AutoHub
+
 gemini:
   api-key: ${GEMINI_API_KEY:your_gemini_api_key_here}
   model: gemini-1.5-pro

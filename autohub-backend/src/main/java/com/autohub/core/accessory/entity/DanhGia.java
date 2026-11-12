@@ -27,7 +27,7 @@ public class DanhGia extends BaseEntity {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chi_tiet_don_hang_id", nullable = false, unique = true)
-    private ChiTietDonHang chiTietDonHang;
+    private ChiTietDonHang chiTietDonHang; // Mỗi dòng chi tiết đơn đánh giá tối đa 1 lần (DR33)
 
     @Column(name = "so_sao", nullable = false)
     private Integer soSao;

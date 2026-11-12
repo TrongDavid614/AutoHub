@@ -40,7 +40,7 @@ public class SecurityConfig {
                 // 1. Công khai các endpoint Authentication & Tra cứu khách vãng lai
                 .requestMatchers("/auth/**", "/customer/cars/**", "/customer/accessories/**").permitAll()
                 .requestMatchers("/payment/**", "/vnpay/**").permitAll()
-                .requestMatchers("/ai-consultant/**").permitAll()
+                .requestMatchers("/ai/**", "/v1/ai/**", "/ai-consultant/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
                 // 2. Phân vùng Khách hàng đã đăng nhập

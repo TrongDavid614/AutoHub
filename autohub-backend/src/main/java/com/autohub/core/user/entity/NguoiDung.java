@@ -6,6 +6,7 @@ import com.autohub.core.enums.VaiTroNguoiDung;
 import com.autohub.core.showroom.entity.Showroom;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,8 +27,8 @@ public class NguoiDung extends BaseEntity {
     @Column(name = "ho_ten", nullable = false, length = 100)
     private String hoTen;
 
-    @Column(nullable = false, unique = true, length = 100)
-    private String email;
+    @Column(name = "email", nullable = false, unique = true, length = 100)
+    private String email; // Định danh đăng nhập duy nhất (BR01)
 
     @Column(name = "mat_khau_bam", nullable = false, length = 100)
     private String matKhauBam;
@@ -65,6 +66,7 @@ public class NguoiDung extends BaseEntity {
     @Builder.Default
     private LocalDateTime ngayTao = LocalDateTime.now();
 
+    @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 }

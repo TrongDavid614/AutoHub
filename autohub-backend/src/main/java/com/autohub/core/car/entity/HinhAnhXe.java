@@ -25,7 +25,7 @@ public class HinhAnhXe extends BaseEntity {
     private String duongDan;
 
     @Column(name = "loai_anh", nullable = false, length = 20)
-    private String loaiAnh;
+    private String loaiAnh; // NGOAI_THAT, NOI_THAT, XOAY_360
 
     @Column(name = "goc_quay")
     private Integer gocQuay;

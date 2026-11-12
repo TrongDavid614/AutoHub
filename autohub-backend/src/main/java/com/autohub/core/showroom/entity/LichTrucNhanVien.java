@@ -28,8 +28,8 @@ public class LichTrucNhanVien extends BaseEntity {
     @Column(name = "ngay_truc", nullable = false)
     private LocalDate ngayTruc;
 
-    @Column(name = "ca_truc", nullable = false, length = 20)
-    private String caTruc;
+    @Column(name = "ca_truc", nullable = false, length = 30)
+    private String caTruc; // CA_SANG, CA_CHIEU, CA_TOI, CA_FULL
 
     @Column(name = "ghi_chu", length = 255)
     private String ghiChu;

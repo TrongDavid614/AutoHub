@@ -22,24 +22,24 @@ public class GiaoDichThanhToan extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "phieu_dat_coc_id")
-    private PhieuDatCoc phieuDatCoc;
+    private PhieuDatCoc phieuDatCoc; // Hoặc phiếu cọc
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "don_hang_id")
-    private DonHangPhuKien donHangPhuKien;
+    private DonHangPhuKien donHangPhuKien; // Hoặc đơn hàng (DR35)
 
-    @Column(name = "ma_tham_chieu", nullable = false, unique = true, length = 64)
-    private String maThamChieu; // vnp_TxnRef
+    @Column(name = "ma_tham_chieu", nullable = false, unique = true, length = 100)
+    private String maThamChieu; // vnp_TxnRef hoặc sepay_reference_code
 
-    @Column(name = "ma_giao_dich_vnpay", length = 64)
+    @Column(name = "ma_giao_dich_vnpay", length = 100)
     private String maGiaoDichVnpay; // vnp_TransactionNo
 
     @Column(name = "ma_giao_dich_sepay", length = 100)
-    private String maGiaoDichSepay; // Mã tham chiếu SePay
+    private String maGiaoDichSepay; // Mã SePay trả về
 
-    @Column(name = "loai_giao_dich", nullable = false, length = 20)
+    @Column(name = "loai_giao_dich", nullable = false, length = 30)
     @Builder.Default
-    private String loaiGiaoDich = "THANH_TOAN"; // THANH_TOAN hoặc HOAN_TIEN
+    private String loaiGiaoDich = "DAT_COC_XE"; // DAT_COC_XE hoặc DON_HANG_PHU_KIEN
 
     @Enumerated(EnumType.STRING)
     @Column(name = "phuong_thuc", nullable = false, length = 10)
@@ -66,4 +66,12 @@ public class GiaoDichThanhToan extends BaseEntity {
     @Column(name = "trang_thai", nullable = false, length = 20)
     @Builder.Default
     private TrangThaiThanhToan trangThai = TrangThaiThanhToan.PENDING;
+
+    public String getMaGiaoDichSePay() {
+        return this.maGiaoDichSepay;
+    }
+
+    public void setMaGiaoDichSePay(String maGiaoDichSePay) {
+        this.maGiaoDichSepay = maGiaoDichSePay;
+    }
 }

@@ -44,7 +44,7 @@ public class PhienBanXe extends BaseEntity {
     @Column(name = "tam_hoat_dong_km")
     private Integer tamHoatDongKm;
 
-    @Column(name = "dung_luong_pin_kwh", precision = 6, scale = 1)
+    @Column(name = "dung_luong_pin_kwh", precision = 6, scale = 2)
     private BigDecimal dungLuongPinKwh;
 
     @Column(name = "thong_so_ky_thuat", columnDefinition = "NVARCHAR(MAX)")

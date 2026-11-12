@@ -29,7 +29,8 @@ public class ChiTietGioHang implements Serializable {
     private PhuKien phuKien;
 
     @Column(name = "so_luong", nullable = false)
-    private Integer soLuong;
+    @Builder.Default
+    private Integer soLuong = 1;
 
     @Column(name = "don_gia_tam_tinh", nullable = false, precision = 18, scale = 0)
     private BigDecimal donGiaTamTinh;
