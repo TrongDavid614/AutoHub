@@ -19,23 +19,20 @@ public class OpenRouterProperties {
     private String siteUrl = "http://localhost:5173";
     private String appName = "AutoHub";
 
-    private List<ModelOption> supportedModels = new ArrayList<>();
+    /**
+     * Danh sách model dự phòng tự động chuyển đổi khi rảnh rỗi hoặc khi model chính bị nghẽn/rate-limited
+     */
+    private List<String> fallbackModels = new ArrayList<>(List.of(
+            "liquid/lfm-3-1.7b:free",
+            "google/gemma-4-31b-it:free",
+            "nvidia/nemotron-3.5-super-vl:free",
+            "deepseek/deepseek-chat",
+            "google/gemini-2.0-flash-001",
+            "openai/gpt-4o-mini"
+    ));
 
-    @Getter
-    @Setter
-    public static class ModelOption {
-        private String id;
-        private String name;
-        private String provider;
-        private boolean free;
-
-        public ModelOption() {}
-
-        public ModelOption(String id, String name, String provider, boolean free) {
-            this.id = id;
-            this.name = name;
-            this.provider = provider;
-            this.free = free;
-        }
-    }
+    /**
+     * Tự động bật tối ưu hóa model khi hệ thống nhàn rỗi
+     */
+    private boolean idleOptimizationEnabled = true;
 }
