@@ -90,6 +90,7 @@ export const CarEstimatorPage: React.FC = () => {
       <CarDepositModal
         isOpen={isDepositModalOpen}
         onClose={() => setIsDepositModalOpen(false)}
+        variantId={selectedTrimId}
         carName={selectedTrim.name}
         trimName={selectedTrim.spec}
         colorName="Xanh Công Nghệ Hyper Tech Blue"

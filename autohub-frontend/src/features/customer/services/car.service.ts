@@ -1,6 +1,6 @@
+import { axiosClient } from '@/lib/axios';
+import type { ApiResponse } from '@/types/api.types';
 import type { MockCar } from '../mocks/car.mock';
-
-const API_BASE = 'http://localhost:8080/api';
 
 export interface ProvinceDto {
   id: number;
@@ -22,7 +22,41 @@ export interface EstimatorCalculationDto {
   tongChiPhiLanBanh: number;
 }
 
-function mapDtoToMockCar(dto: any): MockCar {
+interface RawColorDto {
+  tenMau?: string;
+  maHex?: string;
+}
+
+interface RawCarDto {
+  id: number;
+  tenPhienBan?: string;
+  giaNiemYet?: number;
+  mucTienCoc?: number;
+  namSanXuat?: number;
+  hopSo?: string;
+  loaiNhienLieu?: string;
+  soChoNgoi?: number;
+  thongSoKyThuat?: string | Record<string, string>;
+  tamHoatDongKm?: number;
+  dungLuongPinKwh?: number;
+  dangHoatDong?: boolean;
+  image?: string;
+  images?: string[];
+  colors?: RawColorDto[];
+  dongXe?: {
+    id?: number;
+    tenDongXe?: string;
+    phanKhuc?: string;
+    xuatXu?: string;
+    moTa?: string;
+    hangXe?: {
+      id?: number;
+      tenHangXe?: string;
+    };
+  };
+}
+
+function mapDtoToMockCar(dto: RawCarDto): MockCar {
   let specs: Record<string, string> = {};
   if (typeof dto.thongSoKyThuat === 'string' && dto.thongSoKyThuat.trim().startsWith('{')) {
     try {
@@ -63,7 +97,7 @@ function mapDtoToMockCar(dto: any): MockCar {
   ];
 
   const availableColors = (Array.isArray(dto.colors) && dto.colors.length > 0)
-    ? dto.colors.map((c: any) => ({ name: c.tenMau, hex: c.maHex }))
+    ? dto.colors.map((c) => ({ name: c.tenMau || 'Xanh AutoHub', hex: c.maHex || '#0284C7' }))
     : defaultColors;
 
   const defaultImg = 'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=1200';
@@ -113,12 +147,9 @@ function mapDtoToMockCar(dto: any): MockCar {
 export const carService = {
   async getAllCars(): Promise<MockCar[]> {
     try {
-      const res = await fetch(`${API_BASE}/customer/cars`);
-      if (res.ok) {
-        const json = await res.json();
-        if (json?.data && Array.isArray(json.data) && json.data.length > 0) {
-          return json.data.map(mapDtoToMockCar);
-        }
+      const res = await axiosClient.get<unknown, ApiResponse<RawCarDto[]>>('/customer/cars');
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+        return res.data.map(mapDtoToMockCar);
       }
     } catch {
       // Network error
@@ -128,12 +159,9 @@ export const carService = {
 
   async getCarById(id: string): Promise<MockCar | null> {
     try {
-      const res = await fetch(`${API_BASE}/customer/cars/${id}`);
-      if (res.ok) {
-        const json = await res.json();
-        if (json?.data) {
-          return mapDtoToMockCar(json.data);
-        }
+      const res = await axiosClient.get<unknown, ApiResponse<RawCarDto>>(`/customer/cars/${id}`);
+      if (res?.data) {
+        return mapDtoToMockCar(res.data);
       }
     } catch {
       // Network error
@@ -144,12 +172,9 @@ export const carService = {
 
   async getProvinces(): Promise<ProvinceDto[]> {
     try {
-      const res = await fetch(`${API_BASE}/customer/estimator/provinces`);
-      if (res.ok) {
-        const json = await res.json();
-        if (json?.data && Array.isArray(json.data) && json.data.length > 0) {
-          return json.data;
-        }
+      const res = await axiosClient.get<unknown, ApiResponse<ProvinceDto[]>>('/customer/estimator/provinces');
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+        return res.data;
       }
     } catch {
       // Fallback
@@ -168,12 +193,11 @@ export const carService = {
 
   async calculateEstimator(variantId: number, tinhThanhId: number): Promise<EstimatorCalculationDto | null> {
     try {
-      const res = await fetch(`${API_BASE}/customer/estimator/calculate?variantId=${variantId}&tinhThanhId=${tinhThanhId}`);
-      if (res.ok) {
-        const json = await res.json();
-        if (json?.data) {
-          return json.data;
-        }
+      const res = await axiosClient.get<unknown, ApiResponse<EstimatorCalculationDto>>(
+        `/customer/estimator/calculate?variantId=${variantId}&tinhThanhId=${tinhThanhId}&provinceId=${tinhThanhId}`
+      );
+      if (res?.data) {
+        return res.data;
       }
     } catch {
       // Fallback

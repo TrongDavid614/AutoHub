@@ -19,6 +19,8 @@ import com.autohub.core.user.repository.NguoiDungRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,11 +41,29 @@ public class CustomerOrderController {
     private final NguoiDungRepository nguoiDungRepository;
     private final DanhGiaRepository danhGiaRepository;
 
+    private NguoiDung resolveCurrentUser(Long requestedCustomerId) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && auth.getName() != null && !"anonymousUser".equals(auth.getName())) {
+                Optional<NguoiDung> byEmail = nguoiDungRepository.findByEmail(auth.getName());
+                if (byEmail.isPresent()) {
+                    return byEmail.get();
+                }
+            }
+        } catch (Exception ignored) {}
+
+        if (requestedCustomerId != null) {
+            return nguoiDungRepository.findById(requestedCustomerId).orElse(null);
+        }
+        return null;
+    }
+
     @GetMapping
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getOrders(@RequestParam(required = false) Long customerId) {
-        List<DonHangPhuKien> orders = (customerId != null)
-                ? donHangRepository.findByNguoiDungId(customerId)
-                : donHangRepository.findAll();
+        NguoiDung user = resolveCurrentUser(customerId);
+        List<DonHangPhuKien> orders = (user != null)
+                ? donHangRepository.findByNguoiDungId(user.getId())
+                : (customerId != null ? donHangRepository.findByNguoiDungId(customerId) : Collections.emptyList());
 
         if (orders.isEmpty()) {
             return ResponseEntity.ok(ApiResponse.ok(Collections.emptyList(), "Lấy danh sách đơn hàng thành công"));

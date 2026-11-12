@@ -1,19 +1,16 @@
+import { axiosClient } from '@/lib/axios';
+import type { ApiResponse } from '@/types/api.types';
 import type { AccessoryOrder } from '@/types/order.types';
-
-const API_BASE = 'http://localhost:8080/api';
 
 export const orderService = {
   async getMyOrders(customerId?: number): Promise<AccessoryOrder[]> {
     try {
       const url = customerId
-        ? `${API_BASE}/customer/orders?customerId=${customerId}`
-        : `${API_BASE}/customer/orders`;
-      const res = await fetch(url);
-      if (res.ok) {
-        const json = await res.json();
-        if (json?.data && Array.isArray(json.data)) {
-          return json.data;
-        }
+        ? `/customer/orders?customerId=${customerId}`
+        : `/customer/orders`;
+      const res = await axiosClient.get<unknown, ApiResponse<AccessoryOrder[]>>(url);
+      if (res?.data && Array.isArray(res.data)) {
+        return res.data;
       }
     } catch {
       // network error
@@ -23,10 +20,8 @@ export const orderService = {
 
   async confirmDelivered(orderId: number): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/customer/orders/${orderId}/delivered`, {
-        method: 'POST',
-      });
-      return res.ok;
+      const res = await axiosClient.post<unknown, ApiResponse<unknown>>(`/customer/orders/${orderId}/delivered`);
+      return Boolean(res);
     } catch {
       return false;
     }
@@ -34,10 +29,8 @@ export const orderService = {
 
   async cancelOrder(orderId: number): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/customer/orders/${orderId}/cancel`, {
-        method: 'POST',
-      });
-      return res.ok;
+      const res = await axiosClient.post<unknown, ApiResponse<unknown>>(`/customer/orders/${orderId}/cancel`);
+      return Boolean(res);
     } catch {
       return false;
     }
@@ -45,12 +38,10 @@ export const orderService = {
 
   async requestReturn(orderId: number, reason?: string): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/customer/orders/${orderId}/return`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason: reason || 'Đổi trả phụ kiện kỹ thuật' }),
+      const res = await axiosClient.post<unknown, ApiResponse<unknown>>(`/customer/orders/${orderId}/return`, {
+        reason: reason || 'Đổi trả phụ kiện kỹ thuật',
       });
-      return res.ok;
+      return Boolean(res);
     } catch {
       return false;
     }
@@ -58,12 +49,11 @@ export const orderService = {
 
   async submitReview(orderId: number, rating: number, comment: string): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/customer/orders/${orderId}/review`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rating, comment }),
+      const res = await axiosClient.post<unknown, ApiResponse<unknown>>(`/customer/orders/${orderId}/review`, {
+        rating,
+        comment,
       });
-      return res.ok;
+      return Boolean(res);
     } catch {
       return false;
     }

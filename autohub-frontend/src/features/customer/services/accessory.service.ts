@@ -1,8 +1,22 @@
-import type { Accessory, AccessoryCategory, AccessoryFilterParams } from '@/types/accessory.types';
+import { axiosClient } from '@/lib/axios';
+import type { ApiResponse } from '@/types/api.types';
+import type { Accessory, AccessoryCategory, AccessoryFilterParams, AccessoryCompatibility } from '@/types/accessory.types';
 import { type CarModelInfo } from '../mocks/accessory.mock';
 import { carService } from './car.service';
 
-const API_BASE = 'http://localhost:8080/api';
+interface RawCategoryDto {
+  id: number;
+  categoryName?: string;
+  tenDanhMuc?: string;
+  name?: string;
+  slug?: string;
+  count?: number;
+}
+
+interface RawAccessoryDto extends Accessory {
+  dungChung?: boolean;
+  isUniversal?: boolean;
+}
 
 export const accessoryService = {
   /**
@@ -16,38 +30,36 @@ export const accessoryService = {
       if (params?.minPrice !== undefined) queryParts.push(`minPrice=${params.minPrice}`);
       if (params?.maxPrice !== undefined) queryParts.push(`maxPrice=${params.maxPrice}`);
 
-      const url = `${API_BASE}/customer/accessories${queryParts.length ? '?' + queryParts.join('&') : ''}`;
-      const res = await fetch(url);
-      if (res.ok) {
-        const json = await res.json();
-        if (json?.data && Array.isArray(json.data) && json.data.length > 0) {
-          let items: Accessory[] = json.data;
-          if (params?.carModelId) {
-            items = items.filter((item: any) =>
-              Boolean(item.dungChung) ||
-              Boolean(item.isUniversal) ||
-              item.compatibilities?.some((c: any) => String(c.carModelId) === String(params.carModelId))
-            );
-          }
-          if (params?.sortBy) {
-            switch (params.sortBy) {
-              case 'price-asc':
-                items.sort((a, b) => a.price - b.price);
-                break;
-              case 'price-desc':
-                items.sort((a, b) => b.price - a.price);
-                break;
-              case 'newest':
-                items.sort((a, b) => b.id - a.id);
-                break;
-              case 'popular':
-              default:
-                items.sort((a, b) => (b.stockQuantity || 0) - (a.stockQuantity || 0));
-                break;
-            }
-          }
-          return items;
+      const url = `/customer/accessories${queryParts.length ? '?' + queryParts.join('&') : ''}`;
+      const res = await axiosClient.get<unknown, ApiResponse<RawAccessoryDto[]>>(url);
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+        let items: Accessory[] = res.data;
+        if (params?.carModelId) {
+          const modelIdStr = String(params.carModelId);
+          items = items.filter((item: RawAccessoryDto) =>
+            Boolean(item.dungChung) ||
+            Boolean(item.isUniversal) ||
+            item.compatibilities?.some((c: AccessoryCompatibility) => String(c.carModelId) === modelIdStr)
+          );
         }
+        if (params?.sortBy) {
+          switch (params.sortBy) {
+            case 'price-asc':
+              items.sort((a, b) => a.price - b.price);
+              break;
+            case 'price-desc':
+              items.sort((a, b) => b.price - a.price);
+              break;
+            case 'newest':
+              items.sort((a, b) => b.id - a.id);
+              break;
+            case 'popular':
+            default:
+              items.sort((a, b) => (b.stockQuantity || 0) - (a.stockQuantity || 0));
+              break;
+          }
+        }
+        return items;
       }
     } catch {
       // network error
@@ -57,39 +69,34 @@ export const accessoryService = {
   },
 
   /**
-   * Get single accessory by ID
+   * Get accessory details by id
    */
-  async getAccessoryById(id: number): Promise<Accessory | undefined> {
+  async getAccessoryById(id: number): Promise<Accessory | null> {
     try {
-      const res = await fetch(`${API_BASE}/customer/accessories/${id}`);
-      if (res.ok) {
-        const json = await res.json();
-        if (json?.data) {
-          return json.data;
-        }
+      const res = await axiosClient.get<unknown, ApiResponse<Accessory>>(`/customer/accessories/${id}`);
+      if (res?.data) {
+        return res.data;
       }
     } catch {
       // network error
     }
-    return undefined;
+
+    return null;
   },
 
   /**
-   * Get all categories with counts
+   * Get all categories from database
    */
   async getCategories(): Promise<AccessoryCategory[]> {
     try {
-      const res = await fetch(`${API_BASE}/customer/accessories/categories`);
-      if (res.ok) {
-        const json = await res.json();
-        if (json?.data && Array.isArray(json.data) && json.data.length > 0) {
-          return json.data.map((c: any) => ({
-            id: c.id,
-            categoryName: c.categoryName || c.tenDanhMuc || c.name || 'Phụ kiện',
-            slug: c.slug || (c.id === 1 ? 'charging-energy' : c.id === 2 ? 'camera-sensors' : c.id === 3 ? 'window-films' : 'floor-mats'),
-            count: c.count || 3,
-          }));
-        }
+      const res = await axiosClient.get<unknown, ApiResponse<RawCategoryDto[]>>('/customer/accessories/categories');
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+        return res.data.map((c) => ({
+          id: c.id,
+          categoryName: c.categoryName || c.tenDanhMuc || c.name || 'Phụ kiện',
+          slug: c.slug || (c.id === 1 ? 'charging-energy' : c.id === 2 ? 'camera-sensors' : c.id === 3 ? 'window-films' : 'floor-mats'),
+          count: c.count || 3,
+        }));
       }
     } catch {
       // network error
@@ -108,9 +115,9 @@ export const accessoryService = {
           id: Number(c.id),
           name: c.name,
           yearRange: '2024 – 2026',
-          architecture: c.powertrain || '800V ARCHITECTURE',
-          thumbnailUrl: c.image,
-          accessoryCount: 6,
+          architecture: c.powertrain || 'Thuần điện 800V SiC',
+          thumbnailUrl: c.image || 'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=1200',
+          accessoryCount: 12,
         }));
       }
     } catch {
@@ -119,4 +126,3 @@ export const accessoryService = {
     return [];
   },
 };
-

@@ -19,6 +19,8 @@ import com.autohub.core.user.repository.NguoiDungRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -56,13 +58,33 @@ public class CustomerEngagementController {
         private String ghiChu;
     }
 
+    private NguoiDung resolveCurrentUser(Long requestedCustomerId) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && auth.getName() != null && !"anonymousUser".equals(auth.getName())) {
+                Optional<NguoiDung> byEmail = nguoiDungRepository.findByEmail(auth.getName());
+                if (byEmail.isPresent()) {
+                    return byEmail.get();
+                }
+            }
+        } catch (Exception ignored) {}
+
+        if (requestedCustomerId != null) {
+            return nguoiDungRepository.findById(requestedCustomerId).orElse(null);
+        }
+        return null;
+    }
+
     @GetMapping("/test-drives")
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getMyTestDrives(@RequestParam(required = false) Long customerId) {
-        List<LichHenLaiThu> list = (customerId != null)
-                ? lichHenLaiThuRepository.findByNguoiDungId(customerId)
-                : Collections.emptyList();
-        if (list.isEmpty()) {
-            list = lichHenLaiThuRepository.findAll();
+        NguoiDung user = resolveCurrentUser(customerId);
+        List<LichHenLaiThu> list;
+        if (user != null) {
+            list = lichHenLaiThuRepository.findByNguoiDungId(user.getId());
+        } else if (customerId != null) {
+            list = lichHenLaiThuRepository.findByNguoiDungId(customerId);
+        } else {
+            list = Collections.emptyList();
         }
 
         List<Map<String, Object>> dtos = list.stream().map(this::mapTestDriveToDto).collect(Collectors.toList());

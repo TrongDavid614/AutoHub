@@ -26,19 +26,26 @@ public class ShowroomCarController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getShowroomCars() {
-        List<PhienBanXe> cars = phienBanXeRepository.findAll();
-        List<Map<String, Object>> result = cars.stream().map(this::mapCarToDto).toList();
+        List<MauSac> allColors = mauSacRepository.findAll();
+        List<PhienBanXe> cars = phienBanXeRepository.findAll().stream()
+                .filter(car -> !car.isDeleted() && car.isDangHoatDong())
+                .toList();
+        List<Map<String, Object>> result = cars.stream()
+                .map(car -> mapCarToDto(car, allColors))
+                .toList();
         return ResponseEntity.ok(ApiResponse.ok(result, "Lấy danh mục xe showroom thành công"));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getCarDetail(@PathVariable Long id) {
+        List<MauSac> allColors = mauSacRepository.findAll();
         return phienBanXeRepository.findById(id)
-                .map(car -> ResponseEntity.ok(ApiResponse.ok(mapCarToDto(car), "Lấy chi tiết phiên bản xe thành công")))
+                .filter(car -> !car.isDeleted())
+                .map(car -> ResponseEntity.ok(ApiResponse.ok(mapCarToDto(car, allColors), "Lấy chi tiết phiên bản xe thành công")))
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    private Map<String, Object> mapCarToDto(PhienBanXe car) {
+    private Map<String, Object> mapCarToDto(PhienBanXe car, List<MauSac> colors) {
         Map<String, Object> dto = new HashMap<>();
         dto.put("id", car.getId());
         dto.put("tenPhienBan", car.getTenPhienBan());
@@ -76,9 +83,8 @@ public class ShowroomCarController {
         dto.put("images", imageUrls);
         dto.put("image", !imageUrls.isEmpty() ? imageUrls.get(0) : "https://images.unsplash.com/photo-1617788138017-80ad40651399?w=1200");
 
-        // Lấy danh sách màu sắc từ database
-        List<MauSac> colors = mauSacRepository.findAll();
-        dto.put("colors", colors);
+        // Gán danh sách màu sắc
+        dto.put("colors", colors != null ? colors : List.of());
 
         return dto;
     }

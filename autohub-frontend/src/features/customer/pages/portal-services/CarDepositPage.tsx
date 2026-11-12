@@ -89,7 +89,7 @@ export const CarDepositPage: React.FC = () => {
   const handleRefundSubmit = async (data: { reason: string; document: string; bankAccount: string }) => {
     setShowRefundModal(false);
     if (refundTarget) {
-      await depositService.requestRefund(refundTarget.id, data.reason);
+      await depositService.requestRefund(refundTarget.id, data);
       setDeposits((prev) =>
         prev.map((d) =>
           d.id === refundTarget.id

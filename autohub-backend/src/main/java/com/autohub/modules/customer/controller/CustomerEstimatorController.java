@@ -34,12 +34,15 @@ public class CustomerEstimatorController {
     @GetMapping("/calculate")
     public ResponseEntity<ApiResponse<Map<String, Object>>> calculateRollingCost(
             @RequestParam Long variantId,
-            @RequestParam(defaultValue = "1") Long provinceId
+            @RequestParam(required = false) Long provinceId,
+            @RequestParam(required = false) Long tinhThanhId
     ) {
+        Long targetProvinceId = tinhThanhId != null ? tinhThanhId : (provinceId != null ? provinceId : 1L);
+
         PhienBanXe variant = phienBanXeRepository.findById(variantId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiên bản xe ID: " + variantId));
 
-        BieuPhiLanBanh bieuPhi = bieuPhiLanBanhRepository.findByTinhThanhId(provinceId)
+        BieuPhiLanBanh bieuPhi = bieuPhiLanBanhRepository.findByTinhThanhId(targetProvinceId)
                 .orElseGet(() -> bieuPhiLanBanhRepository.findAll().stream().findFirst()
                         .orElse(BieuPhiLanBanh.builder()
                                 .tyLePhiTruocBa(10.0)
@@ -72,6 +75,8 @@ public class CustomerEstimatorController {
         Map<String, Object> result = new HashMap<>();
         result.put("variantId", variant.getId());
         result.put("variantName", variant.getTenPhienBan());
+        result.put("provinceId", targetProvinceId);
+        result.put("tinhThanhId", targetProvinceId);
         result.put("giaNiemYet", giaNiemYet);
         result.put("tyLePhiTruocBa", tyLeDouble);
         result.put("phiTruocBa", phiTruocBa);

@@ -8,6 +8,8 @@ import com.autohub.core.user.repository.SoDiaChiRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,12 +38,33 @@ public class CustomerAddressController {
         private String tag;
     }
 
+    private NguoiDung resolveCurrentUser(Long requestedCustomerId) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && auth.getName() != null && !"anonymousUser".equals(auth.getName())) {
+                Optional<NguoiDung> byEmail = nguoiDungRepository.findByEmail(auth.getName());
+                if (byEmail.isPresent()) {
+                    return byEmail.get();
+                }
+            }
+        } catch (Exception ignored) {}
+
+        if (requestedCustomerId != null) {
+            return nguoiDungRepository.findById(requestedCustomerId).orElse(null);
+        }
+        return null;
+    }
+
     @GetMapping
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getMyAddresses(@RequestParam(required = false) Long customerId) {
-        Long custId = customerId != null ? customerId : 5L;
-        List<SoDiaChi> list = soDiaChiRepository.findByNguoiDungId(custId);
-        if (list.isEmpty()) {
-            list = soDiaChiRepository.findAll();
+        NguoiDung user = resolveCurrentUser(customerId);
+        List<SoDiaChi> list;
+        if (user != null) {
+            list = soDiaChiRepository.findByNguoiDungId(user.getId());
+        } else if (customerId != null) {
+            list = soDiaChiRepository.findByNguoiDungId(customerId);
+        } else {
+            list = Collections.emptyList();
         }
 
         List<Map<String, Object>> result = list.stream().map(this::mapToDto).collect(Collectors.toList());

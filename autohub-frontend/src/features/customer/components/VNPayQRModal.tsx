@@ -55,9 +55,6 @@ export const VNPayQRModal: React.FC<VNPayQRModalProps> = ({
   useEffect(() => {
     if (!isOpen || isPaidSuccess) return;
 
-    setCountdown(60);
-    setIsExpired(false);
-
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
@@ -385,5 +382,3 @@ export const VNPayQRModal: React.FC<VNPayQRModalProps> = ({
     </div>
   );
 };
-
-export default VNPayQRModal;

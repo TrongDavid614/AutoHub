@@ -99,6 +99,7 @@ export const CarDetailPage: React.FC = () => {
       <CarDepositModal
         isOpen={isDepositOpen}
         onClose={() => setIsDepositOpen(false)}
+        variantId={car?.id || activeTrim}
         carName={carName}
         trimName={trimName}
         colorName={activeColorObj.name}

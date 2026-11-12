@@ -70,6 +70,7 @@ export const CarComparisonPage: React.FC = () => {
       <CarDepositModal
         isOpen={depositModalOpen}
         onClose={() => setDepositModalOpen(false)}
+        variantId={selectedDepositTrim.includes('Track') ? 2 : 1}
         carName="AutoHub GT-e"
         trimName={selectedDepositTrim}
         colorName="Xanh Công Nghệ Hyper Tech Blue"

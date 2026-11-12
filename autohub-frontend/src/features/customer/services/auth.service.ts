@@ -18,13 +18,14 @@ export const authService = {
     return newUser;
   },
 
-  async login(emailOrUsername: string, _password?: string): Promise<LoginResponse> {
+  async login(emailOrUsername: string, password?: string): Promise<LoginResponse> {
     await new Promise((resolve) => setTimeout(resolve, 400));
+    void password;
     const lower = emailOrUsername.toLowerCase().trim();
 
     let role: 'ROLE_ADMIN' | 'ROLE_STAFF' | 'ROLE_CUSTOMER' = 'ROLE_CUSTOMER';
     let id = 5;
-    let fullName = 'Nguyễn Văn A';
+    let fullName = 'Khách hàng AutoHub';
     let phoneNumber = '0912345678';
 
     if (lower.includes('admin') || lower === 'admin@autohub.vn') {

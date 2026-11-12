@@ -144,5 +144,3 @@ export const VNPayReturnPage: React.FC = () => {
   );
 };
 
-export default VNPayReturnPage;
-

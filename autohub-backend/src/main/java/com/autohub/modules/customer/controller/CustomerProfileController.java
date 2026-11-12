@@ -98,6 +98,12 @@ public class CustomerProfileController {
         NguoiDung user = nguoiDungRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng ID: " + id));
 
+        if (req.getCurrentPassword() != null && !req.getCurrentPassword().isBlank() && user.getMatKhauBam() != null) {
+            if (!passwordEncoder.matches(req.getCurrentPassword(), user.getMatKhauBam())) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("Mật khẩu hiện tại không chính xác."));
+            }
+        }
+
         if (req.getNewPassword() != null && !req.getNewPassword().isBlank()) {
             user.setMatKhauBam(passwordEncoder.encode(req.getNewPassword()));
             nguoiDungRepository.save(user);
