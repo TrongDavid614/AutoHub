@@ -21,23 +21,23 @@ public class YeuCauDoiTra extends BaseEntity {
     private DonHangPhuKien donHang;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chi_tiet_don_hang_id", nullable = false)
+    @JoinColumn(name = "chi_tiet_don_hang_id")
     private ChiTietDonHang chiTietDonHang;
 
-    @Column(name = "so_luong_doi_tra", nullable = false)
+    @Column(name = "so_luong_doi_tra")
     @Builder.Default
     private Integer soLuongDoiTra = 1;
 
-    @Column(nullable = false, length = 1000)
+    @Column(name = "ly_do", length = 500)
     private String lyDo;
 
-    @Column(name = "phuong_an_mong_muon", nullable = false, length = 20)
+    @Column(name = "phuong_an_mong_muon", length = 30)
     private String phuongAnMongMuon; // DOI_HANG hoặc HOAN_TIEN
 
-    @Column(length = 1000)
+    @Column(name = "minh_chung", length = 500)
     private String minhChung;
 
-    @Column(name = "phuong_an_giai_quyet", length = 20)
+    @Column(name = "phuong_an_giai_quyet", length = 50)
     private String phuongAnGiaiQuyet;
 
     @Column(name = "ma_van_don_moi", length = 50)
@@ -52,6 +52,6 @@ public class YeuCauDoiTra extends BaseEntity {
     @Builder.Default
     private TrangThaiDoiTra trangThai = TrangThaiDoiTra.PENDING;
 
-    @Column(name = "ghi_chu_xu_ly", length = 1000)
+    @Column(name = "ghi_chu_xu_ly", columnDefinition = "NVARCHAR(MAX)")
     private String ghiChuXuLy;
 }

@@ -59,10 +59,10 @@ public class CustomerEngagementController {
     @GetMapping("/test-drives")
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getMyTestDrives(@RequestParam(required = false) Long customerId) {
         List<LichHenLaiThu> list = (customerId != null)
-                ? lichHenLaiThuRepository.findAllWithDetails(customerId)
+                ? lichHenLaiThuRepository.findByNguoiDungId(customerId)
                 : Collections.emptyList();
         if (list.isEmpty()) {
-            list = lichHenLaiThuRepository.findAllWithDetails();
+            list = lichHenLaiThuRepository.findAll();
         }
 
         List<Map<String, Object>> dtos = list.stream().map(this::mapTestDriveToDto).collect(Collectors.toList());
@@ -85,10 +85,13 @@ public class CustomerEngagementController {
         LocalDateTime startOfDay = targetDate.atStartOfDay();
         LocalDateTime endOfDay = targetDate.atTime(23, 59, 59);
 
-        List<LichHenLaiThu> activeOnDate = lichHenLaiThuRepository.findActiveAppointmentsOnDate(
-                startOfDay, endOfDay,
-                List.of(TrangThaiLichHen.CANCELLED, TrangThaiLichHen.EXPIRED)
-        );
+        List<LichHenLaiThu> activeOnDate = lichHenLaiThuRepository.findAll().stream()
+                .filter(lh -> lh.getThoiGianHen() != null
+                        && !lh.getThoiGianHen().isBefore(startOfDay)
+                        && !lh.getThoiGianHen().isAfter(endOfDay)
+                        && lh.getTrangThai() != TrangThaiLichHen.CANCELLED
+                        && lh.getTrangThai() != TrangThaiLichHen.EXPIRED)
+                .collect(Collectors.toList());
 
         List<String> bookedSlots = new ArrayList<>();
         for (LichHenLaiThu lh : activeOnDate) {
@@ -115,7 +118,9 @@ public class CustomerEngagementController {
 
         // RÀNG BUỘC 1: Kiểm tra người dùng đã có lịch PENDING hay chưa (Theo Unique index UX_lh_pending)
         if (user != null) {
-            List<LichHenLaiThu> pendingList = lichHenLaiThuRepository.findPendingByNguoiDungId(user.getId(), TrangThaiLichHen.PENDING);
+            List<LichHenLaiThu> pendingList = lichHenLaiThuRepository.findByNguoiDungId(user.getId()).stream()
+                    .filter(lh -> lh.getTrangThai() == TrangThaiLichHen.PENDING)
+                    .collect(Collectors.toList());
             if (!pendingList.isEmpty()) {
                 return ResponseEntity.badRequest().body(ApiResponse.error(
                         "Quý khách đang có lịch hẹn lái thử đang chờ duyệt (Mã #" + pendingList.get(0).getId() +
@@ -161,10 +166,12 @@ public class CustomerEngagementController {
 
         // RÀNG BUỘC 3: Trùng lịch của cùng một khách hàng tại khung giờ này (1 khách không thể thử 2 xe cùng giờ)
         if (user != null) {
-            List<LichHenLaiThu> userConflicts = lichHenLaiThuRepository.findUserConflictingAppointments(
-                    user.getId(), bookingTime,
-                    List.of(TrangThaiLichHen.CANCELLED, TrangThaiLichHen.EXPIRED)
-            );
+            final LocalDateTime targetTime = bookingTime;
+            List<LichHenLaiThu> userConflicts = lichHenLaiThuRepository.findByNguoiDungId(user.getId()).stream()
+                    .filter(lh -> lh.getThoiGianHen() != null && lh.getThoiGianHen().isEqual(targetTime)
+                            && lh.getTrangThai() != TrangThaiLichHen.CANCELLED
+                            && lh.getTrangThai() != TrangThaiLichHen.EXPIRED)
+                    .collect(Collectors.toList());
             if (!userConflicts.isEmpty()) {
                 return ResponseEntity.badRequest().body(ApiResponse.error(
                         "Quý khách đã có một lịch hẹn lái thử khác vào đúng khung giờ này (" +
@@ -175,10 +182,14 @@ public class CustomerEngagementController {
         }
 
         // RÀNG BUỘC 4: Trùng lịch của chính mẫu xe Demo / phiên bản xe này tại khung giờ này
-        List<LichHenLaiThu> carConflicts = lichHenLaiThuRepository.findConflictingAppointments(
-                bookingTime, pb != null ? pb.getId() : null,
-                List.of(TrangThaiLichHen.CANCELLED, TrangThaiLichHen.EXPIRED)
-        );
+        final LocalDateTime targetTime = bookingTime;
+        final Long targetPbId = pb != null ? pb.getId() : null;
+        List<LichHenLaiThu> carConflicts = lichHenLaiThuRepository.findAll().stream()
+                .filter(lh -> lh.getThoiGianHen() != null && lh.getThoiGianHen().isEqual(targetTime)
+                        && lh.getTrangThai() != TrangThaiLichHen.CANCELLED
+                        && lh.getTrangThai() != TrangThaiLichHen.EXPIRED
+                        && (targetPbId == null || (lh.getPhienBanXe() != null && targetPbId.equals(lh.getPhienBanXe().getId()))))
+                .collect(Collectors.toList());
         if (!carConflicts.isEmpty()) {
             return ResponseEntity.badRequest().body(ApiResponse.error(
                     "Mẫu xe Demo này đã có khách hàng đăng ký trước trong khung giờ " +
@@ -202,7 +213,7 @@ public class CustomerEngagementController {
                 .diaDiemLaiThu(req.getDiaDiemLaiThu() != null ? req.getDiaDiemLaiThu() : (sr != null ? sr.getTenShowroom() : "Showroom AutoHub Flagship"))
                 .thoiGianHen(bookingTime)
                 .thoiLuongPhut(60)
-                .camKetGplx(req.getCamKetGplx() != null ? req.getCamKetGplx() : true)
+                .camKetGPLX(req.getCamKetGplx() != null ? req.getCamKetGplx() : true)
                 .ghiChu(req.getGhiChu())
                 .trangThai(TrangThaiLichHen.PENDING)
                 .ngayTao(LocalDateTime.now())
@@ -315,7 +326,7 @@ public class CustomerEngagementController {
         }
 
         map.put("status", l.getTrangThai() != null ? l.getTrangThai().name() : "PENDING");
-        map.put("hasDrivingLicense", Boolean.TRUE.equals(l.getCamKetGplx()));
+        map.put("hasDrivingLicense", l.isCamKetGPLX());
         map.put("demoCarPlate", l.getXeDemo() != null ? l.getXeDemo().getBienSo() + " (Xe Demo)" : "51K-999.88 (Xe Demo)");
         map.put("consultantName", "Kỹ sư Trịnh Hoài Nam");
         map.put("evaluationNote", l.getGhiChu());

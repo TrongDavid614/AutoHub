@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class DonHangPhuKien extends BaseEntity {
 
-    @Column(name = "ma_don_hang", nullable = false, unique = true, length = 30)
+    @Column(name = "ma_don_hang", nullable = false, unique = true, length = 50)
     private String maDonHang;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -31,13 +31,13 @@ public class DonHangPhuKien extends BaseEntity {
     @JoinColumn(name = "voucher_id")
     private Voucher voucher;
 
-    @Column(name = "ho_ten_nguoi_nhan", nullable = false, length = 100)
+    @Column(name = "ho_ten_nguoi_nhan", length = 100)
     private String hoTenNguoiNhan;
 
-    @Column(name = "so_dien_thoai_nhan", nullable = false, length = 15)
+    @Column(name = "so_dien_thoai_nhan", length = 15)
     private String soDienThoaiNhan;
 
-    @Column(name = "dia_chi_giao_hang", nullable = false, length = 500)
+    @Column(name = "dia_chi_giao_hang", nullable = false, length = 255)
     private String diaChiGiaoHang;
 
     @Column(name = "ghi_chu_khach_hang", length = 500)
@@ -48,19 +48,17 @@ public class DonHangPhuKien extends BaseEntity {
     private LocalDateTime ngayDat = LocalDateTime.now();
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "phuong_thuc_thanh_toan", nullable = false, length = 10)
+    @Column(name = "phuong_thuc_thanh_toan", nullable = false, length = 20)
     private PhuongThucThanhToan phuongThucThanhToan;
 
-    @Column(name = "phi_van_chuyen", nullable = false, precision = 18, scale = 0)
-    @Builder.Default
-    private BigDecimal phiVanChuyen = BigDecimal.ZERO;
+    @Column(name = "phi_van_chuyen", precision = 18, scale = 2)
+    private BigDecimal phiVanChuyen;
 
-    @Column(name = "so_tien_giam_voucher", nullable = false, precision = 18, scale = 0)
-    @Builder.Default
-    private BigDecimal soTienGiamVoucher = BigDecimal.ZERO;
+    @Column(name = "so_tien_giam_voucher", precision = 18, scale = 2)
+    private BigDecimal soTienGiamVoucher;
 
     @Column(name = "don_vi_van_chuyen", length = 100)
-    private String donViVanChuyen;
+    private String donViVanChuyen; // GHN Express...
 
     @Column(name = "ma_van_don", length = 50)
     private String maVanDon;
@@ -68,11 +66,11 @@ public class DonHangPhuKien extends BaseEntity {
     @Column(name = "ngay_giao_hang")
     private LocalDateTime ngayGiaoHang;
 
-    @Column(name = "tong_tien", nullable = false, precision = 18, scale = 0)
+    @Column(name = "tong_tien", nullable = false, precision = 18, scale = 2)
     private BigDecimal tongTien;
 
     @Column(name = "han_thanh_toan")
-    private LocalDateTime hanThanhToan;
+    private LocalDateTime hanThanhToan; // ngayDat + 15 phút (SePay)
 
     @Column(name = "thoi_gian_thanh_toan")
     private LocalDateTime thoiGianThanhToan;

@@ -6,7 +6,6 @@ import com.autohub.core.enums.LoaiUuDai;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -19,20 +18,20 @@ import java.util.List;
 @AllArgsConstructor
 public class ChuongTrinhKhuyenMai extends BaseEntity {
 
-    @Column(name = "ten_chuong_trinh", nullable = false, length = 200)
+    @Column(name = "ten_chuong_trinh", nullable = false, length = 150)
     private String tenChuongTrinh;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "loai_uu_dai", nullable = false, length = 30)
     private LoaiUuDai loaiUuDai;
 
-    @Column(name = "gia_tri", nullable = false, precision = 18, scale = 2)
-    private BigDecimal giaTri;
+    @Column(name = "gia_tri")
+    private Double giaTri; // Số tiền hoặc % hỗ trợ lệ phí trước bạ
 
-    @Column(name = "ngay_bat_dau", nullable = false)
+    @Column(name = "ngay_bat_dau")
     private LocalDate ngayBatDau;
 
-    @Column(name = "ngay_ket_thuc", nullable = false)
+    @Column(name = "ngay_ket_thuc")
     private LocalDate ngayKetThuc;
 
     @Column(name = "dang_hoat_dong")

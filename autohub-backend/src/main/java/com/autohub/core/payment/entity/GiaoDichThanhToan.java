@@ -29,27 +29,26 @@ public class GiaoDichThanhToan extends BaseEntity {
     private DonHangPhuKien donHangPhuKien; // Hoặc đơn hàng (DR35)
 
     @Column(name = "ma_tham_chieu", nullable = false, unique = true, length = 100)
-    private String maThamChieu; // vnp_TxnRef hoặc sepay_reference_code
+    private String maThamChieu; // Mã gửi SePay (sepay_reference_code)
 
     @Column(name = "ma_giao_dich_vnpay", length = 100)
-    private String maGiaoDichVnpay; // vnp_TransactionNo
+    private String maGiaoDichVnpay;
 
-    @Column(name = "ma_giao_dich_sepay", length = 100)
-    private String maGiaoDichSepay; // Mã SePay trả về
+    @Column(name = "ma_giao_dich_sepay", unique = true, length = 100)
+    private String maGiaoDichSePay; // Mã SePay trả về (sepay_transaction_id)
 
     @Column(name = "loai_giao_dich", nullable = false, length = 30)
     @Builder.Default
     private String loaiGiaoDich = "DAT_COC_XE"; // DAT_COC_XE hoặc DON_HANG_PHU_KIEN
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "phuong_thuc", nullable = false, length = 10)
-    @Builder.Default
-    private PhuongThucThanhToan phuongThuc = PhuongThucThanhToan.VNPAY;
+    @Column(name = "phuong_thuc", nullable = false, length = 20)
+    private PhuongThucThanhToan phuongThuc;
 
-    @Column(name = "so_tien", nullable = false, precision = 18, scale = 0)
+    @Column(name = "so_tien", nullable = false, precision = 18, scale = 2)
     private BigDecimal soTien;
 
-    @Column(name = "thoi_gian_khoi_tao", nullable = false)
+    @Column(name = "thoi_gian_khoi_tao")
     @Builder.Default
     private LocalDateTime thoiGianKhoiTao = LocalDateTime.now();
 
@@ -57,7 +56,7 @@ public class GiaoDichThanhToan extends BaseEntity {
     private LocalDateTime thoiGianThanhToan;
 
     @Column(name = "ma_ket_qua", length = 50)
-    private String maKetQua; // Mã phản hồi kết quả giao dịch
+    private String maKetQua; // sepay_status
 
     @Column(name = "du_lieu_webhook", columnDefinition = "NVARCHAR(MAX)")
     private String duLieuWebhook;
@@ -66,12 +65,4 @@ public class GiaoDichThanhToan extends BaseEntity {
     @Column(name = "trang_thai", nullable = false, length = 20)
     @Builder.Default
     private TrangThaiThanhToan trangThai = TrangThaiThanhToan.PENDING;
-
-    public String getMaGiaoDichSePay() {
-        return this.maGiaoDichSepay;
-    }
-
-    public void setMaGiaoDichSePay(String maGiaoDichSePay) {
-        this.maGiaoDichSepay = maGiaoDichSePay;
-    }
 }

@@ -20,7 +20,7 @@ public class XeDinhDanh extends BaseEntity {
     private TonKhoXe tonKhoXe;
 
     @Column(name = "so_khung_vin", length = 17, nullable = false, unique = true)
-    private String soKhungVin;
+    private String soKhungVIN; // 17 ký tự duy nhất
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trang_thai", nullable = false, length = 20)

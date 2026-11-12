@@ -39,7 +39,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // 1. Công khai các endpoint Authentication & Tra cứu khách vãng lai
                 .requestMatchers("/auth/**", "/customer/cars/**", "/customer/accessories/**").permitAll()
-                .requestMatchers("/payment/**", "/vnpay/**").permitAll()
+                .requestMatchers("/payment/sepay-webhook").permitAll()
                 .requestMatchers("/ai/**", "/v1/ai/**", "/ai-consultant/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 

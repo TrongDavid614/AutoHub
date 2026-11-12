@@ -20,11 +20,11 @@ public class DongXe extends BaseEntity {
     @Column(name = "ten_dong_xe", nullable = false, length = 100)
     private String tenDongXe;
 
-    @Column(name = "phan_khuc", nullable = false, length = 30)
-    private String phanKhuc;
+    @Column(name = "phan_khuc", length = 50)
+    private String phanKhuc; // Sedan, SUV, Bán tải, Thương mại
 
-    @Column(name = "xuat_xu", nullable = false, length = 100)
-    private String xuatXu;
+    @Column(name = "xuat_xu", length = 50)
+    private String xuatXu; // Nhập khẩu hoặc Lắp ráp
 
     @Column(name = "mo_ta", columnDefinition = "NVARCHAR(MAX)")
     private String moTa;

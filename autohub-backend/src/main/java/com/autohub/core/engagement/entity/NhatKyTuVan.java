@@ -28,13 +28,13 @@ public class NhatKyTuVan extends BaseEntity {
     @Column(name = "loai_tuong_tac", nullable = false, length = 30)
     private String loaiTuongTac; // CUOC_GOI, TIN_NHAN_ZALO, EMAIL, GAP_TRUC_TIEP
 
-    @Column(name = "noi_dung_trao_doi", nullable = false, columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "noi_dung_trao_doi", columnDefinition = "NVARCHAR(MAX)")
     private String noiDungTraoDoi;
 
-    @Column(name = "ngan_sach_du_kien", precision = 18, scale = 0)
+    @Column(name = "ngan_sach_du_kien", precision = 18, scale = 2)
     private BigDecimal nganSachDuKien;
 
-    @Column(name = "ket_qua_cuoc_goi", length = 100)
+    @Column(name = "ket_qua_cuoc_goi", length = 50)
     private String ketQuaCuocGoi;
 
     @Column(name = "thoi_gian_tuong_tac")

@@ -32,6 +32,6 @@ public class ChiTietGioHang implements Serializable {
     @Builder.Default
     private Integer soLuong = 1;
 
-    @Column(name = "don_gia_tam_tinh", nullable = false, precision = 18, scale = 0)
+    @Column(name = "don_gia_tam_tinh", precision = 18, scale = 2)
     private BigDecimal donGiaTamTinh;
 }

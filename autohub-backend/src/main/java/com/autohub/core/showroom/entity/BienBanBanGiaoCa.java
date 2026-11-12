@@ -39,11 +39,11 @@ public class BienBanBanGiaoCa extends BaseEntity {
     @Column(name = "ca_ban_giao", nullable = false, length = 30)
     private String caBanGiao;
 
-    @Column(name = "tien_mat_dau_ca", nullable = false, precision = 18, scale = 0)
+    @Column(name = "tien_mat_dau_ca", nullable = false, precision = 18, scale = 2)
     @Builder.Default
     private BigDecimal tienMatDauCa = BigDecimal.ZERO;
 
-    @Column(name = "tien_mat_cuoi_ca", nullable = false, precision = 18, scale = 0)
+    @Column(name = "tien_mat_cuoi_ca", nullable = false, precision = 18, scale = 2)
     @Builder.Default
     private BigDecimal tienMatCuoiCa = BigDecimal.ZERO;
 

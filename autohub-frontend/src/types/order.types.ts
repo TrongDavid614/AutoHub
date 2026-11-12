@@ -27,7 +27,7 @@ export interface AccessoryOrder {
   customerName: string;
   customerPhone: string;
   shippingAddress: string;
-  paymentMethod: 'VNPAY' | 'COD' | 'SEPAY';
+  paymentMethod: 'SEPAY' | 'COD';
   status: AccessoryOrderStatus;
   subtotalAmount: number;
   shippingFee: number;

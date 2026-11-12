@@ -33,16 +33,16 @@ public class YeuCauTuVan extends BaseEntity {
     @Column(name = "ho_ten", nullable = false, length = 100)
     private String hoTen;
 
-    @Column(name = "so_dien_thoai", nullable = false, length = 10)
+    @Column(name = "so_dien_thoai", nullable = false, length = 15)
     private String soDienThoai;
 
-    @Column(nullable = false, length = 100)
+    @Column(name = "email", length = 100)
     private String email;
 
-    @Column(name = "noi_dung_can_tu_van", nullable = false, length = 1000)
+    @Column(name = "noi_dung_can_tu_van", length = 500)
     private String noiDungCanTuVan;
 
-    @Column(name = "khung_gio_tiep_nhan", length = 100)
+    @Column(name = "khung_gio_tiep_nhan", length = 50)
     private String khungGioTiepNhan;
 
     @Column(name = "ngay_gui")

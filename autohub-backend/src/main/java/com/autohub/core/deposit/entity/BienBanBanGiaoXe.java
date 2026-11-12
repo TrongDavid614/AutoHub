@@ -39,7 +39,7 @@ public class BienBanBanGiaoXe extends BaseEntity {
     @Column(name = "so_odo_ban_giao", nullable = false)
     private Integer soOdoBanGiao;
 
-    @Column(name = "ket_qua_pdi_json", nullable = false, columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "ket_qua_pdi_json", columnDefinition = "NVARCHAR(MAX)")
     private String ketQuaPdiJson;
 
     @Column(name = "file_bien_ban_url", length = 500)

@@ -44,9 +44,14 @@ public class CustomerDepositController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getMyDeposits(@RequestParam(required = false) Long customerId) {
-        List<PhieuDatCoc> deposits = depositRepository.findAllWithDetails(customerId);
-        if (deposits.isEmpty() && customerId != null) {
-            deposits = depositRepository.findAllWithDetails(null);
+        List<PhieuDatCoc> deposits;
+        if (customerId != null) {
+            deposits = depositRepository.findByNguoiDungId(customerId);
+            if (deposits.isEmpty()) {
+                deposits = depositRepository.findAll();
+            }
+        } else {
+            deposits = depositRepository.findAll();
         }
         List<Map<String, Object>> dtos = deposits.stream()
                 .map(this::mapDepositToDto)
@@ -172,12 +177,12 @@ public class CustomerDepositController {
         map.put("status", p.getTrangThai() != null ? p.getTrangThai().name() : "PAID");
 
         if (p.getXeDinhDanh() != null) {
-            map.put("vinNumber", p.getXeDinhDanh().getSoKhungVin());
+            map.put("vinNumber", p.getXeDinhDanh().getSoKhungVIN());
         } else {
             map.put("vinNumber", "VIN-" + (code.replace("#", "").replace("DEP-", "")));
         }
 
-        map.put("vnpayTransactionId", "vnp_" + (Math.abs(code.hashCode()) % 10000000));
+        map.put("sepayTransactionId", "SP_" + (Math.abs(code.hashCode()) % 10000000));
         map.put("paidAt", p.getThoiGianThanhToan() != null ? p.getThoiGianThanhToan().toString() : (p.getNgayDatCoc() != null ? p.getNgayDatCoc().toString() : LocalDateTime.now().toString()));
         map.put("expireAt", p.getHanGiuXe() != null ? p.getHanGiuXe().toString() : LocalDateTime.now().plusHours(72).toString());
         map.put("createdAt", p.getNgayDatCoc() != null ? p.getNgayDatCoc().toString() : LocalDateTime.now().toString());

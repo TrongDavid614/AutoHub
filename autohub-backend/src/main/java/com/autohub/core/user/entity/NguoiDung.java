@@ -30,17 +30,17 @@ public class NguoiDung extends BaseEntity {
     @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email; // Định danh đăng nhập duy nhất (BR01)
 
-    @Column(name = "mat_khau_bam", nullable = false, length = 100)
-    private String matKhauBam;
+    @Column(name = "mat_khau_bam", nullable = false)
+    private String matKhauBam; // BCrypt hash
 
-    @Column(name = "so_dien_thoai", nullable = false, length = 10)
-    private String soDienThoai;
+    @Column(name = "so_dien_thoai", length = 15)
+    private String soDienThoai; // 10 chữ số
 
     @Column(name = "anh_dai_dien", length = 500)
     private String anhDaiDien;
 
-    @Column(name = "so_cccd", length = 12)
-    private String soCCCD;
+    @Column(name = "so_cccd", length = 20)
+    private String soCCCD; // 12 chữ số, bắt buộc khi cọc xe (BR01)
 
     @Column(name = "ngay_sinh")
     private LocalDate ngaySinh;
@@ -49,18 +49,13 @@ public class NguoiDung extends BaseEntity {
     private String gioiTinh;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "vai_tro", nullable = false, length = 30)
-    @Builder.Default
-    private VaiTroNguoiDung vaiTro = VaiTroNguoiDung.ROLE_CUSTOMER;
+    @Column(name = "vai_tro", nullable = false, length = 20)
+    private VaiTroNguoiDung vaiTro;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "trang_thai_tai_khoan", nullable = false, length = 30)
+    @Column(name = "trang_thai_tai_khoan", nullable = false, length = 20)
     @Builder.Default
-    private TrangThaiTaiKhoan trangThaiTaiKhoan = TrangThaiTaiKhoan.CHUA_KICH_HOAT;
-
-    @Column(name = "is_deleted", nullable = false)
-    @Builder.Default
-    private boolean isDeleted = false;
+    private TrangThaiTaiKhoan trangThaiTaiKhoan = TrangThaiTaiKhoan.HOAT_DONG;
 
     @Column(name = "ngay_tao")
     @Builder.Default
@@ -69,4 +64,8 @@ public class NguoiDung extends BaseEntity {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    private boolean isDeleted = false;
 }

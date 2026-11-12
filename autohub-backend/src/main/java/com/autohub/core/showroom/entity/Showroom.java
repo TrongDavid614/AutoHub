@@ -26,13 +26,13 @@ public class Showroom extends BaseEntity {
     @Column(name = "dia_chi", nullable = false, length = 255)
     private String diaChi;
 
-    @Column(name = "so_dien_thoai", nullable = false, length = 15)
+    @Column(name = "so_dien_thoai", length = 20)
     private String soDienThoai;
 
-    @Column(name = "gio_mo_cua", nullable = false)
+    @Column(name = "gio_mo_cua")
     private LocalTime gioMoCua;
 
-    @Column(name = "gio_dong_cua", nullable = false)
+    @Column(name = "gio_dong_cua")
     private LocalTime gioDongCua;
 
     @Column(name = "dang_hoat_dong")

@@ -7,9 +7,7 @@ import lombok.*;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "chi_tiet_don_hang", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"don_hang_id", "phu_kien_id"})
-})
+@Table(name = "chi_tiet_don_hang")
 @Getter
 @Setter
 @Builder
@@ -28,9 +26,9 @@ public class ChiTietDonHang extends BaseEntity {
     @Column(name = "so_luong", nullable = false)
     private Integer soLuong;
 
-    @Column(name = "don_gia", nullable = false, precision = 18, scale = 0)
+    @Column(name = "don_gia", nullable = false, precision = 18, scale = 2)
     private BigDecimal donGia; // Chốt tại thời điểm đặt (BR07)
 
-    @Column(name = "thanh_tien", insertable = false, updatable = false)
+    @Column(name = "thanh_tien", nullable = false, precision = 18, scale = 2)
     private BigDecimal thanhTien;
 }

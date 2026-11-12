@@ -20,7 +20,7 @@ public class SoDiaChi extends BaseEntity {
     @Column(name = "ho_ten_nguoi_nhan", nullable = false, length = 100)
     private String hoTenNguoiNhan;
 
-    @Column(name = "so_dien_thoai", nullable = false, length = 10)
+    @Column(name = "so_dien_thoai", nullable = false, length = 15)
     private String soDienThoai;
 
     @Column(name = "tinh_thanh", nullable = false, length = 100)
@@ -37,5 +37,5 @@ public class SoDiaChi extends BaseEntity {
 
     @Column(name = "mac_dinh")
     @Builder.Default
-    private boolean macDinh = false;
+    private boolean macDinh = false; // Tối đa 1 địa chỉ mặc định (DR06)
 }

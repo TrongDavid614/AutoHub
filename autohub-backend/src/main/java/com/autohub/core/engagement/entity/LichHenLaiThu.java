@@ -39,22 +39,22 @@ public class LichHenLaiThu extends BaseEntity {
     @Column(name = "thoi_gian_hen", nullable = false)
     private LocalDateTime thoiGianHen;
 
-    @Column(name = "thoi_luong_phut", nullable = false)
+    @Column(name = "thoi_luong_phut")
     @Builder.Default
-    private Integer thoiLuongPhut = 60;
+    private Integer thoiLuongPhut = 45;
 
-    @Column(name = "dia_diem_lai_thu", nullable = false, length = 255)
-    private String diaDiemLaiThu;
+    @Column(name = "dia_diem_lai_thu", length = 255)
+    private String diaDiemLaiThu; // Showroom hoặc Lái thử tại nhà
 
-    @Column(name = "ho_ten_khach", nullable = false, length = 100)
+    @Column(name = "ho_ten_khach", length = 100)
     private String hoTenKhach;
 
-    @Column(name = "so_dien_thoai_khach", nullable = false, length = 10)
+    @Column(name = "so_dien_thoai_khach", length = 15)
     private String soDienThoaiKhach;
 
     @Column(name = "cam_ket_gplx", nullable = false)
     @Builder.Default
-    private Boolean camKetGplx = true;
+    private boolean camKetGPLX = true; // Bắt buộc true (DR21)
 
     @Column(name = "so_gplx_kiem_tra", length = 20)
     private String soGplxKiemTra;
@@ -83,10 +83,10 @@ public class LichHenLaiThu extends BaseEntity {
     @Builder.Default
     private TrangThaiLichHen trangThai = TrangThaiLichHen.PENDING;
 
-    @Column(name = "ghi_chu", length = 500)
+    @Column(name = "ghi_chu", length = 255)
     private String ghiChu;
 
-    @Column(name = "da_gui_nhac_lich", nullable = false)
+    @Column(name = "da_gui_nhac_lich")
     @Builder.Default
     private boolean daGuiNhacLich = false;
 

@@ -24,7 +24,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-hibernate6'
 
     // 2. Database Driver (Microsoft SQL Server)
     runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc'

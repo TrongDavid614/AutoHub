@@ -21,30 +21,30 @@ public class PhuKien extends BaseEntity {
     @JoinColumn(name = "danh_muc_id", nullable = false)
     private DanhMucPhuKien danhMucPhuKien;
 
-    @Column(name = "ten_phu_kien", nullable = false, length = 200)
+    @Column(name = "ten_phu_kien", nullable = false, length = 150)
     private String tenPhuKien;
 
-    @Column(name = "thuong_hieu", nullable = false, length = 100)
+    @Column(name = "thuong_hieu", length = 50)
     private String thuongHieu;
 
-    @Column(name = "gia_ban", nullable = false, precision = 18, scale = 0)
+    @Column(name = "gia_ban", nullable = false, precision = 18, scale = 2)
     private BigDecimal giaBan;
 
     @Column(name = "so_luong_ton", nullable = false)
     @Builder.Default
-    private Integer soLuongTon = 0;
+    private Integer soLuongTon = 0; // CHECK (soLuongTon >= 0)
 
-    @Column(name = "quy_cach_lap_dat", length = 500)
+    @Column(name = "quy_cach_lap_dat", length = 255)
     private String quyCachLapDat;
 
     @Column(name = "hinh_anh", length = 500)
     private String hinhAnh;
 
-    @Column(name = "dung_chung", nullable = false)
+    @Column(name = "dung_chung")
     @Builder.Default
-    private boolean dungChung = false;
+    private boolean dungChung = false; // true nếu dùng chung cho mọi dòng xe (DR34)
 
-    @Column(name = "dang_hoat_dong", nullable = false)
+    @Column(name = "dang_hoat_dong")
     @Builder.Default
     private boolean dangHoatDong = true;
 
@@ -54,5 +54,5 @@ public class PhuKien extends BaseEntity {
         joinColumns = @JoinColumn(name = "phu_kien_id"),
         inverseJoinColumns = @JoinColumn(name = "dong_xe_id")
     )
-    private List<DongXe> dongXeTuongThichs;
+    private List<DongXe> dongXes;
 }

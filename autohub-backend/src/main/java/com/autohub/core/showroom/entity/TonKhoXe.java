@@ -31,7 +31,7 @@ public class TonKhoXe extends BaseEntity {
 
     @Column(name = "so_luong_kha_dung", nullable = false)
     @Builder.Default
-    private Integer soLuongKhaDung = 0;
+    private Integer soLuongKhaDung = 0; // CHECK (soLuongKhaDung >= 0)
 
     @Column(name = "so_luong_dang_giu_cho", nullable = false)
     @Builder.Default

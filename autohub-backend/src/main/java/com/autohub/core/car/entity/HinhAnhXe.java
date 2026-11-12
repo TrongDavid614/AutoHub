@@ -24,13 +24,12 @@ public class HinhAnhXe extends BaseEntity {
     @Column(name = "duong_dan", nullable = false, length = 500)
     private String duongDan;
 
-    @Column(name = "loai_anh", nullable = false, length = 20)
+    @Column(name = "loai_anh", length = 30)
     private String loaiAnh; // NGOAI_THAT, NOI_THAT, XOAY_360
 
     @Column(name = "goc_quay")
     private Integer gocQuay;
 
     @Column(name = "thu_tu_hien_thi")
-    @Builder.Default
-    private Integer thuTuHienThi = 0;
+    private Integer thuTuHienThi;
 }

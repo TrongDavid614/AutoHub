@@ -1,6 +1,5 @@
 package com.autohub.common.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -13,7 +12,6 @@ import java.io.Serializable;
 @Getter
 @Setter
 @MappedSuperclass
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public abstract class BaseEntity implements Serializable {
 
     @Id

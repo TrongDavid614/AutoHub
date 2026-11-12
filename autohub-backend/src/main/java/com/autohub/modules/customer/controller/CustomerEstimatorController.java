@@ -42,39 +42,46 @@ public class CustomerEstimatorController {
         BieuPhiLanBanh bieuPhi = bieuPhiLanBanhRepository.findByTinhThanhId(provinceId)
                 .orElseGet(() -> bieuPhiLanBanhRepository.findAll().stream().findFirst()
                         .orElse(BieuPhiLanBanh.builder()
-                                .tyLePhiTruocBa(BigDecimal.valueOf(10.0))
+                                .tyLePhiTruocBa(10.0)
                                 .phiCapBienSo(BigDecimal.valueOf(20000000))
                                 .phiDangKiem(BigDecimal.valueOf(340000))
                                 .phiBaoTriDuongBo(BigDecimal.valueOf(1560000))
-                                .phiBaoHiemTnds(BigDecimal.valueOf(873400))
+                                .phiBaoHiemTNDS(BigDecimal.valueOf(873400))
                                 .build()));
 
         BigDecimal giaNiemYet = variant.getGiaNiemYet();
+        Double tyLeDouble = bieuPhi.getTyLePhiTruocBa() != null ? bieuPhi.getTyLePhiTruocBa() : 10.0;
+        BigDecimal tyLe = BigDecimal.valueOf(tyLeDouble);
+
         // Thuế trước bạ = Giá niêm yết * tỷ lệ / 100
-        BigDecimal phiTruocBa = giaNiemYet.multiply(bieuPhi.getTyLePhiTruocBa())
+        BigDecimal phiTruocBa = giaNiemYet.multiply(tyLe)
                 .divide(BigDecimal.valueOf(100), 0, RoundingMode.HALF_UP);
+
+        BigDecimal phiBienSo = bieuPhi.getPhiCapBienSo() != null ? bieuPhi.getPhiCapBienSo() : BigDecimal.ZERO;
+        BigDecimal phiDangKiem = bieuPhi.getPhiDangKiem() != null ? bieuPhi.getPhiDangKiem() : BigDecimal.ZERO;
+        BigDecimal phiDuongBo = bieuPhi.getPhiBaoTriDuongBo() != null ? bieuPhi.getPhiBaoTriDuongBo() : BigDecimal.ZERO;
+        BigDecimal phiBaoHiem = bieuPhi.getPhiBaoHiemTNDS() != null ? bieuPhi.getPhiBaoHiemTNDS() : BigDecimal.ZERO;
 
         BigDecimal tongChiPhiLanBanh = giaNiemYet
                 .add(phiTruocBa)
-                .add(bieuPhi.getPhiCapBienSo())
-                .add(bieuPhi.getPhiDangKiem())
-                .add(bieuPhi.getPhiBaoTriDuongBo())
-                .add(bieuPhi.getPhiBaoHiemTnds());
+                .add(phiBienSo)
+                .add(phiDangKiem)
+                .add(phiDuongBo)
+                .add(phiBaoHiem);
 
         Map<String, Object> result = new HashMap<>();
         result.put("variantId", variant.getId());
         result.put("variantName", variant.getTenPhienBan());
         result.put("giaNiemYet", giaNiemYet);
-        result.put("tyLePhiTruocBa", bieuPhi.getTyLePhiTruocBa());
+        result.put("tyLePhiTruocBa", tyLeDouble);
         result.put("phiTruocBa", phiTruocBa);
-        result.put("phiCapBienSo", bieuPhi.getPhiCapBienSo());
-        result.put("phiDangKiem", bieuPhi.getPhiDangKiem());
-        result.put("phiBaoTriDuongBo", bieuPhi.getPhiBaoTriDuongBo());
-        result.put("phiBaoHiemTnds", bieuPhi.getPhiBaoHiemTnds());
+        result.put("phiCapBienSo", phiBienSo);
+        result.put("phiDangKiem", phiDangKiem);
+        result.put("phiBaoTriDuongBo", phiDuongBo);
+        result.put("phiBaoHiemTnds", phiBaoHiem);
         result.put("tongChiPhiLanBanh", tongChiPhiLanBanh);
         result.put("mucTienCoc", variant.getMucTienCoc());
 
         return ResponseEntity.ok(ApiResponse.ok(result, "Dự toán chi phí lăn bánh ô tô điện thành công"));
     }
 }
-

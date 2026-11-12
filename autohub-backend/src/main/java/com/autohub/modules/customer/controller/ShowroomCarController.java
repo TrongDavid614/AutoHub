@@ -26,14 +26,14 @@ public class ShowroomCarController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getShowroomCars() {
-        List<PhienBanXe> cars = phienBanXeRepository.findAllWithDetails();
+        List<PhienBanXe> cars = phienBanXeRepository.findAll();
         List<Map<String, Object>> result = cars.stream().map(this::mapCarToDto).toList();
         return ResponseEntity.ok(ApiResponse.ok(result, "Lấy danh mục xe showroom thành công"));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getCarDetail(@PathVariable Long id) {
-        return phienBanXeRepository.findByIdWithDetails(id)
+        return phienBanXeRepository.findById(id)
                 .map(car -> ResponseEntity.ok(ApiResponse.ok(mapCarToDto(car), "Lấy chi tiết phiên bản xe thành công")))
                 .orElse(ResponseEntity.notFound().build());
     }

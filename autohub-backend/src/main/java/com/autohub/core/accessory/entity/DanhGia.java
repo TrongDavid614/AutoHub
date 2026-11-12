@@ -30,12 +30,12 @@ public class DanhGia extends BaseEntity {
     private ChiTietDonHang chiTietDonHang; // Mỗi dòng chi tiết đơn đánh giá tối đa 1 lần (DR33)
 
     @Column(name = "so_sao", nullable = false)
-    private Integer soSao;
+    private Integer soSao; // 1 đến 5 sao
 
-    @Column(length = 2000)
+    @Column(name = "noi_dung", length = 1000)
     private String noiDung;
 
-    @Column(name = "hinh_anh_danh_gia", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "hinh_anh_danh_gia", length = 500)
     private String hinhAnhDanhGia;
 
     @Column(name = "ngay_danh_gia")

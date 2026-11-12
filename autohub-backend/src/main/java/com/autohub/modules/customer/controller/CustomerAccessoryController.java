@@ -47,7 +47,7 @@ public class CustomerAccessoryController {
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice
     ) {
-        List<PhuKien> items = phuKienRepository.findAllWithDetails();
+        List<PhuKien> items = phuKienRepository.findAll();
 
         if (categoryId != null) {
             items = items.stream()
@@ -115,8 +115,8 @@ public class CustomerAccessoryController {
         map.put("specPills", List.of(p.getThuongHieu() != null ? p.getThuongHieu() : "AutoHub OEM", "Chính hãng", "Bảo hành 24T"));
 
         List<Map<String, Object>> compatibilities = new ArrayList<>();
-        if (p.getDongXeTuongThichs() != null && !p.getDongXeTuongThichs().isEmpty()) {
-            for (DongXe d : p.getDongXeTuongThichs()) {
+        if (p.getDongXes() != null && !p.getDongXes().isEmpty()) {
+            for (DongXe d : p.getDongXes()) {
                 Map<String, Object> c = new HashMap<>();
                 c.put("carModelId", d.getId());
                 c.put("carModelName", d.getTenDongXe());
@@ -138,10 +138,7 @@ public class CustomerAccessoryController {
                 }
             }
         }
-        map.put("dungChung", p.isDungChung());
-        map.put("compatibilities", compatibilities);
+        map.put("compatibility", compatibilities);
         return map;
     }
 }
-
-
