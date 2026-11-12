@@ -132,6 +132,9 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
         if (json?.data?.maPhieuCoc) {
           finalCode = `#${json.data.maPhieuCoc}`;
         }
+        // EXTENSION POINT: TÍCH HỢP GIAO DIỆN CỔNG THANH TOÁN (PAYMENT GATEWAY UI)
+        // Người phụ trách cổng thanh toán có thể chèn chuyển hướng hoặc mở popup thanh toán tại đây:
+        // if (json?.data?.paymentUrl) { window.location.href = json.data.paymentUrl; return; }
       }
     } catch {
       // Offline fallback

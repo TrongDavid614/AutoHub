@@ -90,6 +90,11 @@ public class CustomerDepositController {
         BigDecimal amount = (req.getSoTienCoc() != null) ? req.getSoTienCoc() : BigDecimal.valueOf(20000000);
         LocalDateTime now = LocalDateTime.now();
 
+        // EXTENSION POINT: TÍCH HỢP CỔNG THANH TOÁN (VNPay / SePay / Ngân hàng)
+        // Module thanh toán của thành viên khác có thể cắm trực tiếp tại đây:
+        // 1. Chuyển trạng thái ban đầu thành TrangThaiPhieuCoc.PENDING_PAYMENT (hoặc PAID nếu thanh toán trực tiếp)
+        // 2. Tạo bản ghi GiaoDichThanhToan liên kết với phieu_dat_coc_id
+        // 3. Sinh Payment URL / QR Code trả về trong DTO cho Frontend
         PhieuDatCoc deposit = PhieuDatCoc.builder()
                 .maPhieuCoc(maPhieu)
                 .nguoiDung(customer)
@@ -116,6 +121,9 @@ public class CustomerDepositController {
         return ResponseEntity.ok(ApiResponse.ok(mapDepositToDto(saved), "Gửi yêu cầu hoàn cọc thành công! Nhân viên đối soát và Admin sẽ thẩm định theo quy chế BR05."));
     }
 
+    // EXTENSION POINT: CALLBACK / WEBHOOK XÁC NHẬN THANH TOÁN TIỀN CỌC
+    // Cổng thanh toán (VNPay IPN / SePay Webhook) hoặc admin đối soát sẽ gọi endpoint này
+    // để kích hoạt trạng thái PAID và kích hoạt thời hạn giữ xe 72 giờ trong kho
     @PostMapping("/{id}/pay")
     public ResponseEntity<ApiResponse<Map<String, Object>>> confirmPayment(@PathVariable Long id) {
         PhieuDatCoc deposit = depositRepository.findById(id)
