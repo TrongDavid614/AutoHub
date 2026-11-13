@@ -6,7 +6,7 @@ import com.autohub.core.accessory.entity.PhuKien;
 import com.autohub.core.accessory.repository.DanhMucPhuKienRepository;
 import com.autohub.core.accessory.repository.PhuKienRepository;
 import com.autohub.core.car.entity.DongXe;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -24,24 +24,80 @@ public class CustomerAccessoryController {
     private final PhuKienRepository phuKienRepository;
     private final DanhMucPhuKienRepository danhMucPhuKienRepository;
 
+    @Getter
+    @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AccessoryCategoryDto {
+        private Long id;
+        private String categoryName;
+        private String tenDanhMuc;
+        private String name;
+        private String slug;
+        private Integer count;
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AccessoryCompatibilityDto {
+        private Long carModelId;
+        private String carModelName;
+        private String note;
+    }
+
+    @Getter
+    @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AccessoryResponseDto {
+        private Long id;
+        private String name;
+        private Long categoryId;
+        private String categoryName;
+        private String tenDanhMuc;
+        private Long price;
+        private Long discountPrice;
+        private Integer stockQuantity;
+        private String thumbnailUrl;
+        private List<String> galleryUrls;
+        private List<String> images;
+        private String description;
+        private String installationGuide;
+        private Boolean isGenuine;
+        private Integer warrantyYears;
+        private Boolean readyInShowroom;
+        private Boolean homeInstallation;
+        private List<String> specPills;
+        private List<AccessoryCompatibilityDto> compatibilities;
+        private List<AccessoryCompatibilityDto> compatibility;
+        private Boolean dungChung;
+        private Boolean isUniversal;
+    }
+
     @GetMapping("/categories")
-    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getCategories() {
+    public ResponseEntity<ApiResponse<List<AccessoryCategoryDto>>> getCategories() {
         List<DanhMucPhuKien> list = danhMucPhuKienRepository.findAll();
-        List<Map<String, Object>> result = list.stream().map(c -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", c.getId());
-            map.put("categoryName", c.getTenDanhMuc());
-            map.put("tenDanhMuc", c.getTenDanhMuc());
-            map.put("name", c.getTenDanhMuc());
-            map.put("slug", c.getId() == 1L ? "charging-energy" : c.getId() == 2L ? "camera-sensors" : c.getId() == 3L ? "window-films" : "floor-mats");
-            map.put("count", 3);
-            return map;
+        List<AccessoryCategoryDto> result = list.stream().map(c -> {
+            String slug = c.getId() == 1L ? "charging-energy" : c.getId() == 2L ? "camera-sensors" : c.getId() == 3L ? "window-films" : "floor-mats";
+            return AccessoryCategoryDto.builder()
+                    .id(c.getId())
+                    .categoryName(c.getTenDanhMuc())
+                    .tenDanhMuc(c.getTenDanhMuc())
+                    .name(c.getTenDanhMuc())
+                    .slug(slug)
+                    .count(3)
+                    .build();
         }).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponse.ok(result, "Lấy danh mục phụ kiện thành công"));
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getAccessories(
+    public ResponseEntity<ApiResponse<List<AccessoryResponseDto>>> getAccessories(
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) BigDecimal minPrice,
@@ -75,53 +131,40 @@ public class CustomerAccessoryController {
                     .collect(Collectors.toList());
         }
 
-        List<Map<String, Object>> result = items.stream().map(this::mapAccessoryToDto).collect(Collectors.toList());
+        List<AccessoryResponseDto> result = items.stream().map(this::mapAccessoryToDto).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponse.ok(result, "Lấy danh sách phụ kiện xe thành công"));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getAccessoryDetail(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<AccessoryResponseDto>> getAccessoryDetail(@PathVariable Long id) {
         return phuKienRepository.findById(id)
                 .map(item -> ResponseEntity.ok(ApiResponse.ok(mapAccessoryToDto(item), "Lấy chi tiết phụ kiện thành công")))
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    private Map<String, Object> mapAccessoryToDto(PhuKien p) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("id", p.getId());
-        map.put("name", p.getTenPhuKien());
-
+    private AccessoryResponseDto mapAccessoryToDto(PhuKien p) {
         String catName = "Trang trí & Tiện ích";
         Long catId = 1L;
         if (p.getDanhMucPhuKien() != null) {
             catName = p.getDanhMucPhuKien().getTenDanhMuc();
             catId = p.getDanhMucPhuKien().getId();
         }
-        map.put("categoryName", catName);
-        map.put("categoryId", catId);
 
         long price = p.getGiaBan() != null ? p.getGiaBan().longValue() : 0L;
-        map.put("price", price);
-        map.put("discountPrice", price > 5000000 ? price - 500000 : price);
-        map.put("stockQuantity", p.getSoLuongTon() != null ? p.getSoLuongTon() : 10);
-        map.put("thumbnailUrl", p.getHinhAnh() != null ? p.getHinhAnh() : "https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?w=600");
-        map.put("galleryUrls", List.of(p.getHinhAnh() != null ? p.getHinhAnh() : "https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?w=600"));
-        map.put("description", p.getQuyCachLapDat() != null ? p.getQuyCachLapDat() : "Phụ kiện xe điện chính hãng AutoHub bảo hành tiêu chuẩn.");
-        map.put("installationGuide", p.getQuyCachLapDat());
-        map.put("isGenuine", true);
-        map.put("warrantyYears", 2);
-        map.put("readyInShowroom", true);
-        map.put("homeInstallation", true);
-        map.put("specPills", List.of(p.getThuongHieu() != null ? p.getThuongHieu() : "AutoHub OEM", "Chính hãng", "Bảo hành 24T"));
+        long discountPrice = price > 5000000 ? price - 500000 : price;
+        int stockQuantity = p.getSoLuongTon() != null ? p.getSoLuongTon() : 10;
+        String thumbnail = p.getHinhAnh() != null ? p.getHinhAnh() : "https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?w=600";
+        List<String> gallery = List.of(thumbnail);
+        String desc = p.getQuyCachLapDat() != null ? p.getQuyCachLapDat() : "Phụ kiện xe điện chính hãng AutoHub bảo hành tiêu chuẩn.";
 
-        List<Map<String, Object>> compatibilities = new ArrayList<>();
+        List<AccessoryCompatibilityDto> compatibilities = new ArrayList<>();
         if (p.getDongXes() != null && !p.getDongXes().isEmpty()) {
             for (DongXe d : p.getDongXes()) {
-                Map<String, Object> c = new HashMap<>();
-                c.put("carModelId", d.getId());
-                c.put("carModelName", d.getTenDongXe());
-                c.put("note", "Chuẩn 100%");
-                compatibilities.add(c);
+                compatibilities.add(AccessoryCompatibilityDto.builder()
+                        .carModelId(d.getId())
+                        .carModelName(d.getTenDongXe())
+                        .note("Chuẩn 100%")
+                        .build());
             }
         }
         if (p.isDungChung() || compatibilities.isEmpty()) {
@@ -129,16 +172,39 @@ public class CustomerAccessoryController {
             String[] modelNames = {"AutoHub GT-e", "AutoHub SUV-e Flagship", "AutoHub Aero Sedan", "AutoHub City-E Compact"};
             for (int i = 0; i < modelIds.length; i++) {
                 final long mId = modelIds[i];
-                if (compatibilities.stream().noneMatch(c -> Objects.equals(c.get("carModelId"), mId))) {
-                    Map<String, Object> c = new HashMap<>();
-                    c.put("carModelId", mId);
-                    c.put("carModelName", modelNames[i]);
-                    c.put("note", "Chuẩn 100%");
-                    compatibilities.add(c);
+                if (compatibilities.stream().noneMatch(c -> Objects.equals(c.getCarModelId(), mId))) {
+                    compatibilities.add(AccessoryCompatibilityDto.builder()
+                            .carModelId(mId)
+                            .carModelName(modelNames[i])
+                            .note("Chuẩn 100%")
+                            .build());
                 }
             }
         }
-        map.put("compatibility", compatibilities);
-        return map;
+
+        return AccessoryResponseDto.builder()
+                .id(p.getId())
+                .name(p.getTenPhuKien())
+                .categoryId(catId)
+                .categoryName(catName)
+                .tenDanhMuc(catName)
+                .price(price)
+                .discountPrice(discountPrice)
+                .stockQuantity(stockQuantity)
+                .thumbnailUrl(thumbnail)
+                .galleryUrls(gallery)
+                .images(gallery)
+                .description(desc)
+                .installationGuide(p.getQuyCachLapDat())
+                .isGenuine(true)
+                .warrantyYears(2)
+                .readyInShowroom(true)
+                .homeInstallation(true)
+                .specPills(List.of(p.getThuongHieu() != null ? p.getThuongHieu() : "AutoHub OEM", "Chính hãng", "Bảo hành 24T"))
+                .compatibilities(compatibilities)
+                .compatibility(compatibilities)
+                .dungChung(p.isDungChung())
+                .isUniversal(p.isDungChung())
+                .build();
     }
 }
