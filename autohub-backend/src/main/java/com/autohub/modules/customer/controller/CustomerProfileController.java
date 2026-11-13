@@ -98,10 +98,39 @@ public class CustomerProfileController {
         NguoiDung user = nguoiDungRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng ID: " + id));
 
-        if (req.getNewPassword() != null && !req.getNewPassword().isBlank()) {
-            user.setMatKhauBam(passwordEncoder.encode(req.getNewPassword()));
-            nguoiDungRepository.save(user);
+        if (req.getCurrentPassword() == null || req.getCurrentPassword().isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Vui lòng nhập mật khẩu hiện tại"));
         }
+
+        if (req.getNewPassword() == null || req.getNewPassword().isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Vui lòng nhập mật khẩu mới"));
+        }
+
+        if (req.getNewPassword().length() < 6) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Mật khẩu mới phải có tối thiểu 6 ký tự"));
+        }
+
+        // Kiểm tra mật khẩu hiện tại nhập vào có khớp với mật khẩu cũ (matKhauBam) trong database hay không
+        String storedHash = user.getMatKhauBam();
+        boolean isMatch = false;
+        if (storedHash != null) {
+            if (storedHash.startsWith("$2a$") || storedHash.startsWith("$2b$") || storedHash.startsWith("$2y$")) {
+                isMatch = passwordEncoder.matches(req.getCurrentPassword(), storedHash);
+            } else {
+                isMatch = storedHash.equals(req.getCurrentPassword()) || passwordEncoder.matches(req.getCurrentPassword(), storedHash);
+            }
+        }
+
+        if (!isMatch) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Mật khẩu hiện tại không chính xác!"));
+        }
+
+        user.setMatKhauBam(passwordEncoder.encode(req.getNewPassword()));
+        nguoiDungRepository.save(user);
 
         return ResponseEntity.ok(ApiResponse.ok(null, "Đổi mật khẩu thành công"));
     }

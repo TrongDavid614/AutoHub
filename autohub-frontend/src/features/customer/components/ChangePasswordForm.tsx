@@ -36,7 +36,7 @@ export const ChangePasswordForm: React.FC = () => {
 
     setIsSaving(true);
     try {
-      await fetch('http://localhost:8080/api/customer/profile/password', {
+      const res = await fetch('http://localhost:8080/api/customer/profile/password', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -45,6 +45,12 @@ export const ChangePasswordForm: React.FC = () => {
           newPassword,
         }),
       });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || data?.success === false) {
+        setPasswordError(data?.message || 'Đổi mật khẩu thất bại. Vui lòng kiểm tra lại mật khẩu hiện tại.');
+        setIsSaving(false);
+        return;
+      }
     } catch {
       // offline fallback
     }
