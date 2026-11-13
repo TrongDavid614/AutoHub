@@ -44,15 +44,10 @@ public class CustomerDepositController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getMyDeposits(@RequestParam(required = false) Long customerId) {
-        List<PhieuDatCoc> deposits;
-        if (customerId != null) {
-            deposits = depositRepository.findByNguoiDungId(customerId);
-            if (deposits.isEmpty()) {
-                deposits = depositRepository.findAll();
-            }
-        } else {
-            deposits = depositRepository.findAll();
+        if (customerId == null) {
+            return ResponseEntity.ok(ApiResponse.ok(Collections.emptyList(), "Vui lòng cung cấp customerId để tra cứu phiếu cọc"));
         }
+        List<PhieuDatCoc> deposits = depositRepository.findByNguoiDungId(customerId);
         List<Map<String, Object>> dtos = deposits.stream()
                 .map(this::mapDepositToDto)
                 .collect(Collectors.toList());
@@ -184,10 +179,11 @@ public class CustomerDepositController {
         map.put("showroomAddress", showroomAddress);
         map.put("status", p.getTrangThai() != null ? p.getTrangThai().name() : "PAID");
 
+        // Theo chuẩn UC22: Khi mới đặt cọc, xe thực tế chưa được Showroom điều phối nên số VIN là null
         if (p.getXeDinhDanh() != null) {
             map.put("vinNumber", p.getXeDinhDanh().getSoKhungVIN());
         } else {
-            map.put("vinNumber", "VIN-" + (code.replace("#", "").replace("DEP-", "")));
+            map.put("vinNumber", null);
         }
 
         map.put("sepayTransactionId", "SP_" + (Math.abs(code.hashCode()) % 10000000));
