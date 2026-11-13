@@ -58,9 +58,16 @@ public class CustomerOrderController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getOrderDetail(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getOrderDetail(
+            @PathVariable Long id,
+            @RequestParam(required = false) Long customerId
+    ) {
         DonHangPhuKien order = donHangRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng ID: " + id));
+
+        if (customerId != null && order.getNguoiDung() != null && !customerId.equals(order.getNguoiDung().getId())) {
+            return ResponseEntity.status(403).body(ApiResponse.error("Bạn không có quyền xem đơn hàng này"));
+        }
 
         List<ChiTietDonHang> items = chiTietDonHangRepository.findByDonHangId(id);
         return ResponseEntity.ok(ApiResponse.ok(mapOrderToDto(order, items), "Chi tiết đơn hàng"));
@@ -169,7 +176,7 @@ public class CustomerOrderController {
 
                 if (pk != null && ctdh != null) {
                     final Long ctdhId = ctdh.getId();
-                    Optional<DanhGia> existing = danhGiaRepository.findAll().stream()
+                    Optional<DanhGia> existing = danhGiaRepository.findByPhuKienIdAndTrangThaiDuyet(pk.getId(), TrangThaiDanhGia.PENDING).stream()
                             .filter(d -> d.getChiTietDonHang() != null && ctdhId.equals(d.getChiTietDonHang().getId()))
                             .findFirst();
 
@@ -230,13 +237,12 @@ public class CustomerOrderController {
             HttpServletRequest servletRequest,
             @RequestBody CreateOrderRequestDto req
     ) {
-        Long customerId = req.getCustomerId() != null ? req.getCustomerId() : 1L;
-        NguoiDung customer = nguoiDungRepository.findById(customerId)
-                .orElseGet(() -> nguoiDungRepository.findAll().stream().findFirst().orElse(null));
-
-        if (customer == null) {
-            return ResponseEntity.badRequest().body(ApiResponse.error("Không tìm thấy tài khoản người dùng"));
+        Long customerId = req.getCustomerId();
+        if (customerId == null) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Vui lòng cung cấp customerId để đặt hàng"));
         }
+        NguoiDung customer = nguoiDungRepository.findById(customerId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tài khoản người dùng ID: " + customerId));
 
         BigDecimal subtotal = BigDecimal.ZERO;
         if (req.getItems() != null) {
