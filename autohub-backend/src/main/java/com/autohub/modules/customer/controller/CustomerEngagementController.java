@@ -58,13 +58,10 @@ public class CustomerEngagementController {
 
     @GetMapping("/test-drives")
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getMyTestDrives(@RequestParam(required = false) Long customerId) {
-        List<LichHenLaiThu> list = (customerId != null)
-                ? lichHenLaiThuRepository.findByNguoiDungId(customerId)
-                : Collections.emptyList();
-        if (list.isEmpty()) {
-            list = lichHenLaiThuRepository.findAll();
+        if (customerId == null) {
+            return ResponseEntity.ok(ApiResponse.ok(Collections.emptyList(), "Vui lòng cung cấp customerId để tra cứu lịch hẹn"));
         }
-
+        List<LichHenLaiThu> list = lichHenLaiThuRepository.findByNguoiDungId(customerId);
         List<Map<String, Object>> dtos = list.stream().map(this::mapTestDriveToDto).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponse.ok(dtos, "Lấy danh sách lịch hẹn lái thử thành công"));
     }
@@ -264,8 +261,14 @@ public class CustomerEngagementController {
     }
 
     @GetMapping("/consultations")
-    public ResponseEntity<ApiResponse<List<YeuCauTuVan>>> getMyConsultations() {
-        return ResponseEntity.ok(ApiResponse.ok(yeuCauTuVanRepository.findAll(), "Lấy danh sách yêu cầu tư vấn thành công"));
+    public ResponseEntity<ApiResponse<List<YeuCauTuVan>>> getMyConsultations(@RequestParam(required = false) Long customerId) {
+        if (customerId == null) {
+            return ResponseEntity.ok(ApiResponse.ok(Collections.emptyList(), "Vui lòng cung cấp customerId để tra cứu yêu cầu tư vấn"));
+        }
+        List<YeuCauTuVan> myConsultations = yeuCauTuVanRepository.findAll().stream()
+                .filter(yc -> yc.getNguoiDung() != null && customerId.equals(yc.getNguoiDung().getId()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(ApiResponse.ok(myConsultations, "Lấy danh sách yêu cầu tư vấn thành công"));
     }
 
     @PostMapping("/consultations")

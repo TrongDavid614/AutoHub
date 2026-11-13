@@ -41,9 +41,10 @@ public class CustomerOrderController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getOrders(@RequestParam(required = false) Long customerId) {
-        List<DonHangPhuKien> orders = (customerId != null)
-                ? donHangRepository.findByNguoiDungId(customerId)
-                : donHangRepository.findAll();
+        if (customerId == null) {
+            return ResponseEntity.ok(ApiResponse.ok(Collections.emptyList(), "Vui lòng cung cấp customerId để tra cứu đơn hàng"));
+        }
+        List<DonHangPhuKien> orders = donHangRepository.findByNguoiDungId(customerId);
 
         if (orders.isEmpty()) {
             return ResponseEntity.ok(ApiResponse.ok(Collections.emptyList(), "Lấy danh sách đơn hàng thành công"));

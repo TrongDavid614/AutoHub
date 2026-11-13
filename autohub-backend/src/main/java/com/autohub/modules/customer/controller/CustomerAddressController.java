@@ -38,21 +38,22 @@ public class CustomerAddressController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getMyAddresses(@RequestParam(required = false) Long customerId) {
-        Long custId = customerId != null ? customerId : 5L;
-        List<SoDiaChi> list = soDiaChiRepository.findByNguoiDungId(custId);
-        if (list.isEmpty()) {
-            list = soDiaChiRepository.findAll();
+        if (customerId == null) {
+            return ResponseEntity.ok(ApiResponse.ok(Collections.emptyList(), "Vui lòng cung cấp customerId để tra cứu sổ địa chỉ"));
         }
-
+        List<SoDiaChi> list = soDiaChiRepository.findByNguoiDungId(customerId);
         List<Map<String, Object>> result = list.stream().map(this::mapToDto).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponse.ok(result, "Lấy danh sách sổ địa chỉ thành công"));
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> addAddress(@RequestBody AddressRequestDto req) {
-        Long custId = req.getCustomerId() != null ? req.getCustomerId() : 5L;
+        Long custId = req.getCustomerId();
+        if (custId == null) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Vui lòng cung cấp customerId"));
+        }
         NguoiDung user = nguoiDungRepository.findById(custId)
-                .orElseGet(() -> nguoiDungRepository.findAll().stream().findFirst().orElse(null));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng ID: " + custId));
 
         boolean isDefault = Boolean.TRUE.equals(req.getIsDefault());
         if (isDefault) {
@@ -87,7 +88,9 @@ public class CustomerAddressController {
         if (req.getDetailedAddress() != null) address.setDiaChiChiTiet(req.getDetailedAddress());
 
         if (Boolean.TRUE.equals(req.getIsDefault())) {
-            unsetDefaultAddresses(address.getNguoiDung() != null ? address.getNguoiDung().getId() : 5L);
+            if (address.getNguoiDung() != null) {
+                unsetDefaultAddresses(address.getNguoiDung().getId());
+            }
             address.setMacDinh(true);
         }
 
@@ -106,8 +109,9 @@ public class CustomerAddressController {
         SoDiaChi address = soDiaChiRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy địa chỉ ID: " + id));
 
-        Long userId = address.getNguoiDung() != null ? address.getNguoiDung().getId() : 5L;
-        unsetDefaultAddresses(userId);
+        if (address.getNguoiDung() != null) {
+            unsetDefaultAddresses(address.getNguoiDung().getId());
+        }
 
         address.setMacDinh(true);
         SoDiaChi saved = soDiaChiRepository.save(address);

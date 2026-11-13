@@ -44,9 +44,10 @@ public class CustomerProfileController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> getProfile(@RequestParam(required = false) Long customerId) {
-        Long id = customerId != null ? customerId : 5L;
-        NguoiDung user = nguoiDungRepository.findById(id)
-                .orElseGet(() -> nguoiDungRepository.findAll().stream().findFirst().orElse(null));
+        if (customerId == null) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Vui lòng cung cấp customerId để xem hồ sơ"));
+        }
+        NguoiDung user = nguoiDungRepository.findById(customerId).orElse(null);
 
         if (user == null) {
             return ResponseEntity.notFound().build();
