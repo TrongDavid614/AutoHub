@@ -100,7 +100,7 @@ export const CostBreakdownLedger: React.FC<CostBreakdownLedgerProps> = ({
             <div className="space-y-1 pt-1">
               <div className="flex items-center justify-between text-xs sm:text-sm">
                 <span className="text-text-primary">
-                  Lệ phí trước bạ {breakdown.taxSaved > 0 ? '(Sau hỗ trợ 50%)' : ''}
+                  Lệ phí trước bạ {breakdown.finalRegistrationTax === 0 ? '(Ưu đãi 0% Xe điện)' : breakdown.taxSaved > 0 ? '(Sau hỗ trợ 50%)' : ''}
                 </span>
                 <span className="font-mono font-bold text-text-primary">
                   {formatCurrency(breakdown.finalRegistrationTax)}
@@ -109,7 +109,9 @@ export const CostBreakdownLedger: React.FC<CostBreakdownLedgerProps> = ({
               {breakdown.taxSaved > 0 && (
                 <div className="flex items-center justify-between text-[11px] text-text-muted">
                   <span>
-                    Được miễn giảm 50% từ mức {formatCurrency(breakdown.rawRegistrationTax)} ({(breakdown.taxRate * 100)}%)
+                    {breakdown.finalRegistrationTax === 0
+                      ? 'Miễn 100% lệ phí trước bạ cho ô tô điện (Nghị định 10/2022/NĐ-CP)'
+                      : `Được miễn giảm 50% từ mức ${formatCurrency(breakdown.rawRegistrationTax)} (${(breakdown.taxRate * 100)}%)`}
                   </span>
                   <span className="font-mono text-accent-primary font-bold">
                     Tiết kiệm {taxSavedMillions}tr

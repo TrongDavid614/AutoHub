@@ -181,6 +181,7 @@ export const AdminDashboardPage: React.FC = () => {
 
       {/* 7. ADMIN AI COPILOT INTERACTIVE DRAWER */}
       <AdminAiCopilotDrawer />
+      <AiEngineMonitorCard status={overview?.aiEngineStatus} />
     </div>
   );
 };

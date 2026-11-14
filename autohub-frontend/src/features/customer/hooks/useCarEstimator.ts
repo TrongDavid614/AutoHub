@@ -169,9 +169,12 @@ export const useCarEstimator = () => {
 
     if (apiCalculation) {
       const listPrice = apiCalculation.giaNiemYet || selectedTrim.price;
-      const rawRegistrationTax = apiCalculation.phiTruocBa;
-      const taxSaved = isTaxSupportChecked ? Math.round(rawRegistrationTax * 0.5) : 0;
-      const finalRegistrationTax = rawRegistrationTax - taxSaved;
+      const isElectric = Boolean(apiCalculation.isElectric);
+      const rawRegistrationTax = isElectric ? 0 : apiCalculation.phiTruocBa;
+      const taxSaved = isElectric
+        ? (apiCalculation.phiTruocBaStandard || Math.round(listPrice * (apiCalculation.tyLePhiTruocBaStandard || 12) / 100))
+        : (isTaxSupportChecked ? Math.round(rawRegistrationTax * 0.5) : 0);
+      const finalRegistrationTax = isElectric ? 0 : (rawRegistrationTax - taxSaved);
       const plateFee = apiCalculation.phiCapBienSo;
       const inspectionFee = (apiCalculation.phiDangKiem || 340000) + (apiCalculation.phiBaoTriDuongBo || 1560000);
       const insuranceFee = apiCalculation.phiBaoHiemTnds || FIXED_FEES.mandatoryInsurance;
@@ -187,7 +190,7 @@ export const useCarEstimator = () => {
       return {
         listPrice,
         cashDiscount,
-        taxRate: (apiCalculation.tyLePhiTruocBa || 12) / 100,
+        taxRate: isElectric ? 0 : (apiCalculation.tyLePhiTruocBa || 12) / 100,
         rawRegistrationTax,
         finalRegistrationTax,
         taxSaved,

@@ -29,18 +29,25 @@ export const CarListPage: React.FC = () => {
   // Real Database Cars state
   const [cars, setCars] = useState<MockCar[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchCars = () => {
+    setLoading(true);
+    setError(null);
+    carService.getAllCars()
+      .then((data) => {
+        setCars(data || []);
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : 'Không thể kết nối đến máy chủ cơ sở dữ liệu xe.');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
 
   useEffect(() => {
-    let isMounted = true;
-    carService.getAllCars().then((data) => {
-      if (isMounted) {
-        setCars(data || []);
-        setLoading(false);
-      }
-    });
-    return () => {
-      isMounted = false;
-    };
+    fetchCars();
   }, []);
 
   // Filters state
@@ -476,8 +483,44 @@ export const CarListPage: React.FC = () => {
             </div>
           </div>
 
+          {/* LOADING SKELETON */}
+          {loading && (
+            <div className="space-y-4">
+              {[1, 2, 3].map((idx) => (
+                <div key={idx} className="bg-[#131B2E] border border-[#3E4850]/50 rounded-[4px] p-4 shadow-xl animate-pulse">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch">
+                    <div className="md:col-span-4 bg-[#060E20] h-44 rounded" />
+                    <div className="md:col-span-5 space-y-3">
+                      <div className="h-6 w-3/4 bg-[#171F33] rounded" />
+                      <div className="h-4 w-1/2 bg-[#171F33] rounded" />
+                      <div className="h-20 bg-[rgba(34,42,61,0.3)] rounded" />
+                    </div>
+                    <div className="md:col-span-3 space-y-3">
+                      <div className="h-8 bg-[#171F33] rounded" />
+                      <div className="h-10 bg-[#171F33] rounded" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ERROR STATE */}
+          {error && (
+            <div className="p-8 text-center bg-rose-950/20 border border-rose-500/30 rounded-[4px] space-y-3">
+              <p className="text-rose-300 text-sm">{error}</p>
+              <button
+                type="button"
+                onClick={fetchCars}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded transition-colors cursor-pointer"
+              >
+                Thử lại
+              </button>
+            </div>
+          )}
+
           {/* VIEW MODE 1: ROW VIEW (BỘ SƯU TẬP DÒNG XE DẠNG ROW) */}
-          {viewMode === 'row' && (
+          {!loading && !error && viewMode === 'row' && (
             <div className="space-y-4">
               {filteredCars.map((car) => {
                 return (
@@ -611,7 +654,7 @@ export const CarListPage: React.FC = () => {
           )}
 
           {/* VIEW MODE 2: GRID VIEW (BỘ SƯU TẬP DÒNG XE 3 CỘT) */}
-          {viewMode === 'grid' && (
+          {!loading && !error && viewMode === 'grid' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredCars.map((car) => {
                 return (
