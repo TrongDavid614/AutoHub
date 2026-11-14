@@ -17,21 +17,31 @@ export interface TrackingPayload {
   loaiThucThe?: 'CAR' | 'ACCESSORY';
   maThucThe?: number;
   thoiGianDungXem?: number;
-  duLieuBoSung?: string;
+  duLieuBoSung?: string | Record<string, unknown>;
   nguoiDungId?: number;
 }
 
 /**
- * Gửi sự kiện theo dõi hành vi người dùng về Backend Spring Boot (Non-blocking)
+ * Gửi sự kiện theo dõi hành vi người dùng về Backend Spring Boot (Non-blocking telemetry)
  */
-export const trackUserEvent = (payload: TrackingPayload) => {
-  const body = {
-    maPhien: getSessionId(),
-    ...payload,
-  };
+export const trackUserEvent = (payload: TrackingPayload): void => {
+  try {
+    const duLieuBoSungStr =
+      typeof payload.duLieuBoSung === 'object' && payload.duLieuBoSung !== null
+        ? JSON.stringify(payload.duLieuBoSung)
+        : payload.duLieuBoSung;
 
-  const endpoint = API_CONFIG.ENDPOINTS.TRACKING?.COLLECT || '/tracking/collect';
-  axiosClient.post(endpoint, body).catch(() => {
-    // Không chặn trải nghiệm người dùng nếu có lỗi mạng
-  });
+    const body = {
+      maPhien: getSessionId(),
+      ...payload,
+      duLieuBoSung: duLieuBoSungStr,
+    };
+
+    const endpoint = API_CONFIG.ENDPOINTS.TRACKING?.COLLECT || '/tracking/collect';
+    axiosClient.post(endpoint, body).catch(() => {
+      // Telemetry non-blocking: Không làm ảnh hưởng trải nghiệm người dùng
+    });
+  } catch {
+    // Không bao giờ để lỗi tracking làm crash ứng dụng
+  }
 };
