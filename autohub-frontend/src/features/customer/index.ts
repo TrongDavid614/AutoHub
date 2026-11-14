@@ -40,6 +40,7 @@ export * from './pages/landing/LandingPage';
 export * from './components/detail/CarDepositModal';
 export * from './components/VNPayQRModal';
 export * from './components/TestDriveBookingModal';
+export * from './components/SelectCarCompareModal';
 export * from './components/AddressEditModal';
 export * from './components/ChangeCarModelModal';
 export * from './components/VehicleCompatibilityBar';

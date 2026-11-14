@@ -49,16 +49,17 @@ export const AdminLoginPage: React.FC = () => {
       } else {
         setErrorMessage('Tài khoản này không có quyền truy cập cổng Quản Trị Viên (ROLE_ADMIN).');
       }
-    } catch {
+    } catch (err: unknown) {
       setIsLoading(false);
-      setErrorMessage('Thông tin xác thực không chính xác hoặc tài khoản đã bị khóa bảo mật.');
+      const errRes = (err as { response?: { data?: { message?: string } } })?.response?.data;
+      setErrorMessage(errRes?.message || 'Thông tin xác thực không chính xác hoặc tài khoản đã bị khóa bảo mật.');
     }
   };
 
   const fillQuickAdmin = () => {
-    setUsername('admin@autohub.vn');
-    setPassword('admin123');
-    handleLogin('admin@autohub.vn', 'admin123');
+    setUsername('admin.test@autohub.vn');
+    setPassword('Test@1234');
+    handleLogin('admin.test@autohub.vn', 'Test@1234');
   };
 
   return (
@@ -227,8 +228,8 @@ export const AdminLoginPage: React.FC = () => {
                 </span>
               </div>
               <div className="flex items-center justify-between text-[11px] font-mono text-[#88929B] group-hover:text-[#DAE2FD] transition-colors">
-                <span>User: <strong>admin@autohub.vn</strong></span>
-                <span>Pass: <strong>admin123</strong></span>
+                <span>User: <strong>admin.test@autohub.vn</strong></span>
+                <span>Pass: <strong>Test@1234</strong></span>
               </div>
             </button>
           </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Lock, Eye, EyeOff, Check, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
+import { profileService } from '@/features/customer/services/profile.service';
 
 export const ChangePasswordForm: React.FC = () => {
   const { user } = useAuthStore();
@@ -36,24 +37,27 @@ export const ChangePasswordForm: React.FC = () => {
 
     setIsSaving(true);
     try {
-      await fetch('http://localhost:8080/api/customer/profile/password', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerId: user?.id || 5,
-          currentPassword,
-          newPassword,
-        }),
+      const result = await profileService.changePassword({
+        customerId: user?.id,
+        currentPassword,
+        newPassword,
       });
+
+      if (!result.success) {
+        setPasswordError(result.message || 'Đổi mật khẩu thất bại. Vui lòng kiểm tra lại mật khẩu hiện tại.');
+        return;
+      }
+
+      setPasswordSuccess('Đổi mật khẩu tài khoản thành công! Mật khẩu mới đã được cập nhật.');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => setPasswordSuccess(''), 3500);
     } catch {
-      // offline fallback
+      setPasswordError('Lỗi kết nối máy chủ. Vui lòng thử lại sau.');
+    } finally {
+      setIsSaving(false);
     }
-    setIsSaving(false);
-    setPasswordSuccess('Đổi mật khẩu tài khoản thành công! Mật khẩu mới đã được cập nhật.');
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setTimeout(() => setPasswordSuccess(''), 3500);
   };
 
   return (

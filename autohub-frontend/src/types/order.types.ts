@@ -27,13 +27,15 @@ export interface AccessoryOrder {
   customerName: string;
   customerPhone: string;
   shippingAddress: string;
-  paymentMethod: 'SEPAY' | 'COD';
+  customerNote?: string;
+  paymentMethod: 'SEPAY' | 'COD' | 'VNPAY';
   status: AccessoryOrderStatus;
   subtotalAmount: number;
   shippingFee: number;
   voucherDiscount: number;
   finalTotalAmount: number;
   orderItems: OrderItem[];
+  items?: OrderItem[];
   sepayTransactionId?: string;
   vnpayTransactionId?: string;
   trackingNumber?: string;

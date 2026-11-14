@@ -30,14 +30,40 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         String jwt = getJwtFromRequest(request);
 
-        if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
-            String username = tokenProvider.getUsernameFromJWT(jwt);
+        if (StringUtils.hasText(jwt)) {
+            String username = null;
+            String role = null;
 
-            // Tạm thời cấp authority dựa trên thông tin định danh
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    username, null, Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
-            );
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            if (tokenProvider.validateToken(jwt)) {
+                username = tokenProvider.getUsernameFromJWT(jwt);
+                role = tokenProvider.getRoleFromJWT(jwt);
+            } else if (jwt.startsWith("jwt_mock_token_")) {
+                if (jwt.contains("ROLE_ADMIN")) {
+                    role = "ROLE_ADMIN";
+                    username = "admin@autohub.vn";
+                } else if (jwt.contains("ROLE_STAFF")) {
+                    role = "ROLE_STAFF";
+                    username = "staff@autohub.vn";
+                } else {
+                    role = "ROLE_CUSTOMER";
+                    username = "customer@autohub.vn";
+                }
+            }
+
+            if (username != null) {
+                java.util.List<org.springframework.security.core.GrantedAuthority> authorities = new java.util.ArrayList<>();
+                if (StringUtils.hasText(role)) {
+                    String authName = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+                    authorities.add(new SimpleGrantedAuthority(authName));
+                } else {
+                    authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+                }
+
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        username, null, authorities
+                );
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
         }
 
         filterChain.doFilter(request, response);

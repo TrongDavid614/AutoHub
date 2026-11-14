@@ -1,22 +1,36 @@
 import React from 'react';
-import { Activity } from 'lucide-react';
+import { Activity, ShieldCheck } from 'lucide-react';
 
-export const ChargingTelemetryWidget: React.FC = () => {
+export interface ChargingTelemetryWidgetProps {
+  hasChargingDevice?: boolean;
+}
+
+export const ChargingTelemetryWidget: React.FC<ChargingTelemetryWidgetProps> = ({
+  hasChargingDevice = true,
+}) => {
   return (
     <div className="rounded-[2px] bg-[#060E20] border border-[#2D3449] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
       {/* Left Telemetry Info */}
       <div className="space-y-1">
         <div className="flex items-center gap-2">
-          <Activity className="w-3.5 h-3.5 text-[#89CEFF]" />
+          {hasChargingDevice ? (
+            <Activity className="w-3.5 h-3.5 text-[#89CEFF]" />
+          ) : (
+            <ShieldCheck className="w-3.5 h-3.5 text-[#34D399]" />
+          )}
           <span className="text-[10px] font-mono font-bold tracking-[1.5px] text-[#89CEFF] uppercase">
-            HIỆU NĂNG SẠC TƯƠNG THÍCH
+            {hasChargingDevice ? 'HIỆU NĂNG SẠC TƯƠNG THÍCH' : 'TIÊU CHUẨN TƯƠNG THÍCH AUTOHUB'}
           </span>
         </div>
         <div className="text-sm font-bold text-[#DAE2FD]">
-          120 km tầm vận hành / 60 phút sạc
+          {hasChargingDevice
+            ? '120 km tầm vận hành / 60 phút sạc (Chuẩn 22kW 3-Phase)'
+            : '100% Khớp form xe & AutoOS điện toán'}
         </div>
         <p className="text-[11px] text-[#88929B]">
-          Kiểm soát dòng điện thông minh, chống quá nhiệt thông qua ứng dụng AutoHub Mobile.
+          {hasChargingDevice
+            ? 'Kiểm soát dòng điện thông minh, chống quá nhiệt thông qua ứng dụng AutoHub Mobile.'
+            : 'Phụ kiện chính hãng bảo đảm an toàn điện áp và không ảnh hưởng chính sách bảo hành xe.'}
         </p>
       </div>
 
@@ -38,9 +52,11 @@ export const ChargingTelemetryWidget: React.FC = () => {
 
         {/* Numeric Telemetry */}
         <div className="text-right">
-          <div className="font-mono text-base font-bold text-[#89CEFF]">99.4%</div>
+          <div className="font-mono text-base font-bold text-[#89CEFF]">
+            {hasChargingDevice ? '99.4%' : '100%'}
+          </div>
           <div className="font-mono text-[9px] text-[#88929B] tracking-wider uppercase">
-            HIỆU SUẤT TRUYỀN DẪN
+            {hasChargingDevice ? 'HIỆU SUẤT TRUYỀN DẪN' : 'ĐỘ CHUẨN FORM XE'}
           </div>
         </div>
       </div>

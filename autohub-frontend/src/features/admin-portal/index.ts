@@ -23,4 +23,6 @@ export * from './pages/system-governance/ReviewModerationPage';
 // Components & Mocks
 export * from './components/AdminStatCards';
 export * from './components/UrgentActionQueue';
+export * from './services/admin-dashboard.service';
+export * from './hooks/useAdminDashboard';
 export * from './mocks/dashboard.mock';

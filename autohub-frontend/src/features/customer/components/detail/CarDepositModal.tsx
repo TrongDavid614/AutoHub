@@ -17,6 +17,7 @@ import {
   Copy,
   Check,
   RotateCw,
+  RefreshCw,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { depositService } from '@/features/customer/services/deposit.service';
@@ -52,7 +53,8 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const [paymentPendingMsg, setPaymentPendingMsg] = useState<string | null>(null);
 
   // Flow states: 1. Form -> 2. Pending Payment (QR 15p) -> 3. Paid Success (72h)
   const [currentDeposit, setCurrentDeposit] = useState<CarDepositItem | null>(null);
@@ -161,26 +163,53 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
     }
   };
 
-  // Bước 2: Xác nhận thanh toán cọc -> Chuyển sang PAID (72h)
-  const handleConfirmPaid = async () => {
+  // Bước 2: Kiểm tra trạng thái thanh toán từ DB (chỉ đọc qua GET, không tự ghi PAID)
+  const handleCheckPaymentStatus = async () => {
     if (!currentDeposit) return;
-    setIsConfirmingPayment(true);
+    setIsCheckingStatus(true);
+    setPaymentPendingMsg(null);
     try {
-      await depositService.confirmPayment(currentDeposit.id);
+      const statusRes = await depositService.getDepositStatus(currentDeposit.id);
+      if (statusRes?.isPaid || statusRes?.status === 'PAID') {
+        setIsPendingPayment(false);
+        setDepositSuccess(true);
+      } else {
+        setPaymentPendingMsg(
+          'Hệ thống chưa ghi nhận giao dịch chuyển khoản. Vui lòng chờ 10–30 giây sau khi chuyển hoặc kiểm tra lại nội dung chuyển khoản.'
+        );
+      }
     } catch {
-      // offline fallback
+      setPaymentPendingMsg('Không thể kiểm tra trạng thái thanh toán lúc này. Vui lòng thử lại sau.');
     } finally {
-      setIsConfirmingPayment(false);
-      setIsPendingPayment(false);
-      setDepositSuccess(true);
+      setIsCheckingStatus(false);
     }
   };
 
   const depositCode = currentDeposit?.depositCode || `#DEP-GTE-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-  const transferContent = `AH DEP ${depositCode.replace('#', '')}`;
-  const qrImageUrl = `https://img.vietqr.io/image/970422-0988888888-compact2.png?amount=${depositAmount}&addInfo=${encodeURIComponent(
+  const transferContent = currentDeposit?.transferContent || `AH DEP ${depositCode.replace('#', '')}`;
+  const bankAccount = currentDeposit?.bankAccountNumber || '5811676579';
+  const bankBrand = currentDeposit?.bankBrandName || 'BIDV';
+  const bankAccountName = currentDeposit?.bankAccountName || 'CONG TY CO PHAN AUTOHUB VIETNAM';
+  const qrImageUrl = currentDeposit?.qrImageUrl || `https://img.vietqr.io/image/bidv-5811676579-compact2.png?amount=${depositAmount}&addInfo=${encodeURIComponent(
     transferContent
-  )}&accountName=AUTOHUB%20VIETNAM`;
+  )}&accountName=CONG%20TY%20CO%20PHAN%20AUTOHUB%20VIETNAM`;
+
+  // Auto-polling trạng thái thanh toán từ webhook SePay
+  useEffect(() => {
+    if (!isPendingPayment || !currentDeposit?.id) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await depositService.getDepositStatus(currentDeposit.id);
+        if (res?.isPaid) {
+          setIsPendingPayment(false);
+          setDepositSuccess(true);
+        }
+      } catch {
+        // giữ nhịp polling
+      }
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [isPendingPayment, currentDeposit?.id]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas-deep/80 backdrop-blur-md animate-fadeIn">
@@ -285,17 +314,17 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
               <div className="space-y-2 text-xs">
                 <div className="p-2.5 rounded-lg bg-surface-elevated border border-surface-highlight space-y-0.5">
                   <span className="text-[10px] text-text-muted font-mono block">NGÂN HÀNG THỤ HƯỞNG</span>
-                  <span className="font-bold text-text-primary">MB Bank (Quân Đội) - CN TP.HCM</span>
+                  <span className="font-bold text-text-primary">{bankBrand} - {bankAccountName}</span>
                 </div>
 
                 <div className="p-2.5 rounded-lg bg-surface-elevated border border-surface-highlight flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] text-text-muted font-mono block">SỐ TÀI KHOẢN</span>
-                    <span className="font-mono font-bold text-sm text-text-primary">0988888888</span>
+                    <span className="text-[10px] text-text-muted font-mono block">SỐ TÀI KHOẢN (SEPAY VIETQR)</span>
+                    <span className="font-mono font-bold text-sm text-text-primary">{bankAccount}</span>
                   </div>
                   <button
                     type="button"
-                    onClick={() => copyToClipboard('0988888888', 'stk')}
+                    onClick={() => copyToClipboard(bankAccount, 'stk')}
                     className="p-1 rounded text-text-muted hover:text-text-primary transition-colors cursor-pointer"
                   >
                     {copiedField === 'stk' ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
@@ -325,27 +354,34 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
               </div>
             </div>
 
+            {paymentPendingMsg && (
+              <div className="p-3 rounded-lg bg-amber-500/15 border border-amber-500/40 text-xs text-amber-300 flex items-start gap-2 animate-fadeIn">
+                <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <span>{paymentPendingMsg}</span>
+              </div>
+            )}
+
             <div className="p-3 rounded-lg bg-surface-elevated/70 border border-surface-highlight text-[11px] text-text-muted flex items-start gap-2">
               <ShieldCheck className="w-4 h-4 text-accent-primary shrink-0 mt-0.5" />
-              <span>Sau khi chuyển khoản thành công, vui lòng nhấn xác nhận bên dưới để hệ thống chuyển sang trạng thái tạm khóa suất xe trong 72 giờ.</span>
+              <span>Hệ thống tự động kiểm tra giao dịch sau mỗi 2.5 giây qua cổng SePay. Sau khi chuyển tiền, bạn có thể chờ hệ thống tự nhận diện hoặc bấm nút bên dưới để kiểm tra ngay.</span>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-3 pt-2 border-t border-surface-highlight">
               <button
                 type="button"
-                onClick={handleConfirmPaid}
-                disabled={isConfirmingPayment}
+                onClick={handleCheckPaymentStatus}
+                disabled={isCheckingStatus}
                 className="w-full sm:flex-1 py-3 px-5 rounded-lg bg-accent-action hover:bg-accent-primary text-accent-contrast font-bold text-xs uppercase flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer disabled:opacity-50"
               >
-                {isConfirmingPayment ? (
+                {isCheckingStatus ? (
                   <>
                     <RotateCw className="w-4 h-4 animate-spin" />
-                    <span>Đang kích hoạt suất cọc...</span>
+                    <span>Đang kiểm tra giao dịch...</span>
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>TÔI ĐÃ CHUYỂN KHOẢN / QUÉT QR THÀNH CÔNG</span>
+                    <RefreshCw className="w-4 h-4" />
+                    <span>KIỂM TRA TRẠNG THÁI THANH TOÁN</span>
                   </>
                 )}
               </button>

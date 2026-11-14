@@ -37,11 +37,12 @@ export const AdminStaffLoginPage: React.FC = () => {
       } else if (res.user.role === 'ROLE_STAFF') {
         navigate('/staff/consultations');
       } else {
-        navigate('/');
+        setErrorMessage('Tài khoản này không có quyền truy cập cổng Quản Trị & Vận Hành Showroom.');
       }
-    } catch {
+    } catch (err: unknown) {
       setIsLoading(false);
-      setErrorMessage('Thông tin đăng nhập không hợp lệ hoặc tài khoản không có quyền quản trị.');
+      const errRes = (err as { response?: { data?: { message?: string } } })?.response?.data;
+      setErrorMessage(errRes?.message || 'Thông tin đăng nhập không hợp lệ hoặc tài khoản đã bị khóa bảo mật.');
     }
   };
 
@@ -151,7 +152,7 @@ export const AdminStaffLoginPage: React.FC = () => {
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onClick={() => fillQuickAccount('admin@autohub.vn', 'admin123')}
+                onClick={() => fillQuickAccount('admin.test@autohub.vn', 'Test@1234')}
                 className="p-2.5 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-left transition-colors cursor-pointer group"
               >
                 <div className="flex items-center gap-1.5 text-xs font-bold text-rose-400 mb-0.5">
@@ -159,14 +160,14 @@ export const AdminStaffLoginPage: React.FC = () => {
                   <span>Admin Master</span>
                 </div>
                 <div className="text-[11px] text-slate-400 group-hover:text-slate-200">
-                  admin@autohub.vn
+                  admin.test@autohub.vn
                 </div>
-                <div className="text-[10px] text-slate-500 font-mono">Pass: admin123</div>
+                <div className="text-[10px] text-slate-500 font-mono">Pass: Test@1234</div>
               </button>
 
               <button
                 type="button"
-                onClick={() => fillQuickAccount('staff@autohub.vn', 'staff123')}
+                onClick={() => fillQuickAccount('staff.test@autohub.vn', 'Test@1234')}
                 className="p-2.5 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-left transition-colors cursor-pointer group"
               >
                 <div className="flex items-center gap-1.5 text-xs font-bold text-blue-400 mb-0.5">
@@ -174,9 +175,9 @@ export const AdminStaffLoginPage: React.FC = () => {
                   <span>Staff Showroom</span>
                 </div>
                 <div className="text-[11px] text-slate-400 group-hover:text-slate-200">
-                  staff@autohub.vn
+                  staff.test@autohub.vn
                 </div>
-                <div className="text-[10px] text-slate-500 font-mono">Pass: staff123</div>
+                <div className="text-[10px] text-slate-500 font-mono">Pass: Test@1234</div>
               </button>
             </div>
           </div>

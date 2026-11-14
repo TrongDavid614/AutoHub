@@ -75,7 +75,23 @@ export const accessoryService = {
     try {
       const res = await axiosClient.get<unknown, ApiResponse<Accessory>>(`/customer/accessories/${id}`);
       if (res?.data) {
-        return res.data;
+        const item = res.data;
+        const compatibilities = item.compatibilities ?? item.compatibility ?? [];
+        const images = (item.images && item.images.length > 0)
+          ? item.images
+          : (item.galleryUrls && item.galleryUrls.length > 0)
+            ? item.galleryUrls
+            : (item.thumbnailUrl ? [item.thumbnailUrl] : []);
+        return {
+          ...item,
+          images,
+          galleryUrls: images,
+          compatibilities,
+          compatibility: compatibilities,
+          specifications: item.specifications ?? {},
+          specPills: item.specPills ?? [],
+          reviews: item.reviews ?? [],
+        };
       }
     } catch {
       // network error

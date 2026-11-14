@@ -25,6 +25,7 @@ export const API_CONFIG = {
     CART: {
       BASE: '/cart',
       SYNC: '/cart/sync',
+      SHIPPING_METHODS: '/customer/shipping-methods',
     },
     ORDERS: {
       BASE: '/orders',
@@ -40,6 +41,10 @@ export const API_CONFIG = {
       BOOK: '/test-drive/book',
       SCHEDULE: '/test-drive/schedule',
     },
+    PROFILE: {
+      BASE: '/customer/profile',
+      PASSWORD: '/customer/profile/password',
+    },
     AI_CONSULTANT: {
       CHAT: '/ai/consult',
     },
@@ -51,10 +56,17 @@ export const API_CONFIG = {
       RETURNS: '/staff/returns',
     },
     ADMIN: {
-      DASHBOARD: '/admin/dashboard-stats',
+      DASHBOARD: '/admin/dashboard',
+      DASHBOARD_OVERVIEW: '/admin/dashboard/overview',
+      DASHBOARD_REVENUE_CHART: '/admin/dashboard/revenue-chart',
+      DASHBOARD_KPIS: '/admin/dashboard/kpis',
+      DASHBOARD_REGIONAL: '/admin/dashboard/regional-revenues',
+      DASHBOARD_URGENT_DEPOSITS: '/admin/dashboard/urgent-deposits',
       USERS: '/admin/users',
       VOUCHERS: '/admin/vouchers',
       FEE_TABLE: '/admin/registration-fees',
+      CARS: '/admin/cars',
+      VECTOR_SYNC: '/admin/cars/sync-vector-db',
     },
   },
 };

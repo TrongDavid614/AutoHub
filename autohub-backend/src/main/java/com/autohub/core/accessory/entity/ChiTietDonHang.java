@@ -29,6 +29,6 @@ public class ChiTietDonHang extends BaseEntity {
     @Column(name = "don_gia", nullable = false, precision = 18, scale = 2)
     private BigDecimal donGia; // Chốt tại thời điểm đặt (BR07)
 
-    @Column(name = "thanh_tien", nullable = false, precision = 18, scale = 2)
+    @Column(name = "thanh_tien", insertable = false, updatable = false)
     private BigDecimal thanhTien;
 }

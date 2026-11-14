@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, BellRing, Check, ExternalLink, ShieldAlert } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
-import { MOCK_URGENT_DEPOSITS, type UrgentDeposit } from '../mocks/dashboard.mock';
+import type { UrgentDeposit } from '@/types/admin-dashboard.types';
+import { MOCK_URGENT_DEPOSITS } from '../mocks/dashboard.mock';
 import { formatCurrencyVND } from '@/lib/utils';
 
 export interface UrgentActionQueueProps {
@@ -15,6 +16,11 @@ export const UrgentActionQueue: React.FC<UrgentActionQueueProps> = ({
   const [items, setItems] = useState<UrgentDeposit[]>(deposits);
   const [nudgedIds, setNudgedIds] = useState<string[]>([]);
   const [activeModalItem, setActiveModalItem] = useState<UrgentDeposit | null>(null);
+
+  // Sync items when deposits prop updates
+  useEffect(() => {
+    setItems(deposits);
+  }, [deposits]);
 
   // Live countdown timer ticking every second
   useEffect(() => {

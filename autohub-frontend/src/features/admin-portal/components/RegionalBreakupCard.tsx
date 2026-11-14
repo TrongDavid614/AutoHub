@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Building2, MapPin, ShoppingBag, Users, PackageCheck } from 'lucide-react';
-import { MOCK_REGIONAL_REVENUES, type RegionalRevenue } from '../mocks/dashboard.mock';
+import type { RegionalRevenue } from '@/types/admin-dashboard.types';
+import { MOCK_REGIONAL_REVENUES } from '../mocks/dashboard.mock';
 import { useAdminTheme } from '@/context/AdminThemeContext';
 import { cn } from '@/lib/utils';
 

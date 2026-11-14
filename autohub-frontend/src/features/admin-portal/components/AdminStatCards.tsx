@@ -1,6 +1,7 @@
 import React from 'react';
-import { PackageCheck, Car, CalendarClock, TrendingUp, ArrowUpRight, AlertTriangle } from 'lucide-react';
-import { MOCK_DASHBOARD_KPIS, type KpiMetric } from '../mocks/dashboard.mock';
+import { PackageCheck, Car, CalendarClock, TrendingUp, AlertTriangle, ArrowUpRight } from 'lucide-react';
+import type { KpiMetric } from '@/types/admin-dashboard.types';
+import { MOCK_DASHBOARD_KPIS } from '../mocks/dashboard.mock';
 import { useAdminTheme } from '@/context/AdminThemeContext';
 import { cn } from '@/lib/utils';
 

@@ -142,7 +142,8 @@ export const CustomerOrderRowCard: React.FC<CustomerOrderRowCardProps> = ({
           <div className="text-xs text-text-secondary">
             Ngày đặt:{' '}
             <span className="font-mono text-text-primary">
-              {new Date(order.createdAt).toLocaleDateString('vi-VN')} {new Date(order.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+              {order.createdAt ? new Date(order.createdAt).toLocaleDateString('vi-VN') : 'Mới cập nhật'}{' '}
+              {order.createdAt ? new Date(order.createdAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : ''}
             </span>
           </div>
 
@@ -150,7 +151,7 @@ export const CustomerOrderRowCard: React.FC<CustomerOrderRowCardProps> = ({
           <div className="text-xs text-text-secondary">
             Phương thức:{' '}
             <span className="font-mono text-accent-primary font-semibold">
-              {order.paymentMethod === 'SEPAY' ? 'SePay' : 'Tiền mặt khi nhận (COD)'}
+              {order.paymentMethod === 'SEPAY' ? 'SePay' : order.paymentMethod === 'VNPAY' ? 'VNPay' : 'Tiền mặt khi nhận (COD)'}
             </span>
           </div>
         </div>
@@ -162,35 +163,59 @@ export const CustomerOrderRowCard: React.FC<CustomerOrderRowCardProps> = ({
       <div className="p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         {/* Cột trái: Danh sách các Item phụ kiện */}
         <div className="space-y-4 flex-1">
-          {order.orderItems.map((item, idx) => (
-            <div key={idx} className="flex items-start gap-4">
-              <img
-                src={item.accessory.thumbnailUrl || item.accessory.images?.[0]}
-                alt={item.accessory.name}
-                className="w-16 h-16 rounded-[4px] bg-canvas-deep border border-surface-highlight object-cover shrink-0"
-              />
-              <div className="space-y-1 flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex px-1.5 py-0.5 rounded-[2px] bg-surface-interactive text-[10px] font-mono text-accent-primary font-semibold">
-                    {item.accessory.categoryName || 'Linh Kiện EV'}
-                  </span>
-                  
+          {(() => {
+            const items = order.orderItems ?? order.items ?? [];
+            if (items.length === 0) {
+              return (
+                <div className="text-xs text-text-muted italic py-2">
+                  Chưa có chi tiết phụ kiện cho đơn hàng này.
                 </div>
-                <h4 className="text-sm font-bold text-text-primary hover:text-accent-primary transition-colors truncate">
-                  <Link to={`/accessories/${item.accessory.id}`}>{item.accessory.name}</Link>
-                </h4>
-                <div className="flex items-center justify-between text-xs text-text-secondary">
-                  <span>
-                    Số lượng: <strong className="text-text-primary font-mono">{item.quantity}</strong> x{' '}
-                    {item.unitPrice.toLocaleString('vi-VN')} VNĐ
-                  </span>
-                  <span className="font-mono font-bold text-text-primary">
-                    {item.totalPrice.toLocaleString('vi-VN')} VNĐ
-                  </span>
+              );
+            }
+            return items.map((item, idx) => {
+              const acc = item.accessory;
+              const thumb = acc?.thumbnailUrl || acc?.imageUrl || acc?.images?.[0] || 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=300';
+              const name = acc?.name || 'Phụ kiện AutoHub';
+              const catName = acc?.categoryName || (acc as unknown as { category?: string })?.category || 'Linh Kiện EV';
+              const accId = acc?.id ?? item.accessoryId;
+              const unitPrice = item.unitPrice ?? acc?.price ?? 0;
+              const qty = item.quantity ?? 1;
+              const totalPrice = item.totalPrice ?? (unitPrice * qty);
+
+              return (
+                <div key={item.id ?? idx} className="flex items-start gap-4">
+                  <img
+                    src={thumb}
+                    alt={name}
+                    className="w-16 h-16 rounded-[4px] bg-canvas-deep border border-surface-highlight object-cover shrink-0"
+                  />
+                  <div className="space-y-1 flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex px-1.5 py-0.5 rounded-[2px] bg-surface-interactive text-[10px] font-mono text-accent-primary font-semibold">
+                        {catName}
+                      </span>
+                    </div>
+                    <h4 className="text-sm font-bold text-text-primary hover:text-accent-primary transition-colors truncate">
+                      {accId ? (
+                        <Link to={`/accessories/${accId}`}>{name}</Link>
+                      ) : (
+                        <span>{name}</span>
+                      )}
+                    </h4>
+                    <div className="flex items-center justify-between text-xs text-text-secondary">
+                      <span>
+                        Số lượng: <strong className="text-text-primary font-mono">{qty}</strong> x{' '}
+                        {unitPrice.toLocaleString('vi-VN')} VNĐ
+                      </span>
+                      <span className="font-mono font-bold text-text-primary">
+                        {totalPrice.toLocaleString('vi-VN')} VNĐ
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
+              );
+            });
+          })()}
         </div>
 
         {/* Cột phải: Thông tin nhận hàng & Vận chuyển */}
@@ -201,7 +226,7 @@ export const CustomerOrderRowCard: React.FC<CustomerOrderRowCardProps> = ({
               <span>Địa chỉ nhận hàng (DR06)</span>
             </span>
             <span className="text-[10px] font-mono text-text-muted uppercase">
-              {order.shippingFee > 40000 ? 'HỎA TỐC 2H' : 'TIÊU CHUẨN'}
+              {(order.shippingFee ?? 0) > 40000 ? 'HỎA TỐC 2H' : 'TIÊU CHUẨN'}
             </span>
           </div>
 
@@ -233,7 +258,7 @@ export const CustomerOrderRowCard: React.FC<CustomerOrderRowCardProps> = ({
         <div>
           <div className="text-[11px] text-text-muted font-mono uppercase">Tổng giá trị đơn hàng (Đã gồm VAT):</div>
           <div className="font-mono text-lg font-bold text-accent-primary">
-            {order.finalTotalAmount.toLocaleString('vi-VN')} VNĐ
+            {(order.finalTotalAmount ?? 0).toLocaleString('vi-VN')} VNĐ
           </div>
         </div>
 

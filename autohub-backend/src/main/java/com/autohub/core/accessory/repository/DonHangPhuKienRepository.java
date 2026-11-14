@@ -12,5 +12,7 @@ import java.util.Optional;
 public interface DonHangPhuKienRepository extends JpaRepository<DonHangPhuKien, Long> {
     Optional<DonHangPhuKien> findByMaDonHang(String maDonHang);
     List<DonHangPhuKien> findByNguoiDungId(Long nguoiDungId);
+    List<DonHangPhuKien> findByNguoiDungIdOrderByNgayDatDesc(Long nguoiDungId);
+    List<DonHangPhuKien> findAllByOrderByNgayDatDesc();
     List<DonHangPhuKien> findByTrangThai(TrangThaiDonHang trangThai);
 }

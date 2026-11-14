@@ -7,6 +7,7 @@ interface CompareStore {
   selectedVariants: CarVariant[];
   addVariantToCompare: (variant: CarVariant) => boolean;
   removeVariantFromCompare: (variantId: number) => void;
+  setVariantsToCompare: (variants: CarVariant[]) => void;
   clearCompareList: () => void;
   isInCompareList: (variantId: number) => boolean;
 }
@@ -32,6 +33,10 @@ export const useCompareStore = create<CompareStore>()(
         set((state) => ({
           selectedVariants: state.selectedVariants.filter((v) => v.id !== variantId),
         }));
+      },
+
+      setVariantsToCompare: (variants: CarVariant[]) => {
+        set({ selectedVariants: variants.slice(0, MAX_COMPARE_CARS) });
       },
 
       clearCompareList: () => set({ selectedVariants: [] }),

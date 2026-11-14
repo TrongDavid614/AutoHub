@@ -206,7 +206,7 @@ export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Nút Xác nhận đặt cọc nếu chưa thanh toán */}
+          {/* Nút Xác nhận đặt cọc SePay VietQR nếu chưa thanh toán */}
           {item.status === 'PENDING_PAYMENT' && onPayDeposit && (
             <button
               type="button"
@@ -214,7 +214,7 @@ export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
               className="px-4 py-2 rounded-[2px] bg-accent-action hover:bg-accent-primary text-xs font-bold text-accent-contrast flex items-center gap-1.5 cursor-pointer shadow-sm transition-colors"
             >
               <CreditCard className="w-3.5 h-3.5 text-accent-contrast" />
-              <span>Xác nhận đặt cọc giữ xe</span>
+              <span>Thanh toán SePay VietQR</span>
             </button>
           )}
 

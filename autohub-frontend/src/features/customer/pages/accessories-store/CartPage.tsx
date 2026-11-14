@@ -1,37 +1,48 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { AlertCircle } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useCartCheckout } from '@/features/customer/hooks/useCartCheckout';
 import { CartSubHeaderBanner } from '@/features/customer/components/CartSubHeaderBanner';
 import { CartItemListPanel } from '@/features/customer/components/CartItemListPanel';
 import { ShippingAddressPanel } from '@/features/customer/components/ShippingAddressPanel';
 import { PaymentMethodSelector } from '@/features/customer/components/PaymentMethodSelector';
+import { StepShippingMethod } from '@/features/customer/components/StepShippingMethod';
 import { ChargingTelemetryWidget } from '@/features/customer/components/ChargingTelemetryWidget';
 import { OrderSummarySidebar } from '@/features/customer/components/OrderSummarySidebar';
 import { AddressEditModal } from '@/features/customer/components/AddressEditModal';
 import { OrderSuccessModal } from '@/features/customer/components/OrderSuccessModal';
 
 export const CartPage: React.FC = () => {
-  const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
 
   const {
     cartItems,
+    savedItems,
     removeFromCart,
     updateQuantity,
     clearCart,
+    saveForLater,
+    moveToCart,
+    removeSavedItem,
     addressBook,
     setAddressBook,
     selectedAddress,
     setSelectedAddress,
     isAddressModalOpen,
     setIsAddressModalOpen,
+    shippingMethods,
+    selectedShippingId,
+    setSelectedShippingId,
+    isLoadingShipping,
     paymentMethod,
     setPaymentMethod,
     voucherCode,
     setVoucherCode,
     isVoucherApplied,
     voucherError,
+    voucherSuccess,
+    isCheckingVoucher,
+    availableVouchers,
     applyVoucher,
     removeVoucher,
     rawSubtotal,
@@ -43,15 +54,18 @@ export const CartPage: React.FC = () => {
     orderSuccess,
     setOrderSuccess,
     orderId,
+    sepayData,
+    checkoutError,
+    handleCheckout,
   } = useCartCheckout();
 
-  const onCheckoutClick = () => {
-    if (!isAuthenticated) {
-      navigate('/login?redirect=/checkout');
-      return;
-    }
-    navigate('/checkout');
-  };
+  // Kiểm tra xem giỏ hàng có thiết bị sạc điện không để hiển thị widget telemetry phù hợp
+  const hasChargingDevice = cartItems.some(
+    (item) =>
+      item.accessory.categoryId === 1 ||
+      item.accessory.name.toLowerCase().includes('sạc') ||
+      item.accessory.name.toLowerCase().includes('wallbox')
+  );
 
   return (
     <div className="w-full bg-[#060E20] text-[#DAE2FD] min-h-screen">
@@ -60,15 +74,26 @@ export const CartPage: React.FC = () => {
 
       {/* 2. MAIN 2-COLUMN SPLIT WORKSPACE */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+        {checkoutError && (
+          <div className="mb-6 p-4 rounded-[2px] bg-[#3B1219] border border-[#FF5353]/50 text-[#FFD7D7] flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-[#FF5353] shrink-0" />
+            <p className="text-sm font-medium">{checkoutError}</p>
+          </div>
+        )}
+
         <div className="flex flex-col lg:flex-row items-start gap-8">
           {/* LEFT COLUMN: Item Table, Address Book & Payment Options (Span 7-8) */}
           <main className="flex-1 w-full space-y-6">
-            {/* Section A: Selected Cart Items */}
+            {/* Section A: Selected Cart Items + Saved Items */}
             <CartItemListPanel
               items={cartItems}
+              savedItems={savedItems}
               onUpdateQuantity={updateQuantity}
               onRemoveItem={removeFromCart}
               onClearCart={clearCart}
+              onSaveForLater={saveForLater}
+              onMoveToCart={moveToCart}
+              onRemoveSavedItem={removeSavedItem}
             />
 
             {/* Section B: Shipping & Installation Address Book */}
@@ -78,14 +103,24 @@ export const CartPage: React.FC = () => {
               onAddAddressClick={() => setIsAddressModalOpen(true)}
             />
 
-            {/* Section C: Payment Method Selector */}
+            {/* Section C: Shipping Method & Installation Selection */}
+            <StepShippingMethod
+              shippingMethods={shippingMethods}
+              selectedShippingId={selectedShippingId}
+              onSelectShipping={setSelectedShippingId}
+              subtotal={rawSubtotal}
+              isLoading={isLoadingShipping}
+              stepNumber="02"
+            />
+
+            {/* Section D: Payment Method Selector */}
             <PaymentMethodSelector
               selectedMethod={paymentMethod}
               onSelectMethod={setPaymentMethod}
             />
 
             {/* Technical Specs Telemetry Widget */}
-            <ChargingTelemetryWidget />
+            <ChargingTelemetryWidget hasChargingDevice={hasChargingDevice} />
           </main>
 
           {/* RIGHT COLUMN: Sticky Order Summary & Checkout Card (Span 4-5) */}
@@ -100,10 +135,13 @@ export const CartPage: React.FC = () => {
             voucherCode={voucherCode}
             isVoucherApplied={isVoucherApplied}
             voucherError={voucherError}
+            voucherSuccess={voucherSuccess}
+            isCheckingVoucher={isCheckingVoucher}
+            availableVouchers={availableVouchers}
             onVoucherCodeChange={setVoucherCode}
             onApplyVoucher={() => applyVoucher(voucherCode)}
             onRemoveVoucher={removeVoucher}
-            onCheckout={onCheckoutClick}
+            onCheckout={handleCheckout}
             isSubmitting={isSubmitting}
             isAuthenticated={isAuthenticated}
           />
@@ -125,11 +163,9 @@ export const CartPage: React.FC = () => {
         isOpen={orderSuccess}
         orderId={orderId}
         totalPayable={totalPayable}
-        recipientName={selectedAddress.recipientName}
-        onClose={() => {
-          setOrderSuccess(false);
-          clearCart();
-        }}
+        recipientName={selectedAddress.recipientName || 'Khách hàng'}
+        sepayData={sepayData}
+        onClose={() => setOrderSuccess(false)}
       />
     </div>
   );

@@ -1,6 +1,7 @@
 import { axiosClient } from '@/lib/axios';
 import type { ApiResponse } from '@/types/api.types';
 import type { AccessoryOrder } from '@/types/order.types';
+import type { CheckoutOrderRequest, CheckoutOrderResponse } from '@/types/cart.types';
 
 export const orderService = {
   async getMyOrders(customerId?: number): Promise<AccessoryOrder[]> {
@@ -9,13 +10,32 @@ export const orderService = {
         ? `/customer/orders?customerId=${customerId}`
         : `/customer/orders`;
       const res = await axiosClient.get<unknown, ApiResponse<AccessoryOrder[]>>(url);
-      if (res?.data && Array.isArray(res.data)) {
-        return res.data;
+      const rawList = res?.data ?? (Array.isArray(res) ? (res as AccessoryOrder[]) : []);
+      if (Array.isArray(rawList)) {
+        return rawList.map((order) => {
+          const items = order.orderItems ?? order.items ?? [];
+          return {
+            ...order,
+            orderItems: items,
+            items,
+          };
+        });
       }
-    } catch {
-      // network error
+    } catch (error) {
+      console.error('[orderService.getMyOrders] Lỗi khi tải danh sách đơn hàng:', error);
     }
     return [];
+  },
+
+  async createOrder(payload: CheckoutOrderRequest): Promise<CheckoutOrderResponse> {
+    const res = await axiosClient.post<unknown, ApiResponse<CheckoutOrderResponse>>(
+      '/customer/orders/checkout',
+      payload
+    );
+    if (!res?.data) {
+      throw new Error(res?.message || 'Không thể tạo đơn hàng');
+    }
+    return res.data;
   },
 
   async confirmDelivered(orderId: number): Promise<boolean> {

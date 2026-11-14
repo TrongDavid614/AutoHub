@@ -16,6 +16,7 @@ import com.autohub.core.showroom.repository.TonKhoXeRepository;
 import com.autohub.core.user.entity.NguoiDung;
 import com.autohub.core.user.repository.NguoiDungRepository;
 import lombok.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -38,6 +41,12 @@ public class CustomerDepositController {
     private final HinhAnhXeRepository hinhAnhXeRepository;
     private final PhienBanXeRepository phienBanXeRepository;
     private final YeuCauHoanCocRepository yeuCauHoanCocRepository;
+
+    @Value("${sepay.account-number:5811676579}")
+    private String sepayAccountNumber;
+
+    @Value("${sepay.bank-brand-name:BIDV}")
+    private String sepayBankBrandName;
 
     @Getter
     @Setter
@@ -193,20 +202,6 @@ public class CustomerDepositController {
         return ResponseEntity.ok(ApiResponse.ok(mapDepositToDto(saved), "Gửi yêu cầu hoàn cọc thành công! Hồ sơ đã được lưu trữ, nhân viên đối soát và Admin sẽ thẩm định theo quy chế BR05."));
     }
 
-    @PostMapping("/{id}/pay")
-    @Transactional
-    public ResponseEntity<ApiResponse<Map<String, Object>>> confirmPayment(@PathVariable Long id) {
-        PhieuDatCoc deposit = depositRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu cọc ID: " + id));
-
-        LocalDateTime now = LocalDateTime.now();
-        deposit.setTrangThai(TrangThaiPhieuCoc.PAID);
-        deposit.setThoiGianThanhToan(now);
-        deposit.setHanGiuXe(now.plusHours(72)); // Kích hoạt thời hạn giữ xe 72 giờ
-        PhieuDatCoc saved = depositRepository.save(deposit);
-
-        return ResponseEntity.ok(ApiResponse.ok(mapDepositToDto(saved), "Xác nhận thanh toán tiền cọc thành công! Suất giữ xe được kích hoạt trong 72 giờ."));
-    }
 
     private Map<String, Object> mapDepositToDto(PhieuDatCoc p) {
         Map<String, Object> map = new HashMap<>();
@@ -269,6 +264,45 @@ public class CustomerDepositController {
         map.put("paymentDeadline", p.getHanThanhToan() != null ? p.getHanThanhToan().toString() : null);
         map.put("createdAt", p.getNgayDatCoc() != null ? p.getNgayDatCoc().toString() : LocalDateTime.now().toString());
 
+        // SePay BIDV QR transfer configuration
+        String cleanCode = code.startsWith("#") ? code.substring(1) : code;
+        String transferContent = "AH DEP " + cleanCode;
+        String bankAcc = (sepayAccountNumber != null && !sepayAccountNumber.isBlank()) ? sepayAccountNumber : "5811676579";
+        String bankBrand = (sepayBankBrandName != null && !sepayBankBrandName.isBlank()) ? sepayBankBrandName : "BIDV";
+        String amountStr = (p.getSoTienCoc() != null) ? p.getSoTienCoc().toBigInteger().toString() : "20000000";
+
+        String qrUrl;
+        try {
+            qrUrl = String.format("https://img.vietqr.io/image/bidv-%s-compact2.png?amount=%s&addInfo=%s&accountName=CONG%%20TY%%20CO%%20PHAN%%20AUTOHUB%%20VIETNAM",
+                    bankAcc, amountStr, URLEncoder.encode(transferContent, StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            qrUrl = String.format("https://img.vietqr.io/image/bidv-%s-compact2.png?amount=%s", bankAcc, amountStr);
+        }
+
+        map.put("transferContent", transferContent);
+        map.put("bankAccountNumber", bankAcc);
+        map.put("bankBrandName", bankBrand);
+        map.put("bankAccountName", "CONG TY CO PHAN AUTOHUB VIETNAM");
+        map.put("qrImageUrl", qrUrl);
+        map.put("isPaid", TrangThaiPhieuCoc.PAID.equals(p.getTrangThai()));
+
         return map;
+    }
+
+    @GetMapping("/{id}/status")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getDepositStatus(@PathVariable Long id) {
+        PhieuDatCoc deposit = depositRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiếu cọc ID: " + id));
+
+        Map<String, Object> statusMap = new HashMap<>();
+        statusMap.put("id", deposit.getId());
+        String code = deposit.getMaPhieuCoc() != null ? deposit.getMaPhieuCoc() : "DEP-" + deposit.getId();
+        statusMap.put("depositCode", code.startsWith("#") ? code : "#" + code);
+        statusMap.put("status", deposit.getTrangThai() != null ? deposit.getTrangThai().name() : "PENDING_PAYMENT");
+        statusMap.put("isPaid", TrangThaiPhieuCoc.PAID.equals(deposit.getTrangThai()));
+        statusMap.put("paidAt", deposit.getThoiGianThanhToan() != null ? deposit.getThoiGianThanhToan().toString() : null);
+        statusMap.put("expireAt", deposit.getHanGiuXe() != null ? deposit.getHanGiuXe().toString() : null);
+
+        return ResponseEntity.ok(ApiResponse.ok(statusMap, "Lấy trạng thái thanh toán phiếu cọc thành công"));
     }
 }

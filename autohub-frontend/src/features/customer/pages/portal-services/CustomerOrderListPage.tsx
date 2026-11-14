@@ -45,11 +45,9 @@ export const CustomerOrderListPage: React.FC = () => {
     setIsLoading(true);
     try {
       const data = await orderService.getMyOrders(user?.id);
-      if (data && data.length > 0) {
-        setOrders(data);
-      }
+      setOrders(Array.isArray(data) ? data : []);
     } catch {
-      // offline fallback
+      setOrders([]);
     } finally {
       setIsLoading(false);
     }
@@ -85,10 +83,13 @@ export const CustomerOrderListPage: React.FC = () => {
 
   // 1. Chức năng Mua Lại (Reorder): Thêm sản phẩm vào giỏ hàng
   const handleReorder = (order: AccessoryOrder) => {
-    order.orderItems.forEach((item) => {
-      addToCart(item.accessory, item.quantity);
+    const items = order.orderItems ?? order.items ?? [];
+    items.forEach((item) => {
+      if (item.accessory) {
+        addToCart(item.accessory, item.quantity);
+      }
     });
-    showToast(`Đã thêm ${order.orderItems.length} sản phẩm của đơn ${order.orderCode} vào giỏ hàng!`);
+    showToast(`Đã thêm ${items.length} sản phẩm của đơn ${order.orderCode} vào giỏ hàng!`);
   };
 
   // 2. Chức năng Xác nhận đã nhận hàng (Chuyển sang DELIVERED)
@@ -197,7 +198,28 @@ export const CustomerOrderListPage: React.FC = () => {
 
       {/* 3. Danh sách đơn hàng dạng ROW (Row Card) */}
       <div className="space-y-4">
-        {filteredOrders.length === 0 ? (
+        {isLoading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map((n) => (
+              <div
+                key={n}
+                className="rounded-[6px] bg-surface-elevated/70 border border-surface-highlight p-5 space-y-4 animate-pulse"
+              >
+                <div className="flex justify-between items-center pb-3 border-b border-surface-highlight">
+                  <div className="h-5 w-44 bg-surface-interactive rounded" />
+                  <div className="h-6 w-28 bg-surface-interactive rounded" />
+                </div>
+                <div className="flex gap-4">
+                  <div className="w-16 h-16 bg-surface-interactive rounded shrink-0" />
+                  <div className="space-y-2 flex-1">
+                    <div className="h-4 w-1/3 bg-surface-interactive rounded" />
+                    <div className="h-3 w-1/4 bg-surface-interactive rounded" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredOrders.length === 0 ? (
           <div className="py-16 text-center rounded-[4px] bg-surface-elevated/30 border border-surface-highlight space-y-3">
             <Package className="w-12 h-12 text-text-muted mx-auto opacity-50" />
             <h3 className="text-base font-semibold text-text-primary">Không tìm thấy đơn hàng nào</h3>

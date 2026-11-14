@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { useCarDetail } from '@/features/customer/hooks/useCarDetail';
 import { CarStudioVisualizer } from '@/features/customer/components/detail/CarStudioVisualizer';
@@ -12,6 +12,7 @@ import type { MockCar } from '@/features/customer/mocks/car.mock';
 
 export const CarDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [car, setCar] = useState<MockCar | null>(null);
 
   const {
@@ -37,7 +38,9 @@ export const CarDetailPage: React.FC = () => {
   }, [id]);
 
   const activeColorObj =
-    EXTERIOR_COLORS.find((c) => c.id === activeColor) || EXTERIOR_COLORS[0];
+    (car?.availableColors && car.availableColors.length > 0)
+      ? car.availableColors.find((c) => String(c.id) === activeColor || c.name === activeColor) || car.availableColors[0]
+      : EXTERIOR_COLORS.find((c) => c.id === activeColor) || EXTERIOR_COLORS[0];
 
   const carName = car?.name || 'AutoHub GT-e Performance Sedan';
   const trimName = car?.subtitle || currentTrimData?.name || 'GT-e Performance';
@@ -73,9 +76,10 @@ export const CarDetailPage: React.FC = () => {
           <CarStudioVisualizer
             carName={carName}
             activeTrim={activeTrim}
-            activeColorHex={activeColorObj.hex}
+            activeColorHex={activeColorObj.hex || '#0284C7'}
             activeColorName={activeColorObj.name}
             carImages={car?.images}
+            car={car}
           />
         </div>
 
@@ -86,14 +90,19 @@ export const CarDetailPage: React.FC = () => {
             onSelectTrim={setActiveTrim}
             activeColor={activeColor}
             onSelectColor={setActiveColor}
-            onOpenDeposit={() => setIsDepositOpen(true)}
+            onOpenDeposit={() => {
+              const targetId = car?.id || activeTrim || '1';
+              const cName = encodeURIComponent(activeColorObj.name);
+              const cHex = encodeURIComponent(activeColorObj.hex || '#0284C7');
+              navigate(`/deposit/${targetId}?color=${cName}&colorHex=${cHex}`);
+            }}
             car={car}
           />
         </div>
       </div>
 
       {/* 3. Technical Telemetry & Engineering Specifications */}
-      <CarEngineeringSpecs />
+      <CarEngineeringSpecs car={car} />
 
       {/* 4. Car Deposit Modal (72h Online Reservation) */}
       <CarDepositModal

@@ -7,9 +7,9 @@ import { engagementService } from '@/features/customer/services/engagement.servi
 
 export const ProfileStatsCards: React.FC = () => {
   const { user } = useAuthStore();
-  const [orderCount, setOrderCount] = useState<number>(2);
-  const [depositCount, setDepositCount] = useState<number>(1);
-  const [testDriveCount, setTestDriveCount] = useState<number>(2);
+  const [orderCount, setOrderCount] = useState<number>(0);
+  const [depositCount, setDepositCount] = useState<number>(0);
+  const [testDriveCount, setTestDriveCount] = useState<number>(0);
 
   useEffect(() => {
     async function loadStats() {

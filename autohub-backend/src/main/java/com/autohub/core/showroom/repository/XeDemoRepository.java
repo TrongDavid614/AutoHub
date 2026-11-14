@@ -10,4 +10,7 @@ import java.util.List;
 @Repository
 public interface XeDemoRepository extends JpaRepository<XeDemo, Long> {
     List<XeDemo> findByShowroomIdAndTrangThai(Long showroomId, TrangThaiXeDemo trangThai);
+    List<XeDemo> findByTrangThaiAndDangHoatDongTrue(TrangThaiXeDemo trangThai);
+    List<XeDemo> findByPhienBanXeId(Long phienBanXeId);
+    long countByPhienBanXeIdAndTrangThaiAndDangHoatDongTrue(Long phienBanXeId, TrangThaiXeDemo trangThai);
 }

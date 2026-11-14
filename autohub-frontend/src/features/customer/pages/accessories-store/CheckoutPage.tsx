@@ -22,6 +22,7 @@ export const CheckoutPage: React.FC = () => {
     shippingMethods,
     selectedShippingId,
     setSelectedShippingId,
+    isLoadingShipping,
     selectedPaymentMethod,
     setSelectedPaymentMethod,
     timeLeftFormatted,
@@ -83,6 +84,9 @@ export const CheckoutPage: React.FC = () => {
               shippingMethods={shippingMethods}
               selectedShippingId={selectedShippingId}
               onSelectShipping={setSelectedShippingId}
+              subtotal={rawSubtotal}
+              isLoading={isLoadingShipping}
+              stepNumber="02"
             />
 
             {/* STEP 3: Phương thức thanh toán */}

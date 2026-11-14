@@ -2,12 +2,9 @@ import { useState, useEffect } from 'react';
 import { useCartStore } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { addressService } from '../services/address.service';
-import {
-  MOCK_SHIPPING_METHODS,
-  type CheckoutAddress,
-  type ShippingMethod,
-  type CheckoutOrderItem,
-} from '../mocks/checkout.mock';
+import { cartService } from '../services/cart.service';
+import type { CheckoutAddress, CheckoutOrderItem } from '../mocks/checkout.mock';
+import type { ShippingMethod } from '@/types/cart.types';
 
 export function useCheckoutFlow() {
   const { cartItems, clearCart } = useCartStore();
@@ -42,10 +39,30 @@ export function useCheckoutFlow() {
   }, [user?.id, user?.fullName, user?.phoneNumber]);
 
   // Shipping method selection
-  const [shippingMethods] = useState<ShippingMethod[]>(MOCK_SHIPPING_METHODS);
-  const [selectedShippingId, setSelectedShippingId] = useState<'standard' | 'express-technician'>('standard');
+  const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
+  const [selectedShippingId, setSelectedShippingId] = useState<string>('standard');
+  const [isLoadingShipping, setIsLoadingShipping] = useState<boolean>(true);
 
-  // Payment method selection (VNPAY | COD)
+  useEffect(() => {
+    let isMounted = true;
+    cartService.getShippingMethods().then((methods) => {
+      if (isMounted && methods && methods.length > 0) {
+        setShippingMethods(methods);
+        const def = methods.find((m) => m.isDefault) || methods[0];
+        if (def) {
+          setSelectedShippingId(def.methodId || def.id || def.code.toLowerCase());
+        }
+      }
+      if (isMounted) {
+        setIsLoadingShipping(false);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Payment method selection (VNPAY | COD | SEPAY)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'vnpay' | 'cod'>('vnpay');
 
   // 15-Minute countdown timer
@@ -65,9 +82,9 @@ export function useCheckoutFlow() {
   };
 
   // Voucher state
-  const [voucherCode, setVoucherCode] = useState('AUTOHUBVIP');
-  const [isVoucherApplied, setIsVoucherApplied] = useState(true);
-  const [voucherDiscount, setVoucherDiscount] = useState(500000);
+  const [voucherCode, setVoucherCode] = useState('AUTOHUBGT500');
+  const [isVoucherApplied, setIsVoucherApplied] = useState(false);
+  const [voucherDiscount, setVoucherDiscount] = useState(0);
   const [voucherError, setVoucherError] = useState('');
 
   // Items
@@ -83,8 +100,19 @@ export function useCheckoutFlow() {
 
   // Pricing calculations
   const rawSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const currentShippingMethod = shippingMethods.find((s) => s.id === selectedShippingId) || shippingMethods[0];
-  const shippingFee = currentShippingMethod.price;
+  const currentShippingMethod =
+    shippingMethods.find(
+      (s) =>
+        s.id === selectedShippingId ||
+        s.methodId === selectedShippingId ||
+        s.code?.toLowerCase() === selectedShippingId?.toLowerCase()
+    ) || shippingMethods[0];
+
+  const baseShippingFee = currentShippingMethod?.price ?? 0;
+  const isFreeByThreshold = Boolean(
+    currentShippingMethod?.freeThreshold != null && rawSubtotal >= currentShippingMethod.freeThreshold
+  );
+  const shippingFee = isFreeByThreshold ? 0 : baseShippingFee;
   const discountAmount = isVoucherApplied ? Math.min(voucherDiscount, rawSubtotal) : 0;
   const grandTotal = Math.max(0, rawSubtotal + shippingFee - discountAmount);
 
@@ -93,15 +121,26 @@ export function useCheckoutFlow() {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [orderCode, setOrderCode] = useState('AH-ACC-2026-9952');
 
-  const applyVoucher = (code: string) => {
+  const applyVoucher = async (code: string) => {
     setVoucherError('');
-    if (code.trim().toUpperCase() === 'AUTOHUBVIP' || code.trim().toUpperCase() === 'VNPAYAUTOHUB') {
-      setIsVoucherApplied(true);
-      setVoucherDiscount(500000);
-    } else {
-      setVoucherError('Mã ưu đãi không hợp lệ.');
-      setIsVoucherApplied(false);
-      setVoucherDiscount(0);
+    const trimmed = code.trim().toUpperCase();
+    if (!trimmed) {
+      setVoucherError('Vui lòng nhập mã ưu đãi.');
+      return;
+    }
+    try {
+      const res = await cartService.validateVoucher(trimmed, rawSubtotal);
+      if (res.valid) {
+        setIsVoucherApplied(true);
+        setVoucherDiscount(res.discountAmount);
+        setVoucherCode(res.code);
+      } else {
+        setIsVoucherApplied(false);
+        setVoucherDiscount(0);
+        setVoucherError(res.message || 'Mã ưu đãi không hợp lệ.');
+      }
+    } catch {
+      setVoucherError('Không thể kiểm tra mã ưu đãi. Vui lòng thử lại sau.');
     }
   };
 
@@ -109,49 +148,45 @@ export function useCheckoutFlow() {
     setIsVoucherApplied(false);
     setVoucherDiscount(0);
     setVoucherCode('');
+    setVoucherError('');
   };
 
   const selectedAddress = addresses.find((a) => a.id === selectedAddressId) || addresses[0];
 
   const handleProcessCheckout = async () => {
     setIsSubmitting(true);
-    let newCode = `AH-ACC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-    setOrderCode(newCode);
+    let finalCode = `AH-ACC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
 
-    // Gửi request lưu đơn hàng trực tiếp tới database backend
     try {
-      const res = await fetch('http://localhost:8080/api/customer/orders/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerId: user?.id || 5,
-          recipientName: selectedAddress.recipientName,
-          phone: selectedAddress.phone,
-          shippingAddress: selectedAddress.fullAddress,
-          paymentMethod: selectedPaymentMethod.toUpperCase(),
-          voucherCode: isVoucherApplied ? voucherCode : '',
-          shippingFee,
-          items: items.map((i) => ({ accessoryId: i.id, quantity: i.quantity, unitPrice: i.price })),
-        }),
+      const customerId = user?.id || 5;
+      const res = await cartService.checkout({
+        customerId,
+        recipientName: selectedAddress?.recipientName || user?.fullName || 'Khách hàng',
+        phone: selectedAddress?.phone || user?.phoneNumber || '0912345678',
+        shippingAddress: selectedAddress?.fullAddress || 'Showroom AutoHub',
+        paymentMethod: selectedPaymentMethod.toUpperCase() as 'VNPAY' | 'COD',
+        voucherCode: isVoucherApplied ? voucherCode : undefined,
+        shippingMethodId: currentShippingMethod?.code || currentShippingMethod?.methodId || selectedShippingId,
+        shippingFee,
+        items: items.map((i) => ({ accessoryId: i.id, quantity: i.quantity, unitPrice: i.price })),
       });
-      if (res.ok) {
-        const json = await res.json();
-        if (json?.data?.maDonHang) {
-          newCode = json.data.maDonHang;
-        }
+
+      if (res.orderCode || res.maDonHang) {
+        finalCode = res.orderCode || res.maDonHang || finalCode;
       }
+      await clearCart(customerId);
     } catch {
       // Offline fallback
     }
 
-    setOrderCode(newCode);
+    setOrderCode(finalCode);
     setIsSubmitting(false);
     setIsSuccessModalOpen(true);
   };
 
   const handleFinishOrder = () => {
     setIsSuccessModalOpen(false);
-    clearCart();
+    clearCart(user?.id || 5);
   };
 
   return {
@@ -164,6 +199,7 @@ export function useCheckoutFlow() {
     selectedShippingId,
     setSelectedShippingId,
     currentShippingMethod,
+    isLoadingShipping,
     selectedPaymentMethod,
     setSelectedPaymentMethod,
     timeLeftFormatted: formatTimer(timeLeft),

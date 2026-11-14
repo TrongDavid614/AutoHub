@@ -26,26 +26,60 @@ public class JwtTokenProvider {
     }
 
     public String generateToken(String username, String role) {
+        return generateToken(null, username, username, role);
+    }
+
+    public String generateToken(Long id, String email, String hoTen, String role) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
 
-        return Jwts.builder()
-                .subject(username)
+        var builder = Jwts.builder()
+                .subject(email)
+                .claim("email", email)
+                .claim("ho_ten", hoTen)
                 .claim("role", role)
                 .issuedAt(now)
                 .expiration(expiryDate)
-                .signWith(getSigningKey(), Jwts.SIG.HS256)
-                .compact();
+                .signWith(getSigningKey(), Jwts.SIG.HS256);
+
+        if (id != null) {
+            builder.claim("id", id);
+        }
+
+        return builder.compact();
     }
 
-    public String getUsernameFromJWT(String token) {
-        Claims claims = Jwts.parser()
+    public Claims getClaimsFromJWT(String token) {
+        return Jwts.parser()
                 .verifyWith(getSigningKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+    }
 
-        return claims.getSubject();
+    public String getUsernameFromJWT(String token) {
+        return getClaimsFromJWT(token).getSubject();
+    }
+
+    public String getRoleFromJWT(String token) {
+        try {
+            return getClaimsFromJWT(token).get("role", String.class);
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    public Long getUserIdFromJWT(String token) {
+        try {
+            Claims claims = getClaimsFromJWT(token);
+            Object idObj = claims.get("id");
+            if (idObj instanceof Number number) {
+                return number.longValue();
+            }
+            return null;
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     public boolean validateToken(String authToken) {

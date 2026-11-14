@@ -9,6 +9,7 @@ import {
   Maximize2,
   Wind,
 } from 'lucide-react';
+import type { MockCar } from '../../mocks/car.mock';
 
 interface CarStudioVisualizerProps {
   carName: string;
@@ -16,6 +17,7 @@ interface CarStudioVisualizerProps {
   activeColorHex: string;
   activeColorName: string;
   carImages?: string[];
+  car?: MockCar | null;
 }
 
 const VIEW_TABS = [
@@ -68,14 +70,37 @@ export const CarStudioVisualizer: React.FC<CarStudioVisualizerProps> = ({
   carName,
   activeTrim,
   carImages,
+  car,
 }) => {
   const [activeTab, setActiveTab] = useState<string>('exterior');
   const [activePerspective, setActivePerspective] = useState<number>(0);
 
+  const dynamicPerspectives = (carImages && carImages.length > 0)
+    ? carImages.map((img, idx) => {
+        const labels = [
+          { label: '3/4 TRƯỚC SANG TRỌNG', subLabel: 'Góc 3/4 trước thể thao' },
+          { label: 'HÔNG KHÍ ĐỘNG HỌC', subLabel: 'Góc hông khí động học' },
+          { label: 'BUỒNG LÁI DIGITAL HUD', subLabel: 'Buồng lái kỹ thuật số' },
+          { label: 'GÓC CHI TIẾT ĐÈN LED', subLabel: 'Cụm đèn pha ma trận' },
+        ];
+        const item = labels[idx % labels.length];
+        return {
+          id: idx,
+          label: item.label,
+          subLabel: item.subLabel,
+          image: img,
+          mainImage: img,
+        };
+      })
+    : PERSPECTIVES;
+
   const currentMainImage =
-    carImages && carImages.length > 0
-      ? carImages[activePerspective % carImages.length]
-      : PERSPECTIVES[activePerspective]?.mainImage || PERSPECTIVES[0].mainImage;
+    dynamicPerspectives[activePerspective % dynamicPerspectives.length]?.mainImage ||
+    PERSPECTIVES[0].mainImage;
+
+  const accelVal = car?.gridSpecs?.s1Val || car?.acceleration || '3.2 giây';
+  const rangeVal = car?.gridSpecs?.s2Val || car?.range || '680 km';
+  const chargeVal = car?.gridSpecs?.s3Val || car?.charging || '18 phút (10-80%)';
 
   return (
     <div className="flex flex-col gap-4">
@@ -121,8 +146,6 @@ export const CarStudioVisualizer: React.FC<CarStudioVisualizerProps> = ({
           </div>
         </div>
 
-        
-
         {/* Bottom Overlay: Floating Key Performance Metrics */}
         <div className="absolute bottom-4 left-4 right-4 p-3.5 rounded-lg bg-surface-container/85 backdrop-blur-md border border-surface-highlight/80 z-10 shadow-xl">
           <div className="grid grid-cols-3 divide-x divide-surface-highlight text-center">
@@ -133,32 +156,29 @@ export const CarStudioVisualizer: React.FC<CarStudioVisualizerProps> = ({
                 <span>TĂNG TỐC 0-100</span>
               </div>
               <div className="flex items-baseline justify-center gap-1 mt-0.5">
-                <span className="text-xl sm:text-2xl font-black font-mono text-text-primary">3.2</span>
-                <span className="text-[10px] font-mono font-bold text-accent-primary uppercase">GIÂY</span>
+                <span className="text-lg sm:text-2xl font-black font-mono text-text-primary">{accelVal}</span>
               </div>
             </div>
 
-            {/* Metric 2: WLTP Range */}
+            {/* Metric 2: Range */}
             <div className="px-2 sm:px-4">
               <div className="text-[10px] font-mono text-text-muted flex items-center justify-center gap-1 uppercase">
                 <Zap className="w-3.5 h-3.5 text-accent-primary" />
-                <span>PHẠM VI WLTP</span>
+                <span>TẦM HOẠT ĐỘNG</span>
               </div>
               <div className="flex items-baseline justify-center gap-1 mt-0.5">
-                <span className="text-xl sm:text-2xl font-black font-mono text-text-primary">680</span>
-                <span className="text-[10px] font-mono font-bold text-accent-primary uppercase">KM</span>
+                <span className="text-lg sm:text-2xl font-black font-mono text-text-primary">{rangeVal}</span>
               </div>
             </div>
 
-            {/* Metric 3: 800V Fast Charge */}
+            {/* Metric 3: Charging */}
             <div className="px-2 sm:px-4">
               <div className="text-[10px] font-mono text-text-muted flex items-center justify-center gap-1 uppercase">
                 <BatteryCharging className="w-3.5 h-3.5 text-accent-primary" />
-                <span>SẠC NHANH 800V</span>
+                <span>SẠC / NHIÊN LIỆU</span>
               </div>
               <div className="flex items-baseline justify-center gap-1 mt-0.5">
-                <span className="text-xl sm:text-2xl font-black font-mono text-text-primary">18</span>
-                <span className="text-[10px] font-mono font-bold text-accent-primary uppercase">PHÚT (10-80%)</span>
+                <span className="text-xs sm:text-lg font-black font-mono text-text-primary truncate">{chargeVal}</span>
               </div>
             </div>
           </div>
@@ -167,7 +187,7 @@ export const CarStudioVisualizer: React.FC<CarStudioVisualizerProps> = ({
 
       {/* 2. Thumbnails Array (4 Camera Perspectives) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-        {PERSPECTIVES.map((item, index) => {
+        {dynamicPerspectives.map((item, index) => {
           const isSelected = activePerspective === index;
           return (
             <button
