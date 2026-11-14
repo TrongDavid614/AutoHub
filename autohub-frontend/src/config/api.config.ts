@@ -55,6 +55,9 @@ export const API_CONFIG = {
       ORDER_FULFILLMENT: '/staff/fulfillment',
       RETURNS: '/staff/returns',
     },
+    TRACKING: {
+      COLLECT: '/tracking/collect',
+    },
     ADMIN: {
       DASHBOARD: '/admin/dashboard',
       DASHBOARD_OVERVIEW: '/admin/dashboard/overview',
@@ -62,6 +65,7 @@ export const API_CONFIG = {
       DASHBOARD_KPIS: '/admin/dashboard/kpis',
       DASHBOARD_REGIONAL: '/admin/dashboard/regional-revenues',
       DASHBOARD_URGENT_DEPOSITS: '/admin/dashboard/urgent-deposits',
+      ANALYTICS: '/admin/analytics/overview',
       USERS: '/admin/users',
       REFUNDS: '/admin/refunds',
       VOUCHERS: '/admin/vouchers',
