@@ -13,9 +13,15 @@ import com.autohub.core.enums.TrangThaiPhieuCoc;
 import com.autohub.core.enums.TrangThaiXeVIN;
 import com.autohub.core.showroom.entity.TonKhoXe;
 import com.autohub.core.showroom.repository.TonKhoXeRepository;
+import com.autohub.core.user.entity.NguoiDung;
+import com.autohub.core.user.repository.NguoiDungRepository;
+import com.autohub.modules.admin.dto.AdminRefundDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,15 +35,17 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/admin/refunds")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminRefundApprovalController {
 
     private final YeuCauHoanCocRepository yeuCauHoanCocRepository;
     private final PhieuDatCocRepository phieuDatCocRepository;
     private final XeDinhDanhRepository xeDinhDanhRepository;
     private final TonKhoXeRepository tonKhoXeRepository;
+    private final NguoiDungRepository nguoiDungRepository;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getRefundRequests(
+    public ResponseEntity<ApiResponse<List<AdminRefundDto>>> getRefundRequests(
             @RequestParam(required = false) String status
     ) {
         List<YeuCauHoanCoc> list = yeuCauHoanCocRepository.findAll();
@@ -49,7 +57,7 @@ public class AdminRefundApprovalController {
         }
 
         // Tuyệt đối không trả về mock data giả khi rỗng. Trả về đúng danh sách thật (có thể là [])
-        List<Map<String, Object>> result = list.stream()
+        List<AdminRefundDto> result = list.stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
 
@@ -65,8 +73,21 @@ public class AdminRefundApprovalController {
         }
 
         YeuCauHoanCoc yeuCau = opt.get();
+
+        // 1. Chống duyệt trùng lặp (Double Approval Flaw / Idempotency Check)
+        if (TrangThaiHoanCoc.APPROVED.equals(yeuCau.getTrangThai()) || TrangThaiHoanCoc.REFUNDED.equals(yeuCau.getTrangThai())) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Hồ sơ hoàn cọc #" + id + " đã được phê duyệt giải ngân trước đó!"));
+        }
+        if (TrangThaiHoanCoc.REJECTED.equals(yeuCau.getTrangThai())) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Hồ sơ hoàn cọc #" + id + " đã bị từ chối trước đó, không thể phê duyệt!"));
+        }
+        if (!TrangThaiHoanCoc.PENDING.equals(yeuCau.getTrangThai()) && !TrangThaiHoanCoc.VERIFIED.equals(yeuCau.getTrangThai())) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Hồ sơ hoàn cọc #" + id + " không ở trạng thái chờ duyệt (PENDING/VERIFIED)!"));
+        }
+
         yeuCau.setTrangThai(TrangThaiHoanCoc.APPROVED);
         yeuCau.setNgayXuLy(LocalDateTime.now());
+        getAuthenticatedAdmin().ifPresent(yeuCau::setAdminPheDuyet);
 
         PhieuDatCoc phieu = yeuCau.getPhieuDatCoc();
         if (phieu != null) {
@@ -107,72 +128,101 @@ public class AdminRefundApprovalController {
             @PathVariable Long id,
             @RequestParam(required = false) String reason
     ) {
+        if (reason == null || reason.trim().isBlank()) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Bắt buộc phải nhập lý do khi từ chối yêu cầu hoàn cọc!"));
+        }
+
         Optional<YeuCauHoanCoc> opt = yeuCauHoanCocRepository.findById(id);
         if (opt.isEmpty()) {
             return ResponseEntity.badRequest().body(ApiResponse.error("Không tìm thấy yêu cầu hoàn cọc với ID: " + id));
         }
 
         YeuCauHoanCoc yeuCau = opt.get();
+        if (TrangThaiHoanCoc.APPROVED.equals(yeuCau.getTrangThai()) || TrangThaiHoanCoc.REFUNDED.equals(yeuCau.getTrangThai())) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Hồ sơ hoàn cọc đã được phê duyệt giải ngân, không thể từ chối!"));
+        }
+        if (TrangThaiHoanCoc.REJECTED.equals(yeuCau.getTrangThai())) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Hồ sơ hoàn cọc này đã bị từ chối trước đó!"));
+        }
+
         yeuCau.setTrangThai(TrangThaiHoanCoc.REJECTED);
-        yeuCau.setLyDoTuChoi(reason != null ? reason : "Hồ sơ không đáp ứng điều kiện hoàn cọc 72h");
+        yeuCau.setLyDoTuChoi(reason.trim());
         yeuCau.setNgayXuLy(LocalDateTime.now());
+        getAuthenticatedAdmin().ifPresent(yeuCau::setAdminPheDuyet);
+
         yeuCauHoanCocRepository.save(yeuCau);
 
         return ResponseEntity.ok(ApiResponse.ok("REJECTED", "Đã từ chối yêu cầu hoàn cọc"));
     }
 
-    private Map<String, Object> mapToDto(YeuCauHoanCoc r) {
+    private Optional<NguoiDung> getAuthenticatedAdmin() {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && auth.getName() != null && !"anonymousUser".equals(auth.getName())) {
+                return nguoiDungRepository.findByEmail(auth.getName());
+            }
+        } catch (Exception ignored) {}
+        return Optional.empty();
+    }
+
+    private AdminRefundDto mapToDto(YeuCauHoanCoc r) {
         NumberFormat nf = NumberFormat.getInstance(new Locale("vi", "VN"));
-        Map<String, Object> dto = new HashMap<>();
-        dto.put("id", r.getId());
-        dto.put("docketCode", "#REF-" + String.format("%04d", r.getId()));
-
         PhieuDatCoc phieu = r.getPhieuDatCoc();
-        if (phieu != null) {
-            dto.put("depositCode", phieu.getMaPhieuCoc());
-            dto.put("customerName", phieu.getNguoiDung() != null ? phieu.getNguoiDung().getHoTen() : "Khách hàng");
-            dto.put("identityCardNumber", phieu.getSoCCCD() != null ? phieu.getSoCCCD() : "Đã định danh");
 
-            // Tên xe
-            String carName = "Xe ô tô AutoHub";
+        String depositCode = "#DEP-N/A";
+        String customerName = "Khách hàng";
+        String identityCard = "N/A";
+        String carName = "Xe ô tô AutoHub";
+        String amountStr = "20.000.000 ₫";
+        String deadlineStatus = "Đang đối soát";
+
+        if (phieu != null) {
+            depositCode = phieu.getMaPhieuCoc() != null ? phieu.getMaPhieuCoc() : "#DEP-" + phieu.getId();
+            if (phieu.getNguoiDung() != null && phieu.getNguoiDung().getHoTen() != null) {
+                customerName = phieu.getNguoiDung().getHoTen();
+            }
+            if (phieu.getSoCCCD() != null) {
+                identityCard = phieu.getSoCCCD();
+            }
             if (phieu.getTonKhoXe() != null && phieu.getTonKhoXe().getPhienBanXe() != null) {
                 PhienBanXe pb = phieu.getTonKhoXe().getPhienBanXe();
                 String dongXe = pb.getDongXe() != null ? pb.getDongXe().getTenDongXe() : "";
                 carName = (dongXe + " " + pb.getTenPhienBan()).trim();
             }
-            dto.put("car", carName);
-            dto.put("amount", phieu.getSoTienCoc() != null ? nf.format(phieu.getSoTienCoc()) + " ₫" : "20.000.000 ₫");
+            if (phieu.getSoTienCoc() != null) {
+                amountStr = nf.format(phieu.getSoTienCoc()) + " ₫";
+            }
 
-            // Kiểm tra hạn 72h
             LocalDateTime deadline = phieu.getHanGiuXe();
             if (deadline != null) {
                 LocalDateTime now = LocalDateTime.now();
                 if (now.isBefore(deadline)) {
                     long hoursLeft = Duration.between(now, deadline).toHours();
-                    dto.put("deadlineStatus", "Trong hạn 72h (Còn " + hoursLeft + "h hiệu lực)");
+                    deadlineStatus = "Trong hạn 72h (Còn " + hoursLeft + "h hiệu lực)";
                 } else {
-                    dto.put("deadlineStatus", "Đã quá hạn 72h");
+                    deadlineStatus = "Đã quá hạn 72h";
                 }
             } else {
-                dto.put("deadlineStatus", "Trong hạn 72h");
+                deadlineStatus = "Trong hạn 72h";
             }
-        } else {
-            dto.put("depositCode", "#DEP-N/A");
-            dto.put("customerName", "Khách hàng");
-            dto.put("identityCardNumber", "N/A");
-            dto.put("car", "Xe ô tô AutoHub");
-            dto.put("amount", "20.000.000 ₫");
-            dto.put("deadlineStatus", "Đang đối soát");
         }
 
-        dto.put("reason", r.getLyDo() != null ? r.getLyDo() : "Ngân hàng từ chối cho vay");
-        dto.put("minhChungUrl", r.getMinhChung());
-        dto.put("staffVerifier", r.getNhanVienDoiSoat() != null ? r.getNhanVienDoiSoat().getHoTen() : "Chờ thẩm định");
-        dto.put("status", r.getTrangThai() != null ? r.getTrangThai().name() : "PENDING");
-        dto.put("rejectionReason", r.getLyDoTuChoi());
-        dto.put("submittedAt", r.getNgayGui() != null ? r.getNgayGui().toString() : "");
-        dto.put("processedAt", r.getNgayXuLy() != null ? r.getNgayXuLy().toString() : "");
-
-        return dto;
+        return AdminRefundDto.builder()
+                .id(r.getId())
+                .docketCode("#REF-" + String.format("%04d", r.getId()))
+                .depositCode(depositCode)
+                .customerName(customerName)
+                .identityCardNumber(identityCard)
+                .car(carName)
+                .amount(amountStr)
+                .deadlineStatus(deadlineStatus)
+                .reason(r.getLyDo() != null ? r.getLyDo() : "Ngân hàng từ chối cho vay tín dụng")
+                .minhChungUrl(r.getMinhChung())
+                .staffVerifier(r.getNhanVienDoiSoat() != null ? r.getNhanVienDoiSoat().getHoTen() : "Chờ thẩm định")
+                .status(r.getTrangThai() != null ? r.getTrangThai().name() : "PENDING")
+                .rejectionReason(r.getLyDoTuChoi())
+                .submittedAt(r.getNgayGui() != null ? r.getNgayGui().toString() : "")
+                .processedAt(r.getNgayXuLy() != null ? r.getNgayXuLy().toString() : "")
+                .build();
     }
 }
