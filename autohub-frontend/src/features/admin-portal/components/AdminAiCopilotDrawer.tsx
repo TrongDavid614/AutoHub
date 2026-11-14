@@ -12,11 +12,12 @@ import {
   ThumbsUp,
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
-import {
-  adminAiService,
-  type AdminAiCopilotResponse,
-  type ReviewSentimentAnalysisResponse,
-} from '../services/admin-ai.service';
+import { cn } from '@/lib/utils';
+import { adminAiService } from '../services/admin-ai.service';
+import type {
+  AdminAiCopilotResponse,
+  ReviewSentimentAnalysisResponse,
+} from '@/types/admin-ai.types';
 
 export const AdminAiCopilotDrawer: React.FC = () => {
   const { isDarkMode } = useAdminTheme();
@@ -46,8 +47,8 @@ export const AdminAiCopilotDrawer: React.FC = () => {
       const res = await adminAiService.askCopilot(textToQuery.trim());
       setCopilotResult(res);
     } catch (err) {
-      console.error('Failed to ask AI Copilot:', err);
-      setError('Không thể kết nối đến Trợ lý AI Copilot. Vui lòng kiểm tra lại cấu hình.');
+      console.error('[AdminAiCopilot] Lỗi truy vấn Copilot:', err);
+      setError('Không thể kết nối đến Trợ lý AI Copilot. Vui lòng kiểm tra lại dịch vụ Backend.');
     } finally {
       setCopilotLoading(false);
     }
@@ -62,7 +63,7 @@ export const AdminAiCopilotDrawer: React.FC = () => {
       const res = await adminAiService.analyzeReview(reviewContent.trim());
       setSentimentResult(res);
     } catch (err) {
-      console.error('Failed to analyze sentiment:', err);
+      console.error('[AdminAiCopilot] Lỗi phân tích cảm xúc:', err);
       setError('Không thể phân tích ngữ nghĩa nội dung nhận xét. Vui lòng thử lại.');
     } finally {
       setSentimentLoading(false);
@@ -86,24 +87,28 @@ export const AdminAiCopilotDrawer: React.FC = () => {
       {isOpen && (
         <div className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-xs flex justify-end animate-fade-in">
           <div
-            className={`w-full max-w-md h-full flex flex-col shadow-2xl transition-all duration-300 border-l ${
+            className={cn(
+              'w-full max-w-md h-full flex flex-col shadow-2xl transition-all duration-300 border-l',
               isDarkMode
                 ? 'bg-[#0B1326] text-[#DAE2FD] border-[#3E4850]/40'
                 : 'bg-white text-slate-800 border-slate-200'
-            }`}
+            )}
           >
             {/* Header */}
-            <div className={`p-4 border-b flex items-center justify-between ${
-              isDarkMode ? 'border-[#3E4850]/40 bg-[#131B2E]' : 'border-slate-100 bg-slate-50'
-            }`}>
+            <div
+              className={cn(
+                'p-4 border-b flex items-center justify-between',
+                isDarkMode ? 'border-[#3E4850]/40 bg-[#131B2E]' : 'border-slate-100 bg-slate-50'
+              )}
+            >
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-lg bg-blue-600 text-white shadow-sm">
                   <Bot className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className={`text-sm font-bold flex items-center gap-1.5 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
+                  <h3 className={cn('text-sm font-bold flex items-center gap-1.5', isDarkMode ? 'text-white' : 'text-slate-900')}>
                     AutoHub AI Copilot
-                    <span className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-purple-500/20 text-purple-400 border border-purple-500/30">
                       RAG
                     </span>
                   </h3>
@@ -124,22 +129,24 @@ export const AdminAiCopilotDrawer: React.FC = () => {
               <button
                 type="button"
                 onClick={() => { setMode('COPILOT'); setError(null); }}
-                className={`flex-1 py-2.5 text-center transition-colors border-b-2 cursor-pointer ${
+                className={cn(
+                  'flex-1 py-2.5 text-center transition-colors border-b-2 cursor-pointer',
                   mode === 'COPILOT'
                     ? 'border-blue-600 text-blue-600 dark:text-[#89CEFF]'
                     : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                }`}
+                )}
               >
                 Hỏi đáp Quy chế & Nghiệp vụ
               </button>
               <button
                 type="button"
                 onClick={() => { setMode('SENTIMENT'); setError(null); }}
-                className={`flex-1 py-2.5 text-center transition-colors border-b-2 cursor-pointer ${
+                className={cn(
+                  'flex-1 py-2.5 text-center transition-colors border-b-2 cursor-pointer',
                   mode === 'SENTIMENT'
                     ? 'border-purple-600 text-purple-600 dark:text-purple-400'
                     : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                }`}
+                )}
               >
                 Phân tích Đánh giá Khách
               </button>
@@ -149,7 +156,7 @@ export const AdminAiCopilotDrawer: React.FC = () => {
             <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
               {error && (
                 <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500 text-xs flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <p>{error}</p>
                     <button
@@ -157,7 +164,7 @@ export const AdminAiCopilotDrawer: React.FC = () => {
                       onClick={() => mode === 'COPILOT' ? handleAskCopilot() : handleAnalyzeSentiment()}
                       className="mt-1 font-bold underline cursor-pointer"
                     >
-                      Thử lại
+                      Thử lại (Retry)
                     </button>
                   </div>
                 </div>
@@ -172,7 +179,7 @@ export const AdminAiCopilotDrawer: React.FC = () => {
                       <span>Câu hỏi gợi ý:</span>
                     </div>
                     <div className="space-y-1">
-                      {sampleQueries.map((q, idx) => (
+                      {(sampleQueries ?? []).map((q, idx) => (
                         <button
                           key={idx}
                           type="button"
@@ -180,11 +187,12 @@ export const AdminAiCopilotDrawer: React.FC = () => {
                             setQuery(q);
                             handleAskCopilot(q);
                           }}
-                          className={`w-full text-left p-2 rounded-lg border text-[11px] transition-colors cursor-pointer ${
+                          className={cn(
+                            'w-full text-left p-2 rounded-lg border text-[11px] transition-colors cursor-pointer',
                             isDarkMode
                               ? 'bg-[#131B2E]/60 border-[#3E4850]/40 hover:bg-[#131B2E] text-[#DAE2FD]'
                               : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-700'
-                          }`}
+                          )}
                         >
                           "{q}"
                         </button>
@@ -203,9 +211,12 @@ export const AdminAiCopilotDrawer: React.FC = () => {
                       <div className="h-3 bg-blue-200 dark:bg-blue-900/40 rounded w-4/5" />
                     </div>
                   ) : copilotResult ? (
-                    <div className={`p-4 rounded-xl border space-y-3 ${
-                      isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/50' : 'bg-slate-50 border-slate-200'
-                    }`}>
+                    <div
+                      className={cn(
+                        'p-4 rounded-xl border space-y-3',
+                        isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/50' : 'bg-slate-50 border-slate-200'
+                      )}
+                    >
                       <div className="flex items-center justify-between text-[11px]">
                         <span className="font-bold text-blue-500 flex items-center gap-1">
                           <Bot className="w-3.5 h-3.5" />
@@ -216,14 +227,14 @@ export const AdminAiCopilotDrawer: React.FC = () => {
                           {copilotResult.responseTimeMs} ms
                         </span>
                       </div>
-                      <p className="leading-relaxed text-slate-700 dark:text-slate-200 font-medium">
+                      <p className={cn('leading-relaxed font-medium', isDarkMode ? 'text-slate-200' : 'text-slate-700')}>
                         {copilotResult.answer}
                       </p>
-                      {copilotResult.sources && copilotResult.sources.length > 0 && (
+                      {copilotResult.sources && (copilotResult.sources ?? []).length > 0 && (
                         <div className="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-1">
                           <span className="text-[10px] uppercase font-bold text-slate-400">Nguồn trích xuất:</span>
                           <ul className="list-disc list-inside text-[11px] text-slate-500 dark:text-slate-400">
-                            {copilotResult.sources.map((s, i) => (
+                            {(copilotResult.sources ?? []).map((s, i) => (
                               <li key={i}>{s}</li>
                             ))}
                           </ul>
@@ -244,11 +255,12 @@ export const AdminAiCopilotDrawer: React.FC = () => {
                       value={reviewContent}
                       onChange={(e) => setReviewContent(e.target.value)}
                       placeholder="Ví dụ: Dịch vụ hỗ trợ rất nhiệt tình, xe giao đúng hẹn... hoặc: Hàng lừa đảo, cực kỳ tệ hại..."
-                      className={`w-full p-2.5 rounded-lg border text-xs outline-none transition-colors ${
+                      className={cn(
+                        'w-full p-2.5 rounded-lg border text-xs outline-none transition-colors',
                         isDarkMode
                           ? 'bg-[#131B2E] border-[#3E4850]/50 text-white focus:border-purple-500'
                           : 'bg-white border-slate-300 text-slate-900 focus:border-purple-600'
-                      }`}
+                      )}
                     />
                     <button
                       type="button"
@@ -262,9 +274,12 @@ export const AdminAiCopilotDrawer: React.FC = () => {
                   </div>
 
                   {sentimentResult && (
-                    <div className={`p-4 rounded-xl border space-y-3 ${
-                      isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/50' : 'bg-slate-50 border-slate-200'
-                    }`}>
+                    <div
+                      className={cn(
+                        'p-4 rounded-xl border space-y-3',
+                        isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/50' : 'bg-slate-50 border-slate-200'
+                      )}
+                    >
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-bold flex items-center gap-1.5">
                           {sentimentResult.isToxic ? (
@@ -274,11 +289,14 @@ export const AdminAiCopilotDrawer: React.FC = () => {
                           )}
                           Kết quả đánh giá
                         </span>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
-                          sentimentResult.recommendation === 'APPROVE'
-                            ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30'
-                            : 'bg-red-500/15 text-red-500 border border-red-500/30'
-                        }`}>
+                        <span
+                          className={cn(
+                            'px-2 py-0.5 rounded-full text-[10px] font-mono font-bold border',
+                            sentimentResult.recommendation === 'APPROVE'
+                              ? 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30'
+                              : 'bg-red-500/15 text-red-500 border-red-500/30'
+                          )}
+                        >
                           Khuyến nghị: {sentimentResult.recommendation}
                         </span>
                       </div>
@@ -307,9 +325,12 @@ export const AdminAiCopilotDrawer: React.FC = () => {
 
             {/* Bottom Input (For Copilot Mode) */}
             {mode === 'COPILOT' && (
-              <div className={`p-3 border-t flex items-center gap-2 ${
-                isDarkMode ? 'border-[#3E4850]/40 bg-[#131B2E]' : 'border-slate-200 bg-slate-50'
-              }`}>
+              <div
+                className={cn(
+                  'p-3 border-t flex items-center gap-2',
+                  isDarkMode ? 'border-[#3E4850]/40 bg-[#131B2E]' : 'border-slate-200 bg-slate-50'
+                )}
+              >
                 <input
                   type="text"
                   value={query}
@@ -318,11 +339,12 @@ export const AdminAiCopilotDrawer: React.FC = () => {
                     if (e.key === 'Enter') handleAskCopilot();
                   }}
                   placeholder="Nhập câu hỏi nghiệp vụ..."
-                  className={`flex-1 px-3 py-2 rounded-lg border text-xs outline-none transition-colors ${
+                  className={cn(
+                    'flex-1 px-3 py-2 rounded-lg border text-xs outline-none transition-colors',
                     isDarkMode
                       ? 'bg-[#0B1326] border-[#3E4850]/50 text-white focus:border-blue-500'
                       : 'bg-white border-slate-300 text-slate-900 focus:border-blue-600'
-                  }`}
+                  )}
                 />
                 <button
                   type="button"

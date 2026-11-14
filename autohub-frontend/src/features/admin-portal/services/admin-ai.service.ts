@@ -1,19 +1,10 @@
 import { axiosClient } from '@/lib/axios';
 import { API_CONFIG } from '@/config/api.config';
 import type { ApiResponse } from '@/types/api.types';
-
-export interface AdminAiCopilotResponse {
-  answer: string;
-  sources: string[];
-  responseTimeMs: number;
-}
-
-export interface ReviewSentimentAnalysisResponse {
-  sentiment: 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL';
-  isToxic: boolean;
-  confidenceScore: number;
-  recommendation: 'APPROVE' | 'REJECT' | 'FLAG_REVIEW';
-}
+import type {
+  AdminAiCopilotResponse,
+  ReviewSentimentAnalysisResponse,
+} from '@/types/admin-ai.types';
 
 export const adminAiService = {
   async askCopilot(query: string, signal?: AbortSignal): Promise<AdminAiCopilotResponse> {
@@ -34,3 +25,5 @@ export const adminAiService = {
     return res.data;
   },
 };
+
+export type { AdminAiCopilotResponse, ReviewSentimentAnalysisResponse };
