@@ -47,9 +47,39 @@ export interface UrgentDeposit {
   status: 'PENDING_VIN' | 'PENDING_CONTRACT';
 }
 
+export interface AiEngineStatus {
+  gemini: {
+    model: string;
+    status: string;
+    apiEndpoint: string;
+    responseTimeMs: number;
+    quotaUsedPercent: number;
+    contextWindow: string;
+    successRate: number;
+  };
+  vectorDb: {
+    engine: string;
+    status: string;
+    indexedEmbeddingsCount: number;
+    queryLatencyMs: number;
+  };
+  paymentGateway: {
+    name: string;
+    status: string;
+    uptimePercent: number;
+  };
+  cronJobs: Array<{
+    name: string;
+    schedule: string;
+    lastRun: string;
+    status: string;
+  }>;
+}
+
 export interface AdminDashboardOverview {
   kpis: KpiMetric[];
   revenueChart: RevenueDataPoint[];
   regionalRevenues: RegionalRevenue[];
   urgentDeposits: UrgentDeposit[];
+  aiEngineStatus?: AiEngineStatus;
 }
