@@ -10,7 +10,7 @@ spring:
   datasource:
     url: jdbc:sqlserver://localhost:1433;databaseName=AutoHubDB;encrypt=true;trustServerCertificate=true;sendStringParametersAsUnicode=true
     username: sa
-    password: YourPassword123@
+    password: sapassword
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
     hikari:
       maximum-pool-size: 15
