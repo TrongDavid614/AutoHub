@@ -73,6 +73,8 @@ export const API_CONFIG = {
       FEE_TABLE: '/admin/registration-fees',
       CARS: '/admin/cars',
       VECTOR_SYNC: '/admin/cars/sync-vector-db',
+      AI_COPILOT: '/admin/ai/copilot',
+      AI_ANALYZE_REVIEW: '/admin/ai/analyze-review',
     },
   },
 };
