@@ -55,6 +55,9 @@ export const API_CONFIG = {
       ORDER_FULFILLMENT: '/staff/fulfillment',
       RETURNS: '/staff/returns',
     },
+    TRACKING: {
+      COLLECT: '/tracking/collect',
+    },
     ADMIN: {
       DASHBOARD: '/admin/dashboard',
       DASHBOARD_OVERVIEW: '/admin/dashboard/overview',
@@ -62,11 +65,17 @@ export const API_CONFIG = {
       DASHBOARD_KPIS: '/admin/dashboard/kpis',
       DASHBOARD_REGIONAL: '/admin/dashboard/regional-revenues',
       DASHBOARD_URGENT_DEPOSITS: '/admin/dashboard/urgent-deposits',
+      ANALYTICS: '/admin/analytics/overview',
+      REVIEWS: '/admin/reviews',
+      REFUNDS: '/admin/refunds',
       USERS: '/admin/users',
       VOUCHERS: '/admin/vouchers',
       FEE_TABLE: '/admin/registration-fees',
       CARS: '/admin/cars',
+      ACCESSORIES: '/admin/accessories',
       VECTOR_SYNC: '/admin/cars/sync-vector-db',
+      AI_COPILOT: '/admin/ai/copilot',
+      AI_ANALYZE_REVIEW: '/admin/ai/analyze-review',
     },
   },
 };

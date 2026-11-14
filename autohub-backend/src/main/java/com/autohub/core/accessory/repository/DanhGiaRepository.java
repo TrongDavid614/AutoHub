@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface DanhGiaRepository extends JpaRepository<DanhGia, Long> {
     List<DanhGia> findByPhuKienIdAndTrangThaiDuyet(Long phuKienId, TrangThaiDanhGia trangThaiDuyet);
+    List<DanhGia> findByTrangThaiDuyet(TrangThaiDanhGia trangThaiDuyet);
+    long countByTrangThaiDuyet(TrangThaiDanhGia trangThaiDuyet);
 }

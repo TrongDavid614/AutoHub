@@ -62,6 +62,7 @@ public class SecurityConfig {
                 .requestMatchers("/payment/**").permitAll()
                 .requestMatchers("/ai-consultant/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers("/api/v1/tracking/**").permitAll()
 
                 // 2. Tra cứu thông tin tài khoản hiện tại yêu cầu đã xác thực
                 .requestMatchers("/auth/me").authenticated()
