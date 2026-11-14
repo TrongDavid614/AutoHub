@@ -70,7 +70,14 @@ export const AdminAnalyticsPage: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  const isEmpty = !loading && !error && (!data || ((data.dwellByCar ?? []).length === 0 && (data.aiTrends ?? []).length === 0));
+  const isEmpty =
+    !loading &&
+    !error &&
+    (!data ||
+      ((data.avgDwellTimeSeconds ?? 0) === 0 &&
+        (data.aiConsultantQueries ?? 0) === 0 &&
+        (data.dwellByCar ?? []).length === 0 &&
+        (data.aiTrends ?? []).length === 0));
 
   return (
     <div
@@ -328,23 +335,36 @@ export const AdminAnalyticsPage: React.FC = () => {
               </div>
 
               <div className="space-y-3">
-                {(data.dwellByCar ?? []).map((item) => (
-                  <div key={item.car} className="space-y-1">
-                    <div className="flex justify-between text-xs">
-                      <span className={cn('font-medium', isDarkMode ? 'text-white' : 'text-slate-800')}>{item.car}</span>
-                      <span className={cn('font-mono', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-                        {item.time} ({item.pct})
-                      </span>
-                    </div>
-                    <div className={cn('h-2 rounded-full overflow-hidden', isDarkMode ? 'bg-[#131B2E]' : 'bg-slate-100')}>
-                      <div className={cn('h-full rounded-full', item.color)} style={{ width: item.pct }} />
-                    </div>
-                    <div className={cn('text-[10px]', isDarkMode ? 'text-[#88929B]' : 'text-slate-400')}>
-                      Màu được ngắm lâu nhất:{' '}
-                      <strong className={isDarkMode ? 'text-white' : 'text-slate-700'}>{item.favColor}</strong>
-                    </div>
+                {(data.dwellByCar ?? []).length === 0 ? (
+                  <div
+                    className={cn(
+                      'py-8 text-center text-xs rounded-lg border border-dashed',
+                      isDarkMode
+                        ? 'border-[#3E4850]/40 text-[#88929B] bg-[#131B2E]/30'
+                        : 'border-slate-200 text-slate-400 bg-slate-50/50'
+                    )}
+                  >
+                    Chưa ghi nhận đủ dữ liệu dwell time theo từng mẫu xe.
                   </div>
-                ))}
+                ) : (
+                  (data.dwellByCar ?? []).map((item) => (
+                    <div key={item.car} className="space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className={cn('font-medium', isDarkMode ? 'text-white' : 'text-slate-800')}>{item.car}</span>
+                        <span className={cn('font-mono', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
+                          {item.time} ({item.pct})
+                        </span>
+                      </div>
+                      <div className={cn('h-2 rounded-full overflow-hidden', isDarkMode ? 'bg-[#131B2E]' : 'bg-slate-100')}>
+                        <div className={cn('h-full rounded-full', item.color)} style={{ width: item.pct }} />
+                      </div>
+                      <div className={cn('text-[10px]', isDarkMode ? 'text-[#88929B]' : 'text-slate-400')}>
+                        Màu được ngắm lâu nhất:{' '}
+                        <strong className={isDarkMode ? 'text-white' : 'text-slate-700'}>{item.favColor}</strong>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 
@@ -366,25 +386,38 @@ export const AdminAnalyticsPage: React.FC = () => {
               </div>
 
               <div className="space-y-3">
-                {(data.aiTrends ?? []).map((trend) => (
+                {(data.aiTrends ?? []).length === 0 ? (
                   <div
-                    key={trend.topic}
                     className={cn(
-                      'p-3 rounded-lg border transition-colors',
+                      'py-8 text-center text-xs rounded-lg border border-dashed',
                       isDarkMode
-                        ? 'bg-[#131B2E]/50 border-[#3E4850]/30 hover:bg-[#131B2E]'
-                        : 'bg-slate-50/80 border-slate-200 hover:bg-slate-50'
+                        ? 'border-[#3E4850]/40 text-[#88929B] bg-[#131B2E]/30'
+                        : 'border-slate-200 text-slate-400 bg-slate-50/50'
                     )}
                   >
-                    <div className="flex items-center justify-between text-xs">
-                      <span className={cn('font-medium', isDarkMode ? 'text-white' : 'text-slate-900')}>{trend.topic}</span>
-                      <span className="font-mono font-bold text-blue-600 dark:text-[#89CEFF]">{trend.pct}</span>
-                    </div>
-                    <div className={cn('text-[10px] mt-1 font-mono', isDarkMode ? 'text-[#88929B]' : 'text-slate-400')}>
-                      {trend.queries} lượt đặt câu hỏi ngữ nghĩa
-                    </div>
+                    Chưa ghi nhận câu hỏi hoặc chủ đề tư vấn từ khách hàng.
                   </div>
-                ))}
+                ) : (
+                  (data.aiTrends ?? []).map((trend) => (
+                    <div
+                      key={trend.topic}
+                      className={cn(
+                        'p-3 rounded-lg border transition-colors',
+                        isDarkMode
+                          ? 'bg-[#131B2E]/50 border-[#3E4850]/30 hover:bg-[#131B2E]'
+                          : 'bg-slate-50/80 border-slate-200 hover:bg-slate-50'
+                      )}
+                    >
+                      <div className="flex items-center justify-between text-xs">
+                        <span className={cn('font-medium', isDarkMode ? 'text-white' : 'text-slate-900')}>{trend.topic}</span>
+                        <span className="font-mono font-bold text-blue-600 dark:text-[#89CEFF]">{trend.pct}</span>
+                      </div>
+                      <div className={cn('text-[10px] mt-1 font-mono', isDarkMode ? 'text-[#88929B]' : 'text-slate-400')}>
+                        {trend.queries} lượt đặt câu hỏi ngữ nghĩa
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
