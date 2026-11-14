@@ -67,6 +67,7 @@ export const API_CONFIG = {
       DASHBOARD_URGENT_DEPOSITS: '/admin/dashboard/urgent-deposits',
       ANALYTICS: '/admin/analytics/overview',
       USERS: '/admin/users',
+      ACCESSORIES: '/admin/accessories',
       REVIEWS: '/admin/reviews',
       USERS_STATS: '/admin/users/stats',
       REFUNDS: '/admin/refunds',

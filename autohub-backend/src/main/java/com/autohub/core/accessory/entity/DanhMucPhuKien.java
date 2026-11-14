@@ -13,7 +13,7 @@ import lombok.*;
 @AllArgsConstructor
 public class DanhMucPhuKien extends BaseEntity {
 
-    @Column(name = "ten_danh_muc", nullable = false, unique = true, length = 100)
+    @Column(name = "ten_danh_muc", nullable = false, unique = true, length = 100, columnDefinition = "NVARCHAR(100)")
     private String tenDanhMuc;
 
     @Column(name = "dang_hoat_dong")
