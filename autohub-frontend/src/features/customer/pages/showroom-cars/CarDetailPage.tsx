@@ -8,6 +8,7 @@ import { CarDepositModal } from '@/features/customer/components/detail/CarDeposi
 import { EXTERIOR_COLORS } from '@/features/customer/types/detail.types';
 import { CarEngineeringSpecs } from '@/features/customer/components/detail/CarEngineeringSpecs';
 import { carService } from '@/features/customer/services/car.service';
+import { trackUserEvent } from '@/lib/tracker';
 import type { MockCar } from '@/features/customer/mocks/car.mock';
 
 export const CarDetailPage: React.FC = () => {
@@ -49,6 +50,37 @@ export const CarDetailPage: React.FC = () => {
   useEffect(() => {
     fetchCarDetail();
   }, [id]);
+
+  useEffect(() => {
+    if (car) {
+      trackUserEvent({
+        loaiHanhVi: 'VIEW_PRODUCT',
+        loaiThucThe: 'CAR',
+        maThucThe: Number(car.id) || 1,
+        duLieuBoSung: {
+          model: car.name,
+          referrer: window.location.pathname,
+        },
+      });
+
+      const startTime = Date.now();
+      return () => {
+        const dwellSeconds = Math.round((Date.now() - startTime) / 1000);
+        if (dwellSeconds >= 2) {
+          trackUserEvent({
+            loaiHanhVi: 'DWELL_TIME',
+            loaiThucThe: 'CAR',
+            maThucThe: Number(car.id) || 1,
+            thoiGianDungXem: dwellSeconds,
+            duLieuBoSung: {
+              model: car.name,
+              dwellSeconds,
+            },
+          });
+        }
+      };
+    }
+  }, [car]);
 
   if (loading) {
     return (
