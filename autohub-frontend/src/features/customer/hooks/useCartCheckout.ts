@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { addressService } from '../services/address.service';
 import { cartService } from '../services/cart.service';
 import type { ShippingAddress } from '../mocks/cart.mock';
+import type { ExtendedAddress } from '../components/AddressCard';
 import type { AvailableVoucher, SepayPaymentInfo, ShippingMethod } from '@/types/cart.types';
 
 const EMPTY_SHIPPING_ADDRESS: ShippingAddress = {
@@ -100,11 +101,11 @@ export function useCartCheckout() {
     const customerId = user?.id || 5;
     addressService.getMyAddresses(customerId).then((list) => {
       if (isMounted && list && list.length > 0) {
-        const mapped: ShippingAddress[] = list.map((a: any) => ({
+        const mapped: ShippingAddress[] = list.map((a: ExtendedAddress) => ({
           id: String(a.id),
           recipientName: a.recipientName || user?.fullName || 'Nguyễn Văn A',
           phone: a.phoneNumber || user?.phoneNumber || '0912345678',
-          fullAddress: `${a.detailedAddress || a.addressLine || ''}, ${a.ward || ''}, ${a.district || ''}, ${a.provinceCity || a.province || ''}`.replace(/^,\s*|,\s*$/g, ''),
+          fullAddress: `${a.detailedAddress || ''}, ${a.ward || ''}, ${a.district || ''}, ${a.provinceCity || ''}`.replace(/^,\s*|,\s*$/g, ''),
           tag: a.tag || (a.isDefault ? 'MẶC ĐỊNH' : 'ĐỊA CHỈ'),
           isDefault: !!a.isDefault,
         }));

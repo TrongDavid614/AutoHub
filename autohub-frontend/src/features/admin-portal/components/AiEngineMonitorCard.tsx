@@ -1,7 +1,9 @@
 import React from 'react';
 import { Cpu, Database, ShieldCheck, Timer, CheckCircle2, Zap } from 'lucide-react';
+
 import { useAdminTheme } from '@/context/AdminThemeContext';
-import { MOCK_AI_ENGINE_STATUS, type AiEngineStatus } from '../mocks/dashboard.mock';
+import type { AiEngineStatus } from '@/types/admin-dashboard.types';
+import { MOCK_AI_ENGINE_STATUS } from '../mocks/dashboard.mock';
 
 export interface AiEngineMonitorCardProps {
   status?: AiEngineStatus;

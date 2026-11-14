@@ -77,6 +77,10 @@ export const RefundApprovalPage: React.FC = () => {
   const handleConfirmReject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!rejectItem) return;
+    if (!rejectReason.trim()) {
+      alert('Vui lòng nhập lý do từ chối giải ngân!');
+      return;
+    }
 
     setProcessingId(rejectItem.id);
     try {
@@ -98,7 +102,7 @@ export const RefundApprovalPage: React.FC = () => {
     }
   };
 
-  const pendingCount = dockets.filter(
+  const pendingCount = (dockets ?? []).filter(
     (d) => d.status === 'VERIFIED' || d.status === 'PENDING'
   ).length;
 
@@ -230,7 +234,7 @@ export const RefundApprovalPage: React.FC = () => {
       ) : (
         /* Docket Cards List */
         <div className="space-y-4">
-          {dockets.map((docket) => {
+          {(dockets ?? []).map((docket) => {
             const isPending = docket.status === 'VERIFIED' || docket.status === 'PENDING';
             const isApproved = docket.status === 'APPROVED' || docket.status === 'REFUNDED';
             const isRejected = docket.status === 'REJECTED';

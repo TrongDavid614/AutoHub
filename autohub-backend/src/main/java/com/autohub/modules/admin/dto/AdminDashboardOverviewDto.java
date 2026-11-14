@@ -16,4 +16,5 @@ public class AdminDashboardOverviewDto {
     private List<RevenueDataPointDto> revenueChart;
     private List<RegionalRevenueDto> regionalRevenues;
     private List<UrgentDepositDto> urgentDeposits;
+    private AiEngineStatusDto aiEngineStatus;
 }

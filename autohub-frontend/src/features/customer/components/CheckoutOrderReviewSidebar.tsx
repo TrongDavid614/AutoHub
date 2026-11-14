@@ -34,6 +34,7 @@ export const CheckoutOrderReviewSidebar: React.FC<CheckoutOrderReviewSidebarProp
   isSubmitting,
 }) => {
   const formatPrice = (val: number) => val.toLocaleString('vi-VN');
+  const safeItems = items ?? [];
 
   return (
     <aside className="w-full lg:w-[440px] flex-shrink-0 space-y-4 sticky top-24">
@@ -45,13 +46,13 @@ export const CheckoutOrderReviewSidebar: React.FC<CheckoutOrderReviewSidebarProp
         <div className="flex items-center justify-between pb-3 border-b border-[#2D3449] relative z-10">
           <h3 className="text-xl font-bold text-[#DAE2FD]">Đơn hàng của bạn</h3>
           <span className="px-2.5 py-0.5 rounded-[2px] bg-[#222A3D] text-[#89CEFF] font-mono text-xs font-bold">
-            {items.length} SP
+            {safeItems.length} SP
           </span>
         </div>
 
         {/* Product Items List */}
         <div className="space-y-4 max-h-72 overflow-y-auto pr-1 relative z-10">
-          {items.map((item) => (
+          {safeItems.map((item) => (
             <div key={item.id} className="flex items-start gap-3 pb-3 border-b border-[#2D3449]/50">
               <div className="w-16 h-16 rounded-[2px] bg-[#060E20] border border-[#2D3449] overflow-hidden shrink-0 flex items-center justify-center">
                 <img src={item.thumbnailUrl} alt={item.name} className="w-full h-full object-cover" />
