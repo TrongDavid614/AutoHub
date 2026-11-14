@@ -12,10 +12,25 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AiEngineStatusDto {
+    private OpenRouterStatusDto openrouter;
     private GeminiStatusDto gemini;
     private VectorDbStatusDto vectorDb;
     private PaymentGatewayStatusDto paymentGateway;
     private List<CronJobStatusDto> cronJobs;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class OpenRouterStatusDto {
+        private String model;
+        private String status; // ONLINE, OFFLINE, DEGRADED
+        private String apiEndpoint;
+        private Integer responseTimeMs;
+        private Integer quotaUsedPercent;
+        private String contextWindow;
+        private Double successRate;
+    }
 
     @Data
     @Builder

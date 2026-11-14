@@ -47,16 +47,19 @@ export interface UrgentDeposit {
   status: 'PENDING_VIN' | 'PENDING_CONTRACT';
 }
 
+export interface AiEngineInfo {
+  model: string;
+  status: string;
+  apiEndpoint: string;
+  responseTimeMs: number;
+  quotaUsedPercent: number;
+  contextWindow: string;
+  successRate: number;
+}
+
 export interface AiEngineStatus {
-  gemini: {
-    model: string;
-    status: string;
-    apiEndpoint: string;
-    responseTimeMs: number;
-    quotaUsedPercent: number;
-    contextWindow: string;
-    successRate: number;
-  };
+  openrouter?: AiEngineInfo;
+  gemini?: AiEngineInfo;
   vectorDb: {
     engine: string;
     status: string;

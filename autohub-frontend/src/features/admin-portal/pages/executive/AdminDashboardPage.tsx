@@ -176,7 +176,7 @@ export const AdminDashboardPage: React.FC = () => {
         </>
       )}
 
-      {/* 6. INFRASTRUCTURE & AI GEMINI API ENGINE HEALTH MONITOR */}
+      {/* 6. INFRASTRUCTURE & AI OPENROUTER API ENGINE HEALTH MONITOR */}
       <AiEngineMonitorCard status={overview?.aiEngineStatus} />
 
       {/* 7. ADMIN AI COPILOT INTERACTIVE DRAWER */}

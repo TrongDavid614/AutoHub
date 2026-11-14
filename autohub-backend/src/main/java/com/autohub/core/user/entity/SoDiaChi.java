@@ -17,22 +17,22 @@ public class SoDiaChi extends BaseEntity {
     @JoinColumn(name = "nguoi_dung_id", nullable = false)
     private NguoiDung nguoiDung;
 
-    @Column(name = "ho_ten_nguoi_nhan", nullable = false, length = 100)
+    @Column(name = "ho_ten_nguoi_nhan", nullable = false, length = 100, columnDefinition = "NVARCHAR(100)")
     private String hoTenNguoiNhan;
 
-    @Column(name = "so_dien_thoai", nullable = false, length = 15)
+    @Column(name = "so_dien_thoai", nullable = false, length = 10, columnDefinition = "CHAR(10)")
     private String soDienThoai;
 
-    @Column(name = "tinh_thanh", nullable = false, length = 100)
+    @Column(name = "tinh_thanh", nullable = false, length = 100, columnDefinition = "NVARCHAR(100)")
     private String tinhThanh;
 
-    @Column(name = "quan_huyen", nullable = false, length = 100)
+    @Column(name = "quan_huyen", nullable = false, length = 100, columnDefinition = "NVARCHAR(100)")
     private String quanHuyen;
 
-    @Column(name = "phuong_xa", nullable = false, length = 100)
+    @Column(name = "phuong_xa", nullable = false, length = 100, columnDefinition = "NVARCHAR(100)")
     private String phuongXa;
 
-    @Column(name = "dia_chi_chi_tiet", nullable = false, length = 255)
+    @Column(name = "dia_chi_chi_tiet", nullable = false, length = 255, columnDefinition = "NVARCHAR(255)")
     private String diaChiChiTiet;
 
     @Column(name = "mac_dinh")
