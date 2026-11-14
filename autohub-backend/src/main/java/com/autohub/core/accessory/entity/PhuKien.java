@@ -21,10 +21,10 @@ public class PhuKien extends BaseEntity {
     @JoinColumn(name = "danh_muc_id", nullable = false)
     private DanhMucPhuKien danhMucPhuKien;
 
-    @Column(name = "ten_phu_kien", nullable = false, length = 150)
+    @Column(name = "ten_phu_kien", nullable = false, length = 150, columnDefinition = "NVARCHAR(150)")
     private String tenPhuKien;
 
-    @Column(name = "thuong_hieu", length = 50)
+    @Column(name = "thuong_hieu", length = 50, columnDefinition = "NVARCHAR(50)")
     private String thuongHieu;
 
     @Column(name = "gia_ban", nullable = false, precision = 18, scale = 2)
@@ -34,7 +34,7 @@ public class PhuKien extends BaseEntity {
     @Builder.Default
     private Integer soLuongTon = 0; // CHECK (soLuongTon >= 0)
 
-    @Column(name = "quy_cach_lap_dat", length = 255)
+    @Column(name = "quy_cach_lap_dat", length = 255, columnDefinition = "NVARCHAR(255)")
     private String quyCachLapDat;
 
     @Column(name = "hinh_anh", length = 500)

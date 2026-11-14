@@ -120,8 +120,8 @@ export const VoucherMasterPage: React.FC = () => {
     }
   };
 
-  const filteredVouchers = vouchers.filter((v) => {
-    const matchSearch = v.code.toLowerCase().includes(search.toLowerCase());
+  const filteredVouchers = (vouchers ?? []).filter((v) => {
+    const matchSearch = (v.code ?? '').toLowerCase().includes(search.toLowerCase());
     if (!matchSearch) return false;
 
     if (statusFilter === 'ALL') return true;
@@ -131,9 +131,9 @@ export const VoucherMasterPage: React.FC = () => {
     return true;
   });
 
-  const activeCount = vouchers.filter((v) => v.active && !v.expired).length;
-  const expiredCount = vouchers.filter((v) => v.expired).length;
-  const pausedCount = vouchers.filter((v) => !v.active).length;
+  const activeCount = (vouchers ?? []).filter((v) => v.active && !v.expired).length;
+  const expiredCount = (vouchers ?? []).filter((v) => v.expired).length;
+  const pausedCount = (vouchers ?? []).filter((v) => !v.active).length;
 
   return (
     <div className={`space-y-6 antialiased transition-colors ${isDarkMode ? 'text-[#DAE2FD]' : 'text-slate-800'}`}>
@@ -194,7 +194,7 @@ export const VoucherMasterPage: React.FC = () => {
         }`}>
           <div className={`text-xs ${isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}`}>Tổng Số Chiến Dịch</div>
           <div className={`text-2xl font-bold font-mono ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-            {vouchers.length} Mã
+            {(vouchers ?? []).length} Mã
           </div>
           <div className={`text-[11px] ${isDarkMode ? 'text-[#88929B]' : 'text-slate-400'}`}>
             Đã đồng bộ từ Database sản xuất
@@ -257,7 +257,7 @@ export const VoucherMasterPage: React.FC = () => {
                 : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
             }`}
           >
-            Tất cả ({vouchers.length})
+            Tất cả ({(vouchers ?? []).length})
           </button>
           <button
             type="button"
@@ -340,7 +340,7 @@ export const VoucherMasterPage: React.FC = () => {
             <span>Thử lại</span>
           </button>
         </div>
-      ) : filteredVouchers.length === 0 ? (
+      ) : (filteredVouchers ?? []).length === 0 ? (
         <div className={`p-12 rounded-xl border text-center space-y-3 ${
           isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40' : 'bg-white border-slate-200'
         }`}>
@@ -375,7 +375,7 @@ export const VoucherMasterPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className={`divide-y font-sans ${isDarkMode ? 'divide-[#3E4850]/30' : 'divide-slate-100'}`}>
-                {filteredVouchers.map((v) => (
+                {(filteredVouchers ?? []).map((v) => (
                   <tr
                     key={v.id}
                     className={`transition-colors ${isDarkMode ? 'hover:bg-[#131B2E]/60' : 'hover:bg-slate-50/80'}`}

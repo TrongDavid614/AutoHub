@@ -47,6 +47,18 @@ public class AdminVoucherController {
             return ResponseEntity.badRequest().body(ApiResponse.error("Mã voucher '" + code + "' đã tồn tại trong hệ thống"));
         }
 
+        if (request.getExpiryDate() != null && request.getExpiryDate().isBefore(LocalDate.now())) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Ngày hết hạn voucher không thể nằm trong quá khứ"));
+        }
+
+        if (request.getDiscountPercent() == null || request.getDiscountPercent() < 1 || request.getDiscountPercent() > 100) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Phần trăm giảm giá phải từ 1% đến 100%"));
+        }
+
+        if (request.getMaxDiscountAmount() != null && request.getMaxDiscountAmount().compareTo(java.math.BigDecimal.ZERO) < 0) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Mức giảm tối đa không được âm"));
+        }
+
         Voucher voucher = Voucher.builder()
                 .maVoucher(code)
                 .phanTramGiam(request.getDiscountPercent())
@@ -71,12 +83,21 @@ public class AdminVoucherController {
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy voucher với ID: " + id));
 
         if (request.getDiscountPercent() != null) {
+            if (request.getDiscountPercent() < 1 || request.getDiscountPercent() > 100) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("Phần trăm giảm giá phải từ 1% đến 100%"));
+            }
             voucher.setPhanTramGiam(request.getDiscountPercent());
         }
         if (request.getMaxDiscountAmount() != null) {
+            if (request.getMaxDiscountAmount().compareTo(java.math.BigDecimal.ZERO) < 0) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("Mức giảm tối đa không được âm"));
+            }
             voucher.setGiamToiDa(request.getMaxDiscountAmount());
         }
         if (request.getExpiryDate() != null) {
+            if (request.getExpiryDate().isBefore(LocalDate.now())) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("Ngày hết hạn voucher không thể nằm trong quá khứ"));
+            }
             voucher.setNgayHetHan(request.getExpiryDate());
         }
         if (request.getActive() != null) {

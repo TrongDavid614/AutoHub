@@ -152,7 +152,7 @@ export const AccessoryMasterPage: React.FC = () => {
     }
   };
 
-  const filteredAccessories = accessories.filter((a) => {
+  const filteredAccessories = (accessories ?? []).filter((a) => {
     const matchSearch =
       a.name.toLowerCase().includes(search.toLowerCase()) ||
       a.sku.toLowerCase().includes(search.toLowerCase()) ||
@@ -161,7 +161,7 @@ export const AccessoryMasterPage: React.FC = () => {
     return matchSearch && matchCat;
   });
 
-  const lowStockCount = accessories.filter((a) => a.stock <= a.minThreshold).length;
+  const lowStockCount = (accessories ?? []).filter((a) => a.stock <= a.minThreshold).length;
 
   return (
     <div className={`space-y-6 antialiased transition-colors ${isDarkMode ? 'text-[#DAE2FD]' : 'text-slate-800'}`}>
@@ -264,8 +264,8 @@ export const AccessoryMasterPage: React.FC = () => {
                 : 'bg-slate-50 border-slate-200 text-slate-800'
             }`}
           >
-            <option value="ALL">Tất Cả Danh Mục ({accessories.length})</option>
-            {categories.map((c) => (
+            <option value="ALL">Tất Cả Danh Mục ({(accessories ?? []).length})</option>
+            {(categories ?? []).map((c) => (
               <option key={c.id} value={c.id}>{c.tenDanhMuc}</option>
             ))}
           </select>
@@ -314,7 +314,7 @@ export const AccessoryMasterPage: React.FC = () => {
             <span>Thử lại</span>
           </button>
         </div>
-      ) : filteredAccessories.length === 0 ? (
+      ) : (filteredAccessories ?? []).length === 0 ? (
         <div className={`p-12 rounded-xl border text-center space-y-3 ${
           isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40' : 'bg-white border-slate-200'
         }`}>
@@ -356,7 +356,7 @@ export const AccessoryMasterPage: React.FC = () => {
               <tbody className={`divide-y font-sans ${
                 isDarkMode ? 'divide-[#3E4850]/30' : 'divide-slate-100'
               }`}>
-                {filteredAccessories.map((a) => (
+                {(filteredAccessories ?? []).map((a) => (
                   <tr
                     key={a.id}
                     className={`transition-colors ${
@@ -476,7 +476,7 @@ export const AccessoryMasterPage: React.FC = () => {
                       isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/50 text-white' : 'bg-slate-50 border-slate-300'
                     }`}
                   >
-                    {categories.map((c) => (
+                    {(categories ?? []).map((c) => (
                       <option key={c.id} value={c.id}>{c.tenDanhMuc}</option>
                     ))}
                   </select>

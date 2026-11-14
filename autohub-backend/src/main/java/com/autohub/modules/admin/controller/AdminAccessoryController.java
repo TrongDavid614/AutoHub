@@ -69,6 +69,13 @@ public class AdminAccessoryController {
     public ResponseEntity<ApiResponse<AdminAccessoryDto>> createAccessory(
             @Valid @RequestBody CreateAccessoryRequest request) {
 
+        if (request.getPrice() != null && request.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Đơn giá bán phải lớn hơn 0"));
+        }
+        if (request.getStock() != null && request.getStock() < 0) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Số lượng tồn kho không được âm"));
+        }
+
         DanhMucPhuKien category = danhMucPhuKienRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy danh mục phụ kiện với ID: " + request.getCategoryId()));
 
@@ -111,9 +118,15 @@ public class AdminAccessoryController {
             phuKien.setThuongHieu(request.getBrand().trim());
         }
         if (request.getPrice() != null) {
+            if (request.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("Đơn giá bán phải lớn hơn 0"));
+            }
             phuKien.setGiaBan(request.getPrice());
         }
         if (request.getStock() != null) {
+            if (request.getStock() < 0) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("Số lượng tồn kho không được âm"));
+            }
             phuKien.setSoLuongTon(request.getStock());
         }
         if (request.getInstallationSpec() != null) {
