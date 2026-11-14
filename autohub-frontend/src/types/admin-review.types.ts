@@ -14,6 +14,8 @@ export interface AdminReview {
   status: ReviewStatus;
   flaggedToxic?: boolean;
   moderationNote?: string;
+  accessoryAverageRating?: number;
+  accessoryReviewCount?: number;
 }
 
 export interface BatchApproveResponse {

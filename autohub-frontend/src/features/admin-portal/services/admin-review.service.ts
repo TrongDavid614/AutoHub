@@ -22,6 +22,10 @@ export const adminReviewService = {
     return res.data;
   },
 
+  async deleteReview(id: number): Promise<void> {
+    await axiosClient.delete(`${API_CONFIG.ENDPOINTS.ADMIN.REVIEWS}/${id}`);
+  },
+
   async batchApprove(reviewIds?: number[]): Promise<BatchApproveResponse> {
     const res = await axiosClient.post<unknown, ApiResponse<BatchApproveResponse>>(
       `${API_CONFIG.ENDPOINTS.ADMIN.REVIEWS}/batch-approve`,

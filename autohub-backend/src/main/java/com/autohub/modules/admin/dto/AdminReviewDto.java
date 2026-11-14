@@ -24,4 +24,6 @@ public class AdminReviewDto {
     private TrangThaiDanhGia status;
     private boolean flaggedToxic;
     private String moderationNote;
+    private Double accessoryAverageRating;
+    private Integer accessoryReviewCount;
 }
