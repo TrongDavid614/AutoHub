@@ -63,6 +63,7 @@ export const API_CONFIG = {
       DASHBOARD_REGIONAL: '/admin/dashboard/regional-revenues',
       DASHBOARD_URGENT_DEPOSITS: '/admin/dashboard/urgent-deposits',
       USERS: '/admin/users',
+      ACCESSORIES: '/admin/accessories',
       VOUCHERS: '/admin/vouchers',
       FEE_TABLE: '/admin/registration-fees',
       CARS: '/admin/cars',
