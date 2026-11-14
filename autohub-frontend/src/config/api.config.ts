@@ -77,6 +77,9 @@ export const API_CONFIG = {
       VECTOR_SYNC: '/admin/cars/sync-vector-db',
       AI_COPILOT: '/admin/ai/copilot',
       AI_ANALYZE_REVIEW: '/admin/ai/analyze-review',
+      SHOWROOMS: '/admin/showrooms',
+      SHOWROOMS_STATS: '/admin/showrooms/stats',
+      SHOWROOMS_PROVINCES: '/admin/showrooms/provinces',
     },
   },
 };
