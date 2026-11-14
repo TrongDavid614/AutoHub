@@ -37,6 +37,10 @@ public class NhatKyTuVan extends BaseEntity {
     @Column(name = "ket_qua_cuoc_goi", length = 50)
     private String ketQuaCuocGoi;
 
+    @Column(name = "thoi_gian_phan_hoi_ms")
+    @Builder.Default
+    private Integer thoiGianPhanHoiMs = 0;
+
     @Column(name = "thoi_gian_tuong_tac")
     @Builder.Default
     private LocalDateTime thoiGianTuongTac = LocalDateTime.now();

@@ -3,6 +3,10 @@ package com.autohub.modules.admin.controller;
 import com.autohub.common.dto.ApiResponse;
 import com.autohub.core.car.entity.PhienBanXe;
 import com.autohub.core.car.repository.PhienBanXeRepository;
+import com.autohub.core.engagement.entity.NhatKyTuVan;
+import com.autohub.core.engagement.entity.YeuCauTuVan;
+import com.autohub.core.engagement.repository.NhatKyTuVanRepository;
+import com.autohub.core.engagement.repository.YeuCauTuVanRepository;
 import com.autohub.core.enums.LoaiHanhViTracking;
 import com.autohub.core.user.entity.NhatKyHanhVi;
 import com.autohub.core.user.repository.NhatKyHanhViRepository;
@@ -27,19 +31,21 @@ public class AdminAnalyticsController {
 
     private final NhatKyHanhViRepository nhatKyHanhViRepository;
     private final PhienBanXeRepository phienBanXeRepository;
+    private final YeuCauTuVanRepository yeuCauTuVanRepository;
+    private final NhatKyTuVanRepository nhatKyTuVanRepository;
 
     @GetMapping("/overview")
     public ResponseEntity<ApiResponse<AnalyticsOverviewDto>> getAnalyticsOverview() {
         List<NhatKyHanhVi> logs = nhatKyHanhViRepository.findAll();
 
-        // 1. Dwell Time trung bình
+        // 1. Dwell Time trung bình (trả về 0.0 nếu chưa có dữ liệu)
         double avgDwell = logs.stream()
                 .filter(l -> l.getThoiGianDungXem() != null && l.getThoiGianDungXem() > 0)
                 .mapToInt(NhatKyHanhVi::getThoiGianDungXem)
                 .average()
-                .orElse(185.0);
+                .orElse(0.0);
 
-        // 2. Tỷ lệ tương tác xoay 360 độ
+        // 2. Tỷ lệ tương tác xoay 360 độ (trả về 0.0% nếu chưa có lượt xem)
         long total360 = logs.stream()
                 .filter(l -> l.getLoaiHanhVi() == LoaiHanhViTracking.INTERACT_360)
                 .count();
@@ -50,20 +56,54 @@ public class AdminAnalyticsController {
 
         String interact360Pct = totalViews > 0
                 ? String.format("%.1f%%", (total360 * 100.0) / totalViews)
-                : "34.5%";
+                : "0.0%";
 
-        // 3. Phân bổ thời gian dừng xem theo mẫu xe
+        // 3. Tỷ lệ tương tác công cụ tính phí lăn bánh / trả góp
+        long totalLogs = logs.size();
+        long calculatorCount = logs.stream()
+                .filter(l -> {
+                    if (l.getDuLieuBoSung() != null) {
+                        String extra = l.getDuLieuBoSung().toLowerCase();
+                        if (extra.contains("calculator") || extra.contains("estimator")
+                                || extra.contains("loan") || extra.contains("lan_banh")
+                                || extra.contains("tra_gop")) {
+                            return true;
+                        }
+                    }
+                    if (l.getLoaiThucThe() != null) {
+                        String entityType = l.getLoaiThucThe().toUpperCase();
+                        return entityType.contains("ESTIMATOR") || entityType.contains("CALCULATOR");
+                    }
+                    return false;
+                })
+                .count();
+
+        String calculatorLoanPct = totalLogs > 0
+                ? String.format("%.1f%%", (calculatorCount * 100.0) / totalLogs)
+                : "0.0%";
+
+        // 4. Số lượt hỏi đáp Trợ lý AI và độ trễ phản hồi trung bình (ms)
+        int totalAiQueries = (int) (yeuCauTuVanRepository.count() + nhatKyTuVanRepository.count());
+
+        List<NhatKyTuVan> consultLogs = nhatKyTuVanRepository.findAll();
+        double avgLatency = consultLogs.stream()
+                .filter(c -> c.getThoiGianPhanHoiMs() != null && c.getThoiGianPhanHoiMs() > 0)
+                .mapToInt(NhatKyTuVan::getThoiGianPhanHoiMs)
+                .average()
+                .orElse(0.0);
+
+        // 5. Phân bổ thời gian dừng xem theo mẫu xe
         List<AnalyticsOverviewDto.CarDwellItemDto> carDwells = buildCarDwellList(logs);
 
-        // 4. Xu hướng hỏi đáp Trợ lý AI RAG
+        // 6. Xu hướng hỏi đáp Trợ lý AI
         List<AnalyticsOverviewDto.AiTrendItemDto> aiTrends = buildAiTrendList();
 
         AnalyticsOverviewDto dto = AnalyticsOverviewDto.builder()
                 .avgDwellTimeSeconds((int) Math.round(avgDwell))
                 .interact360Percentage(interact360Pct)
-                .calculatorLoanPercentage("41.2%")
-                .aiConsultantQueries(logs.size() > 0 ? (int) (logs.size() * 1.5) : 380)
-                .aiAverageLatencyMs(24)
+                .calculatorLoanPercentage(calculatorLoanPct)
+                .aiConsultantQueries(totalAiQueries)
+                .aiAverageLatencyMs((int) Math.round(avgLatency))
                 .dwellByCar(carDwells)
                 .aiTrends(aiTrends)
                 .build();
@@ -116,61 +156,39 @@ public class AdminAnalyticsController {
             return result;
         }
 
-        // Danh sách dự phòng chuẩn nếu chưa đủ nhật ký telemetry
-        return List.of(
-                AnalyticsOverviewDto.CarDwellItemDto.builder()
-                        .car("VinFast VF8")
-                        .time("4m 12s")
-                        .pct("38%")
-                        .color("bg-blue-500")
-                        .favColor("Đỏ Crimson")
-                        .build(),
-                AnalyticsOverviewDto.CarDwellItemDto.builder()
-                        .car("Hyundai Ioniq 5")
-                        .time("3m 45s")
-                        .pct("28%")
-                        .color("bg-purple-500")
-                        .favColor("Trắng Gravity")
-                        .build(),
-                AnalyticsOverviewDto.CarDwellItemDto.builder()
-                        .car("Porsche Taycan")
-                        .time("3m 10s")
-                        .pct("20%")
-                        .color("bg-emerald-500")
-                        .favColor("Xanh Frozen")
-                        .build(),
-                AnalyticsOverviewDto.CarDwellItemDto.builder()
-                        .car("VinFast VF9")
-                        .time("2m 30s")
-                        .pct("14%")
-                        .color("bg-amber-500")
-                        .favColor("Đen Deep")
-                        .build()
-        );
+        // Trả về danh sách rỗng nếu chưa có dữ liệu dwell time thực tế
+        return List.of();
     }
 
     private List<AnalyticsOverviewDto.AiTrendItemDto> buildAiTrendList() {
-        return List.of(
-                AnalyticsOverviewDto.AiTrendItemDto.builder()
-                        .topic("Chính sách bảo hành Pin 10 năm & thuê pin")
-                        .queries(142)
-                        .pct("37%")
-                        .build(),
-                AnalyticsOverviewDto.AiTrendItemDto.builder()
-                        .topic("Gói vay ưu đãi lãi suất 6.99% qua Vietcombank")
-                        .queries(98)
-                        .pct("26%")
-                        .build(),
-                AnalyticsOverviewDto.AiTrendItemDto.builder()
-                        .topic("Thời gian bàn giao xe có VIN sẵn 72h")
-                        .queries(76)
-                        .pct("20%")
-                        .build(),
-                AnalyticsOverviewDto.AiTrendItemDto.builder()
-                        .topic("Quy trình hoàn cọc khi trượt duyệt ngân hàng")
-                        .queries(64)
-                        .pct("17%")
-                        .build()
-        );
+        List<YeuCauTuVan> requests = yeuCauTuVanRepository.findAll();
+        Map<String, Long> trendMap = requests.stream()
+                .filter(r -> r.getNoiDungCanTuVan() != null && !r.getNoiDungCanTuVan().trim().isEmpty())
+                .collect(Collectors.groupingBy(
+                        r -> r.getNoiDungCanTuVan().trim(),
+                        Collectors.counting()
+                ));
+
+        if (trendMap.isEmpty()) {
+            return List.of();
+        }
+
+        long totalRequests = trendMap.values().stream().mapToLong(Long::longValue).sum();
+
+        return trendMap.entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(4)
+                .map(entry -> {
+                    int queries = entry.getValue().intValue();
+                    String pct = totalRequests > 0
+                            ? String.format("%.0f%%", (queries * 100.0) / totalRequests)
+                            : "0%";
+                    return AnalyticsOverviewDto.AiTrendItemDto.builder()
+                            .topic(entry.getKey())
+                            .queries(queries)
+                            .pct(pct)
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 }
