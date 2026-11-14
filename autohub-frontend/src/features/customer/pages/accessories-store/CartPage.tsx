@@ -60,11 +60,12 @@ export const CartPage: React.FC = () => {
   } = useCartCheckout();
 
   // Kiểm tra xem giỏ hàng có thiết bị sạc điện không để hiển thị widget telemetry phù hợp
-  const hasChargingDevice = cartItems.some(
+  const hasChargingDevice = (cartItems ?? []).some(
     (item) =>
-      item.accessory.categoryId === 1 ||
-      item.accessory.name.toLowerCase().includes('sạc') ||
-      item.accessory.name.toLowerCase().includes('wallbox')
+      Boolean(item?.accessory) &&
+      (item.accessory.categoryId === 1 ||
+        Boolean(item.accessory.name?.toLowerCase().includes('sạc')) ||
+        Boolean(item.accessory.name?.toLowerCase().includes('wallbox')))
   );
 
   return (

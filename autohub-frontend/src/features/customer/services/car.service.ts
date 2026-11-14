@@ -15,7 +15,11 @@ export interface EstimatorCalculationDto {
   giaNiemYet: number;
   mucTienCoc: number;
   tyLePhiTruocBa: number;
+  tyLePhiTruocBaStandard?: number;
   phiTruocBa: number;
+  phiTruocBaStandard?: number;
+  isElectric?: boolean;
+  provinceName?: string;
   phiCapBienSo: number;
   phiDangKiem: number;
   phiBaoTriDuongBo: number;

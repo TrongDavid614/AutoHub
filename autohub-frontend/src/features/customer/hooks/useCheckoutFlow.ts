@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { addressService } from '../services/address.service';
 import { cartService } from '../services/cart.service';
 import type { CheckoutAddress, CheckoutOrderItem } from '../mocks/checkout.mock';
+import type { ExtendedAddress } from '../components/AddressCard';
 import type { ShippingMethod } from '@/types/cart.types';
 
 export function useCheckoutFlow() {
@@ -18,11 +19,11 @@ export function useCheckoutFlow() {
     let isMounted = true;
     addressService.getMyAddresses(user?.id).then((list) => {
       if (isMounted && list && list.length > 0) {
-        const mapped: CheckoutAddress[] = list.map((a: any) => ({
+        const mapped: CheckoutAddress[] = list.map((a: ExtendedAddress) => ({
           id: String(a.id),
           recipientName: a.recipientName || user?.fullName || 'Khách hàng',
           phone: a.phoneNumber || user?.phoneNumber || '0912345678',
-          fullAddress: `${a.detailedAddress || a.addressLine || ''}, ${a.ward || ''}, ${a.district || ''}, ${a.provinceCity || a.province || ''}`.replace(/^,\s*|,\s*$/g, ''),
+          fullAddress: `${a.detailedAddress || ''}, ${a.ward || ''}, ${a.district || ''}, ${a.provinceCity || ''}`.replace(/^,\s*|,\s*$/g, ''),
           tag: a.tag || (a.isDefault ? 'MẶC ĐỊNH' : 'ĐỊA CHỈ'),
           isDefault: !!a.isDefault,
         }));

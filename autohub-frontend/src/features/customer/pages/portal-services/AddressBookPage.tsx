@@ -164,17 +164,38 @@ export const AddressBookPage: React.FC = () => {
       )}
 
       {/* 2. Danh sách địa chỉ dạng Card Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {addresses.map((addr) => (
-          <AddressCard
-            key={addr.id}
-            addr={addr}
-            onSetDefault={handleSetDefault}
-            onEdit={handleOpenEditModal}
-            onDelete={handleDeleteAddress}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[1, 2].map((i) => (
+            <div key={i} className="p-5 rounded-[4px] bg-surface-elevated border border-surface-highlight animate-pulse h-40" />
+          ))}
+        </div>
+      ) : addresses.length === 0 ? (
+        <div className="p-8 text-center bg-surface-elevated border border-surface-highlight rounded-[4px] space-y-3">
+          <MapPin className="w-8 h-8 text-text-muted mx-auto" />
+          <p className="text-text-primary text-sm font-semibold">Chưa có địa chỉ nào trong sổ địa chỉ</p>
+          <p className="text-text-muted text-xs">Thêm địa chỉ nhận hàng phụ kiện hoặc lắp đặt thiết bị tại nhà.</p>
+          <button
+            type="button"
+            onClick={handleOpenAddModal}
+            className="px-4 py-2 bg-accent-action hover:bg-accent-primary text-xs font-bold text-accent-contrast rounded transition-colors cursor-pointer"
+          >
+            Thêm địa chỉ đầu tiên
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {addresses.map((addr) => (
+            <AddressCard
+              key={addr.id}
+              addr={addr}
+              onSetDefault={handleSetDefault}
+              onEdit={handleOpenEditModal}
+              onDelete={handleDeleteAddress}
+            />
+          ))}
+        </div>
+      )}
 
       {/* 3. Modal Thêm / Chỉnh sửa địa chỉ */}
       <AddressModal
