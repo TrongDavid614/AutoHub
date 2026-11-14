@@ -41,6 +41,35 @@ export const AdminAnalyticsPage: React.FC = () => {
     fetchAnalytics();
   }, [fetchAnalytics]);
 
+  const handleExportCsv = () => {
+    if (!data) return;
+    const rows = [
+      ['Chỉ Số Phân Tích', 'Giá Trị'],
+      ['Dwell Time Trung Bình (giây)', String(data.avgDwellTimeSeconds)],
+      ['Tỷ lệ Tương tác Xoay 360°', data.interact360Percentage],
+      ['Tỷ lệ Dùng Dự toán Lăn bánh', data.calculatorLoanPercentage],
+      ['Số lượt Hỏi đáp Trợ lý AI', String(data.aiConsultantQueries)],
+      ['Độ trễ AI Trung bình (ms)', String(data.aiAverageLatencyMs)],
+      [],
+      ['Mẫu Xe', 'Thời Gian Dwell', 'Tỷ Lệ %', 'Màu Sắc Quan Tâm Nhất'],
+      ...(data.dwellByCar ?? []).map((c) => [c.car, c.time, c.pct, c.favColor]),
+      [],
+      ['Chủ Đề AI RAG Phổ Biến', 'Số Lượt Hỏi', 'Tỷ Lệ %'],
+      ...(data.aiTrends ?? []).map((t) => [t.topic, String(t.queries), t.pct]),
+    ];
+
+    const csvContent =
+      'data:text/csv;charset=utf-8,\uFEFF' +
+      rows.map((row) => row.map((cell) => `"${(cell || '').replace(/"/g, '""')}"`).join(',')).join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `autohub_analytics_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const isEmpty = !loading && !error && (!data || ((data.dwellByCar ?? []).length === 0 && (data.aiTrends ?? []).length === 0));
 
   return (
@@ -87,16 +116,18 @@ export const AdminAnalyticsPage: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => alert('Đã chuẩn bị xuất báo cáo phân tích hành vi định dạng CSV/Excel.')}
+            onClick={handleExportCsv}
+            disabled={loading || !data}
             className={cn(
               'flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold border transition-colors cursor-pointer shadow-sm',
               isDarkMode
                 ? 'bg-[#171F33] hover:bg-[#1E293B] text-white border-[#3E4850]/50'
-                : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-300'
+                : 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-300',
+              (loading || !data) && 'opacity-50 cursor-not-allowed'
             )}
           >
             <Download className="w-4 h-4 text-blue-500" />
-            <span>Xuất Báo Cáo</span>
+            <span>Xuất Báo Cáo CSV</span>
           </button>
         </div>
       </div>
