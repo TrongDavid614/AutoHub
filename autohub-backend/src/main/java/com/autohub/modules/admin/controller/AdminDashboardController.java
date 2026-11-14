@@ -54,6 +54,12 @@ public class AdminDashboardController {
         return ResponseEntity.ok(ApiResponse.ok(urgent, "Lấy danh sách cọc xe 72h khẩn cấp thành công"));
     }
 
+    @PostMapping("/urgent-deposits/{id}/nudge")
+    public ResponseEntity<ApiResponse<String>> nudgeStaffForUrgentDeposit(@PathVariable String id) {
+        String msg = adminDashboardService.nudgeStaff(id);
+        return ResponseEntity.ok(ApiResponse.ok(msg, "Gửi thông báo đốc thúc nhân viên thành công"));
+    }
+
     @GetMapping("/metrics")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getDashboardChartMetrics() {
         List<KpiMetricDto> kpis = adminDashboardService.getKpiMetrics();

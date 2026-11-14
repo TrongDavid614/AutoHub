@@ -90,4 +90,16 @@ export const adminDashboardService = {
     );
     return res.data;
   },
+
+  async nudgeStaff(id: string): Promise<string> {
+    if (USE_MOCK) {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      return `[Mock] Đã gửi thông báo ưu tiên cao tới nhân viên phụ trách phiếu cọc ${id}`;
+    }
+
+    const res = await axiosClient.post<unknown, ApiResponse<string>>(
+      `${API_CONFIG.ENDPOINTS.ADMIN.DASHBOARD_URGENT_DEPOSITS}/${id}/nudge`
+    );
+    return res.data;
+  },
 };
