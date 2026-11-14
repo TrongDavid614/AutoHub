@@ -10,7 +10,7 @@ import com.autohub.modules.admin.dto.ReviewSentimentAnalysisResponse;
  * và Phân tích Ngữ nghĩa / Phát hiện Vi phạm Tiêu chuẩn Cộng đồng trong Nhận xét Phụ kiện.
  * 
  * Kiến trúc Seam cách ly hoàn toàn tầng Controller khỏi cơ chế suy luận AI, cho phép
- * cắm trực tiếp Backend AI Proxy (Ollama Llama3 / Google Gemini), Model Fallback,
+ * cắm trực tiếp Backend AI Proxy (OpenRouter DeepSeek / Ollama Llama3), Model Fallback,
  * Timeout/Cooldown và Context Injection từ SQL Server mà không ảnh hưởng tới API contract.
  */
 public interface AdminAiService {

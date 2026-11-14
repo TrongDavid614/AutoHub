@@ -327,7 +327,7 @@ public class AdminCarMasterController {
                 .totalSynced(activeCars.size())
                 .latencyMs(lastVectorLatencyMs)
                 .syncedAt(lastVectorSyncedAt)
-                .message("Đã băm nhỏ " + activeCars.size() + " phiên bản cấu hình và nhúng vector vào Vector Database trong " + lastVectorLatencyMs + "ms. Trợ lý AI Gemini đã đồng bộ dữ liệu mới nhất!")
+                .message("Đã băm nhỏ " + activeCars.size() + " phiên bản cấu hình và nhúng vector vào Vector Database trong " + lastVectorLatencyMs + "ms. Trợ lý AI OpenRouter đã đồng bộ dữ liệu mới nhất!")
                 .build();
 
         return ResponseEntity.ok(ApiResponse.ok(res, "Đồng bộ Vector DB cho Trợ lý AI thành công"));

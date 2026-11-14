@@ -16,6 +16,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +39,12 @@ public class AdminDashboardService {
     private final LichHenLaiThuRepository lichHenLaiThuRepository;
     private final ShowroomRepository showroomRepository;
     private final PhienBanXeRepository phienBanXeRepository;
+
+    @Value("${openrouter.api.model:deepseek/deepseek-chat}")
+    private String openRouterModel;
+
+    @Value("${openrouter.api.url:https://openrouter.ai/api/v1/chat/completions}")
+    private String openRouterUrl;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -414,16 +421,32 @@ public class AdminDashboardService {
 
     public AiEngineStatusDto getAiEngineStatus() {
         long carsCount = phienBanXeRepository != null ? phienBanXeRepository.count() : 12;
+        String modelName = (openRouterModel != null ? openRouterModel : "deepseek/deepseek-chat") + " (OpenRouter Cloud API)";
+        String endpoint = "openrouter.ai/api/v1";
+
+        AiEngineStatusDto.OpenRouterStatusDto openRouterStatus = AiEngineStatusDto.OpenRouterStatusDto.builder()
+                .model(modelName)
+                .status("ONLINE")
+                .apiEndpoint(endpoint)
+                .responseTimeMs(240)
+                .quotaUsedPercent(34)
+                .contextWindow("64K Tokens")
+                .successRate(99.9)
+                .build();
+
+        AiEngineStatusDto.GeminiStatusDto geminiStatus = AiEngineStatusDto.GeminiStatusDto.builder()
+                .model(modelName)
+                .status("ONLINE")
+                .apiEndpoint(endpoint)
+                .responseTimeMs(240)
+                .quotaUsedPercent(34)
+                .contextWindow("64K Tokens")
+                .successRate(99.9)
+                .build();
+
         return AiEngineStatusDto.builder()
-                .gemini(AiEngineStatusDto.GeminiStatusDto.builder()
-                        .model("gemini-2.0-flash (Google Cloud API)")
-                        .status("ONLINE")
-                        .apiEndpoint("generativelanguage.googleapis.com/v1beta")
-                        .responseTimeMs(240)
-                        .quotaUsedPercent(34)
-                        .contextWindow("1M Tokens")
-                        .successRate(99.9)
-                        .build())
+                .openrouter(openRouterStatus)
+                .gemini(geminiStatus)
                 .vectorDb(AiEngineStatusDto.VectorDbStatusDto.builder()
                         .engine("PostgreSQL pgvector / HNSW Vector Store")
                         .status("CONNECTED")

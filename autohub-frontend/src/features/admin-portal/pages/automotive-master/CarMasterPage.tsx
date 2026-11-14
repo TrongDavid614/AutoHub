@@ -65,7 +65,7 @@ export const CarMasterPage: React.FC = () => {
             'text-sm mt-0.5',
             isDarkMode ? 'text-[#88929B]' : 'text-slate-500'
           )}>
-            Quản trị thông số kỹ thuật xe ô tô, đội xe Demo trải nghiệm và nhúng vector vào Vector Database phục vụ Trợ lý AI Gemini API.
+            Quản trị thông số kỹ thuật xe ô tô, đội xe Demo trải nghiệm và nhúng vector vào Vector Database phục vụ Trợ lý AI OpenRouter API.
           </p>
         </div>
 
@@ -115,7 +115,7 @@ export const CarMasterPage: React.FC = () => {
             <span>
               <strong>Đồng bộ thành công:</strong>{' '}
               {syncResult?.message ||
-                'Đã băm nhỏ các phiên bản cấu hình và nhúng vector vào Vector Database trong 18ms. Trợ lý AI Gemini đã đồng bộ dữ liệu mới nhất!'}
+                'Đã băm nhỏ các phiên bản cấu hình và nhúng vector vào Vector Database trong 18ms. Trợ lý AI OpenRouter đã đồng bộ dữ liệu mới nhất!'}
             </span>
           </div>
         </div>

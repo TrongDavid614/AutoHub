@@ -70,14 +70,14 @@ export const SystemMonitorPage: React.FC = () => {
             Giám Sát Vận Hành, Nhật Ký Kiểm Toán & Cụm Trí Tuệ Nhân Tạo
           </h1>
           <p className={cn('text-xs mt-1', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-            Theo dõi tình trạng kết nối Google Gemini API Cloud, Admin AI Copilot Seam, tiến trình Cron Job và nhật ký giao dịch SePay Webhook.
+            Theo dõi tình trạng kết nối OpenRouter AI Cloud (DeepSeek), Admin AI Copilot Seam, tiến trình Cron Job và nhật ký giao dịch SePay Webhook.
           </p>
         </div>
       </div>
 
       {/* 2. 4 Health Status Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Gemini API Health */}
+        {/* OpenRouter API Health */}
         <div
           className={cn(
             'p-4 rounded-xl border space-y-3 transition-colors',
@@ -85,7 +85,7 @@ export const SystemMonitorPage: React.FC = () => {
           )}
         >
           <div className="flex items-center justify-between">
-            <span className={cn('text-xs font-mono', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>Gemini AI API</span>
+            <span className={cn('text-xs font-mono', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>OpenRouter AI API</span>
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           </div>
           <div className="flex items-center gap-2.5">
@@ -98,12 +98,12 @@ export const SystemMonitorPage: React.FC = () => {
               <Cpu className="w-5 h-5" />
             </div>
             <div>
-              <div className={cn('text-sm font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>Gemini 1.5 Pro (Active)</div>
-              <div className={cn('text-[11px] font-mono', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>Endpoint: generativelanguage.googleapis.com</div>
+              <div className={cn('text-sm font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>DeepSeek-Chat (Active)</div>
+              <div className={cn('text-[11px] font-mono', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>Endpoint: openrouter.ai/api/v1</div>
             </div>
           </div>
           <div className="pt-1 text-[11px] text-emerald-500 font-mono">
-            Độ trễ: 380ms (Cloud API Latency)
+            Độ trễ: 240ms (OpenRouter Cloud Latency)
           </div>
         </div>
 

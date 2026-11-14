@@ -13,6 +13,7 @@ export const AiEngineMonitorCard: React.FC<AiEngineMonitorCardProps> = ({
   status = MOCK_AI_ENGINE_STATUS,
 }) => {
   const { isDarkMode } = useAdminTheme();
+  const ai = status.openrouter || status.gemini || MOCK_AI_ENGINE_STATUS.openrouter!;
 
   return (
     <div className={`rounded-xl border p-6 transition-colors ${
@@ -43,7 +44,7 @@ export const AiEngineMonitorCard: React.FC<AiEngineMonitorCardProps> = ({
 
       {/* 3 Core Infrastructure Blocks */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Block 1: AI Gemini Cloud Engine */}
+        {/* Block 1: AI OpenRouter Cloud Engine */}
         <div className={`p-4 rounded-xl border space-y-3 transition-colors ${
           isDarkMode
             ? 'bg-[#0B1326] border-[#3E4850]/40'
@@ -54,10 +55,10 @@ export const AiEngineMonitorCard: React.FC<AiEngineMonitorCardProps> = ({
               isDarkMode ? 'text-white' : 'text-slate-900'
             }`}>
               <Zap className="w-3.5 h-3.5 text-blue-500" />
-              Gemini AI API
+              OpenRouter AI API
             </span>
             <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-mono font-bold">
-              CLOUD API
+              OPENROUTER API
             </span>
           </div>
 
@@ -65,13 +66,13 @@ export const AiEngineMonitorCard: React.FC<AiEngineMonitorCardProps> = ({
             <div className={`text-[11px] font-mono truncate font-semibold ${
               isDarkMode ? 'text-[#89CEFF]' : 'text-blue-600'
             }`}>
-              {status.gemini.model}
+              {ai.model}
             </div>
 
             <div className="flex justify-between items-center text-[11px] font-mono pt-1">
               <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}>Hạn mức Quota API:</span>
               <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                {status.gemini.quotaUsedPercent}% / 100%
+                {ai.quotaUsedPercent}% / 100%
               </span>
             </div>
             {/* Quota Progress */}
@@ -80,14 +81,14 @@ export const AiEngineMonitorCard: React.FC<AiEngineMonitorCardProps> = ({
             }`}>
               <div
                 className="h-full rounded-full bg-gradient-to-r from-blue-500 to-sky-400"
-                style={{ width: `${status.gemini.quotaUsedPercent}%` }}
+                style={{ width: `${ai.quotaUsedPercent}%` }}
               />
             </div>
 
             <div className="flex justify-between items-center text-[11px] font-mono pt-1">
               <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}>Thời gian phản hồi:</span>
               <span className={`font-bold ${isDarkMode ? 'text-[#89CEFF]' : 'text-blue-600'}`}>
-                {status.gemini.responseTimeMs} ms (Cửa sổ: {status.gemini.contextWindow})
+                {ai.responseTimeMs} ms (Cửa sổ: {ai.contextWindow})
               </span>
             </div>
           </div>
@@ -130,7 +131,7 @@ export const AiEngineMonitorCard: React.FC<AiEngineMonitorCardProps> = ({
             </div>
 
             <div className={`text-[10px] pt-1 ${isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}`}>
-              Sẵn sàng phục vụ tra cứu thông số kỹ thuật xe đối kháng kết hợp Gemini
+              Sẵn sàng phục vụ tra cứu thông số kỹ thuật xe đối kháng kết hợp OpenRouter (DeepSeek)
             </div>
           </div>
         </div>

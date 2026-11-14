@@ -58,3 +58,9 @@ Thumbs.db
 
 .codegraph/
 
+# Application secrets & environment configs
+autohub-backend/src/main/resources/application.yml
+autohub-backend/src/main/resources/application-local.yml
+application.yml
+
+

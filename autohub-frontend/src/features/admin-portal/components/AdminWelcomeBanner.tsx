@@ -77,8 +77,8 @@ export const AdminWelcomeBanner: React.FC<AdminWelcomeBannerProps> = ({
               )}
             >
               <Cpu className={cn('w-3.5 h-3.5', isDarkMode ? 'text-[#89CEFF]' : 'text-blue-600')} />
-              <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-400'}>Gemini AI:</span>
-              <span className="text-[#10B981] font-bold">Online (1.5 Flash)</span>
+              <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-400'}>OpenRouter AI:</span>
+              <span className="text-[#10B981] font-bold">Online (DeepSeek)</span>
             </div>
 
             <div
