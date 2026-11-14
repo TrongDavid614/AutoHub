@@ -42,28 +42,39 @@ public class CustomerEstimatorController {
         PhienBanXe variant = phienBanXeRepository.findById(variantId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy phiên bản xe ID: " + variantId));
 
+        TinhThanh tinhThanh = tinhThanhRepository.findById(targetProvinceId).orElse(null);
+        boolean isVung1 = tinhThanh != null && tinhThanh.getPhanVungBienSo() != null && tinhThanh.getPhanVungBienSo().contains("1");
+
         BieuPhiLanBanh bieuPhi = bieuPhiLanBanhRepository.findByTinhThanhId(targetProvinceId)
-                .orElseGet(() -> bieuPhiLanBanhRepository.findAll().stream().findFirst()
-                        .orElse(BieuPhiLanBanh.builder()
-                                .tyLePhiTruocBa(10.0)
-                                .phiCapBienSo(BigDecimal.valueOf(20000000))
-                                .phiDangKiem(BigDecimal.valueOf(340000))
-                                .phiBaoTriDuongBo(BigDecimal.valueOf(1560000))
-                                .phiBaoHiemTNDS(BigDecimal.valueOf(873400))
-                                .build()));
+                .orElseGet(() -> BieuPhiLanBanh.builder()
+                        .tyLePhiTruocBa(isVung1 ? 12.0 : 10.0)
+                        .phiCapBienSo(BigDecimal.valueOf(isVung1 ? 20000000 : 1000000))
+                        .phiDangKiem(BigDecimal.valueOf(340000))
+                        .phiBaoTriDuongBo(BigDecimal.valueOf(1560000))
+                        .phiBaoHiemTNDS(BigDecimal.valueOf(873400))
+                        .build());
 
         BigDecimal giaNiemYet = variant.getGiaNiemYet();
-        Double tyLeDouble = bieuPhi.getTyLePhiTruocBa() != null ? bieuPhi.getTyLePhiTruocBa() : 10.0;
+        Double tyLeDouble = bieuPhi.getTyLePhiTruocBa() != null ? bieuPhi.getTyLePhiTruocBa() : (isVung1 ? 12.0 : 10.0);
         BigDecimal tyLe = BigDecimal.valueOf(tyLeDouble);
 
-        // Thuế trước bạ = Giá niêm yết * tỷ lệ / 100
-        BigDecimal phiTruocBa = giaNiemYet.multiply(tyLe)
+        // Kiểm tra loại nhiên liệu: Xe điện miễn 100% lệ phí trước bạ (Nghị định 10/2022/NĐ-CP)
+        boolean isElectric = (variant.getLoaiNhienLieu() != null && (
+                variant.getLoaiNhienLieu().toLowerCase().contains("điện") ||
+                variant.getLoaiNhienLieu().toLowerCase().contains("ev") ||
+                variant.getLoaiNhienLieu().toLowerCase().contains("electric"))) ||
+                variant.getDungLuongPinKwh() != null;
+
+        BigDecimal phiTruocBaStandard = giaNiemYet.multiply(tyLe)
                 .divide(BigDecimal.valueOf(100), 0, RoundingMode.HALF_UP);
 
-        BigDecimal phiBienSo = bieuPhi.getPhiCapBienSo() != null ? bieuPhi.getPhiCapBienSo() : BigDecimal.ZERO;
-        BigDecimal phiDangKiem = bieuPhi.getPhiDangKiem() != null ? bieuPhi.getPhiDangKiem() : BigDecimal.ZERO;
-        BigDecimal phiDuongBo = bieuPhi.getPhiBaoTriDuongBo() != null ? bieuPhi.getPhiBaoTriDuongBo() : BigDecimal.ZERO;
-        BigDecimal phiBaoHiem = bieuPhi.getPhiBaoHiemTNDS() != null ? bieuPhi.getPhiBaoHiemTNDS() : BigDecimal.ZERO;
+        BigDecimal phiTruocBa = isElectric ? BigDecimal.ZERO : phiTruocBaStandard;
+        Double tyLeApDung = isElectric ? 0.0 : tyLeDouble;
+
+        BigDecimal phiBienSo = bieuPhi.getPhiCapBienSo() != null ? bieuPhi.getPhiCapBienSo() : (isVung1 ? BigDecimal.valueOf(20000000) : BigDecimal.valueOf(1000000));
+        BigDecimal phiDangKiem = bieuPhi.getPhiDangKiem() != null ? bieuPhi.getPhiDangKiem() : BigDecimal.valueOf(340000);
+        BigDecimal phiDuongBo = bieuPhi.getPhiBaoTriDuongBo() != null ? bieuPhi.getPhiBaoTriDuongBo() : BigDecimal.valueOf(1560000);
+        BigDecimal phiBaoHiem = bieuPhi.getPhiBaoHiemTNDS() != null ? bieuPhi.getPhiBaoHiemTNDS() : BigDecimal.valueOf(873400);
 
         BigDecimal tongChiPhiLanBanh = giaNiemYet
                 .add(phiTruocBa)
@@ -77,15 +88,19 @@ public class CustomerEstimatorController {
         result.put("variantName", variant.getTenPhienBan());
         result.put("provinceId", targetProvinceId);
         result.put("tinhThanhId", targetProvinceId);
+        result.put("provinceName", tinhThanh != null ? tinhThanh.getTenTinh() : "Hà Nội");
         result.put("giaNiemYet", giaNiemYet);
-        result.put("tyLePhiTruocBa", tyLeDouble);
+        result.put("isElectric", isElectric);
+        result.put("tyLePhiTruocBa", tyLeApDung);
+        result.put("tyLePhiTruocBaStandard", tyLeDouble);
         result.put("phiTruocBa", phiTruocBa);
+        result.put("phiTruocBaStandard", phiTruocBaStandard);
         result.put("phiCapBienSo", phiBienSo);
         result.put("phiDangKiem", phiDangKiem);
         result.put("phiBaoTriDuongBo", phiDuongBo);
         result.put("phiBaoHiemTnds", phiBaoHiem);
         result.put("tongChiPhiLanBanh", tongChiPhiLanBanh);
-        result.put("mucTienCoc", variant.getMucTienCoc());
+        result.put("mucTienCoc", variant.getMucTienCoc() != null ? variant.getMucTienCoc() : BigDecimal.valueOf(20000000));
 
         return ResponseEntity.ok(ApiResponse.ok(result, "Dự toán chi phí lăn bánh ô tô điện thành công"));
     }

@@ -850,7 +850,13 @@ export const CarDepositPage: React.FC = () => {
 
       {/* 3. Danh sách phiếu cọc xe dạng ROW */}
       <div className="space-y-4">
-        {filteredDeposits.length === 0 ? (
+        {isLoading ? (
+          <div className="space-y-4">
+            {[1, 2].map((i) => (
+              <div key={i} className="p-6 rounded-[4px] bg-surface-elevated/40 border border-surface-highlight animate-pulse h-48" />
+            ))}
+          </div>
+        ) : filteredDeposits.length === 0 ? (
           <div className="py-16 text-center rounded-[4px] bg-surface-elevated/30 border border-surface-highlight space-y-3">
             <CreditCard className="w-12 h-12 text-text-muted mx-auto opacity-50" />
             <h3 className="text-base font-semibold text-text-primary">Không có phiếu cọc xe nào trong mục này</h3>

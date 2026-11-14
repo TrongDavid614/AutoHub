@@ -109,14 +109,14 @@ export const OrderSummarySidebar: React.FC<OrderSummarySidebarProps> = ({
           </div>
 
           {/* Quick Available Vouchers Chips */}
-          {!isVoucherApplied && availableVouchers.length > 0 && (
+          {!isVoucherApplied && (availableVouchers ?? []).length > 0 && (
             <div className="space-y-1.5 pt-1">
               <span className="text-[10px] text-[#88929B] flex items-center gap-1 font-mono">
                 <Sparkles className="w-3 h-3 text-[#89CEFF]" />
                 MÃ KHẢ DỤNG HÔM NAY:
               </span>
               <div className="flex flex-wrap gap-1.5">
-                {availableVouchers.slice(0, 3).map((v) => (
+                {(availableVouchers ?? []).slice(0, 3).map((v) => (
                   <button
                     key={v.id}
                     type="button"
