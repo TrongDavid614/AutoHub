@@ -1,13 +1,13 @@
 package com.autohub.modules.admin.dto;
 
 import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Data
 @Builder
@@ -15,23 +15,22 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class UpdateRegistrationFeeRequest {
 
-    @NotNull(message = "Tỷ lệ phí trước bạ không được để trống")
     @DecimalMin(value = "0.0", message = "Tỷ lệ phí trước bạ không được âm")
-    private Double tyLePhiTruocBa;
+    private Double registrationTaxRate;
 
-    @NotNull(message = "Phí cấp biển số không được để trống")
-    @DecimalMin(value = "0", message = "Phí cấp biển số không được âm")
-    private BigDecimal phiCapBienSo;
+    @DecimalMin(value = "0.0", message = "Lệ phí cấp biển số không được âm")
+    private BigDecimal licensePlateFee;
 
-    @NotNull(message = "Phí đăng kiểm không được để trống")
-    @DecimalMin(value = "0", message = "Phí đăng kiểm không được âm")
-    private BigDecimal phiDangKiem;
+    @DecimalMin(value = "0.0", message = "Phí đăng kiểm không được âm")
+    private BigDecimal inspectionFee;
 
-    @NotNull(message = "Phí bảo trì đường bộ không được để trống")
-    @DecimalMin(value = "0", message = "Phí bảo trì đường bộ không được âm")
-    private BigDecimal phiBaoTriDuongBo;
+    @DecimalMin(value = "0.0", message = "Phí bảo trì đường bộ không được âm")
+    private BigDecimal roadMaintenanceFee;
 
-    @NotNull(message = "Phí bảo hiểm TNDS không được để trống")
-    @DecimalMin(value = "0", message = "Phí bảo hiểm TNDS không được âm")
-    private BigDecimal phiBaoHiemTnds;
+    @DecimalMin(value = "0.0", message = "Phí bảo hiểm TNDS không được âm")
+    private BigDecimal mandatoryInsuranceFee;
+
+    private LocalDate effectiveDate;
+
+    private LocalDate expiryDate;
 }

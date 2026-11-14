@@ -1,109 +1,89 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
 import {
-  Save,
   Info,
+  Plus,
   RefreshCw,
-  AlertTriangle,
-  CheckCircle2,
-  Inbox,
   Landmark,
   Percent,
+  CheckCircle2,
+  AlertCircle,
+  Edit,
+  Trash2,
+  ToggleLeft,
+  ToggleRight,
+  ShieldCheck,
+  MapPin,
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
 import { cn } from '@/lib/utils';
-import { adminFeeService } from '../../services/admin-fee.service';
-import type { RegistrationFee, BankLoanPackage } from '@/types/admin-fee.types';
+import { useAdminFees } from '../../hooks/useAdminFees';
+import { CreateOrEditFeeModal } from '../../components/CreateOrEditFeeModal';
+import { CreateOrEditLoanModal } from '../../components/CreateOrEditLoanModal';
 
 export const RegistrationFeePage: React.FC = () => {
   const { isDarkMode } = useAdminTheme();
-  const [activeTab, setActiveTab] = useState<'fees' | 'loans'>('fees');
 
-  const [provincialFees, setProvincialFees] = useState<RegistrationFee[]>([]);
-  const [bankLoans, setBankLoans] = useState<BankLoanPackage[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [saving, setSaving] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<{
-    type: 'success' | 'error';
-    message: string;
-  } | null>(null);
-
-  const fetchFees = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    setFeedback(null);
-    try {
-      const data = await adminFeeService.getOverview();
-      setProvincialFees(data.provincialFees ?? []);
-      setBankLoans(data.bankLoans ?? []);
-    } catch (err) {
-      console.error('[RegistrationFeePage] Lỗi tải biểu phí:', err);
-      setError('Không thể kết nối đến máy chủ để tải biểu phí lăn bánh và lãi suất.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchFees();
-  }, [fetchFees]);
-
-  const handleFeeChange = (
-    id: number,
-    field: keyof RegistrationFee,
-    value: number
-  ) => {
-    setProvincialFees((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
-    );
-  };
-
-  const handleLoanChange = (
-    id: string,
-    field: keyof BankLoanPackage,
-    value: number
-  ) => {
-    setBankLoans((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
-    );
-  };
-
-  const handleSaveAll = async () => {
-    setSaving(true);
-    setFeedback(null);
-    try {
-      const updated = await adminFeeService.batchUpdateFees({
-        provincialFees,
-        bankLoans,
-      });
-      setProvincialFees(updated.provincialFees ?? []);
-      setBankLoans(updated.bankLoans ?? []);
-      setFeedback({
-        type: 'success',
-        message: 'Lưu toàn bộ cấu hình biểu phí lăn bánh & trần lãi suất vay thành công! Dữ liệu đã đồng bộ sang công cụ Dự toán.',
-      });
-    } catch (err) {
-      console.error('[RegistrationFeePage] Lỗi lưu cấu hình biểu phí:', err);
-      setFeedback({
-        type: 'error',
-        message: 'Không thể lưu cấu hình. Vui lòng kiểm tra lại thông số đầu vào và thử lại.',
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const isFeeListEmpty = !loading && !error && (provincialFees ?? []).length === 0;
-  const isLoanListEmpty = !loading && !error && (bankLoans ?? []).length === 0;
+  const {
+    activeTab,
+    setActiveTab,
+    fees,
+    loans,
+    stats,
+    provinces,
+    isLoading,
+    error,
+    toastMessage,
+    toastType,
+    isSubmitting,
+    isFeeModalOpen,
+    editingFee,
+    isLoanModalOpen,
+    editingLoan,
+    loadAll,
+    openCreateFeeModal,
+    openEditFeeModal,
+    closeFeeModal,
+    handleSaveFee,
+    handleDeleteFee,
+    openCreateLoanModal,
+    openEditLoanModal,
+    closeLoanModal,
+    handleSaveLoan,
+    handleToggleLoanStatus,
+    handleDeleteLoan,
+  } = useAdminFees();
 
   return (
     <div
       className={cn(
-        'space-y-6 antialiased transition-colors duration-300 pb-12',
+        'space-y-6 antialiased transition-colors',
         isDarkMode ? 'text-[#DAE2FD]' : 'text-slate-800'
       )}
     >
-      {/* 1. Header & Actions */}
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div
+          className={cn(
+            'fixed top-5 right-5 z-50 p-4 rounded-xl border shadow-xl flex items-center gap-3 text-xs max-w-md animate-fade-in transition-all',
+            toastType === 'success'
+              ? isDarkMode
+                ? 'bg-[#0D2818] border-emerald-500/50 text-emerald-300'
+                : 'bg-emerald-50 border-emerald-300 text-emerald-800'
+              : isDarkMode
+              ? 'bg-rose-950/90 border-rose-500/50 text-rose-300'
+              : 'bg-rose-50 border-rose-300 text-rose-800'
+          )}
+        >
+          {toastType === 'success' ? (
+            <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+          ) : (
+            <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0" />
+          )}
+          <span className="font-medium">{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Header & Main Actions */}
       <div
         className={cn(
           'flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-xl border transition-colors',
@@ -113,145 +93,184 @@ export const RegistrationFeePage: React.FC = () => {
         )}
       >
         <div>
-          <h1
-            className={cn(
-              'text-xl md:text-2xl font-bold flex items-center gap-2',
-              isDarkMode ? 'text-white' : 'text-slate-900'
-            )}
-          >
-            <Landmark className="w-6 h-6 text-blue-500" />
-            <span>Quản Lý Biểu Phí Lăn Bánh & Trần Lãi Suất Vay Trả Góp</span>
-          </h1>
-          <p className={cn('text-xs mt-1', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-            Cấu hình tỷ lệ trước bạ, lệ phí cấp biển số tỉnh thành và bảng lãi suất vay mua ô tô theo chuẩn CSDL AutoHubDB.
+          <div className="flex items-center gap-2">
+            <h1 className={cn('text-xl md:text-2xl font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
+              Quản Lý Biểu Phí Lăn Bánh & Lãi Suất Vay Trả Góp
+            </h1>
+            <span
+              className={cn(
+                'text-[10px] font-mono px-2 py-0.5 rounded-full font-bold',
+                isDarkMode ? 'bg-[#171F33] text-[#89CEFF]' : 'bg-blue-100 text-blue-700'
+              )}
+            >
+              DR25 PRICING
+            </span>
+          </div>
+          <p className={cn('text-sm mt-0.5', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
+            Cấu hình tỷ lệ trước bạ, tiền biển số tỉnh thành và bảng lãi suất vay mua ô tô phục vụ công cụ Dự toán lăn bánh.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          {/* Refresh button */}
           <button
             type="button"
-            onClick={fetchFees}
-            disabled={loading || saving}
-            title="Làm mới dữ liệu"
+            onClick={loadAll}
+            disabled={isLoading}
             className={cn(
-              'p-2 rounded-lg border text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5',
+              'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors cursor-pointer shadow-sm',
               isDarkMode
-                ? 'bg-[#131B2E] border-[#3E4850]/40 text-[#88929B] hover:text-white'
-                : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900',
-              (loading || saving) && 'opacity-50 cursor-not-allowed'
+                ? 'bg-[#171F33] text-[#89CEFF] border-[#3E4850]/50 hover:bg-[#1E293B]'
+                : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
             )}
           >
-            <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
-            <span className="hidden sm:inline">Làm mới</span>
+            <RefreshCw className={cn('w-3.5 h-3.5', isLoading && 'animate-spin')} />
+            <span>Làm Mới</span>
           </button>
 
-          <button
-            type="button"
-            onClick={handleSaveAll}
-            disabled={loading || saving}
-            className={cn(
-              'flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer shadow-sm',
-              (loading || saving) && 'opacity-60 cursor-not-allowed'
-            )}
-          >
-            {saving ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4" />
-            )}
-            <span>{saving ? 'Đang lưu cấu hình...' : 'Lưu Cấu Hình Mới'}</span>
-          </button>
+          {/* Add button based on active tab */}
+          {activeTab === 'fees' ? (
+            <button
+              type="button"
+              onClick={openCreateFeeModal}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Thêm Biểu Phí Tỉnh/Thành</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={openCreateLoanModal}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Thêm Ngân Hàng Liên Kết</span>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* 2. Feedback Banner */}
-      {feedback && (
+      {/* KPI Overview Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Configured provinces */}
         <div
           className={cn(
-            'p-4 rounded-xl border text-xs flex items-center justify-between gap-3 transition-colors',
-            feedback.type === 'success'
-              ? isDarkMode
-                ? 'bg-emerald-950/40 border-emerald-800/60 text-emerald-200'
-                : 'bg-emerald-50 border-emerald-200 text-emerald-800'
-              : isDarkMode
-                ? 'bg-rose-950/40 border-rose-800/60 text-rose-200'
-                : 'bg-rose-50 border-rose-200 text-rose-800'
+            'p-4 rounded-xl border transition-all flex flex-col justify-between',
+            isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 shadow-sm' : 'bg-white border-slate-200 shadow-xs'
           )}
         >
-          <div className="flex items-center gap-2.5">
-            {feedback.type === 'success' ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-            ) : (
-              <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
-            )}
-            <span>{feedback.message}</span>
+          <div className="flex items-center justify-between">
+            <span className={cn('text-xs font-semibold', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
+              Tỉnh/Thành Đã Cấu Hình
+            </span>
+            <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
+              <MapPin className="w-4 h-4" />
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setFeedback(null)}
-            className="text-[11px] underline opacity-70 hover:opacity-100 cursor-pointer"
-          >
-            Đóng
-          </button>
+          <div className="mt-2">
+            <div className="text-2xl font-bold font-mono">
+              {stats.configuredProvinces} / {stats.totalProvinces}
+            </div>
+            <span className="text-[11px] text-slate-400 mt-1">Tỉnh/thành phố toàn quốc</span>
+          </div>
         </div>
-      )}
 
-      {/* 3. Error Banner */}
-      {!loading && error && (
+        {/* Card 2: Average Registration Tax */}
         <div
           className={cn(
-            'p-8 rounded-xl border flex flex-col items-center justify-center gap-3 text-center transition-colors',
-            isDarkMode
-              ? 'bg-rose-950/30 border-rose-800/50 text-rose-200'
-              : 'bg-rose-50 border-rose-200 text-rose-900'
+            'p-4 rounded-xl border transition-all flex flex-col justify-between',
+            isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 shadow-sm' : 'bg-white border-slate-200 shadow-xs'
           )}
         >
-          <AlertTriangle className="w-8 h-8 text-rose-500" />
-          <div className="text-sm font-semibold">{error}</div>
-          <p className="text-xs opacity-80">
-            Không thể tải biểu phí từ hệ thống. Vui lòng kiểm tra lại dịch vụ Backend.
-          </p>
-          <button
-            type="button"
-            onClick={fetchFees}
-            className="flex items-center gap-1.5 px-4 py-2 mt-2 rounded-lg text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white cursor-pointer shadow-sm transition-colors"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Thử lại (Retry)</span>
-          </button>
+          <div className="flex items-center justify-between">
+            <span className={cn('text-xs font-semibold', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
+              Trước Bạ Trung Bình
+            </span>
+            <div className="p-2 rounded-lg bg-sky-500/10 text-sky-500">
+              <Percent className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2">
+            <div className="text-2xl font-bold font-mono text-sky-500">
+              {stats.avgRegistrationTaxRate}%
+            </div>
+            <span className="text-[11px] text-slate-400 mt-1">Xe Xăng & Hybrid (10% - 12%)</span>
+          </div>
         </div>
-      )}
 
-      {/* 4. Tabs Navigation */}
-      <div
-        className={cn(
-          'flex border-b gap-4',
-          isDarkMode ? 'border-[#3E4850]/40' : 'border-slate-200'
-        )}
-      >
+        {/* Card 3: EV Tax Exemption */}
+        <div
+          className={cn(
+            'p-4 rounded-xl border transition-all flex flex-col justify-between',
+            isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 shadow-sm' : 'bg-white border-slate-200 shadow-xs'
+          )}
+        >
+          <div className="flex items-center justify-between">
+            <span className={cn('text-xs font-semibold', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
+              Trước Bạ Ô Tô Điện (EV)
+            </span>
+            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2">
+            <div className="text-2xl font-bold font-mono text-emerald-600 dark:text-[#10B981]">
+              0.0% (Miễn 100%)
+            </div>
+            <span className="text-[11px] text-emerald-500 mt-1 font-medium">Theo Nghị định Bộ Tài Chính</span>
+          </div>
+        </div>
+
+        {/* Card 4: Partner Banks */}
+        <div
+          className={cn(
+            'p-4 rounded-xl border transition-all flex flex-col justify-between',
+            isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 shadow-sm' : 'bg-white border-slate-200 shadow-xs'
+          )}
+        >
+          <div className="flex items-center justify-between">
+            <span className={cn('text-xs font-semibold', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
+              Đối Tác Ngân Hàng
+            </span>
+            <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500">
+              <Landmark className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2">
+            <div className="text-2xl font-bold font-mono">{stats.totalBankPartners} Ngân Hàng</div>
+            <span className="text-[11px] text-slate-400 mt-1">
+              Lãi suất từ {stats.lowestInterestRate}% • LTV tới {stats.maxLtv}%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className={cn('flex border-b gap-4', isDarkMode ? 'border-[#3E4850]/40' : 'border-slate-200')}>
         <button
           type="button"
           onClick={() => setActiveTab('fees')}
           className={cn(
-            'pb-3 text-xs font-semibold transition-colors cursor-pointer border-b-2 flex items-center gap-1.5',
+            'pb-3 text-xs font-semibold transition-colors cursor-pointer border-b-2 flex items-center gap-2',
             activeTab === 'fees'
               ? isDarkMode
                 ? 'text-[#89CEFF] border-[#89CEFF]'
                 : 'text-blue-600 border-blue-600'
               : isDarkMode
-                ? 'text-[#88929B] border-transparent hover:text-white'
-                : 'text-slate-500 border-transparent hover:text-slate-800'
+              ? 'text-[#88929B] border-transparent hover:text-white'
+              : 'text-slate-500 border-transparent hover:text-slate-800'
           )}
         >
-          <Percent className="w-3.5 h-3.5" />
+          <Percent className="w-4 h-4" />
           <span>Biểu Phí Lăn Bánh Theo Tỉnh/Thành</span>
           <span
             className={cn(
-              'px-1.5 py-0.5 rounded-full text-[10px] font-mono',
-              isDarkMode ? 'bg-[#131B2E] text-slate-300' : 'bg-slate-100 text-slate-600'
+              'px-2 py-0.2 rounded-full text-[10px] font-mono',
+              isDarkMode ? 'bg-[#171F33] text-[#89CEFF]' : 'bg-blue-100 text-blue-700'
             )}
           >
-            {(provincialFees ?? []).length}
+            {fees.length}
           </span>
         </button>
 
@@ -259,437 +278,322 @@ export const RegistrationFeePage: React.FC = () => {
           type="button"
           onClick={() => setActiveTab('loans')}
           className={cn(
-            'pb-3 text-xs font-semibold transition-colors cursor-pointer border-b-2 flex items-center gap-1.5',
+            'pb-3 text-xs font-semibold transition-colors cursor-pointer border-b-2 flex items-center gap-2',
             activeTab === 'loans'
               ? isDarkMode
                 ? 'text-[#89CEFF] border-[#89CEFF]'
                 : 'text-blue-600 border-blue-600'
               : isDarkMode
-                ? 'text-[#88929B] border-transparent hover:text-white'
-                : 'text-slate-500 border-transparent hover:text-slate-800'
+              ? 'text-[#88929B] border-transparent hover:text-white'
+              : 'text-slate-500 border-transparent hover:text-slate-800'
           )}
         >
-          <Landmark className="w-3.5 h-3.5" />
+          <Landmark className="w-4 h-4" />
           <span>Gói Vay Ngân Hàng Liên Kết (Lãi Suất & Kỳ Hạn)</span>
           <span
             className={cn(
-              'px-1.5 py-0.5 rounded-full text-[10px] font-mono',
-              isDarkMode ? 'bg-[#131B2E] text-slate-300' : 'bg-slate-100 text-slate-600'
+              'px-2 py-0.2 rounded-full text-[10px] font-mono',
+              isDarkMode ? 'bg-[#171F33] text-purple-400' : 'bg-purple-100 text-purple-700'
             )}
           >
-            {(bankLoans ?? []).length}
+            {loans.length}
           </span>
         </button>
       </div>
 
-      {/* 5. Legal Information Alert */}
+      {/* Legal Info Note */}
       <div
         className={cn(
-          'p-3.5 rounded-lg border text-xs flex items-center gap-2.5 transition-colors',
+          'p-3.5 rounded-xl border text-xs flex items-center gap-2.5',
           isDarkMode
             ? 'bg-[#0F172A] border-[#38BDF8]/40 text-[#BAE6FD]'
             : 'bg-sky-50 border-sky-200 text-sky-800'
         )}
       >
-        <Info className="w-4 h-4 text-blue-500 shrink-0" />
+        <Info className="w-4 h-4 text-blue-500 flex-shrink-0" />
         <span>
-          Căn cứ Nghị định Bộ Tài Chính &amp; Nghị định 10/2022/NĐ-CP: Ô tô thuần điện (EV) được miễn 100% lệ phí trước bạ; lệ phí cấp biển số Hà Nội &amp; TP.HCM cố định 20.000.000 ₫/xe, các tỉnh còn lại 1.000.000 ₫/xe.
+          Căn cứ Nghị định Chính phủ & Bộ Tài Chính: Ô tô thuần điện (EV) tiếp tục được miễn 100% lệ phí trước bạ; lệ phí cấp biển số Hà Nội & TP.HCM cố định 20.000.000 ₫/xe, các tỉnh thành khác 1.000.000 ₫/xe.
         </span>
       </div>
 
-      {/* 6. Loading Skeleton */}
-      {loading && (
-        <div
-          className={cn(
-            'p-6 rounded-xl border animate-pulse space-y-4',
-            isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40' : 'bg-white border-slate-200'
-          )}
-        >
-          <div className="h-5 w-56 bg-slate-200 dark:bg-slate-800 rounded" />
-          <div className="space-y-3">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-10 bg-slate-200 dark:bg-slate-800 rounded" />
-            ))}
+      {/* Error notification if any */}
+      {error && (
+        <div className="p-3.5 rounded-xl border border-rose-500/40 bg-rose-500/10 text-rose-500 text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span>{error}</span>
           </div>
+          <button
+            type="button"
+            onClick={loadAll}
+            className="px-2.5 py-1 rounded bg-rose-600 text-white font-semibold text-[11px] hover:bg-rose-700 cursor-pointer"
+          >
+            Thử lại
+          </button>
         </div>
       )}
 
-      {/* 7. Tab 1: Provincial Fees Table */}
-      {!loading && !error && activeTab === 'fees' && (
-        <>
-          {isFeeListEmpty ? (
-            <div
-              className={cn(
-                'p-16 rounded-xl border flex flex-col items-center justify-center gap-3 text-center transition-colors',
-                isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40' : 'bg-white border-slate-200'
-              )}
-            >
-              <Inbox className="w-8 h-8 text-slate-400" />
-              <div className="text-sm font-bold">Chưa có dữ liệu biểu phí tỉnh thành</div>
-              <p className="text-xs text-slate-400">
-                Chưa tìm thấy tỉnh thành nào trong bảng dbo.tinh_thanh.
-              </p>
-            </div>
-          ) : (
-            <div
-              className={cn(
-                'rounded-xl border overflow-hidden transition-colors shadow-sm',
-                isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40' : 'bg-white border-slate-200'
-              )}
-            >
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead
+      {/* Main Table Content */}
+      <div
+        className={cn(
+          'rounded-2xl border overflow-hidden transition-colors shadow-sm',
+          isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40' : 'bg-white border-slate-200'
+        )}
+      >
+        {isLoading ? (
+          <div className="py-20 flex flex-col items-center justify-center space-y-3">
+            <RefreshCw className="w-8 h-8 animate-spin text-blue-500" />
+            <p className={cn('text-xs font-medium', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
+              Đang tải dữ liệu biểu phí từ hệ thống...
+            </p>
+          </div>
+        ) : activeTab === 'fees' ? (
+          /* TAB 1: REGISTRATION FEES TABLE */
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead
+                className={cn(
+                  'font-mono uppercase text-[11px] border-b tracking-wider',
+                  isDarkMode
+                    ? 'bg-[#131B2E] text-[#88929B] border-[#3E4850]/40'
+                    : 'bg-slate-50 text-slate-500 border-slate-200'
+                )}
+              >
+                <tr>
+                  <th className="py-3 px-4">Tỉnh / Thành Phố</th>
+                  <th className="py-3 px-4 text-center">Thuế Trước Bạ (Xăng/Hybrid)</th>
+                  <th className="py-3 px-4 text-center">Trước Bạ Xe Điện (EV)</th>
+                  <th className="py-3 px-4 text-right">Lệ Phí Cấp Biển Số</th>
+                  <th className="py-3 px-4 text-right">Phí Đăng Kiểm</th>
+                  <th className="py-3 px-4 text-right">Bảo Trì Đường Bộ (1 Năm)</th>
+                  <th className="py-3 px-4 text-right">Bảo Hiểm TNDS</th>
+                  <th className="py-3 px-4 text-center">Hành Động</th>
+                </tr>
+              </thead>
+              <tbody
+                className={cn('divide-y font-sans font-medium', isDarkMode ? 'divide-[#3E4850]/30' : 'divide-slate-100')}
+              >
+                {fees.map((row) => (
+                  <tr
+                    key={row.id}
                     className={cn(
-                      'font-mono uppercase text-[11px] border-b',
-                      isDarkMode
-                        ? 'bg-[#131B2E] text-[#88929B] border-[#3E4850]/40'
-                        : 'bg-slate-50/80 text-slate-500 border-slate-200'
+                      'transition-colors',
+                      isDarkMode ? 'hover:bg-[#131B2E]/60' : 'hover:bg-slate-50/80'
                     )}
                   >
-                    <tr>
-                      <th className="py-3 px-4">Tỉnh / Thành Phố</th>
-                      <th className="py-3 px-4 text-center">Phân Vùng</th>
-                      <th className="py-3 px-4 text-center">Trước Bạ (Xăng/Hybrid)</th>
-                      <th className="py-3 px-4 text-center">Trước Bạ Xe Điện (EV)</th>
-                      <th className="py-3 px-4 text-right">Lệ Phí Cấp Biển Số</th>
-                      <th className="py-3 px-4 text-right">Đăng Kiểm</th>
-                      <th className="py-3 px-4 text-right">Bảo Trì Đường Bộ (1 Năm)</th>
-                      <th className="py-3 px-4 text-right">Bảo Hiểm TNDS Bắt Buộc</th>
-                    </tr>
-                  </thead>
-                  <tbody
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-2">
+                        <span className={cn('font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
+                          {row.provinceName}
+                        </span>
+                        <span
+                          className={cn(
+                            'text-[10px] px-2 py-0.2 rounded-full font-mono',
+                            row.region === 'Miền Bắc'
+                              ? 'bg-rose-500/10 text-rose-500'
+                              : row.region === 'Miền Trung'
+                              ? 'bg-amber-500/10 text-amber-500'
+                              : 'bg-emerald-500/10 text-emerald-500'
+                          )}
+                        >
+                          {row.region}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 text-center font-mono text-blue-600 dark:text-[#89CEFF] font-bold">
+                      {row.registrationTaxRate?.toFixed(1)}%
+                    </td>
+                    <td className="py-3.5 px-4 text-center font-mono text-emerald-600 dark:text-[#10B981] font-bold">
+                      0.0% (Miễn 100%)
+                    </td>
+                    <td className={cn('py-3.5 px-4 text-right font-mono font-semibold', isDarkMode ? 'text-white' : 'text-slate-900')}>
+                      {Number(row.licensePlateFee).toLocaleString('vi-VN')} ₫
+                    </td>
+                    <td className={cn('py-3.5 px-4 text-right font-mono', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
+                      {Number(row.inspectionFee).toLocaleString('vi-VN')} ₫
+                    </td>
+                    <td className={cn('py-3.5 px-4 text-right font-mono', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
+                      {Number(row.roadMaintenanceFee).toLocaleString('vi-VN')} ₫
+                    </td>
+                    <td className={cn('py-3.5 px-4 text-right font-mono', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
+                      {Number(row.mandatoryInsuranceFee).toLocaleString('vi-VN')} ₫
+                    </td>
+                    <td className="py-3.5 px-4 text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => openEditFeeModal(row)}
+                          title="Chỉnh sửa biểu phí"
+                          className={cn(
+                            'p-1.5 rounded-lg border transition-colors cursor-pointer',
+                            isDarkMode
+                              ? 'bg-[#171F33] border-[#3E4850]/50 text-slate-300 hover:text-white hover:bg-slate-800'
+                              : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                          )}
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteFee(row.id, row.provinceName)}
+                          title="Xóa biểu phí"
+                          className={cn(
+                            'p-1.5 rounded-lg border transition-colors cursor-pointer',
+                            isDarkMode
+                              ? 'bg-[#171F33] border-[#3E4850]/50 text-rose-400 hover:text-rose-300 hover:bg-rose-950/50'
+                              : 'bg-rose-50 border-rose-200 text-rose-600 hover:text-rose-700 hover:bg-rose-100'
+                          )}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          /* TAB 2: BANK LOAN PACKAGES TABLE */
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead
+                className={cn(
+                  'font-mono uppercase text-[11px] border-b tracking-wider',
+                  isDarkMode
+                    ? 'bg-[#131B2E] text-[#88929B] border-[#3E4850]/40'
+                    : 'bg-slate-50 text-slate-500 border-slate-200'
+                )}
+              >
+                <tr>
+                  <th className="py-3 px-4">Ngân Hàng Liên Kết</th>
+                  <th className="py-3 px-4 text-center">Lãi Suất Ưu Đãi Năm Đầu</th>
+                  <th className="py-3 px-4 text-center">Lãi Suất Thả Nổi Dự Kiến</th>
+                  <th className="py-3 px-4 text-center">Kỳ Hạn Vay Tối Đa</th>
+                  <th className="py-3 px-4 text-center">Hạn Mức Vay (LTV)</th>
+                  <th className="py-3 px-4">Chính Sách & Ghi Chú</th>
+                  <th className="py-3 px-4 text-center">Trạng Thái</th>
+                  <th className="py-3 px-4 text-center">Hành Động</th>
+                </tr>
+              </thead>
+              <tbody
+                className={cn('divide-y font-sans font-medium', isDarkMode ? 'divide-[#3E4850]/30' : 'divide-slate-100')}
+              >
+                {loans.map((loan) => (
+                  <tr
+                    key={loan.id}
                     className={cn(
-                      'divide-y font-sans',
-                      isDarkMode ? 'divide-[#3E4850]/30' : 'divide-slate-100'
+                      'transition-colors',
+                      isDarkMode ? 'hover:bg-[#131B2E]/60' : 'hover:bg-slate-50/80'
                     )}
                   >
-                    {(provincialFees ?? []).map((row) => (
-                      <tr
-                        key={row.id}
-                        className={cn(
-                          'transition-colors',
-                          isDarkMode ? 'hover:bg-[#131B2E]/60' : 'hover:bg-slate-50/80'
-                        )}
+                    <td className="py-3.5 px-4">
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-500">
+                          <Landmark className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <span className={cn('font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
+                            {loan.bankName}
+                          </span>
+                          {loan.bankCode && (
+                            <span className="text-[10px] font-mono text-slate-400 ml-1.5">
+                              ({loan.bankCode})
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 text-center font-mono font-bold text-emerald-500">
+                      {loan.firstYearRate?.toFixed(2)}% / Năm
+                    </td>
+                    <td className="py-3.5 px-4 text-center font-mono font-bold text-amber-500">
+                      {loan.floatingRate?.toFixed(2)}% / Năm
+                    </td>
+                    <td className="py-3.5 px-4 text-center font-mono">
+                      {loan.maxTenorYears} Năm
+                    </td>
+                    <td className="py-3.5 px-4 text-center font-mono font-bold text-blue-500">
+                      {loan.maxLtvPercent}% Giá trị xe
+                    </td>
+                    <td className={cn('py-3.5 px-4 text-xs max-w-xs truncate', isDarkMode ? 'text-[#88929B]' : 'text-slate-600')}>
+                      {loan.note || 'Không có ghi chú'}
+                    </td>
+                    <td className="py-3.5 px-4 text-center">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleLoanStatus(loan.id, loan.active)}
+                        className="cursor-pointer"
+                        title={loan.active ? 'Đang kích hoạt (Nhấn để tạm dừng)' : 'Tạm dừng (Nhấn để kích hoạt)'}
                       >
-                        <td className="py-3 px-4">
-                          <span
-                            className={cn(
-                              'font-bold',
-                              isDarkMode ? 'text-white' : 'text-slate-900'
-                            )}
-                          >
-                            {row.tenTinhThanh}
+                        {loan.active ? (
+                          <span className="flex items-center justify-center gap-1 text-[11px] text-emerald-500 font-semibold">
+                            <ToggleRight className="w-5 h-5 text-emerald-500" />
+                            <span>Hoạt động</span>
                           </span>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <span
-                            className={cn(
-                              'px-2 py-0.5 rounded text-[10px] font-mono font-medium',
-                              isDarkMode
-                                ? 'bg-[#171F33] text-slate-300 border border-[#3E4850]/40'
-                                : 'bg-slate-100 text-slate-700'
-                            )}
-                          >
-                            {row.phanVungBienSo}
+                        ) : (
+                          <span className="flex items-center justify-center gap-1 text-[11px] text-slate-400 font-semibold">
+                            <ToggleLeft className="w-5 h-5 text-slate-400" />
+                            <span>Tạm dừng</span>
                           </span>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <div className="inline-flex items-center gap-1">
-                            <input
-                              type="number"
-                              step="0.1"
-                              min="0"
-                              max="100"
-                              value={row.tyLePhiTruocBa ?? 10}
-                              onChange={(e) =>
-                                handleFeeChange(
-                                  row.id,
-                                  'tyLePhiTruocBa',
-                                  parseFloat(e.target.value) || 0
-                                )
-                              }
-                              className={cn(
-                                'w-16 px-2 py-1 text-center font-mono font-bold rounded border text-xs',
-                                isDarkMode
-                                  ? 'bg-[#131B2E] border-[#3E4850]/50 text-[#89CEFF] focus:border-blue-500'
-                                  : 'bg-white border-slate-300 text-blue-600 focus:border-blue-500'
-                              )}
-                            />
-                            <span className="font-mono text-xs text-slate-400">%</span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <span className="font-mono text-emerald-600 dark:text-[#10B981] font-bold">
-                            0.0% (Miễn phí)
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <input
-                            type="number"
-                            step="100000"
-                            min="0"
-                            value={row.phiCapBienSo ?? 0}
-                            onChange={(e) =>
-                              handleFeeChange(
-                                row.id,
-                                'phiCapBienSo',
-                                parseFloat(e.target.value) || 0
-                              )
-                            }
-                            className={cn(
-                              'w-28 px-2 py-1 text-right font-mono rounded border text-xs',
-                              isDarkMode
-                                ? 'bg-[#131B2E] border-[#3E4850]/50 text-white focus:border-blue-500'
-                                : 'bg-white border-slate-300 text-slate-900 focus:border-blue-500'
-                            )}
-                          />
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <input
-                            type="number"
-                            step="10000"
-                            min="0"
-                            value={row.phiDangKiem ?? 0}
-                            onChange={(e) =>
-                              handleFeeChange(
-                                row.id,
-                                'phiDangKiem',
-                                parseFloat(e.target.value) || 0
-                              )
-                            }
-                            className={cn(
-                              'w-24 px-2 py-1 text-right font-mono rounded border text-xs',
-                              isDarkMode
-                                ? 'bg-[#131B2E] border-[#3E4850]/50 text-slate-300 focus:border-blue-500'
-                                : 'bg-white border-slate-300 text-slate-700 focus:border-blue-500'
-                            )}
-                          />
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <input
-                            type="number"
-                            step="10000"
-                            min="0"
-                            value={row.phiBaoTriDuongBo ?? 0}
-                            onChange={(e) =>
-                              handleFeeChange(
-                                row.id,
-                                'phiBaoTriDuongBo',
-                                parseFloat(e.target.value) || 0
-                              )
-                            }
-                            className={cn(
-                              'w-28 px-2 py-1 text-right font-mono rounded border text-xs',
-                              isDarkMode
-                                ? 'bg-[#131B2E] border-[#3E4850]/50 text-slate-300 focus:border-blue-500'
-                                : 'bg-white border-slate-300 text-slate-700 focus:border-blue-500'
-                            )}
-                          />
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <input
-                            type="number"
-                            step="1000"
-                            min="0"
-                            value={row.phiBaoHiemTnds ?? 0}
-                            onChange={(e) =>
-                              handleFeeChange(
-                                row.id,
-                                'phiBaoHiemTnds',
-                                parseFloat(e.target.value) || 0
-                              )
-                            }
-                            className={cn(
-                              'w-24 px-2 py-1 text-right font-mono rounded border text-xs',
-                              isDarkMode
-                                ? 'bg-[#131B2E] border-[#3E4850]/50 text-slate-300 focus:border-blue-500'
-                                : 'bg-white border-slate-300 text-slate-700 focus:border-blue-500'
-                            )}
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </>
-      )}
+                        )}
+                      </button>
+                    </td>
+                    <td className="py-3.5 px-4 text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => openEditLoanModal(loan)}
+                          title="Chỉnh sửa gói vay"
+                          className={cn(
+                            'p-1.5 rounded-lg border transition-colors cursor-pointer',
+                            isDarkMode
+                              ? 'bg-[#171F33] border-[#3E4850]/50 text-slate-300 hover:text-white hover:bg-slate-800'
+                              : 'bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                          )}
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteLoan(loan.id, loan.bankName)}
+                          title="Xóa gói vay"
+                          className={cn(
+                            'p-1.5 rounded-lg border transition-colors cursor-pointer',
+                            isDarkMode
+                              ? 'bg-[#171F33] border-[#3E4850]/50 text-rose-400 hover:text-rose-300 hover:bg-rose-950/50'
+                              : 'bg-rose-50 border-rose-200 text-rose-600 hover:text-rose-700 hover:bg-rose-100'
+                          )}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
-      {/* 8. Tab 2: Bank Loans Table */}
-      {!loading && !error && activeTab === 'loans' && (
-        <>
-          {isLoanListEmpty ? (
-            <div
-              className={cn(
-                'p-16 rounded-xl border flex flex-col items-center justify-center gap-3 text-center transition-colors',
-                isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40' : 'bg-white border-slate-200'
-              )}
-            >
-              <Inbox className="w-8 h-8 text-slate-400" />
-              <div className="text-sm font-bold">Chưa có gói vay ngân hàng</div>
-            </div>
-          ) : (
-            <div
-              className={cn(
-                'rounded-xl border overflow-hidden transition-colors shadow-sm',
-                isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40' : 'bg-white border-slate-200'
-              )}
-            >
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead
-                    className={cn(
-                      'font-mono uppercase text-[11px] border-b',
-                      isDarkMode
-                        ? 'bg-[#131B2E] text-[#88929B] border-[#3E4850]/40'
-                        : 'bg-slate-50/80 text-slate-500 border-slate-200'
-                    )}
-                  >
-                    <tr>
-                      <th className="py-3 px-4">Ngân Hàng Liên Kết</th>
-                      <th className="py-3 px-4 text-center">Lãi Suất Ưu Đãi Năm Đầu</th>
-                      <th className="py-3 px-4 text-center">Lãi Suất Thả Nổi Dự Kiến</th>
-                      <th className="py-3 px-4 text-center">Kỳ Hạn Vay Tối Đa</th>
-                      <th className="py-3 px-4 text-center">Hạn Mức Cho Vay (LTV)</th>
-                    </tr>
-                  </thead>
-                  <tbody
-                    className={cn(
-                      'divide-y font-sans',
-                      isDarkMode ? 'divide-[#3E4850]/30' : 'divide-slate-100'
-                    )}
-                  >
-                    {(bankLoans ?? []).map((b) => (
-                      <tr
-                        key={b.id || b.bank}
-                        className={cn(
-                          'transition-colors',
-                          isDarkMode ? 'hover:bg-[#131B2E]/60' : 'hover:bg-slate-50/80'
-                        )}
-                      >
-                        <td className="py-3 px-4">
-                          <span
-                            className={cn(
-                              'font-bold',
-                              isDarkMode ? 'text-white' : 'text-slate-900'
-                            )}
-                          >
-                            {b.bank}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <div className="inline-flex items-center gap-1">
-                            <input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              max="30"
-                              value={b.firstYearRate ?? 0}
-                              onChange={(e) =>
-                                handleLoanChange(
-                                  b.id,
-                                  'firstYearRate',
-                                  parseFloat(e.target.value) || 0
-                                )
-                              }
-                              className={cn(
-                                'w-20 px-2 py-1 text-center font-mono font-bold rounded border text-xs',
-                                isDarkMode
-                                  ? 'bg-[#131B2E] border-[#3E4850]/50 text-emerald-400 focus:border-emerald-500'
-                                  : 'bg-white border-slate-300 text-emerald-600 focus:border-emerald-500'
-                              )}
-                            />
-                            <span className="font-mono text-xs text-slate-400">%</span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <div className="inline-flex items-center gap-1">
-                            <input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              max="30"
-                              value={b.floatRate ?? 0}
-                              onChange={(e) =>
-                                handleLoanChange(
-                                  b.id,
-                                  'floatRate',
-                                  parseFloat(e.target.value) || 0
-                                )
-                              }
-                              className={cn(
-                                'w-20 px-2 py-1 text-center font-mono font-semibold rounded border text-xs',
-                                isDarkMode
-                                  ? 'bg-[#131B2E] border-[#3E4850]/50 text-amber-400 focus:border-amber-500'
-                                  : 'bg-white border-slate-300 text-amber-600 focus:border-amber-500'
-                              )}
-                            />
-                            <span className="font-mono text-xs text-slate-400">%</span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <div className="inline-flex items-center gap-1">
-                            <input
-                              type="number"
-                              step="1"
-                              min="1"
-                              max="20"
-                              value={b.maxTenorYears ?? 8}
-                              onChange={(e) =>
-                                handleLoanChange(
-                                  b.id,
-                                  'maxTenorYears',
-                                  parseInt(e.target.value, 10) || 1
-                                )
-                              }
-                              className={cn(
-                                'w-16 px-2 py-1 text-center font-mono rounded border text-xs',
-                                isDarkMode
-                                  ? 'bg-[#131B2E] border-[#3E4850]/50 text-white focus:border-blue-500'
-                                  : 'bg-white border-slate-300 text-slate-900 focus:border-blue-500'
-                              )}
-                            />
-                            <span className="font-sans text-xs text-slate-400">Năm</span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <div className="inline-flex items-center gap-1">
-                            <span className="font-sans text-xs text-slate-400">Tối đa</span>
-                            <input
-                              type="number"
-                              step="1"
-                              min="10"
-                              max="100"
-                              value={b.maxLtvPercent ?? 80}
-                              onChange={(e) =>
-                                handleLoanChange(
-                                  b.id,
-                                  'maxLtvPercent',
-                                  parseInt(e.target.value, 10) || 10
-                                )
-                              }
-                              className={cn(
-                                'w-16 px-2 py-1 text-center font-mono font-bold rounded border text-xs',
-                                isDarkMode
-                                  ? 'bg-[#131B2E] border-[#3E4850]/50 text-[#89CEFF] focus:border-blue-500'
-                                  : 'bg-white border-slate-300 text-blue-600 focus:border-blue-500'
-                              )}
-                            />
-                            <span className="font-mono text-xs text-slate-400">%</span>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </>
-      )}
+      {/* Modals */}
+      <CreateOrEditFeeModal
+        isOpen={isFeeModalOpen}
+        onClose={closeFeeModal}
+        onSave={handleSaveFee}
+        editingFee={editingFee}
+        provinces={provinces}
+        isSubmitting={isSubmitting}
+      />
+
+      <CreateOrEditLoanModal
+        isOpen={isLoanModalOpen}
+        onClose={closeLoanModal}
+        onSave={handleSaveLoan}
+        editingLoan={editingLoan}
+        isSubmitting={isSubmitting}
+      />
     </div>
   );
 };

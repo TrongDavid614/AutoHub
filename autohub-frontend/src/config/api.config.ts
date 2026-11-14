@@ -73,6 +73,8 @@ export const API_CONFIG = {
       REFUNDS: '/admin/refunds',
       VOUCHERS: '/admin/vouchers',
       FEE_TABLE: '/admin/registration-fees',
+      FEES_LOANS: '/admin/registration-fees/loans',
+      FEES_STATS: '/admin/registration-fees/stats',
       CARS: '/admin/cars',
       VECTOR_SYNC: '/admin/cars/sync-vector-db',
       AI_COPILOT: '/admin/ai/copilot',
