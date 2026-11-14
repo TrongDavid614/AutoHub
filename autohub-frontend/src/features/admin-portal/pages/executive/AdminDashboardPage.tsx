@@ -10,6 +10,7 @@ import { RevenueAndCashflowChart } from '@/features/admin-portal/components/Reve
 import { RegionalBreakupCard } from '@/features/admin-portal/components/RegionalBreakupCard';
 import { UrgentActionQueue } from '@/features/admin-portal/components/UrgentActionQueue';
 import { AiEngineMonitorCard } from '@/features/admin-portal/components/AiEngineMonitorCard';
+import { AdminAiCopilotDrawer } from '@/features/admin-portal/components/AdminAiCopilotDrawer';
 import { useAdminDashboard } from '@/features/admin-portal/hooks/useAdminDashboard';
 
 export const AdminDashboardPage: React.FC = () => {
@@ -177,6 +178,9 @@ export const AdminDashboardPage: React.FC = () => {
 
       {/* 6. INFRASTRUCTURE & AI GEMINI API ENGINE HEALTH MONITOR */}
       <AiEngineMonitorCard />
+
+      {/* 7. ADMIN AI COPILOT INTERACTIVE DRAWER */}
+      <AdminAiCopilotDrawer />
     </div>
   );
 };
