@@ -4,6 +4,7 @@ import { useAdminTheme } from '@/context/AdminThemeContext';
 import type { UrgentDeposit } from '@/types/admin-dashboard.types';
 import { MOCK_URGENT_DEPOSITS } from '../mocks/dashboard.mock';
 import { formatCurrencyVND } from '@/lib/utils';
+import { adminDashboardService } from '../services/admin-dashboard.service';
 
 export interface UrgentActionQueueProps {
   deposits?: UrgentDeposit[];
@@ -15,6 +16,8 @@ export const UrgentActionQueue: React.FC<UrgentActionQueueProps> = ({
   const { isDarkMode } = useAdminTheme();
   const [items, setItems] = useState<UrgentDeposit[]>(deposits);
   const [nudgedIds, setNudgedIds] = useState<string[]>([]);
+  const [nudgingId, setNudgingId] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [activeModalItem, setActiveModalItem] = useState<UrgentDeposit | null>(null);
 
   // Sync items when deposits prop updates
@@ -43,9 +46,21 @@ export const UrgentActionQueue: React.FC<UrgentActionQueueProps> = ({
     return `Còn ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
-  const handleNudgeStaff = (id: string, staffName: string) => {
-    setNudgedIds((prev) => [...prev, id]);
-    alert(`Đã gửi thông báo đẩy khẩn cấp & SMS tới ${staffName} để đốc thúc hoàn tất hợp đồng cho khách!`);
+  const handleNudgeStaff = async (id: string, staffName: string) => {
+    if (nudgingId || nudgedIds.includes(id)) return;
+    setNudgingId(id);
+    try {
+      const msg = await adminDashboardService.nudgeStaff(id);
+      setNudgedIds((prev) => [...prev, id]);
+      setToastMessage(msg || `Đã gửi thông báo ưu tiên cao tới ${staffName}!`);
+      setTimeout(() => setToastMessage(null), 4000);
+    } catch (err: unknown) {
+      console.error('Nudge staff error:', err);
+      setToastMessage(`Không thể gửi thông báo tới ${staffName}. Vui lòng thử lại!`);
+      setTimeout(() => setToastMessage(null), 4000);
+    } finally {
+      setNudgingId(null);
+    }
   };
 
   return (
@@ -85,6 +100,20 @@ export const UrgentActionQueue: React.FC<UrgentActionQueueProps> = ({
           <span className="text-emerald-500 font-bold">Mỗi 60s</span>
         </div>
       </div>
+
+      {/* Toast Feedback */}
+      {toastMessage && (
+        <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-mono flex items-center justify-between animate-fade-in">
+          <span>{toastMessage}</span>
+          <button
+            type="button"
+            onClick={() => setToastMessage(null)}
+            className="text-emerald-500 hover:text-emerald-700 dark:hover:text-white ml-2 text-xs cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Table Data */}
       <div className="overflow-x-auto -mx-6 px-6">
@@ -199,7 +228,7 @@ export const UrgentActionQueue: React.FC<UrgentActionQueueProps> = ({
                       <button
                         type="button"
                         onClick={() => handleNudgeStaff(item.id, item.assignedStaff)}
-                        disabled={hasNudged}
+                        disabled={hasNudged || nudgingId === item.id}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                           hasNudged
                             ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
@@ -208,7 +237,12 @@ export const UrgentActionQueue: React.FC<UrgentActionQueueProps> = ({
                               : 'bg-amber-50 hover:bg-amber-500 text-amber-700 hover:text-white border border-amber-300'
                         }`}
                       >
-                        {hasNudged ? (
+                        {nudgingId === item.id ? (
+                          <>
+                            <Clock className="w-3 h-3 animate-spin" />
+                            <span>Đang Gửi...</span>
+                          </>
+                        ) : hasNudged ? (
                           <>
                             <Check className="w-3 h-3" />
                             <span>Đã Nhắc</span>

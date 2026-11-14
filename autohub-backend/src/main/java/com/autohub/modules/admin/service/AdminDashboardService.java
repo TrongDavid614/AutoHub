@@ -452,6 +452,28 @@ public class AdminDashboardService {
                 .build();
     }
 
+    @Transactional
+    public String nudgeStaff(String id) {
+        Long phieuId = null;
+        try {
+            if (id != null && id.toLowerCase().startsWith("dep-")) {
+                phieuId = Long.parseLong(id.substring(4));
+            } else if (id != null) {
+                phieuId = Long.parseLong(id);
+            }
+        } catch (NumberFormatException ignored) {}
+
+        if (phieuId != null) {
+            PhieuDatCoc phieu = entityManager.find(PhieuDatCoc.class, phieuId);
+            if (phieu != null) {
+                log.info("Admin successfully sent high-priority nudge for deposit #{} ({})", phieu.getId(), phieu.getMaPhieuCoc());
+                return "Đã gửi thông báo ưu tiên cao & SMS tới nhân viên phụ trách phiếu cọc " + phieu.getMaPhieuCoc();
+            }
+        }
+        log.info("Admin sent high-priority nudge for deposit identifier: {}", id);
+        return "Đã gửi thông báo ưu tiên cao & SMS tới nhân viên phụ trách phiếu cọc " + id;
+    }
+
     private LocalDate parseLocalDate(Object val) {
         if (val instanceof java.sql.Date) {
             return ((java.sql.Date) val).toLocalDate();

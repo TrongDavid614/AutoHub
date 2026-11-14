@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Sparkles, Download, RefreshCw, Cpu, Database } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
 import { cn } from '@/lib/utils';
+import { adminCarService } from '../services/admin-car.service';
 
 export interface AdminWelcomeBannerProps {
   onRefresh?: () => void;
@@ -16,14 +17,22 @@ export const AdminWelcomeBanner: React.FC<AdminWelcomeBannerProps> = ({
   const [isSyncingVector, setIsSyncingVector] = useState(false);
   const [syncSuccessMsg, setSyncSuccessMsg] = useState<string | null>(null);
 
-  const handleSyncVector = () => {
+  const handleSyncVector = async () => {
+    if (isSyncingVector) return;
     setIsSyncingVector(true);
     setSyncSuccessMsg(null);
-    setTimeout(() => {
+    try {
+      const res = await adminCarService.syncVectorDb();
+      setSyncSuccessMsg(res.message || 'Đã đồng bộ vector database cho AI thành công!');
+      setTimeout(() => setSyncSuccessMsg(null), 6000);
+    } catch (err: unknown) {
+      console.error('Vector sync error:', err);
+      const msg = err instanceof Error ? err.message : 'Lỗi đồng bộ vector database cho AI';
+      setSyncSuccessMsg('Đồng bộ thất bại: ' + msg);
+      setTimeout(() => setSyncSuccessMsg(null), 6000);
+    } finally {
       setIsSyncingVector(false);
-      setSyncSuccessMsg('Đã băm nhỏ & đồng bộ 1.250 Vector Embeddings xe vào Vector Database cho Gemini AI thành công (18ms)!');
-      setTimeout(() => setSyncSuccessMsg(null), 5000);
-    }, 1200);
+    }
   };
 
   return (
