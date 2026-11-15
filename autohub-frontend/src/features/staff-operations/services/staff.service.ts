@@ -1,3 +1,4 @@
+import { API_CONFIG } from '@/config/api.config';
 import { axiosClient } from '@/lib/axios';
 import type { ApiResponse } from '@/types/api.types';
 import type {
@@ -35,28 +36,38 @@ export const staffService = {
   },
 
   // 2. Đối soát cọc và gán VIN (UC22)
-  async getStaffDeposits(): Promise<StaffDepositRecord[]> {
-    const res = await axiosClient.get<ApiResponse<StaffDepositRecord[]>>('/staff/deposits');
+  async getStaffDeposits(signal?: AbortSignal): Promise<StaffDepositRecord[]> {
+    const res = await axiosClient.get<ApiResponse<StaffDepositRecord[]>>(
+      API_CONFIG.ENDPOINTS.STAFF.DEPOSIT_AUDIT,
+      { signal }
+    );
     const apiRes = res as unknown as ApiResponse<StaffDepositRecord[]>;
     return apiRes.data || [];
   },
 
-  async getAvailableVins(): Promise<AvailableVinOption[]> {
-    const res = await axiosClient.get<ApiResponse<AvailableVinOption[]>>('/staff/deposits/available-vins');
+  async getAvailableVins(depositId?: string, signal?: AbortSignal): Promise<AvailableVinOption[]> {
+    const url = depositId
+      ? `${API_CONFIG.ENDPOINTS.STAFF.DEPOSIT_AUDIT}/available-vins?depositId=${depositId}`
+      : `${API_CONFIG.ENDPOINTS.STAFF.DEPOSIT_AUDIT}/available-vins`;
+    const res = await axiosClient.get<ApiResponse<AvailableVinOption[]>>(url, { signal });
     const apiRes = res as unknown as ApiResponse<AvailableVinOption[]>;
     return apiRes.data || [];
   },
 
   async assignVinToDeposit(depositId: string, vinNumber: string): Promise<string> {
-    const res = await axiosClient.post<ApiResponse<string>>(`/staff/deposits/${depositId}/assign-vin`, {
-      vinNumber,
-    });
+    const res = await axiosClient.post<ApiResponse<string>>(
+      `${API_CONFIG.ENDPOINTS.STAFF.DEPOSIT_AUDIT}/${depositId}/assign-vin`,
+      { vinNumber }
+    );
     const apiRes = res as unknown as ApiResponse<string>;
     return apiRes.data;
   },
 
   async signContract(depositId: string): Promise<string> {
-    const res = await axiosClient.post<ApiResponse<string>>(`/staff/deposits/${depositId}/sign-contract`, {});
+    const res = await axiosClient.post<ApiResponse<string>>(
+      `${API_CONFIG.ENDPOINTS.STAFF.DEPOSIT_AUDIT}/${depositId}/sign-contract`,
+      {}
+    );
     const apiRes = res as unknown as ApiResponse<string>;
     return apiRes.data;
   },
