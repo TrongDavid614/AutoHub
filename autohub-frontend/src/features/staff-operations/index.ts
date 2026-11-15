@@ -17,5 +17,6 @@ export * from './pages/logistics-inventory/StockTransferPage';
 export * from './pages/fleet-shifts/FleetMaintenancePage';
 export * from './pages/fleet-shifts/ShiftHandoverPage';
 
-// Mocks
+// Domain Types & Mocks
+export * from '@/types/staff.types';
 export * from './mocks/staff.mock';

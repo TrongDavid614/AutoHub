@@ -15,6 +15,7 @@ public interface XeDemoRepository extends JpaRepository<XeDemo, Long> {
     long countByPhienBanXeIdAndTrangThaiAndDangHoatDongTrue(Long phienBanXeId, TrangThaiXeDemo trangThai);
 
     List<XeDemo> findByShowroomIdOrderByIdDesc(Long showroomId);
+    java.util.Optional<XeDemo> findByBienSoIgnoreCase(String bienSo);
     long countByShowroomId(Long showroomId);
     long countByShowroomIdAndTrangThai(Long showroomId, TrangThaiXeDemo trangThai);
     long countByTrangThai(TrangThaiXeDemo trangThai);

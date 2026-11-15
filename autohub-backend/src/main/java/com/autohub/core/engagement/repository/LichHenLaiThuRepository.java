@@ -11,4 +11,5 @@ import java.util.List;
 public interface LichHenLaiThuRepository extends JpaRepository<LichHenLaiThu, Long> {
     List<LichHenLaiThu> findByNguoiDungId(Long nguoiDungId);
     List<LichHenLaiThu> findByTrangThai(TrangThaiLichHen trangThai);
+    long countByTrangThai(TrangThaiLichHen trangThai);
 }
