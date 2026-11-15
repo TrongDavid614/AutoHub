@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import type { TrimType } from '../../hooks/useCarDetail';
 import { EXTERIOR_COLORS } from '../../types/detail.types';
+import type { MockCar } from '../../mocks/car.mock';
 
 interface CarConfiguratorPanelProps {
   activeTrim: TrimType;
@@ -23,6 +24,7 @@ interface CarConfiguratorPanelProps {
   activeColor: string;
   onSelectColor: (colorId: string) => void;
   onOpenDeposit?: () => void;
+  car?: MockCar | null;
 }
 
 export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
@@ -31,42 +33,62 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
   activeColor,
   onSelectColor,
   onOpenDeposit,
+  car,
 }) => {
   const navigate = useNavigate();
 
-  const trims = [
-    {
-      id: 'standard' as TrimType,
-      name: 'Standard GT',
-      badge: 'TIÊU CHUẨN',
-      power: '520 HP',
-      range: 'Phạm vi 580 km • RWD Dual Mode',
-      price: '2.490.000.000 đ',
-      priceNum: 2490000000,
-    },
-    {
-      id: 'performance' as TrimType,
-      name: 'GT-e Performance',
-      badge: 'KHUYÊN DÙNG',
-      power: '680 HP',
-      range: 'Phạm vi 680 km • Dual Motor AWD',
-      price: '2.890.000.000 đ',
-      priceNum: 2890000000,
-      isRecommended: true,
-    },
-    {
-      id: 'track' as TrimType,
-      name: 'Track Edition RS',
-      badge: 'HYPER TRACK',
-      power: '820 HP',
-      range: 'Phạm vi 620 km • Tri-Motor Torque Vectoring',
-      price: '3.490.000.000 đ',
-      priceNum: 3490000000,
-    },
-  ];
+  const dynamicTrims = (car?.variants && car.variants.length > 0)
+    ? car.variants.map((v) => ({
+        id: String(v.id) as TrimType,
+        name: v.variantName || v.tenPhienBan || 'Phiên bản',
+        badge: v.badge || (v.listedPrice >= 2000000000 ? 'KHUYÊN DÙNG' : 'TIÊU CHUẨN'),
+        power: v.desc || (car.power || '500 HP'),
+        range: v.tamHoatDongKm ? `Phạm vi ${v.tamHoatDongKm} km` : (v.transmission || 'Tự động'),
+        price: `${(v.listedPrice || v.giaNiemYet || 0).toLocaleString('vi-VN')} đ`,
+        priceNum: v.listedPrice || v.giaNiemYet || 0,
+        isRecommended: v.isCurrent || v.listedPrice >= 2000000000,
+      }))
+    : [
+        {
+          id: 'standard' as TrimType,
+          name: 'Standard GT',
+          badge: 'TIÊU CHUẨN',
+          power: '520 HP',
+          range: 'Phạm vi 580 km • RWD Dual Mode',
+          price: '2.490.000.000 đ',
+          priceNum: 2490000000,
+        },
+        {
+          id: 'performance' as TrimType,
+          name: 'GT-e Performance',
+          badge: 'KHUYÊN DÙNG',
+          power: '680 HP',
+          range: 'Phạm vi 680 km • Dual Motor AWD',
+          price: '2.890.000.000 đ',
+          priceNum: 2890000000,
+          isRecommended: true,
+        },
+        {
+          id: 'track' as TrimType,
+          name: 'Track Edition RS',
+          badge: 'HYPER TRACK',
+          power: '820 HP',
+          range: 'Phạm vi 620 km • Tri-Motor Torque Vectoring',
+          price: '3.490.000.000 đ',
+          priceNum: 3490000000,
+        },
+      ];
 
-  const selectedTrimObj = trims.find((t) => t.id === activeTrim) || trims[1];
-  const selectedColorObj = EXTERIOR_COLORS.find((c) => c.id === activeColor) || EXTERIOR_COLORS[0];
+  const dynamicColors = (car?.availableColors && car.availableColors.length > 0)
+    ? car.availableColors.map((c, idx) => ({
+        id: String(c.id || idx + 1),
+        name: c.name || c.colorName || 'Màu ngoại thất',
+        hex: c.hex || c.colorCodeHex || '#0284C7',
+      }))
+    : EXTERIOR_COLORS;
+
+  const selectedTrimObj = dynamicTrims.find((t) => t.id === activeTrim) || dynamicTrims[0];
+  const selectedColorObj = dynamicColors.find((c) => c.id === activeColor) || dynamicColors[0];
 
   return (
     <div className="flex flex-col gap-5">
@@ -89,10 +111,10 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
         {/* Title & Subtitle */}
         <div className="space-y-1">
           <h1 className="text-xl md:text-2xl font-bold text-text-primary tracking-tight">
-            AutoHub GT-e Grand Touring
+            {car?.name || 'AutoHub GT-e Grand Touring'}
           </h1>
           <p className="text-sm text-text-muted leading-relaxed mt-0.5">
-            Sự giao thoa hoàn mỹ giữa sức mạnh siêu xe và đẳng cấp công nghệ di chuyển bền vững kiến trúc 800V SiC.
+            {car?.subtitle || 'Sự giao thoa hoàn mỹ giữa sức mạnh siêu xe và đẳng cấp công nghệ di chuyển bền vững kiến trúc 800V SiC.'}
           </p>
         </div>
 
@@ -106,14 +128,14 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
           <div className="flex items-baseline justify-between gap-2">
             <div className="flex items-baseline gap-1.5">
               <span className="text-2xl sm:text-3xl font-black font-mono text-accent-primary">
-                {selectedTrimObj.priceNum.toLocaleString('vi-VN')}
+                {(car?.listedPrice || selectedTrimObj.priceNum).toLocaleString('vi-VN')}
               </span>
               <span className="text-xs font-mono font-bold text-text-muted">VNĐ</span>
             </div>
 
             <button
               type="button"
-              onClick={() => navigate('/car-estimator')}
+              onClick={() => navigate(car?.id ? `/car-estimator?carId=${car.id}` : '/car-estimator')}
               className="inline-flex items-center gap-1 text-xs text-accent-primary hover:underline font-semibold cursor-pointer"
             >
               <Calculator className="w-3.5 h-3.5" />
@@ -127,7 +149,7 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs font-bold text-accent-primary">
               <ShieldCheck className="w-4 h-4 text-accent-primary" />
-              <span>Mức tiền cọc cố định: 20.000.000 VNĐ</span>
+              <span>Mức tiền cọc cố định: {(car?.depositAmount || 20000000).toLocaleString('vi-VN')} VNĐ</span>
             </div>
             <span className="px-2 py-0.5 rounded-[2px] bg-accent-action text-[10px] font-mono text-accent-contrast font-bold">
               QUY CHẾ BR05
@@ -156,12 +178,17 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
         </div>
 
         <div className="space-y-2.5">
-          {trims.map((trim) => {
-            const isSelected = activeTrim === trim.id;
+          {dynamicTrims.map((trim) => {
+            const isSelected = activeTrim === trim.id || String(car?.id) === String(trim.id);
             return (
               <div
                 key={trim.id}
-                onClick={() => onSelectTrim(trim.id)}
+                onClick={() => {
+                  onSelectTrim(trim.id);
+                  if (car?.variants && car.variants.some((v) => String(v.id) === String(trim.id)) && String(car.id) !== String(trim.id)) {
+                    navigate(`/cars/${trim.id}`);
+                  }
+                }}
                 className={`p-3.5 rounded-lg border transition-all cursor-pointer relative ${
                   isSelected
                     ? 'bg-surface-container border-accent-primary shadow-[0_0_15px_rgba(137,206,255,0.2)]'
@@ -174,7 +201,7 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
                       <span className="font-bold text-sm text-text-primary">{trim.name}</span>
                       {trim.isRecommended && (
                         <span className="px-1.5 py-0.5 rounded-[2px] bg-accent-action text-[9px] font-mono font-bold text-accent-contrast">
-                          KHUYÊN DÙNG
+                          {trim.badge || 'KHUYÊN DÙNG'}
                         </span>
                       )}
                     </div>
@@ -208,9 +235,9 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
           </span>
         </div>
 
-        <div className="flex items-center gap-3 pt-1">
-          {EXTERIOR_COLORS.map((color) => {
-            const isSelected = activeColor === color.id;
+        <div className="flex items-center gap-3 pt-1 flex-wrap">
+          {dynamicColors.map((color) => {
+            const isSelected = activeColor === color.id || activeColor === color.name;
             return (
               <button
                 key={color.id}
@@ -230,7 +257,7 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
                 {isSelected && (
                   <span className="absolute inset-0 flex items-center justify-center">
                     <Check className={`w-4 h-4 stroke-[3] ${
-                      color.id === 'white' ? 'text-canvas-deep' : 'text-white'
+                      color.hex?.toLowerCase() === '#ffffff' || color.hex?.toLowerCase() === '#f8fafc' ? 'text-canvas-deep' : 'text-white'
                     }`} />
                   </span>
                 )}
@@ -298,7 +325,7 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
 
         <button
           type="button"
-          onClick={() => navigate('/test-drive')}
+          onClick={() => navigate(car?.id ? `/test-drive?carId=${car.id}` : '/test-drive')}
           className="w-full py-3.5 px-6 rounded-lg bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight hover:border-accent-primary/50 text-text-primary hover:text-accent-primary font-bold text-xs tracking-wider uppercase flex items-center justify-center gap-2 transition-all cursor-pointer"
         >
           <Calendar className="w-4 h-4 text-accent-primary" />

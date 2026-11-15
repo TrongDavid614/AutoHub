@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Building2, MapPin, ShoppingBag, Users, PackageCheck } from 'lucide-react';
-import { MOCK_REGIONAL_REVENUES, type RegionalRevenue } from '../mocks/dashboard.mock';
+import type { RegionalRevenue } from '@/types/admin-dashboard.types';
+import { MOCK_REGIONAL_REVENUES } from '../mocks/dashboard.mock';
 import { useAdminTheme } from '@/context/AdminThemeContext';
 import { cn } from '@/lib/utils';
 
@@ -26,17 +27,19 @@ export const RegionalBreakupCard: React.FC<RegionalBreakupCardProps> = ({
 
   // Precalculate slice positions
   const slices = useMemo(() => {
-    let accPercent = 0;
-    return revenues.map((item) => {
+    let currentAcc = 0;
+    const result = [];
+    for (const item of revenues) {
       const strokeDasharray = `${(item.percentage / 100) * circumference} ${circumference}`;
-      const strokeDashoffset = -((accPercent / 100) * circumference);
-      accPercent += item.percentage;
-      return {
+      const strokeDashoffset = -((currentAcc / 100) * circumference);
+      currentAcc += item.percentage;
+      result.push({
         ...item,
         strokeDasharray,
         strokeDashoffset,
-      };
-    });
+      });
+    }
+    return result;
   }, [revenues, circumference]);
 
   const handleSliceMouseMove = (e: React.MouseEvent<SVGElement | HTMLDivElement>, item: RegionalRevenue) => {

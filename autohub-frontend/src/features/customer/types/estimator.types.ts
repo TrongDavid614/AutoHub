@@ -1,4 +1,4 @@
-export type TrimId = 'luxury' | 'grand_touring' | 'track';
+export type TrimId = string;
 
 export interface TrimOption {
   id: TrimId;

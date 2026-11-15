@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   Filter, 
@@ -13,7 +13,8 @@ import {
   Scale,
   CheckCircle2
 } from 'lucide-react';
-import { MOCK_CARS, type MockCar } from '@/features/customer/mocks/car.mock';
+import type { MockCar } from '@/features/customer/mocks/car.mock';
+import { carService } from '@/features/customer/services/car.service';
 import { useCompareStore } from '@/store/useCompareStore';
 import { useStickySidebar } from '@/hooks/useStickySidebar';
 
@@ -25,28 +26,59 @@ export const CarListPage: React.FC = () => {
   // View Mode: 'row' (Bộ Sưu tập dòng xe dạng row) vs 'grid' (Bộ Sưu tập dòng xe)
   const [viewMode, setViewMode] = useState<'row' | 'grid'>('row');
 
-  // Filters state matching Figma
-  const [selectedSegment, setSelectedSegment] = useState<string>('Sedan thể thao');
-  const [priceRange, setPriceRange] = useState<string>('2 - 3 tỷ');
-  const [selectedPowertrains, setSelectedPowertrains] = useState<string[]>(['Thuần điện EV 800V SiC']);
+  // Real Database Cars state
+  const [cars, setCars] = useState<MockCar[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchCars = () => {
+    setLoading(true);
+    setError(null);
+    carService.getAllCars()
+      .then((data) => {
+        setCars(data || []);
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : 'Không thể kết nối đến máy chủ cơ sở dữ liệu xe.');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    fetchCars();
+  }, []);
+
+  // Filters state
+  const [selectedSegment, setSelectedSegment] = useState<string>('all');
+  const [priceRange, setPriceRange] = useState<string>('all');
+  const [selectedPowertrains, setSelectedPowertrains] = useState<string[]>([]);
   const [selectedSeats, setSelectedSeats] = useState<string>('all');
   const [selectedColor, setSelectedColor] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('recommended');
 
+  const activeFilterCount = useMemo(() => {
+    return (
+      (selectedSegment !== 'all' ? 1 : 0) +
+      (priceRange !== 'all' ? 1 : 0) +
+      selectedPowertrains.length +
+      (selectedSeats !== 'all' ? 1 : 0) +
+      (selectedColor !== 'all' ? 1 : 0)
+    );
+  }, [selectedSegment, priceRange, selectedPowertrains, selectedSeats, selectedColor]);
 
+  const filterSegments = useMemo(() => {
+    const map = new Map<string, number>();
+    cars.forEach((car) => {
+      map.set(car.segment, (map.get(car.segment) || 0) + 1);
+    });
+    return Array.from(map.entries()).map(([label, count]) => ({ label, count }));
+  }, [cars]);
 
-  const filterSegments = [
-    { label: 'Sedan thể thao', count: 4 },
-    { label: 'SUV Đa dụng', count: 2 },
-    { label: 'GT Hypercar', count: 1 },
-    { label: 'Shooting Brake', count: 1 },
-  ];
-
-  const powertrains = [
-    'Thuần điện EV 800V SiC',
-    'Dual-Motor AWD',
-    'Tri-Motor Hyper AWD',
-  ];
+  const powertrains = useMemo(() => {
+    return Array.from(new Set(cars.map((c) => c.powertrain)));
+  }, [cars]);
 
   const colors = [
     { name: 'Xanh Phantom', hex: '#00A6E0' },
@@ -70,16 +102,34 @@ export const CarListPage: React.FC = () => {
   };
 
   const filteredCars = useMemo(() => {
-    return MOCK_CARS.filter((car) => {
+    return cars.filter((car) => {
       if (selectedSegment !== 'all' && car.segment !== selectedSegment) return false;
       if (selectedPowertrains.length > 0 && !selectedPowertrains.includes(car.powertrain)) return false;
+      if (selectedSeats !== 'all') {
+        const seatsNum = car.seats.match(/\d+/)?.[0];
+        if (seatsNum !== selectedSeats) return false;
+      }
+      if (selectedColor !== 'all') {
+        const hasColor = car.availableColors.some((c) =>
+          c.name.toLowerCase().includes(selectedColor.toLowerCase())
+        );
+        if (!hasColor) return false;
+      }
+      if (priceRange === '< 2 tỷ' && car.listedPrice >= 2000000000) return false;
+      if (priceRange === '2 - 3 tỷ' && (car.listedPrice < 2000000000 || car.listedPrice > 3000000000)) return false;
+      if (priceRange === '> 3 tỷ' && car.listedPrice <= 3000000000) return false;
       return true;
+    }).sort((a, b) => {
+      if (sortBy === 'price-asc') return a.listedPrice - b.listedPrice;
+      if (sortBy === 'price-desc') return b.listedPrice - a.listedPrice;
+      return 0;
     });
-  }, [selectedSegment, selectedPowertrains]);
+  }, [cars, selectedSegment, selectedPowertrains, selectedSeats, selectedColor, priceRange, sortBy]);
 
   const handleCompare = (car: MockCar) => {
+    const realId = Number(car.id) || 1;
     addVariantToCompare({
-      id: Math.abs(car.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)),
+      id: realId,
       modelId: 1,
       variantName: car.name,
       engineSpecs: car.powertrain,
@@ -91,7 +141,9 @@ export const CarListPage: React.FC = () => {
       colors: car.availableColors.map((c, i) => ({ id: i + 1, colorName: c.name, colorCodeHex: c.hex })),
       images: [{ id: 1, imageUrl: car.image, viewType: 'THUMBNAIL', displayOrder: 1 }],
     });
-    navigate('/car-comparison');
+    const currentVariants = useCompareStore.getState().selectedVariants;
+    const ids = currentVariants.map((v) => v.id).join(',');
+    navigate(`/car-comparison?ids=${ids}`);
   };
 
   return (
@@ -139,12 +191,17 @@ export const CarListPage: React.FC = () => {
               <Filter className="w-4 h-4 text-[#89CEFF]" />
               <span className="font-mono text-xs">BỘ LỌC TÌM KIẾM</span>
             </div>
-            <button
-              onClick={handleResetFilters}
-              className="text-[10px] font-mono font-bold text-[#89CEFF] underline hover:text-white transition-colors"
-            >
-              Xóa bộ lọc (3)
-            </button>
+            {activeFilterCount > 0 ? (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="text-[10px] font-mono font-bold text-[#89CEFF] underline hover:text-white transition-colors cursor-pointer"
+              >
+                Xóa bộ lọc ({activeFilterCount})
+              </button>
+            ) : (
+              <span className="text-[10px] font-mono text-[#88929B]">Tất cả</span>
+            )}
           </div>
 
           {/* Section 1: Phân khúc xe (Segment) */}
@@ -191,15 +248,15 @@ export const CarListPage: React.FC = () => {
               <span className="text-[#89CEFF]">VNĐ</span>
             </div>
             <div className="text-sm font-mono font-bold text-[#89CEFF]">
-              1.5 tỷ – 3.5 tỷ VNĐ
+              {priceRange === 'all' ? 'Toàn bộ khoảng giá' : priceRange}
             </div>
             <div className="grid grid-cols-3 gap-1 pt-1">
               {['< 2 tỷ', '2 - 3 tỷ', '> 3 tỷ'].map((pr) => (
                 <button
                   key={pr}
                   type="button"
-                  onClick={() => setPriceRange(pr)}
-                  className={`py-1.5 px-1 rounded-[2px] text-[10px] font-mono font-bold transition-all text-center ${
+                  onClick={() => setPriceRange(priceRange === pr ? 'all' : pr)}
+                  className={`py-1.5 px-1 rounded-[2px] text-[10px] font-mono font-bold transition-all text-center cursor-pointer ${
                     priceRange === pr
                       ? 'bg-[#89CEFF] text-[#00344D] shadow-[0_0_8px_rgba(14,165,233,0.4)]'
                       : 'bg-[#171F33] text-[#BEC8D2] hover:bg-[#222A3D]'
@@ -248,29 +305,28 @@ export const CarListPage: React.FC = () => {
             <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-[#88929B]">
               SỐ CHỖ NGỒI (SEATS)
             </label>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setSelectedSeats('4')}
-                className={`py-2 px-2 rounded-[2px] text-center text-xs font-semibold transition-all ${
-                  selectedSeats === '4'
-                    ? 'bg-[#171F33] text-[#89CEFF] border border-[#89CEFF]/50 shadow-sm'
-                    : 'bg-[#2D3449]/40 text-[#BEC8D2] hover:bg-[#2D3449]/70'
-                }`}
-              >
-                4 chỗ VIP
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedSeats('5')}
-                className={`py-2 px-2 rounded-[2px] text-center text-xs font-semibold transition-all ${
-                  selectedSeats === '5'
-                    ? 'bg-[#171F33] text-[#89CEFF] border border-[#89CEFF]/50 shadow-sm'
-                    : 'bg-[#2D3449]/40 text-[#BEC8D2] hover:bg-[#2D3449]/70'
-                }`}
-              >
-                5 chỗ tiêu chuẩn
-              </button>
+            <div className="grid grid-cols-3 gap-1.5">
+              {[
+                { val: '4', label: '4 chỗ VIP' },
+                { val: '5', label: '5 chỗ' },
+                { val: '7', label: '7 chỗ' },
+              ].map((s) => {
+                const isSelected = selectedSeats === s.val;
+                return (
+                  <button
+                    key={s.val}
+                    type="button"
+                    onClick={() => setSelectedSeats(isSelected ? 'all' : s.val)}
+                    className={`py-2 px-1 rounded-[2px] text-center text-xs font-semibold transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#171F33] text-[#89CEFF] border border-[#89CEFF]/50 shadow-sm'
+                        : 'bg-[#2D3449]/40 text-[#BEC8D2] hover:bg-[#2D3449]/70'
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -286,8 +342,8 @@ export const CarListPage: React.FC = () => {
                   type="button"
                   title={c.name}
                   style={{ backgroundColor: c.hex }}
-                  onClick={() => setSelectedColor(c.name)}
-                  className={`w-6 h-6 rounded-full transition-all ${
+                  onClick={() => setSelectedColor(selectedColor === c.name ? 'all' : c.name)}
+                  className={`w-6 h-6 rounded-full transition-all cursor-pointer ${
                     selectedColor === c.name
                       ? 'ring-2 ring-[#89CEFF] ring-offset-2 ring-offset-[#131B2E] scale-110'
                       : 'border border-[#3E4850] hover:scale-105'
@@ -313,20 +369,74 @@ export const CarListPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-[#131B2E] border border-[#3E4850]/50 rounded-[4px] shadow-sm text-xs">
             <div className="flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-2 px-2.5 py-1 rounded-[2px] bg-[#171F33]">
-                <div className="w-2 h-2 rounded-full bg-[#00A6E0]" />
+                <div className={`w-2 h-2 rounded-full ${loading ? 'bg-amber-400 animate-ping' : 'bg-[#00A6E0]'}`} />
                 <span className="font-semibold text-[#DAE2FD]">
-                  Hiển thị {filteredCars.length} mẫu xe sẵn sàng giao
+                  {loading ? 'Đang đồng bộ dữ liệu từ cơ sở dữ liệu...' : `Hiển thị ${filteredCars.length} mẫu xe sẵn sàng giao`}
                 </span>
               </div>
-              <span className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#89CEFF] text-[10px] font-mono font-bold flex items-center gap-1.5">
-                Sedan thể thao <span className="cursor-pointer hover:text-white">✕</span>
-              </span>
-              <span className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#89CEFF] text-[10px] font-mono font-bold flex items-center gap-1.5">
-                Thuần điện EV 800V <span className="cursor-pointer hover:text-white">✕</span>
-              </span>
-              <span className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#89CEFF] text-[10px] font-mono font-bold flex items-center gap-1.5">
-                1.5 - 3.5 tỷ <span className="cursor-pointer hover:text-white">✕</span>
-              </span>
+              {selectedSegment !== 'all' && (
+                <span className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#89CEFF] text-[10px] font-mono font-bold flex items-center gap-1.5">
+                  {selectedSegment}{' '}
+                  <span
+                    onClick={() => setSelectedSegment('all')}
+                    className="cursor-pointer hover:text-white"
+                  >
+                    ✕
+                  </span>
+                </span>
+              )}
+              {priceRange !== 'all' && (
+                <span className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#89CEFF] text-[10px] font-mono font-bold flex items-center gap-1.5">
+                  {priceRange}{' '}
+                  <span
+                    onClick={() => setPriceRange('all')}
+                    className="cursor-pointer hover:text-white"
+                  >
+                    ✕
+                  </span>
+                </span>
+              )}
+              {selectedPowertrains.map((pt) => (
+                <span
+                  key={pt}
+                  className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#89CEFF] text-[10px] font-mono font-bold flex items-center gap-1.5"
+                >
+                  {pt}{' '}
+                  <span
+                    onClick={() => togglePowertrain(pt)}
+                    className="cursor-pointer hover:text-white"
+                  >
+                    ✕
+                  </span>
+                </span>
+              ))}
+              {selectedSeats !== 'all' && (
+                <span className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#89CEFF] text-[10px] font-mono font-bold flex items-center gap-1.5">
+                  {selectedSeats} chỗ{' '}
+                  <span
+                    onClick={() => setSelectedSeats('all')}
+                    className="cursor-pointer hover:text-white"
+                  >
+                    ✕
+                  </span>
+                </span>
+              )}
+              {selectedColor !== 'all' && (
+                <span className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#89CEFF] text-[10px] font-mono font-bold flex items-center gap-1.5">
+                  {selectedColor}{' '}
+                  <span
+                    onClick={() => setSelectedColor('all')}
+                    className="cursor-pointer hover:text-white"
+                  >
+                    ✕
+                  </span>
+                </span>
+              )}
+              {activeFilterCount === 0 && (
+                <span className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#88929B] text-[10px] font-mono">
+                  Đang xem toàn bộ xe AutoHub
+                </span>
+              )}
             </div>
 
             <div className="flex items-center gap-2.5 self-end sm:self-auto">
@@ -373,8 +483,44 @@ export const CarListPage: React.FC = () => {
             </div>
           </div>
 
+          {/* LOADING SKELETON */}
+          {loading && (
+            <div className="space-y-4">
+              {[1, 2, 3].map((idx) => (
+                <div key={idx} className="bg-[#131B2E] border border-[#3E4850]/50 rounded-[4px] p-4 shadow-xl animate-pulse">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch">
+                    <div className="md:col-span-4 bg-[#060E20] h-44 rounded" />
+                    <div className="md:col-span-5 space-y-3">
+                      <div className="h-6 w-3/4 bg-[#171F33] rounded" />
+                      <div className="h-4 w-1/2 bg-[#171F33] rounded" />
+                      <div className="h-20 bg-[rgba(34,42,61,0.3)] rounded" />
+                    </div>
+                    <div className="md:col-span-3 space-y-3">
+                      <div className="h-8 bg-[#171F33] rounded" />
+                      <div className="h-10 bg-[#171F33] rounded" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ERROR STATE */}
+          {error && (
+            <div className="p-8 text-center bg-rose-950/20 border border-rose-500/30 rounded-[4px] space-y-3">
+              <p className="text-rose-300 text-sm">{error}</p>
+              <button
+                type="button"
+                onClick={fetchCars}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded transition-colors cursor-pointer"
+              >
+                Thử lại
+              </button>
+            </div>
+          )}
+
           {/* VIEW MODE 1: ROW VIEW (BỘ SƯU TẬP DÒNG XE DẠNG ROW) */}
-          {viewMode === 'row' && (
+          {!loading && !error && viewMode === 'row' && (
             <div className="space-y-4">
               {filteredCars.map((car) => {
                 return (
@@ -508,7 +654,7 @@ export const CarListPage: React.FC = () => {
           )}
 
           {/* VIEW MODE 2: GRID VIEW (BỘ SƯU TẬP DÒNG XE 3 CỘT) */}
-          {viewMode === 'grid' && (
+          {!loading && !error && viewMode === 'grid' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredCars.map((car) => {
                 return (
@@ -633,11 +779,41 @@ export const CarListPage: React.FC = () => {
             </div>
           )}
 
+          {/* EMPTY STATE WHEN NO CARS MATCH FILTER */}
+          {filteredCars.length === 0 && !loading && (
+            <div className="p-12 text-center bg-[#131B2E] border border-[#3E4850]/50 rounded-[4px] space-y-4">
+              <div className="w-12 h-12 rounded-full bg-[#171F33] border border-[#3E4850]/60 mx-auto flex items-center justify-center text-[#89CEFF]">
+                <Filter className="w-6 h-6" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-base font-bold text-[#DAE2FD]">
+                  Không tìm thấy mẫu xe phù hợp
+                </h4>
+                <p className="text-xs text-[#88929B] max-w-md mx-auto">
+                  Hiện không có xe nào khớp với tất cả các tiêu chí lọc đã chọn. Hãy thử nới lỏng bộ lọc hoặc bấm nút bên dưới để xem toàn bộ danh mục xe.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="py-2.5 px-5 rounded-[2px] bg-[#0EA5E9] hover:bg-[#0EA5E9]/90 text-[#00344D] font-bold text-xs uppercase tracking-wider shadow-[0_0_15px_rgba(14,165,233,0.35)] transition-all cursor-pointer"
+              >
+                Xóa tất cả bộ lọc ({activeFilterCount})
+              </button>
+            </div>
+          )}
+
           {/* PAGINATION BAR MATCHING FIGMA */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-[#131B2E] border border-[#3E4850]/50 rounded-[4px] text-xs text-[#88929B]">
             <div>
-              Hiển thị <strong className="text-[#DAE2FD]">1 - 6</strong> trên tổng số{' '}
-              <strong className="text-[#DAE2FD]">{filteredCars.length}</strong> mẫu xe
+              {filteredCars.length === 0 ? (
+                <span>Không có mẫu xe nào hiển thị</span>
+              ) : (
+                <>
+                  Hiển thị <strong className="text-[#DAE2FD]">1 - {Math.min(6, filteredCars.length)}</strong> trên tổng số{' '}
+                  <strong className="text-[#DAE2FD]">{filteredCars.length}</strong> mẫu xe
+                </>
+              )}
             </div>
 
             <div className="flex items-center gap-1.5 font-mono">

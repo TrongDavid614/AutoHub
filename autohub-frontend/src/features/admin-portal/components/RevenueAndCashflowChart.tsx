@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TrendingUp } from 'lucide-react';
-import { MOCK_REVENUE_CHART_30_DAYS, type RevenueDataPoint } from '../mocks/dashboard.mock';
+import type { RevenueDataPoint } from '@/types/admin-dashboard.types';
+import { MOCK_REVENUE_CHART_30_DAYS } from '../mocks/dashboard.mock';
 import { formatCurrencyVND, cn } from '@/lib/utils';
 import { useAdminTheme } from '@/context/AdminThemeContext';
 
@@ -17,13 +18,13 @@ export const RevenueAndCashflowChart: React.FC<RevenueAndCashflowChartProps> = (
   const [timeRange, setTimeRange] = useState<'7D' | '30D' | '90D'>('30D');
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  // Filtered dataset
+  // Filtered dataset: 7D (last 7), 30D (last 30), 90D (all/last 90)
   const activeData =
     timeRange === '7D'
       ? data.slice(-7)
-      : timeRange === '90D'
-      ? data
-      : data;
+      : timeRange === '30D'
+      ? data.slice(-30)
+      : data.slice(-90);
 
   // Chart dimensions & scaling
   const chartWidth = 720;

@@ -5,3 +5,4 @@ Trước khi thực hiện bất kỳ tác vụ đọc, sửa hoặc viết code
 👉 [AGENTS.md](./AGENTS.md)
 
 Mọi mã nguồn sinh ra không tuân thủ `AGENTS.md` đều bị coi là không đạt tiêu chuẩn kiến trúc của AutoHub.
+- Khi gọi các công cụ của `codegraph` (`codegraph_explore`, `codegraph_node`), luôn truyền kèm tham số `projectPath: "D:\\WWWJava\\AutoHub"`.

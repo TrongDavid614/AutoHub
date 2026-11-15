@@ -7,7 +7,7 @@ export interface CheckoutSuccessModalProps {
   orderCode: string;
   grandTotal: number;
   recipientName: string;
-  paymentMethod: 'sepay' | 'cod';
+  paymentMethod: 'vnpay' | 'cod' | 'sepay';
   onClose: () => void;
 }
 
@@ -34,7 +34,7 @@ export const CheckoutSuccessModal: React.FC<CheckoutSuccessModalProps> = ({
 
         <div className="space-y-2">
           <div className="inline-block px-3 py-1 rounded-[2px] bg-[#222A3D] text-[#89CEFF] font-mono text-xs font-bold uppercase tracking-wider">
-            {paymentMethod === 'sepay' ? 'GIAO DỊCH SEPAY THÀNH CÔNG' : 'ĐẶT HÀNG COD THÀNH CÔNG'} • #{orderCode}
+            {paymentMethod === 'cod' ? 'ĐẶT HÀNG COD THÀNH CÔNG' : 'GIAO DỊCH VNPAY-QR THÀNH CÔNG'} • #{orderCode}
           </div>
           <h3 className="text-2xl font-bold text-[#DAE2FD]">
             Cảm ơn quý khách, {recipientName}!

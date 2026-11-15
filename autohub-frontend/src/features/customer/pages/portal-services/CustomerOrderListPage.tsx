@@ -4,10 +4,12 @@ import {
   Package,
   ShoppingBag,
   Check,
+  RefreshCw,
 } from 'lucide-react';
 import type { AccessoryOrder, AccessoryOrderStatus } from '@/types/order.types';
-import { MOCK_CUSTOMER_ORDERS } from '@/features/customer/mocks/orders.mock';
 import { useCartStore } from '@/store/useCartStore';
+import { useAuthStore } from '@/store/useAuthStore';
+import { orderService } from '@/features/customer/services/order.service';
 import { OrderFilterTabs, type FilterTab } from '@/features/customer/components/OrderFilterTabs';
 import { CustomerOrderRowCard } from '@/features/customer/components/CustomerOrderRowCard';
 import { OrderReviewModal } from '@/features/customer/components/OrderReviewModal';
@@ -18,9 +20,10 @@ import { OrderTimelineModal } from '@/features/customer/components/OrderTimeline
 
 export const CustomerOrderListPage: React.FC = () => {
   const addToCart = useCartStore((s) => s.addToCart);
+  const { user } = useAuthStore();
 
-  // Danh sách đơn hàng trong state để người dùng có thể tương tác (Hủy, Xác nhận nhận hàng...)
-  const [orders, setOrders] = useState<AccessoryOrder[]>(MOCK_CUSTOMER_ORDERS);
+  const [orders, setOrders] = useState<AccessoryOrder[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<FilterTab>('ALL');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
@@ -35,8 +38,24 @@ export const CustomerOrderListPage: React.FC = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
 
-  // Countdown timer cho đơn PENDING_PAYMENT (giả lập 15 phút theo UC34)
-  const [timeLeft, setTimeLeft] = useState(12 * 60 + 45); // 12m 45s
+  // Countdown timer cho đơn PENDING_PAYMENT (15 phút)
+  const [timeLeft, setTimeLeft] = useState(12 * 60 + 45);
+
+  const loadOrders = async () => {
+    setIsLoading(true);
+    try {
+      const data = await orderService.getMyOrders(user?.id);
+      setOrders(Array.isArray(data) ? data : []);
+    } catch {
+      setOrders([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadOrders();
+  }, [user?.id]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -64,14 +83,18 @@ export const CustomerOrderListPage: React.FC = () => {
 
   // 1. Chức năng Mua Lại (Reorder): Thêm sản phẩm vào giỏ hàng
   const handleReorder = (order: AccessoryOrder) => {
-    order.orderItems.forEach((item) => {
-      addToCart(item.accessory, item.quantity);
+    const items = order.orderItems ?? order.items ?? [];
+    items.forEach((item) => {
+      if (item.accessory) {
+        addToCart(item.accessory, item.quantity);
+      }
     });
-    showToast(`Đã thêm ${order.orderItems.length} sản phẩm của đơn ${order.orderCode} vào giỏ hàng!`);
+    showToast(`Đã thêm ${items.length} sản phẩm của đơn ${order.orderCode} vào giỏ hàng!`);
   };
 
   // 2. Chức năng Xác nhận đã nhận hàng (Chuyển sang DELIVERED)
-  const handleConfirmDelivered = (orderId: number) => {
+  const handleConfirmDelivered = async (orderId: number) => {
+    await orderService.confirmDelivered(orderId);
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status: 'DELIVERED' as AccessoryOrderStatus } : o))
     );
@@ -79,8 +102,9 @@ export const CustomerOrderListPage: React.FC = () => {
   };
 
   // 3. Chức năng Hủy đơn hàng (Hoàn tồn kho theo UC34)
-  const handleConfirmCancelOrder = () => {
+  const handleConfirmCancelOrder = async () => {
     if (!selectedOrder) return;
+    await orderService.cancelOrder(selectedOrder.id);
     setOrders((prev) =>
       prev.map((o) =>
         o.id === selectedOrder.id ? { ...o, status: 'CANCELLED' as AccessoryOrderStatus } : o
@@ -92,15 +116,18 @@ export const CustomerOrderListPage: React.FC = () => {
   };
 
   // 4. Chức năng Gửi đánh giá sản phẩm (UC14)
-  const handleSubmitReview = (orderId: number) => {
+  const handleSubmitReview = async (orderId: number, rating: number, comment: string) => {
     setShowReviewModal(false);
-    showToast(`Đã gửi đánh giá đơn hàng #${orderId} thành công! Đánh giá đang được kiểm duyệt trước khi hiển thị.`);
+    await orderService.submitReview(orderId, rating, comment);
+    showToast(`Đã gửi đánh giá đơn hàng #${orderId} (${rating} sao) thành công! Đánh giá đang được kiểm duyệt trước khi hiển thị.`);
     setSelectedOrder(null);
   };
 
   // 5. Chức năng Gửi yêu cầu đổi trả (UC25)
-  const handleSubmitReturn = (orderId: number) => {
+  const handleSubmitReturn = async (orderId: number, reason?: string, note?: string) => {
     setShowReturnModal(false);
+    const returnReasonText = reason ? `${reason}${note ? ': ' + note : ''}` : 'Đổi trả phụ kiện kỹ thuật';
+    await orderService.requestReturn(orderId, returnReasonText);
     setOrders((prev) =>
       prev.map((o) =>
         o.id === orderId ? { ...o, status: 'RETURNED' as AccessoryOrderStatus } : o
@@ -121,7 +148,7 @@ export const CustomerOrderListPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fadeIn">
       {/* 1. Header trang */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-surface-highlight">
         <div>
@@ -134,13 +161,24 @@ export const CustomerOrderListPage: React.FC = () => {
           </p>
         </div>
 
-        <Link
-          to="/accessories"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-[4px] bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight hover:border-accent-primary/50 text-xs font-semibold text-accent-primary transition-all cursor-pointer self-start sm:self-auto shadow-sm"
-        >
-          <ShoppingBag className="w-4 h-4" />
-          <span>Khám phá thêm phụ kiện</span>
-        </Link>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={loadOrders}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[4px] bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors cursor-pointer shadow-sm"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-accent-primary' : ''}`} />
+            <span>Làm mới</span>
+          </button>
+
+          <Link
+            to="/accessories"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-[4px] bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight hover:border-accent-primary/50 text-xs font-semibold text-accent-primary transition-all cursor-pointer shadow-sm"
+          >
+            <ShoppingBag className="w-4 h-4" />
+            <span>Khám phá thêm</span>
+          </Link>
+        </div>
       </div>
 
       {/* 2. Menu Bộ lọc ngang hiển thị các chức năng theo Enum TrangThaiDonHang */}
@@ -160,7 +198,28 @@ export const CustomerOrderListPage: React.FC = () => {
 
       {/* 3. Danh sách đơn hàng dạng ROW (Row Card) */}
       <div className="space-y-4">
-        {filteredOrders.length === 0 ? (
+        {isLoading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map((n) => (
+              <div
+                key={n}
+                className="rounded-[6px] bg-surface-elevated/70 border border-surface-highlight p-5 space-y-4 animate-pulse"
+              >
+                <div className="flex justify-between items-center pb-3 border-b border-surface-highlight">
+                  <div className="h-5 w-44 bg-surface-interactive rounded" />
+                  <div className="h-6 w-28 bg-surface-interactive rounded" />
+                </div>
+                <div className="flex gap-4">
+                  <div className="w-16 h-16 bg-surface-interactive rounded shrink-0" />
+                  <div className="space-y-2 flex-1">
+                    <div className="h-4 w-1/3 bg-surface-interactive rounded" />
+                    <div className="h-3 w-1/4 bg-surface-interactive rounded" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredOrders.length === 0 ? (
           <div className="py-16 text-center rounded-[4px] bg-surface-elevated/30 border border-surface-highlight space-y-3">
             <Package className="w-12 h-12 text-text-muted mx-auto opacity-50" />
             <h3 className="text-base font-semibold text-text-primary">Không tìm thấy đơn hàng nào</h3>

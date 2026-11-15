@@ -1,5 +1,15 @@
 import React from 'react';
-import { Zap } from 'lucide-react';
+import { Zap, ChevronDown } from 'lucide-react';
+
+interface AvailableCarOption {
+  id: string | number;
+  name: string;
+  subtitle?: string;
+  power?: string;
+  acceleration?: string;
+  range?: string;
+  image?: string;
+}
 
 interface VehicleDemoCardProps {
   modelName?: string;
@@ -8,6 +18,10 @@ interface VehicleDemoCardProps {
   power?: string;
   acceleration?: string;
   range?: string;
+  imageUrl?: string;
+  availableCars?: AvailableCarOption[];
+  selectedCarId?: string | number;
+  onSelectCar?: (carId: string) => void;
 }
 
 export const VehicleDemoCard: React.FC<VehicleDemoCardProps> = ({
@@ -17,13 +31,21 @@ export const VehicleDemoCard: React.FC<VehicleDemoCardProps> = ({
   power = '680',
   acceleration = '3.2',
   range = '680',
+  imageUrl,
+  availableCars,
+  selectedCarId,
+  onSelectCar,
 }) => {
+  const displayImage =
+    imageUrl ||
+    'https://api.builder.io/api/v1/image/assets/TEMP/f2d74d318bd26ac8a4616ee2717997a70a3b2b91?width=653';
+
   return (
     <div className="p-4 sm:p-5 rounded bg-surface-container border border-surface-highlight flex flex-col md:flex-row items-center gap-5">
       {/* Car Visual with Badges */}
       <div className="relative w-full md:w-72 h-44 rounded overflow-hidden bg-canvas-deep shrink-0 border border-surface-highlight/70 group">
         <img
-          src="https://api.builder.io/api/v1/image/assets/TEMP/f2d74d318bd26ac8a4616ee2717997a70a3b2b91?width=653"
+          src={displayImage}
           alt={variantName}
           className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
         />
@@ -41,18 +63,39 @@ export const VehicleDemoCard: React.FC<VehicleDemoCardProps> = ({
 
       {/* Details & Telemetry Specs */}
       <div className="flex-1 space-y-3 w-full">
-        <div>
-          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-text-muted">
-            DÒNG XE TRẢI NGHIỆM • {modelName}
-          </span>
-          <div className="flex flex-wrap items-baseline gap-2 mt-0.5">
-            <h3 className="text-lg sm:text-xl font-bold text-text-primary tracking-tight">
-              {variantName}
-            </h3>
-            <span className="text-xs font-mono font-semibold text-accent-primary">
-              {year}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-text-muted">
+              DÒNG XE TRẢI NGHIỆM • {modelName}
             </span>
+            <div className="flex flex-wrap items-baseline gap-2 mt-0.5">
+              <h3 className="text-lg sm:text-xl font-bold text-text-primary tracking-tight">
+                {variantName}
+              </h3>
+              <span className="text-xs font-mono font-semibold text-accent-primary">
+                {year}
+              </span>
+            </div>
           </div>
+
+          {availableCars && availableCars.length > 0 && onSelectCar && (
+            <div className="relative">
+              <label htmlFor="carSelect" className="sr-only">Đổi dòng xe</label>
+              <select
+                id="carSelect"
+                value={String(selectedCarId || '')}
+                onChange={(e) => onSelectCar(e.target.value)}
+                className="appearance-none bg-canvas-deep border border-surface-highlight hover:border-accent-primary/60 text-accent-primary text-xs font-semibold py-1.5 pl-3 pr-8 rounded cursor-pointer focus:outline-none"
+              >
+                {availableCars.map((c) => (
+                  <option key={c.id} value={String(c.id)} className="bg-surface-container text-text-primary">
+                    Đổi xe: {c.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-accent-primary absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+          )}
         </div>
 
         {/* 3 Telemetry Spec Chips */}

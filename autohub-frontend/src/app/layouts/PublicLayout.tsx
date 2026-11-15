@@ -3,9 +3,23 @@ import { Outlet, useLocation, ScrollRestoration } from 'react-router-dom';
 import { Bot } from 'lucide-react';
 import { Header, Footer } from '@/components';
 import { AiConsultantWidget } from '@/features/customer';
+import { useCartStore } from '@/store/useCartStore';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export const PublicLayout: React.FC = () => {
   const { pathname } = useLocation();
+  const { user } = useAuthStore();
+  const fetchCartFromServer = useCartStore((s) => s.fetchCartFromServer);
+  const syncGuestCartWithServer = useCartStore((s) => s.syncGuestCartWithServer);
+
+  // Tự động đồng bộ giỏ hàng từ cơ sở dữ liệu để số lượng badge trên Header luôn chính xác
+  useEffect(() => {
+    if (user?.id) {
+      syncGuestCartWithServer(user.id);
+    } else {
+      fetchCartFromServer(5);
+    }
+  }, [user?.id, fetchCartFromServer, syncGuestCartWithServer]);
 
   // Luôn luôn cuộn về đầu trang (0, 0) mỗi khi chuyển trang
   useEffect(() => {

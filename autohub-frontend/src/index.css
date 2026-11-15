@@ -97,3 +97,29 @@
     transition: none !important;
   }
 }
+
+@media print {
+  header,
+  footer,
+  nav[aria-label="Breadcrumb"],
+  .no-print {
+    display: none !important;
+  }
+
+  body, html {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    overflow: visible !important;
+  }
+
+  .animate-fadeIn,
+  .animate-pageTransition {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+}

@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { Clock, Info, Check } from 'lucide-react';
 
 export interface DateItem {
-  id: string;
+  id: string; // YYYY-MM-DD
   dayLabel: string;
   dateStr: string;
   badge?: string;
@@ -13,30 +13,85 @@ export interface TimeSlotItem {
   id: string;
   timeRange: string;
   isBooked?: boolean;
+  isUnder24h?: boolean;
 }
 
-const AVAILABLE_DATES: DateItem[] = [
-  { id: '25/10', dayLabel: 'NGÀY MAI', dateStr: '25/10', badge: 'Được chọn', badgeVariant: 'primary' },
-  { id: '26/10', dayLabel: 'THỨ BẢY', dateStr: '26/10', badge: 'Còn chỗ', badgeVariant: 'emerald' },
-  { id: '27/10', dayLabel: 'CHỦ NHẬT', dateStr: '27/10', badge: 'Sắp kín', badgeVariant: 'primary' },
-  { id: '28/10', dayLabel: 'THỨ HAI', dateStr: '28/10' },
-  { id: '29/10', dayLabel: 'THỨ BA', dateStr: '29/10' },
-  { id: '30/10', dayLabel: 'THỨ TƯ', dateStr: '30/10' },
+export const BASE_TIME_SLOTS: string[] = [
+  '09:00 - 10:00',
+  '10:30 - 11:30',
+  '11:30 - 12:30',
+  '14:00 - 15:00',
+  '15:30 - 16:30',
+  '17:00 - 18:00',
 ];
 
-const TIME_SLOTS: TimeSlotItem[] = [
-  { id: '09:00 - 10:00', timeRange: '09:00 - 10:00' },
-  { id: '10:30 - 11:30', timeRange: '10:30 - 11:30' },
-  { id: '11:30 - 12:30', timeRange: '11:30 - 12:30', isBooked: true },
-  { id: '14:00 - 15:00', timeRange: '14:00 - 15:00' },
-  { id: '15:30 - 16:30', timeRange: '15:30 - 16:30' },
-];
+export function isSlotAvailable24h(dateStr: string, slotStr: string): boolean {
+  try {
+    const startTime = slotStr.split(' - ')[0] || '09:00';
+    const slotDate = new Date(`${dateStr}T${startTime}:00`);
+    const now = new Date();
+    // Bắt buộc cách thời điểm hiện tại tối thiểu 24 giờ + 5 phút theo quy định hệ thống CK_lh_24h
+    return slotDate.getTime() >= now.getTime() + 24 * 60 * 60 * 1000 + 5 * 60 * 1000;
+  } catch {
+    return false;
+  }
+}
+
+export function generateUpcomingDates(): DateItem[] {
+  const dates: DateItem[] = [];
+  const dayNames = ['CHỦ NHẬT', 'THỨ HAI', 'THỨ BA', 'THỨ TƯ', 'THỨ NĂM', 'THỨ SÁU', 'THỨ BẢY'];
+
+  const now = new Date();
+
+  // Kiểm tra xem ngày mai có khung giờ nào còn đủ 24h không (khung giờ muộn nhất 17:00)
+  const tomorrowLatest = new Date(now);
+  tomorrowLatest.setDate(tomorrowLatest.getDate() + 1);
+  tomorrowLatest.setHours(17, 0, 0, 0);
+
+  // Nếu ngày mai không còn khung giờ nào đủ 24h, bắt đầu từ ngày mốt (offset 2)
+  const startOffset = tomorrowLatest.getTime() >= now.getTime() + 24 * 60 * 60 * 1000 ? 1 : 2;
+
+  for (let i = 0; i < 6; i++) {
+    const offset = startOffset + i;
+    const d = new Date(now);
+    d.setDate(d.getDate() + offset);
+
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const isoDate = `${year}-${month}-${day}`;
+    const dateStr = `${day}/${month}`;
+    const dayLabel = offset === 1 ? 'NGÀY MAI' : offset === 2 ? (startOffset === 2 ? 'GẦN NHẤT (>=24H)' : dayNames[d.getDay()]) : dayNames[d.getDay()];
+
+    dates.push({
+      id: isoDate,
+      dayLabel,
+      dateStr,
+      badge: i === 0 ? 'Khuyên dùng' : i === 1 ? 'Còn chỗ' : undefined,
+      badgeVariant: i === 0 ? 'primary' : 'emerald',
+    });
+  }
+  return dates;
+}
+
+export function getFirstValidBookingDateAndSlot(bookedSlots: string[] = []): { date: string; slot: string } {
+  const dates = generateUpcomingDates();
+  for (const d of dates) {
+    for (const slot of BASE_TIME_SLOTS) {
+      if (isSlotAvailable24h(d.id, slot) && !bookedSlots.includes(slot)) {
+        return { date: d.id, slot };
+      }
+    }
+  }
+  return { date: dates[0]?.id || '2026-11-12', slot: '09:00 - 10:00' };
+}
 
 interface DateTimeSelectorProps {
   selectedDate: string;
   onSelectDate: (date: string) => void;
   selectedSlot: string;
   onSelectSlot: (slot: string) => void;
+  bookedSlots?: string[];
 }
 
 export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
@@ -44,7 +99,34 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
   onSelectDate,
   selectedSlot,
   onSelectSlot,
+  bookedSlots = [],
 }) => {
+  const availableDates = useMemo(() => generateUpcomingDates(), []);
+
+  const timeSlots = useMemo(() => {
+    return BASE_TIME_SLOTS.map((slotRange) => {
+      const isBooked = bookedSlots.includes(slotRange);
+      const isUnder24h = !isSlotAvailable24h(selectedDate, slotRange);
+      return {
+        id: slotRange,
+        timeRange: slotRange,
+        isBooked,
+        isUnder24h,
+      };
+    });
+  }, [bookedSlots, selectedDate]);
+
+  // Tự động chuyển slot hợp lệ nếu slot hiện tại bị khóa (do trùng lịch hoặc dưới 24h)
+  useEffect(() => {
+    const currentSlotObj = timeSlots.find((s) => s.id === selectedSlot);
+    if (!currentSlotObj || currentSlotObj.isBooked || currentSlotObj.isUnder24h) {
+      const firstValid = timeSlots.find((s) => !s.isBooked && !s.isUnder24h);
+      if (firstValid) {
+        onSelectSlot(firstValid.id);
+      }
+    }
+  }, [selectedDate, timeSlots, selectedSlot, onSelectSlot]);
+
   return (
     <div className="p-4 sm:p-5 rounded bg-surface-container/60 border border-surface-highlight space-y-4">
       {/* Notice Header Banner */}
@@ -69,7 +151,7 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
         </span>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-          {AVAILABLE_DATES.map((date) => {
+          {availableDates.map((date) => {
             const isSelected = selectedDate === date.id;
             return (
               <button
@@ -115,20 +197,23 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
           CHỌN KHUNG GIỜ LÁI THỬ
         </span>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
-          {TIME_SLOTS.map((slot) => {
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+          {timeSlots.map((slot) => {
             const isSelected = selectedSlot === slot.id;
-            const isBooked = !!slot.isBooked;
+            const isDisabled = slot.isBooked || slot.isUnder24h;
 
-            if (isBooked) {
+            if (isDisabled) {
+              const label = slot.isBooked ? 'ĐÃ KÍN' : '< 24H';
+              const tooltip = slot.isBooked ? 'Khung giờ này đã có khách đăng ký' : 'Cần đặt trước ít nhất 24 giờ';
               return (
                 <div
                   key={slot.id}
+                  title={tooltip}
                   className="p-3 rounded bg-canvas-deep/50 border border-surface-highlight/40 opacity-50 flex items-center justify-between text-xs cursor-not-allowed select-none"
                 >
                   <span className="font-mono text-text-muted line-through">{slot.timeRange}</span>
                   <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-surface-elevated text-text-muted border border-surface-highlight">
-                    ĐÃ KÍN
+                    {label}
                   </span>
                 </div>
               );

@@ -10,4 +10,14 @@ import java.util.List;
 @Repository
 public interface XeDemoRepository extends JpaRepository<XeDemo, Long> {
     List<XeDemo> findByShowroomIdAndTrangThai(Long showroomId, TrangThaiXeDemo trangThai);
+    List<XeDemo> findByTrangThaiAndDangHoatDongTrue(TrangThaiXeDemo trangThai);
+    List<XeDemo> findByPhienBanXeId(Long phienBanXeId);
+    long countByPhienBanXeIdAndTrangThaiAndDangHoatDongTrue(Long phienBanXeId, TrangThaiXeDemo trangThai);
+
+    List<XeDemo> findByShowroomIdOrderByIdDesc(Long showroomId);
+    long countByShowroomId(Long showroomId);
+    long countByShowroomIdAndTrangThai(Long showroomId, TrangThaiXeDemo trangThai);
+    long countByTrangThai(TrangThaiXeDemo trangThai);
+    boolean existsByBienSoIgnoreCase(String bienSo);
+    boolean existsByBienSoIgnoreCaseAndIdNot(String bienSo, Long id);
 }

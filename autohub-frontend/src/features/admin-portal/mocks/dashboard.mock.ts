@@ -66,7 +66,16 @@ export interface SystemEvent {
 }
 
 export interface AiEngineStatus {
-  gemini: {
+  openrouter?: {
+    model: string;
+    status: 'ONLINE' | 'OFFLINE' | 'DEGRADED';
+    apiEndpoint: string;
+    responseTimeMs: number;
+    quotaUsedPercent: number;
+    contextWindow: string;
+    successRate: number;
+  };
+  gemini?: {
     model: string;
     status: 'ONLINE' | 'OFFLINE' | 'DEGRADED';
     apiEndpoint: string;
@@ -321,10 +330,10 @@ export const MOCK_SYSTEM_EVENTS: SystemEvent[] = [
     timestamp: '2025-10-29 14:22:45',
     timeAgo: '1 giờ trước',
     type: 'AI_RAG',
-    actor: 'Gemini AI API & Vector DB',
+    actor: 'OpenRouter AI API & Vector DB',
     actorType: 'AI',
-    title: 'Phục vụ tư vấn xe qua Gemini AI & Vector DB',
-    description: 'Truy vấn Vector Database độ tương đồng Cosine 0.94 kết hợp Gemini API, trả lời so sánh thông số VF8 vs CR-V Hybrid cho khách online.',
+    title: 'Phục vụ tư vấn xe qua OpenRouter AI & Vector DB',
+    description: 'Truy vấn Vector Database độ tương đồng Cosine 0.94 kết hợp OpenRouter API (DeepSeek), trả lời so sánh thông số VF8 vs CR-V Hybrid cho khách online.',
     meta: 'Độ trễ: 24ms • Vector RAG: OK',
     statusBadge: 'COSINE: 0.94',
     badgeColor: '#A855F7',
@@ -345,14 +354,23 @@ export const MOCK_SYSTEM_EVENTS: SystemEvent[] = [
 ];
 
 export const MOCK_AI_ENGINE_STATUS: AiEngineStatus = {
-  gemini: {
-    model: 'Gemini 1.5 Pro / Flash (Google AI Cloud)',
+  openrouter: {
+    model: 'deepseek/deepseek-chat (OpenRouter Cloud)',
     status: 'ONLINE',
-    apiEndpoint: 'generativelanguage.googleapis.com',
-    responseTimeMs: 380,
-    quotaUsedPercent: 32,
-    contextWindow: '1M Tokens',
-    successRate: 99.8,
+    apiEndpoint: 'openrouter.ai/api/v1',
+    responseTimeMs: 240,
+    quotaUsedPercent: 34,
+    contextWindow: '64K Tokens',
+    successRate: 99.9,
+  },
+  gemini: {
+    model: 'deepseek/deepseek-chat (OpenRouter Cloud)',
+    status: 'ONLINE',
+    apiEndpoint: 'openrouter.ai/api/v1',
+    responseTimeMs: 240,
+    quotaUsedPercent: 34,
+    contextWindow: '64K Tokens',
+    successRate: 99.9,
   },
   vectorDb: {
     engine: 'Vector Database (RAG Semantic Store)',

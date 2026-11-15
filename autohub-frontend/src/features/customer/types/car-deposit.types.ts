@@ -30,4 +30,19 @@ export interface CarDepositItem {
   expireAt?: string; // 72 giờ tính từ paidAt
   refundReason?: string;
   createdAt: string;
+  transferContent?: string;
+  qrImageUrl?: string;
+  bankAccountNumber?: string;
+  bankBrandName?: string;
+  bankAccountName?: string;
+  isPaid?: boolean;
+}
+
+export interface DepositStatusResponse {
+  id: number;
+  depositCode: string;
+  status: CarDepositStatus;
+  isPaid: boolean;
+  paidAt?: string | null;
+  expireAt?: string | null;
 }

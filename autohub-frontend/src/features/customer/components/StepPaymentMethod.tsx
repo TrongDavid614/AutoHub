@@ -2,8 +2,8 @@ import React from 'react';
 import { ShieldCheck, Clock } from 'lucide-react';
 
 export interface StepPaymentMethodProps {
-  selectedPaymentMethod: 'sepay' | 'cod';
-  onSelectPaymentMethod: (method: 'sepay' | 'cod') => void;
+  selectedPaymentMethod: 'vnpay' | 'cod' | 'sepay';
+  onSelectPaymentMethod: (method: 'vnpay' | 'cod') => void;
   timeLeftFormatted: string;
 }
 
@@ -12,6 +12,8 @@ export const StepPaymentMethod: React.FC<StepPaymentMethodProps> = ({
   onSelectPaymentMethod,
   timeLeftFormatted,
 }) => {
+  const isVnPaySelected = selectedPaymentMethod === 'vnpay' || selectedPaymentMethod === 'sepay';
+
   return (
     <section className="rounded-[4px] bg-[#171F33] border border-[#2D3449] p-6 shadow-xl space-y-6">
       {/* Step Header */}
@@ -29,11 +31,11 @@ export const StepPaymentMethod: React.FC<StepPaymentMethodProps> = ({
       </div>
 
       <div className="space-y-4">
-        {/* Option 1: SEPAY (Highlighted) */}
+        {/* Option 1: VNPAY (Highlighted) */}
         <div
-          onClick={() => onSelectPaymentMethod('sepay')}
+          onClick={() => onSelectPaymentMethod('vnpay')}
           className={`rounded-[2px] border p-5 cursor-pointer transition-all space-y-4 ${
-            selectedPaymentMethod === 'sepay'
+            isVnPaySelected
               ? 'bg-[#060E20] border-[#89CEFF] shadow-[0_0_20px_rgba(14,165,233,0.15)]'
               : 'bg-[#060E20]/60 border-[#2D3449] hover:bg-[#060E20] hover:border-[#3E4850]'
           }`}
@@ -42,12 +44,12 @@ export const StepPaymentMethod: React.FC<StepPaymentMethodProps> = ({
             <div className="flex items-start gap-3">
               <div
                 className={`w-4 h-4 rounded-full border flex items-center justify-center mt-0.5 shrink-0 transition-colors ${
-                  selectedPaymentMethod === 'sepay'
+                  isVnPaySelected
                     ? 'border-[#89CEFF] bg-[#89CEFF]'
                     : 'border-[#3E4850] bg-[#171F33]'
                 }`}
               >
-                {selectedPaymentMethod === 'sepay' && (
+                {isVnPaySelected && (
                   <div className="w-1.5 h-1.5 rounded-full bg-[#060E20]" />
                 )}
               </div>
@@ -55,7 +57,7 @@ export const StepPaymentMethod: React.FC<StepPaymentMethodProps> = ({
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-bold text-sm text-[#DAE2FD]">
-                    Thanh toán trực tuyến SePay (VietQR)
+                    Thanh toán trực tuyến VNPAY-QR (MB Bank / VietQR)
                   </span>
                   <span className="px-1.5 py-0.5 rounded-[2px] bg-[#0EA5E9] text-[#003751] font-mono text-[9px] font-bold uppercase">
                     KHUYÊN DÙNG
@@ -66,7 +68,7 @@ export const StepPaymentMethod: React.FC<StepPaymentMethodProps> = ({
                 </div>
 
                 <p className="text-xs text-[#BEC8D2] leading-relaxed">
-                  Quét mã VietQR từ mọi ngân hàng (VCB, MB, Techcombank, ACB...) với SePay Webhook tự động hóa 100%.
+                  Hiển thị mã QR thanh toán nhanh qua ứng dụng ngân hàng. Mã QR tự động làm mới và đóng sau mỗi 1 phút để bảo đảm an toàn giao dịch.
                 </p>
               </div>
             </div>
@@ -74,7 +76,7 @@ export const StepPaymentMethod: React.FC<StepPaymentMethodProps> = ({
 
           {/* Payment Badges Tray */}
           <div className="flex items-center gap-2 pl-7 flex-wrap">
-            {['SEPAY VIETQR', 'VCB / MB / TCB', 'TỰ ĐỘNG KHỚP LỆNH', 'XÁC NHẬN 3S'].map((badge) => (
+            {['VNPAY-QR', 'TỰ ĐỘNG KHỚP LỆNH', 'MÃ QR 60S TỰ ĐÓNG', 'MB BANK / VCB / TECHCOMBANK'].map((badge) => (
               <span
                 key={badge}
                 className="px-2 py-0.5 rounded-[2px] bg-[#222A3D] border border-[#2D3449] font-mono text-[9px] font-bold text-[#BEC8D2]"
@@ -84,12 +86,12 @@ export const StepPaymentMethod: React.FC<StepPaymentMethodProps> = ({
             ))}
           </div>
 
-          {/* Expandable SePay Benefit Ribbon */}
+          {/* Expandable VNPay Benefit Ribbon */}
           <div className="ml-7 p-3 rounded-[2px] bg-[#0EA5E9]/15 border border-[#0EA5E9]/30 text-xs text-[#DAE2FD] flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#89CEFF] animate-pulse shrink-0" />
             <p className="leading-relaxed">
               <strong className="text-[#89CEFF]">Ưu đãi thanh toán: </strong>
-              Tự động áp dụng chiết khấu voucher <strong className="font-mono text-[#89CEFF]">SEPAYAUTOHUB</strong> giảm thêm <strong className="font-mono text-[#89CEFF]">500.000 đ</strong> khi quét mã SePay QR thanh toán thành công.
+              Tự động áp dụng chiết khấu voucher <strong className="font-mono text-[#89CEFF]">VNPAYAUTOHUB</strong> giảm thêm <strong className="font-mono text-[#89CEFF]">500.000 đ</strong> khi quét mã VNPAY QR thanh toán thành công.
             </p>
           </div>
         </div>

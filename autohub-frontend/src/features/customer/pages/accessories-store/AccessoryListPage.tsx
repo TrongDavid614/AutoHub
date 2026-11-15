@@ -84,6 +84,7 @@ export const AccessoryListPage: React.FC = () => {
         carModel={selectedCarModel}
         accessoryCount={totalCount}
         onChangeCarClick={() => setIsCarModalOpen(true)}
+        onClearCarClick={() => setSelectedCarModel(null)}
       />
 
       {/* 2. MAIN 2-COLUMN CATALOG LAYOUT */}
@@ -177,7 +178,7 @@ export const AccessoryListPage: React.FC = () => {
             {totalPages > 1 && (
               <div className="rounded-[2px] bg-[#171F33] border border-[#2D3449] p-4 flex flex-col sm:flex-row items-center justify-between gap-4 mt-8">
                 <div className="text-xs text-[#88929B]">
-                  Hiển thị {accessories.length} trong tổng số {totalCount} trang bị chuẩn hóa cho {selectedCarModel.name}
+                  Hiển thị {accessories.length} trong tổng số {totalCount} trang bị chuẩn hóa cho {selectedCarModel ? selectedCarModel.name : 'tất cả dòng xe'}
                 </div>
 
                 <div className="flex items-center gap-1.5">

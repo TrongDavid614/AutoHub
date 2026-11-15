@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { Lock, Eye, EyeOff, Check, AlertCircle } from 'lucide-react';
+import { useAuthStore } from '@/store/useAuthStore';
+import { profileService } from '@/features/customer/services/profile.service';
 
 export const ChangePasswordForm: React.FC = () => {
+  const { user } = useAuthStore();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -12,7 +15,7 @@ export const ChangePasswordForm: React.FC = () => {
   const [passwordError, setPasswordError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleChangePassword = (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordError('');
     setPasswordSuccess('');
@@ -22,8 +25,8 @@ export const ChangePasswordForm: React.FC = () => {
       return;
     }
 
-    if (newPassword.length < 8) {
-      setPasswordError('Mật khẩu mới phải có tối thiểu 8 ký tự.');
+    if (newPassword.length < 6) {
+      setPasswordError('Mật khẩu mới phải có tối thiểu 6 ký tự.');
       return;
     }
 
@@ -33,14 +36,28 @@ export const ChangePasswordForm: React.FC = () => {
     }
 
     setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
-      setPasswordSuccess('Đổi mật khẩu tài khoản thành công! Vui lòng sử dụng mật khẩu mới cho lần đăng nhập tiếp theo.');
+    try {
+      const result = await profileService.changePassword({
+        customerId: user?.id,
+        currentPassword,
+        newPassword,
+      });
+
+      if (!result.success) {
+        setPasswordError(result.message || 'Đổi mật khẩu thất bại. Vui lòng kiểm tra lại mật khẩu hiện tại.');
+        return;
+      }
+
+      setPasswordSuccess('Đổi mật khẩu tài khoản thành công! Mật khẩu mới đã được cập nhật.');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setTimeout(() => setPasswordSuccess(''), 3500);
-    }, 800);
+    } catch {
+      setPasswordError('Lỗi kết nối máy chủ. Vui lòng thử lại sau.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (

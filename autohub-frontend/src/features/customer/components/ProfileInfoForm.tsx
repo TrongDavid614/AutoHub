@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Check, AlertCircle, User as UserIcon, Mail, Phone, CreditCard, Save } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
+import { profileService } from '@/features/customer/services/profile.service';
 
 export const ProfileInfoForm: React.FC = () => {
   const { user, updateUser } = useAuthStore();
@@ -16,7 +17,7 @@ export const ProfileInfoForm: React.FC = () => {
   const [profileError, setProfileError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setProfileError('');
     setProfileSuccess('');
@@ -38,16 +39,29 @@ export const ProfileInfoForm: React.FC = () => {
     }
 
     setIsSaving(true);
-    setTimeout(() => {
+    try {
+      const success = await profileService.updateProfile({
+        customerId: user?.id,
+        fullName,
+        phoneNumber: phone,
+        identityCardNumber: identityCard || undefined,
+      });
+      if (!success) {
+        setProfileError('Không thể lưu thay đổi lúc này. Vui lòng thử lại sau.');
+        return;
+      }
       updateUser({
         fullName,
         phoneNumber: phone,
         identityCardNumber: identityCard,
       });
-      setIsSaving(false);
-      setProfileSuccess('Cập nhật hồ sơ thành công! Thông tin định danh đã được đồng bộ.');
+      setProfileSuccess('Cập nhật hồ sơ thành công! Thông tin định danh đã được lưu vào cơ sở dữ liệu.');
       setTimeout(() => setProfileSuccess(''), 3000);
-    }, 600);
+    } catch {
+      setProfileError('Lỗi kết nối máy chủ. Vui lòng kiểm tra lại.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (

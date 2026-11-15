@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1',
+  BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
   TIMEOUT: 15000,
   ENDPOINTS: {
     AUTH: {
@@ -25,6 +25,7 @@ export const API_CONFIG = {
     CART: {
       BASE: '/cart',
       SYNC: '/cart/sync',
+      SHIPPING_METHODS: '/customer/shipping-methods',
     },
     ORDERS: {
       BASE: '/orders',
@@ -40,6 +41,10 @@ export const API_CONFIG = {
       BOOK: '/test-drive/book',
       SCHEDULE: '/test-drive/schedule',
     },
+    PROFILE: {
+      BASE: '/customer/profile',
+      PASSWORD: '/customer/profile/password',
+    },
     AI_CONSULTANT: {
       CHAT: '/ai/consult',
     },
@@ -50,11 +55,33 @@ export const API_CONFIG = {
       ORDER_FULFILLMENT: '/staff/fulfillment',
       RETURNS: '/staff/returns',
     },
+    TRACKING: {
+      COLLECT: '/tracking/collect',
+    },
     ADMIN: {
-      DASHBOARD: '/admin/dashboard-stats',
+      DASHBOARD: '/admin/dashboard',
+      DASHBOARD_OVERVIEW: '/admin/dashboard/overview',
+      DASHBOARD_REVENUE_CHART: '/admin/dashboard/revenue-chart',
+      DASHBOARD_KPIS: '/admin/dashboard/kpis',
+      DASHBOARD_REGIONAL: '/admin/dashboard/regional-revenues',
+      DASHBOARD_URGENT_DEPOSITS: '/admin/dashboard/urgent-deposits',
+      ANALYTICS: '/admin/analytics/overview',
       USERS: '/admin/users',
+      ACCESSORIES: '/admin/accessories',
+      REVIEWS: '/admin/reviews',
+      USERS_STATS: '/admin/users/stats',
+      REFUNDS: '/admin/refunds',
       VOUCHERS: '/admin/vouchers',
       FEE_TABLE: '/admin/registration-fees',
+      FEES_LOANS: '/admin/registration-fees/loans',
+      FEES_STATS: '/admin/registration-fees/stats',
+      CARS: '/admin/cars',
+      VECTOR_SYNC: '/admin/cars/sync-vector-db',
+      AI_COPILOT: '/admin/ai/copilot',
+      AI_ANALYZE_REVIEW: '/admin/ai/analyze-review',
+      SHOWROOMS: '/admin/showrooms',
+      SHOWROOMS_STATS: '/admin/showrooms/stats',
+      SHOWROOMS_PROVINCES: '/admin/showrooms/provinces',
     },
   },
 };

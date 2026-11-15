@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface PhuKienRepository extends JpaRepository<PhuKien, Long> {
     List<PhuKien> findByDanhMucPhuKienId(Long danhMucId);
+    List<PhuKien> findAllByOrderByIdDesc();
+    List<PhuKien> findByTenPhuKienContainingIgnoreCaseOrderByIdDesc(String keyword);
 }

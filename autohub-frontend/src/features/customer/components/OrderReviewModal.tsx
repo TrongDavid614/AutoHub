@@ -61,7 +61,9 @@ export const OrderReviewModal: React.FC<OrderReviewModalProps> = ({
             <div>
               <label className="block text-xs text-text-muted mb-1">Sản phẩm trong đơn hàng:</label>
               <div className="p-2.5 rounded bg-canvas-deep border border-surface-highlight text-xs font-semibold text-text-primary">
-                {order.orderItems.map((i) => i.accessory.name).join(' + ')}
+                {(order.orderItems ?? order.items ?? [])
+                  .map((i) => i.accessory?.name || 'Phụ kiện AutoHub')
+                  .join(' + ') || 'Phụ kiện AutoHub'}
               </div>
             </div>
 
