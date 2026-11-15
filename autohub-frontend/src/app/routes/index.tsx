@@ -114,6 +114,7 @@ export const router = createBrowserRouter([
       { path: 'test-drive', element: <TestDriveCanvasPage /> },
       { path: 'auth/login', element: <LoginPage /> },
       { path: 'auth/admin-login', element: <AdminLoginPage /> },
+      { path: 'auth/staff-login', element: <AdminStaffLoginPage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'auth/register', element: <RegisterPage /> },
       { path: 'register', element: <RegisterPage /> },
@@ -133,7 +134,7 @@ export const router = createBrowserRouter([
   // 2. CUSTOMER PORTAL (Đăng nhập với vai trò ROLE_CUSTOMER)
   {
     path: '/customer',
-    element: <ProtectedRoute allowedRoles={['ROLE_CUSTOMER', 'ROLE_STAFF', 'ROLE_ADMIN']} />,
+    element: <ProtectedRoute allowedRoles={['ROLE_CUSTOMER', 'ROLE_STAFF', 'ROLE_ADMIN']} redirectTo="/auth/login" />,
     children: [
       {
         element: <CustomerLayout />,
@@ -153,7 +154,7 @@ export const router = createBrowserRouter([
   // 3. STAFF BACK-OFFICE PORTAL (Đăng nhập với vai trò ROLE_STAFF hoặc ROLE_ADMIN)
   {
     path: '/staff',
-    element: <ProtectedRoute allowedRoles={['ROLE_STAFF', 'ROLE_ADMIN']} />,
+    element: <ProtectedRoute allowedRoles={['ROLE_STAFF', 'ROLE_ADMIN']} redirectTo="/staff/login" />,
     children: [
       {
         element: <StaffLayout />,
@@ -177,7 +178,7 @@ export const router = createBrowserRouter([
   // 4. ADMIN MASTER PORTAL (Đăng nhập duy nhất với vai trò ROLE_ADMIN)
   {
     path: '/admin',
-    element: <ProtectedRoute allowedRoles={['ROLE_ADMIN']} />,
+    element: <ProtectedRoute allowedRoles={['ROLE_ADMIN']} redirectTo="/admin/login" />,
     children: [
       {
         element: <AdminLayout />,
