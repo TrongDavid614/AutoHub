@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils';
 import { useAdminShowrooms } from '../../hooks/useAdminShowrooms';
 import { CreateOrEditShowroomModal } from '../../components/CreateOrEditShowroomModal';
 import { ShowroomDetailModal } from '../../components/ShowroomDetailModal';
+import { AdminPagination } from '../../components/AdminPagination';
 
 export const ShowroomNetworkPage: React.FC = () => {
   const { isDarkMode } = useAdminTheme();
@@ -42,6 +43,12 @@ export const ShowroomNetworkPage: React.FC = () => {
     setSelectedRegion,
     selectedStatus,
     setSelectedStatus,
+    page,
+    pageSize,
+    totalElements,
+    totalPages,
+    handlePageChange,
+    handlePageSizeChange,
     isCreateOrEditModalOpen,
     editingShowroom,
     isDetailModalOpen,
@@ -330,7 +337,7 @@ export const ShowroomNetworkPage: React.FC = () => {
                 : 'bg-blue-50 text-blue-700 border-blue-200'
             )}
           >
-            {filteredShowrooms.length}/{showrooms.length} Chi Nhánh
+            {totalElements} Chi Nhánh
           </span>
         </div>
       </div>
@@ -584,6 +591,18 @@ export const ShowroomNetworkPage: React.FC = () => {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Pagination Bar */}
+      {!isLoading && showrooms.length > 0 && (
+        <AdminPagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalElements={totalElements}
+          pageSize={pageSize}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+        />
       )}
 
       {/* Modals */}

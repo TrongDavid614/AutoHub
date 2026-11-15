@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
 import { adminRefundService, type RefundItem } from '../../services/admin-refund.service';
+import { AdminPagination } from '../../components/AdminPagination';
 
 export const RefundApprovalPage: React.FC = () => {
   const { isDarkMode } = useAdminTheme();
@@ -21,27 +22,53 @@ export const RefundApprovalPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [processingId, setProcessingId] = useState<number | null>(null);
 
+  const [page, setPage] = useState<number>(0);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [totalElements, setTotalElements] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
+
   // Modal từ chối
   const [rejectItem, setRejectItem] = useState<RefundItem | null>(null);
   const [rejectReason, setRejectReason] = useState<string>('');
 
-  const fetchDockets = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await adminRefundService.getRefundRequests();
-      setDockets(data);
-    } catch (err) {
-      console.error('Failed to fetch refund requests:', err);
-      setError('Không thể kết nối đến máy chủ để tải danh sách hồ sơ hoàn cọc.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const fetchDockets = useCallback(
+    async (currentPage = page, currentSize = pageSize) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const pagedData = await adminRefundService.getRefundRequests({
+          page: currentPage,
+          size: currentSize,
+        });
+        setDockets(pagedData.items ?? []);
+        setPage(pagedData.page ?? 0);
+        setPageSize(pagedData.size ?? 10);
+        setTotalElements(pagedData.totalElements ?? 0);
+        setTotalPages(pagedData.totalPages ?? 1);
+      } catch (err) {
+        console.error('Failed to fetch refund requests:', err);
+        setError('Không thể kết nối đến máy chủ để tải danh sách hồ sơ hoàn cọc.');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [page, pageSize]
+  );
 
   useEffect(() => {
-    fetchDockets();
-  }, [fetchDockets]);
+    fetchDockets(0, pageSize);
+  }, []);
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchDockets(newPage, pageSize);
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(0);
+    fetchDockets(0, newSize);
+  };
 
   // Phê duyệt giải ngân
   const handleApprove = async (id: number, docketCode: string) => {
@@ -126,7 +153,7 @@ export const RefundApprovalPage: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={fetchDockets}
+            onClick={() => fetchDockets()}
             title="Làm mới danh sách"
             className={`p-2 rounded-lg border transition-colors cursor-pointer ${
               isDarkMode
@@ -202,7 +229,7 @@ export const RefundApprovalPage: React.FC = () => {
           <p className="text-xs text-slate-400">Vui lòng kiểm tra lại dịch vụ Backend hoặc mạng nội bộ.</p>
           <button
             type="button"
-            onClick={fetchDockets}
+            onClick={() => fetchDockets()}
             className="flex items-center gap-1.5 px-4 py-2 mt-2 rounded-lg text-xs font-semibold bg-red-600 hover:bg-red-700 text-white cursor-pointer shadow-sm transition-colors"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -224,7 +251,7 @@ export const RefundApprovalPage: React.FC = () => {
           </p>
           <button
             type="button"
-            onClick={fetchDockets}
+            onClick={() => fetchDockets()}
             className="flex items-center gap-1.5 px-3.5 py-1.5 mt-2 rounded-lg text-xs font-semibold border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -359,6 +386,17 @@ export const RefundApprovalPage: React.FC = () => {
           })}
         </div>
       )}
+
+      {/* Pagination */}
+      <AdminPagination
+        currentPage={page}
+        pageSize={pageSize}
+        totalElements={totalElements}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
+        isLoading={loading}
+      />
 
       {/* Modal Từ Chối Hoàn Cọc */}
       {rejectItem && (

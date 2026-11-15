@@ -14,6 +14,7 @@ import {
 import { useAdminTheme } from '@/context/AdminThemeContext';
 import { cn } from '@/lib/utils';
 import { adminReviewService } from '../../services/admin-review.service';
+import { AdminPagination } from '../../components/AdminPagination';
 import type { AdminReview, ReviewStatus } from '@/types/admin-review.types';
 
 export const ReviewModerationPage: React.FC = () => {
@@ -25,23 +26,53 @@ export const ReviewModerationPage: React.FC = () => {
   const [actionInProgressId, setActionInProgressId] = useState<number | null>(null);
   const [actionSuccessMessage, setActionSuccessMessage] = useState<string | null>(null);
 
-  const fetchReviews = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await adminReviewService.getReviews();
-      setReviews(data ?? []);
-    } catch (err) {
-      console.error('Failed to load reviews:', err);
-      setError('Không thể tải danh sách đánh giá từ máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const [page, setPage] = useState<number>(0);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [totalElements, setTotalElements] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
+
+  const fetchReviews = useCallback(
+    async (currentPage = page, currentSize = pageSize) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const queryStatus =
+          statusFilter !== 'ALL' && statusFilter !== 'FLAGGED' ? statusFilter : undefined;
+        const pagedData = await adminReviewService.getReviews({
+          status: queryStatus,
+          page: currentPage,
+          size: currentSize,
+        });
+        setReviews(pagedData.items ?? []);
+        setPage(pagedData.page ?? 0);
+        setPageSize(pagedData.size ?? 10);
+        setTotalElements(pagedData.totalElements ?? 0);
+        setTotalPages(pagedData.totalPages ?? 1);
+      } catch (err) {
+        console.error('Failed to load reviews:', err);
+        setError('Không thể tải danh sách đánh giá từ máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [page, pageSize, statusFilter]
+  );
 
   useEffect(() => {
-    fetchReviews();
-  }, [fetchReviews]);
+    setPage(0);
+    fetchReviews(0, pageSize);
+  }, [statusFilter]);
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchReviews(newPage, pageSize);
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(0);
+    fetchReviews(0, newSize);
+  };
 
   const handleUpdateStatus = async (review: AdminReview, newStatus: ReviewStatus) => {
     if (review.status === newStatus) {
@@ -142,7 +173,7 @@ export const ReviewModerationPage: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={fetchReviews}
+            onClick={() => fetchReviews()}
             disabled={loading}
             title="Làm mới danh sách"
             className={cn(
@@ -296,7 +327,7 @@ export const ReviewModerationPage: React.FC = () => {
           </div>
           <button
             type="button"
-            onClick={fetchReviews}
+            onClick={() => fetchReviews()}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer inline-flex items-center gap-1.5"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -454,6 +485,17 @@ export const ReviewModerationPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          <AdminPagination
+            currentPage={page}
+            pageSize={pageSize}
+            totalElements={totalElements}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+            isLoading={loading}
+          />
         </div>
       )}
     </div>

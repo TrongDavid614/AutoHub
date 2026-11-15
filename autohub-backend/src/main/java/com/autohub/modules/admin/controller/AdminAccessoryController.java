@@ -1,6 +1,7 @@
 package com.autohub.modules.admin.controller;
 
 import com.autohub.common.dto.ApiResponse;
+import com.autohub.common.dto.PageResponseDto;
 import com.autohub.core.accessory.entity.DanhMucPhuKien;
 import com.autohub.core.accessory.entity.PhuKien;
 import com.autohub.core.accessory.repository.DanhMucPhuKienRepository;
@@ -31,10 +32,12 @@ public class AdminAccessoryController {
     private final DanhMucPhuKienRepository danhMucPhuKienRepository;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<AdminAccessoryDto>>> getAllAccessories(
+    public ResponseEntity<ApiResponse<PageResponseDto<AdminAccessoryDto>>> getAllAccessories(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false) Boolean active) {
+            @RequestParam(required = false) Boolean active,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
         List<PhuKien> list;
         if (keyword != null && !keyword.trim().isEmpty()) {
@@ -55,7 +58,8 @@ public class AdminAccessoryController {
                 .map(this::toDto)
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(ApiResponse.ok(dtos, "Tải danh sách phụ kiện thành công"));
+        PageResponseDto<AdminAccessoryDto> pagedData = PageResponseDto.of(dtos, page, size);
+        return ResponseEntity.ok(ApiResponse.ok(pagedData, "Tải danh sách phụ kiện thành công"));
     }
 
     @GetMapping("/categories")

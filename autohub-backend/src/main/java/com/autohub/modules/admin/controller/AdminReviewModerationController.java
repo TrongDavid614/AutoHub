@@ -1,6 +1,7 @@
 package com.autohub.modules.admin.controller;
 
 import com.autohub.common.dto.ApiResponse;
+import com.autohub.common.dto.PageResponseDto;
 import com.autohub.core.accessory.entity.DanhGia;
 import com.autohub.core.accessory.repository.DanhGiaRepository;
 import com.autohub.core.enums.TrangThaiDanhGia;
@@ -32,8 +33,10 @@ public class AdminReviewModerationController {
     );
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<AdminReviewDto>>> getAllReviews(
-            @RequestParam(required = false) TrangThaiDanhGia status) {
+    public ResponseEntity<ApiResponse<PageResponseDto<AdminReviewDto>>> getAllReviews(
+            @RequestParam(required = false) TrangThaiDanhGia status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
         List<DanhGia> list;
         if (status != null) {
@@ -46,7 +49,8 @@ public class AdminReviewModerationController {
                 .map(this::toDto)
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(ApiResponse.ok(dtos, "Tải danh sách đánh giá phụ kiện thành công"));
+        PageResponseDto<AdminReviewDto> pagedData = PageResponseDto.of(dtos, page, size);
+        return ResponseEntity.ok(ApiResponse.ok(pagedData, "Tải danh sách đánh giá phụ kiện thành công"));
     }
 
     @PutMapping("/{id}/status")

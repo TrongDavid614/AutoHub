@@ -1,6 +1,6 @@
 import { axiosClient } from '@/lib/axios';
 import { API_CONFIG } from '@/config/api.config';
-import type { ApiResponse } from '@/types/api.types';
+import type { ApiResponse, PageResponse } from '@/types/api.types';
 import type {
   AdminUser,
   AdminUserStats,
@@ -14,11 +14,16 @@ export interface GetUsersParams {
   keyword?: string;
   role?: VaiTroNguoiDung;
   status?: TrangThaiTaiKhoan;
+  page?: number;
+  size?: number;
 }
 
 export const adminUserService = {
-  async getUsers(params?: GetUsersParams, signal?: AbortSignal): Promise<AdminUser[]> {
-    const queryParams: Record<string, string> = {};
+  async getUsers(params?: GetUsersParams, signal?: AbortSignal): Promise<PageResponse<AdminUser>> {
+    const queryParams: Record<string, string | number> = {
+      page: params?.page ?? 0,
+      size: params?.size ?? 10,
+    };
     if (params?.keyword && params.keyword.trim()) {
       queryParams.keyword = params.keyword.trim();
     }
@@ -29,14 +34,22 @@ export const adminUserService = {
       queryParams.status = params.status;
     }
 
-    const res = await axiosClient.get<unknown, ApiResponse<AdminUser[]>>(
+    const res = await axiosClient.get<unknown, ApiResponse<PageResponse<AdminUser>>>(
       API_CONFIG.ENDPOINTS.ADMIN.USERS,
       {
         params: queryParams,
         signal,
       }
     );
-    return res.data || [];
+    return res.data || {
+      items: [],
+      page: 0,
+      size: 10,
+      totalElements: 0,
+      totalPages: 1,
+      first: true,
+      last: true,
+    };
   },
 
   async getUserStats(signal?: AbortSignal): Promise<AdminUserStats> {

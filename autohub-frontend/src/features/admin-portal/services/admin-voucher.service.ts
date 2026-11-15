@@ -1,6 +1,6 @@
 import { axiosClient } from '@/lib/axios';
 import { API_CONFIG } from '@/config/api.config';
-import type { ApiResponse } from '@/types/api.types';
+import type { ApiResponse, PageResponse } from '@/types/api.types';
 
 export interface AdminVoucher {
   id: number;
@@ -28,13 +28,34 @@ export interface UpdateVoucherPayload {
   active?: boolean;
 }
 
+export interface GetVouchersParams {
+  keyword?: string;
+  page?: number;
+  size?: number;
+}
+
 export const adminVoucherService = {
-  async getVouchers(signal?: AbortSignal): Promise<AdminVoucher[]> {
-    const res = await axiosClient.get<unknown, ApiResponse<AdminVoucher[]>>(
+  async getVouchers(params?: GetVouchersParams, signal?: AbortSignal): Promise<PageResponse<AdminVoucher>> {
+    const queryParams: Record<string, string | number> = {
+      page: params?.page ?? 0,
+      size: params?.size ?? 10,
+    };
+    if (params?.keyword && params.keyword.trim()) {
+      queryParams.keyword = params.keyword.trim();
+    }
+    const res = await axiosClient.get<unknown, ApiResponse<PageResponse<AdminVoucher>>>(
       API_CONFIG.ENDPOINTS.ADMIN.VOUCHERS,
-      { signal }
+      { params: queryParams, signal }
     );
-    return res.data || [];
+    return res.data || {
+      items: [],
+      page: 0,
+      size: 10,
+      totalElements: 0,
+      totalPages: 1,
+      first: true,
+      last: true,
+    };
   },
 
   async createVoucher(payload: CreateVoucherPayload): Promise<AdminVoucher> {

@@ -17,6 +17,7 @@ import {
   type AdminVoucher,
   type CreateVoucherPayload,
 } from '../../services/admin-voucher.service';
+import { AdminPagination } from '../../components/AdminPagination';
 
 export const VoucherMasterPage: React.FC = () => {
   const { isDarkMode } = useAdminTheme();
@@ -25,6 +26,11 @@ export const VoucherMasterPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'PAUSED' | 'EXPIRED'>('ALL');
+
+  const [page, setPage] = useState<number>(0);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [totalElements, setTotalElements] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
 
   // Modal create
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
@@ -39,23 +45,46 @@ export const VoucherMasterPage: React.FC = () => {
     active: true,
   });
 
-  const fetchVouchers = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await adminVoucherService.getVouchers();
-      setVouchers(data);
-    } catch (err) {
-      console.error('Failed to load vouchers:', err);
-      setError('Không thể kết nối đến máy chủ để tải danh sách mã voucher. Vui lòng thử lại!');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const fetchVouchers = useCallback(
+    async (currentPage = page, currentSize = pageSize) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const pagedData = await adminVoucherService.getVouchers({
+          keyword: search,
+          page: currentPage,
+          size: currentSize,
+        });
+        setVouchers(pagedData.items ?? []);
+        setPage(pagedData.page ?? 0);
+        setPageSize(pagedData.size ?? 10);
+        setTotalElements(pagedData.totalElements ?? 0);
+        setTotalPages(pagedData.totalPages ?? 1);
+      } catch (err) {
+        console.error('Failed to load vouchers:', err);
+        setError('Không thể kết nối đến máy chủ để tải danh sách mã voucher. Vui lòng thử lại!');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [page, pageSize, search]
+  );
 
   useEffect(() => {
-    fetchVouchers();
-  }, [fetchVouchers]);
+    setPage(0);
+    fetchVouchers(0, pageSize);
+  }, [search]);
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchVouchers(newPage, pageSize);
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(0);
+    fetchVouchers(0, newSize);
+  };
 
   const showNotification = (msg: string) => {
     setSuccessToast(msg);
@@ -156,7 +185,7 @@ export const VoucherMasterPage: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={fetchVouchers}
+            onClick={() => fetchVouchers()}
             disabled={loading}
             title="Làm mới danh sách"
             className={`p-2 rounded-lg border transition-colors cursor-pointer ${
@@ -333,7 +362,7 @@ export const VoucherMasterPage: React.FC = () => {
           </div>
           <button
             type="button"
-            onClick={fetchVouchers}
+            onClick={() => fetchVouchers()}
             className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer inline-flex items-center gap-1.5"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -437,6 +466,17 @@ export const VoucherMasterPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          <AdminPagination
+            currentPage={page}
+            pageSize={pageSize}
+            totalElements={totalElements}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+            isLoading={loading}
+          />
         </div>
       )}
 

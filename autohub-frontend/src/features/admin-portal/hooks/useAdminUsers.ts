@@ -18,9 +18,15 @@ export interface UseAdminUsersReturn {
   roleFilter: VaiTroNguoiDung | 'ALL';
   statusFilter: TrangThaiTaiKhoan | 'ALL';
   toastMessage: string | null;
+  page: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
   setKeyword: (kw: string) => void;
   setRoleFilter: (role: VaiTroNguoiDung | 'ALL') => void;
   setStatusFilter: (st: TrangThaiTaiKhoan | 'ALL') => void;
+  handlePageChange: (newPage: number) => void;
+  handlePageSizeChange: (newSize: number) => void;
   refetch: () => Promise<void>;
   toggleStatus: (id: number) => Promise<boolean>;
   updateRole: (id: number, payload: UpdateUserRolePayload) => Promise<boolean>;
@@ -38,59 +44,85 @@ export const useAdminUsers = (): UseAdminUsersReturn => {
   const [statusFilter, setStatusFilter] = useState<TrangThaiTaiKhoan | 'ALL'>('ALL');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  const [page, setPage] = useState<number>(0);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [totalElements, setTotalElements] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
+
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const clearToast = useCallback(() => {
     setToastMessage(null);
   }, []);
 
-  const fetchData = useCallback(async () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const params = {
-        keyword: keyword.trim() || undefined,
-        role: roleFilter !== 'ALL' ? roleFilter : undefined,
-        status: statusFilter !== 'ALL' ? statusFilter : undefined,
-      };
-
-      const [userList, userStats] = await Promise.all([
-        adminUserService.getUsers(params, controller.signal),
-        adminUserService.getUserStats(controller.signal),
-      ]);
-
-      setUsers(userList);
-      setStats(userStats);
-    } catch (err: unknown) {
-      if (err instanceof Error && err.name === 'CanceledError') {
-        return;
+  const fetchData = useCallback(
+    async (currentPage = page, currentSize = pageSize) => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
-      const message =
-        err instanceof Error
-          ? err.message
-          : 'Không thể tải danh sách tài khoản người dùng. Vui lòng thử lại.';
-      setError(message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [keyword, roleFilter, statusFilter]);
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const params = {
+          keyword: keyword.trim() || undefined,
+          role: roleFilter !== 'ALL' ? roleFilter : undefined,
+          status: statusFilter !== 'ALL' ? statusFilter : undefined,
+          page: currentPage,
+          size: currentSize,
+        };
+
+        const [pagedUsers, userStats] = await Promise.all([
+          adminUserService.getUsers(params, controller.signal),
+          adminUserService.getUserStats(controller.signal),
+        ]);
+
+        setUsers(pagedUsers.items ?? []);
+        setPage(pagedUsers.page ?? 0);
+        setPageSize(pagedUsers.size ?? 10);
+        setTotalElements(pagedUsers.totalElements ?? 0);
+        setTotalPages(pagedUsers.totalPages ?? 1);
+        setStats(userStats);
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === 'CanceledError') {
+          return;
+        }
+        const message =
+          err instanceof Error
+            ? err.message
+            : 'Không thể tải danh sách tài khoản người dùng. Vui lòng thử lại.';
+        setError(message);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [keyword, roleFilter, statusFilter, page, pageSize]
+  );
 
   useEffect(() => {
-    fetchData();
+    setPage(0);
+    fetchData(0, pageSize);
 
     return () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
     };
-  }, [fetchData]);
+  }, [keyword, roleFilter, statusFilter]); // Reset to page 0 on filters change
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchData(newPage, pageSize);
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(0);
+    fetchData(0, newSize);
+  };
 
   const toggleStatus = useCallback(
     async (id: number): Promise<boolean> => {
@@ -139,7 +171,7 @@ export const useAdminUsers = (): UseAdminUsersReturn => {
       try {
         const created = await adminUserService.createStaffUser(payload);
         setToastMessage(`Tạo tài khoản thành công cho nhân sự: ${created.hoTen} (${created.email})`);
-        await fetchData();
+        await fetchData(0, pageSize);
         return true;
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Tạo tài khoản người dùng thất bại';
@@ -147,7 +179,7 @@ export const useAdminUsers = (): UseAdminUsersReturn => {
         return false;
       }
     },
-    [fetchData]
+    [fetchData, pageSize]
   );
 
   return {
@@ -159,10 +191,16 @@ export const useAdminUsers = (): UseAdminUsersReturn => {
     roleFilter,
     statusFilter,
     toastMessage,
+    page,
+    pageSize,
+    totalElements,
+    totalPages,
     setKeyword,
     setRoleFilter,
     setStatusFilter,
-    refetch: fetchData,
+    handlePageChange,
+    handlePageSizeChange,
+    refetch: () => fetchData(page, pageSize),
     toggleStatus,
     updateRole,
     createUser,
