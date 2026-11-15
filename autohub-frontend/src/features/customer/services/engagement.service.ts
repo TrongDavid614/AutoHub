@@ -61,8 +61,12 @@ export const engagementService = {
         success: false,
         message: res?.message || 'Không thể đặt lịch hẹn lái thử do trùng lịch hoặc vi phạm quy chế hệ thống.',
       };
-    } catch {
-      return { success: false, message: 'Lỗi kết nối máy chủ khi đăng ký lái thử. Vui lòng kiểm tra backend!' };
+    } catch (err: unknown) {
+      const apiMsg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      return {
+        success: false,
+        message: apiMsg || 'Lỗi kết nối máy chủ khi đăng ký lái thử. Vui lòng kiểm tra backend!',
+      };
     }
   },
 
@@ -75,8 +79,9 @@ export const engagementService = {
         return { success: true, message: res.message || 'Đã hủy lịch hẹn lái thử thành công.' };
       }
       return { success: false, message: res?.message || 'Không thể hủy lịch hẹn lái thử.' };
-    } catch {
-      return { success: false, message: 'Lỗi kết nối máy chủ khi hủy lịch hẹn.' };
+    } catch (err: unknown) {
+      const apiMsg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      return { success: false, message: apiMsg || 'Lỗi kết nối máy chủ khi hủy lịch hẹn.' };
     }
   },
 };
