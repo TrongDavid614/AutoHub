@@ -3,10 +3,12 @@ package com.autohub.modules.auth.controller;
 import com.autohub.common.dto.ApiResponse;
 import com.autohub.modules.auth.dto.LoginRequest;
 import com.autohub.modules.auth.dto.LoginResponse;
+import com.autohub.modules.auth.dto.RegisterRequest;
 import com.autohub.modules.auth.dto.UserInfoDto;
 import com.autohub.modules.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +18,13 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse<LoginResponse>> register(@Valid @RequestBody RegisterRequest request) {
+        LoginResponse response = authService.register(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.ok(response, "Đăng ký tài khoản thành công"));
+    }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {

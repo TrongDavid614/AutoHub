@@ -3,10 +3,12 @@ package com.autohub.modules.auth.service;
 import com.autohub.common.exception.AppException;
 import com.autohub.common.security.JwtTokenProvider;
 import com.autohub.core.enums.TrangThaiTaiKhoan;
+import com.autohub.core.enums.VaiTroNguoiDung;
 import com.autohub.core.user.entity.NguoiDung;
 import com.autohub.core.user.repository.NguoiDungRepository;
 import com.autohub.modules.auth.dto.LoginRequest;
 import com.autohub.modules.auth.dto.LoginResponse;
+import com.autohub.modules.auth.dto.RegisterRequest;
 import com.autohub.modules.auth.dto.UserInfoDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -77,6 +79,62 @@ public class AuthService {
                 .accessToken(token)
                 .tokenType("Bearer")
                 .user(userInfo)
+                .build();
+    }
+
+    @Transactional
+    public LoginResponse register(RegisterRequest request) {
+        String email = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
+        String fullName = request.getFullName() != null ? request.getFullName().trim() : "";
+        String rawPassword = request.getPassword() != null ? request.getPassword() : "";
+
+        String rawPhone = request.getPhoneNumber() != null ? request.getPhoneNumber().trim().replaceAll("[^0-9]", "") : "";
+        if (rawPhone.startsWith("84") && rawPhone.length() == 11) {
+            rawPhone = "0" + rawPhone.substring(2);
+        } else if (!rawPhone.startsWith("0") && rawPhone.length() == 9) {
+            rawPhone = "0" + rawPhone;
+        }
+
+        if (fullName.isEmpty()) {
+            throw new AppException("Họ và tên không được để trống", HttpStatus.BAD_REQUEST);
+        }
+        if (email.isEmpty()) {
+            throw new AppException("Email không được để trống", HttpStatus.BAD_REQUEST);
+        }
+        if (rawPassword.length() < 8) {
+            throw new AppException("Mật khẩu phải có tối thiểu 8 ký tự", HttpStatus.BAD_REQUEST);
+        }
+        if (!rawPhone.matches("^0[35789]\\d{8}$")) {
+            throw new AppException("Số điện thoại không hợp lệ. Vui lòng nhập 10 chữ số (đầu 03, 05, 07, 08, 09)", HttpStatus.BAD_REQUEST);
+        }
+
+        // Kiểm tra tính duy nhất của email và số điện thoại
+        if (nguoiDungRepository.existsByEmail(email)) {
+            throw new AppException("Email này đã được sử dụng trên hệ thống AutoHub", HttpStatus.BAD_REQUEST);
+        }
+        if (nguoiDungRepository.existsBySoDienThoai(rawPhone)) {
+            throw new AppException("Số điện thoại này đã được sử dụng trên hệ thống AutoHub", HttpStatus.BAD_REQUEST);
+        }
+
+        NguoiDung user = NguoiDung.builder()
+                .hoTen(fullName)
+                .email(email)
+                .soDienThoai(rawPhone)
+                .matKhauBam(passwordEncoder.encode(rawPassword))
+                .vaiTro(VaiTroNguoiDung.ROLE_CUSTOMER)
+                .trangThaiTaiKhoan(TrangThaiTaiKhoan.HOAT_DONG)
+                .isDeleted(false)
+                .build();
+
+        nguoiDungRepository.save(user);
+
+        // Tự động cấp phát JWT Token cho tài khoản vừa tạo
+        String accessToken = jwtTokenProvider.generateToken(user.getEmail(), user.getVaiTro().name());
+
+        return LoginResponse.builder()
+                .accessToken(accessToken)
+                .tokenType("Bearer")
+                .user(mapToUserInfoDto(user))
                 .build();
     }
 
