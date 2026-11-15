@@ -1,9 +1,12 @@
 package com.autohub.modules.staff.controller;
 
 import com.autohub.common.dto.ApiResponse;
+import com.autohub.core.accessory.entity.DonHangPhuKien;
 import com.autohub.core.accessory.entity.YeuCauDoiTra;
+import com.autohub.core.accessory.repository.DonHangPhuKienRepository;
 import com.autohub.core.accessory.repository.YeuCauDoiTraRepository;
 import com.autohub.core.enums.TrangThaiDoiTra;
+import com.autohub.core.enums.TrangThaiDonHang;
 import com.autohub.modules.staff.dto.ResolveReturnRequest;
 import com.autohub.modules.staff.dto.StaffReturnItemDto;
 import jakarta.validation.Valid;
@@ -24,6 +27,7 @@ import java.util.List;
 public class StaffReturnController {
 
     private final YeuCauDoiTraRepository returnRepository;
+    private final DonHangPhuKienRepository orderRepository;
 
     @GetMapping
     @Transactional(readOnly = true)
@@ -33,6 +37,11 @@ public class StaffReturnController {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
         for (YeuCauDoiTra r : list) {
+            String mappedStatus = "RETURN_REQUESTED";
+            if (r.getTrangThai() != null && r.getTrangThai() != TrangThaiDoiTra.PENDING) {
+                mappedStatus = r.getTrangThai().name();
+            }
+
             StaffReturnItemDto dto = StaffReturnItemDto.builder()
                     .id(String.valueOf(r.getId()))
                     .rmaCode("#RMA-" + String.format("%03d", r.getId()))
@@ -47,7 +56,7 @@ public class StaffReturnController {
                     .requestedAt(r.getNgayGui() != null ? r.getNgayGui().format(fmt) : "-")
                     .evidenceImages(r.getMinhChung() != null ? List.of(r.getMinhChung()) : List.of())
                     .inspectionNotes(r.getGhiChuXuLy() != null ? r.getGhiChuXuLy() : "")
-                    .status(r.getTrangThai() != null ? r.getTrangThai().name() : "PENDING")
+                    .status(mappedStatus)
                     .resolution(r.getPhuongAnGiaiQuyet())
                     .build();
             result.add(dto);
@@ -73,10 +82,25 @@ public class StaffReturnController {
 
         if ("REJECT".equalsIgnoreCase(payload.getResolution())) {
             r.setTrangThai(TrangThaiDoiTra.REJECTED);
+            r.setPhuongAnGiaiQuyet(null);
+            if (r.getDonHang() != null) {
+                DonHangPhuKien o = r.getDonHang();
+                o.setTrangThai(TrangThaiDonHang.DELIVERED);
+                orderRepository.save(o);
+            }
         } else {
             r.setTrangThai(TrangThaiDoiTra.APPROVED);
+            if ("REFUND".equalsIgnoreCase(payload.getResolution()) || "HOAN_TIEN".equalsIgnoreCase(payload.getResolution())) {
+                r.setPhuongAnGiaiQuyet("HOAN_TIEN");
+            } else {
+                r.setPhuongAnGiaiQuyet("DOI_HANG");
+            }
+            if (r.getDonHang() != null) {
+                DonHangPhuKien o = r.getDonHang();
+                o.setTrangThai(TrangThaiDonHang.RETURNED);
+                orderRepository.save(o);
+            }
         }
-        r.setPhuongAnGiaiQuyet(payload.getResolution());
         if (payload.getInspectionNotes() != null) {
             r.setGhiChuXuLy(payload.getInspectionNotes());
         }

@@ -38,6 +38,12 @@ public class StaffFulfillmentController {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
         for (DonHangPhuKien o : list) {
+            if (o.getTrangThai() == TrangThaiDonHang.CANCELLED
+                    || o.getTrangThai() == TrangThaiDonHang.REFUND_REQUIRED
+                    || o.getTrangThai() == TrangThaiDonHang.RETURNED) {
+                continue;
+            }
+
             String status = "NEED_PACK";
             if (o.getTrangThai() == TrangThaiDonHang.DELIVERED || o.getTrangThai() == TrangThaiDonHang.SHIPPING) {
                 status = "SHIPPED";
