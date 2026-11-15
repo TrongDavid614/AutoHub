@@ -81,7 +81,7 @@ export interface TodayTimelineSlot {
   customerName: string;
   customerPhone: string;
   staffName: string;
-  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED';
+  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'PENDING' | 'CONFIRMED' | 'CANCELLED' | string;
 }
 
 export interface ConsultationLead {
