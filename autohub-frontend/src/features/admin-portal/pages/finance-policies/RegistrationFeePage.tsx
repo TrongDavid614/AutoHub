@@ -373,7 +373,19 @@ export const RegistrationFeePage: React.FC = () => {
               <tbody
                 className={cn('divide-y font-sans font-medium', isDarkMode ? 'divide-[#3E4850]/30' : 'divide-slate-100')}
               >
-                {fees.map((row) => (
+                {(fees ?? []).length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="py-12 text-center">
+                      <div className="flex flex-col items-center justify-center space-y-2">
+                        <MapPin className="w-8 h-8 text-slate-400" />
+                        <p className={cn('text-xs font-medium', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
+                          Chưa có dữ liệu biểu phí trước bạ theo tỉnh thành
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  (fees ?? []).map((row) => (
                   <tr
                     key={row.id}
                     className={cn(
@@ -449,7 +461,7 @@ export const RegistrationFeePage: React.FC = () => {
                       </div>
                     </td>
                   </tr>
-                ))}
+                )))}
               </tbody>
             </table>
           </div>
@@ -479,7 +491,19 @@ export const RegistrationFeePage: React.FC = () => {
               <tbody
                 className={cn('divide-y font-sans font-medium', isDarkMode ? 'divide-[#3E4850]/30' : 'divide-slate-100')}
               >
-                {loans.map((loan) => (
+                {(loans ?? []).length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="py-12 text-center">
+                      <div className="flex flex-col items-center justify-center space-y-2">
+                        <Landmark className="w-8 h-8 text-slate-400" />
+                        <p className={cn('text-xs font-medium', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
+                          Chưa có gói vay ngân hàng nào được thiết lập
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  (loans ?? []).map((loan) => (
                   <tr
                     key={loan.id}
                     className={cn(
@@ -570,7 +594,7 @@ export const RegistrationFeePage: React.FC = () => {
                       </div>
                     </td>
                   </tr>
-                ))}
+                )))}
               </tbody>
             </table>
           </div>
