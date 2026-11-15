@@ -6,14 +6,24 @@ import com.autohub.core.accessory.entity.DonHangPhuKien;
 import com.autohub.core.accessory.repository.ChiTietDonHangRepository;
 import com.autohub.core.accessory.repository.DonHangPhuKienRepository;
 import com.autohub.core.enums.TrangThaiDonHang;
+import com.autohub.modules.staff.dto.HandoverCourierRequest;
+import com.autohub.modules.staff.dto.OrderItemDto;
+import com.autohub.modules.staff.dto.StaffFulfillmentOrderDto;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/staff/fulfillment")
+@PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
 @RequiredArgsConstructor
 public class StaffFulfillmentController {
 
@@ -21,61 +31,89 @@ public class StaffFulfillmentController {
     private final ChiTietDonHangRepository orderItemRepository;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getFulfillmentOrders() {
+    @Transactional(readOnly = true)
+    public ResponseEntity<ApiResponse<List<StaffFulfillmentOrderDto>>> getFulfillmentOrders() {
         List<DonHangPhuKien> list = orderRepository.findAll();
-        List<Map<String, Object>> result = new ArrayList<>();
+        List<StaffFulfillmentOrderDto> result = new ArrayList<>();
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
         for (DonHangPhuKien o : list) {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", String.valueOf(o.getId()));
-            map.put("orderCode", o.getMaDonHang() != null ? o.getMaDonHang() : "#AH-ACC-" + o.getId());
-            map.put("customerName", o.getHoTenNguoiNhan() != null ? o.getHoTenNguoiNhan() : "Khách hàng");
-            map.put("customerPhone", o.getSoDienThoaiNhan() != null ? o.getSoDienThoaiNhan() : "0912345678");
-            map.put("shippingAddress", o.getDiaChiGiaoHang() != null ? o.getDiaChiGiaoHang() : "Tòa nhà Landmark 81, TP. Hồ Chí Minh");
-            map.put("orderDate", o.getNgayDat() != null ? o.getNgayDat().toString() : "Hôm nay");
-            map.put("totalAmount", o.getTongTien() != null ? o.getTongTien().doubleValue() : 25000000.0);
-
             String status = "NEED_PACK";
             if (o.getTrangThai() == TrangThaiDonHang.DELIVERED || o.getTrangThai() == TrangThaiDonHang.SHIPPING) {
                 status = "SHIPPED";
             } else if (o.getTrangThai() == TrangThaiDonHang.PROCESSING) {
                 status = "PACKING";
             }
-            map.put("status", status);
 
-            List<Map<String, Object>> items = new ArrayList<>();
-            List<ChiTietDonHang> ctdhList = orderItemRepository.findAll();
+            // Truy vấn trực tiếp các chi tiết đơn hàng của đơn này (tránh N+1 quét full bảng)
+            List<ChiTietDonHang> ctdhList = orderItemRepository.findByDonHangId(o.getId());
+            List<OrderItemDto> items = new ArrayList<>();
             for (ChiTietDonHang c : ctdhList) {
-                if (c.getDonHang() != null && c.getDonHang().getId().equals(o.getId())) {
-                    Map<String, Object> itemMap = new HashMap<>();
-                    itemMap.put("sku", "ACC-SKU-" + (c.getPhuKien() != null ? c.getPhuKien().getId() : "101"));
-                    itemMap.put("name", c.getPhuKien() != null ? c.getPhuKien().getTenPhuKien() : "Phụ kiện AutoHub");
-                    itemMap.put("quantity", c.getSoLuong());
-                    itemMap.put("price", c.getDonGia() != null ? c.getDonGia().doubleValue() : 25000000.0);
-                    itemMap.put("shelfLocation", "Kệ A1 - Ngăn 02");
-                    items.add(itemMap);
-                }
+                OrderItemDto itemDto = OrderItemDto.builder()
+                        .sku("ACC-SKU-" + (c.getPhuKien() != null ? c.getPhuKien().getId() : "101"))
+                        .name(c.getPhuKien() != null ? c.getPhuKien().getTenPhuKien() : "Phụ kiện AutoHub")
+                        .quantity(c.getSoLuong())
+                        .price(c.getDonGia() != null ? c.getDonGia().doubleValue() : 0.0)
+                        .shelfLocation("Kệ A1 - Ngăn 02")
+                        .build();
+                items.add(itemDto);
             }
-            if (items.isEmpty()) {
-                items.add(Map.of("sku", "ACC-CHG-EV7", "name", "Bộ sạc di động AutoHub 3.5kW", "quantity", 1, "price", 5200000.0, "shelfLocation", "Kệ C4 - Ngăn 02"));
-            }
-            map.put("items", items);
-            result.add(map);
+
+            StaffFulfillmentOrderDto orderDto = StaffFulfillmentOrderDto.builder()
+                    .id(String.valueOf(o.getId()))
+                    .orderCode(o.getMaDonHang() != null ? o.getMaDonHang() : "#AH-ACC-" + o.getId())
+                    .customerName(o.getHoTenNguoiNhan() != null ? o.getHoTenNguoiNhan() : "Khách hàng")
+                    .customerPhone(o.getSoDienThoaiNhan() != null ? o.getSoDienThoaiNhan() : "")
+                    .shippingAddress(o.getDiaChiGiaoHang() != null ? o.getDiaChiGiaoHang() : "-")
+                    .orderDate(o.getNgayDat() != null ? o.getNgayDat().format(fmt) : "-")
+                    .totalAmount(o.getTongTien() != null ? o.getTongTien().doubleValue() : 0.0)
+                    .status(status)
+                    .items(items)
+                    .courier(o.getDonViVanChuyen())
+                    .trackingNumber(o.getMaVanDon())
+                    .build();
+
+            result.add(orderDto);
         }
 
         return ResponseEntity.ok(ApiResponse.ok(result, "Lấy danh sách đơn hàng đóng gói xuất kho từ database thành công"));
     }
 
     @PostMapping("/{orderId}/pack")
-    public ResponseEntity<ApiResponse<String>> startPacking(@PathVariable String orderId) {
-        return ResponseEntity.ok(ApiResponse.ok("Bắt đầu nhặt hàng đóng gói cho đơn: " + orderId));
+    @Transactional
+    public ResponseEntity<ApiResponse<String>> startPacking(@PathVariable Long orderId) {
+        DonHangPhuKien order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng ID: " + orderId));
+
+        order.setTrangThai(TrangThaiDonHang.PROCESSING);
+        orderRepository.save(order);
+
+        return ResponseEntity.ok(ApiResponse.ok(
+                "PACKING",
+                "Đã cập nhật trạng thái đơn hàng " + order.getMaDonHang() + " sang Đang đóng gói"
+        ));
     }
 
     @PostMapping("/{orderId}/handover")
+    @Transactional
     public ResponseEntity<ApiResponse<String>> handoverToCourier(
-            @PathVariable String orderId,
-            @RequestBody Map<String, String> courierPayload
+            @PathVariable Long orderId,
+            @Valid @RequestBody HandoverCourierRequest payload
     ) {
-        return ResponseEntity.ok(ApiResponse.ok("Đã bàn giao đơn hàng " + orderId + " cho bưu tá vận chuyển: " + courierPayload.get("courier")));
+        DonHangPhuKien order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng ID: " + orderId));
+
+        order.setTrangThai(TrangThaiDonHang.SHIPPING);
+        order.setDonViVanChuyen(payload.getCourier());
+        if (payload.getTrackingNumber() != null && !payload.getTrackingNumber().isBlank()) {
+            order.setMaVanDon(payload.getTrackingNumber().trim());
+        }
+        order.setNgayGiaoHang(LocalDateTime.now());
+        orderRepository.save(order);
+
+        return ResponseEntity.ok(ApiResponse.ok(
+                "SHIPPED",
+                "Đã bàn giao đơn hàng " + order.getMaDonHang() + " cho bưu tá vận chuyển: " + payload.getCourier()
+        ));
     }
 }

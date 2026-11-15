@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Search,
   X,
@@ -18,8 +18,16 @@ export const StaffRefundDocketPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'ALL' | 'REFUND_REQUESTED' | 'VERIFIED' | 'REFUNDED' | 'REJECTED'>('ALL');
   const [search, setSearch] = useState('');
   const [selectedDocket, setSelectedDocket] = useState<StaffRefundDocket | null>(null);
+  const [rejectModal, setRejectModal] = useState<{ docketId: string } | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  const fetchDockets = async () => {
+  const showToast = (type: 'success' | 'error', message: string) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  const fetchDockets = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -31,10 +39,28 @@ export const StaffRefundDocketPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchDockets();
+    let isMounted = true;
+    staffService
+      .getRefundDockets()
+      .then((data) => {
+        if (isMounted) {
+          setDockets(data);
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          console.error('Lỗi tải hồ sơ hoàn cọc từ database:', err);
+          setError('Không thể tải danh sách hồ sơ hoàn cọc từ SQL Server.');
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const filteredDockets = dockets.filter((d) => {
@@ -49,29 +75,28 @@ export const StaffRefundDocketPage: React.FC = () => {
 
   const handleVerifyDocket = async (id: string) => {
     try {
-      const cleanId = id.replace(/\D/g, '') || id;
-      await staffService.verifyRefundDocket(cleanId);
+      await staffService.verifyRefundDocket(id);
       await fetchDockets();
-      alert('Đã hoàn tất biên bản thẩm định đối soát và lưu vào database!');
+      showToast('success', 'Đã hoàn tất biên bản thẩm định đối soát và lưu vào database!');
       setSelectedDocket(null);
     } catch (err) {
       console.error('Lỗi thẩm định hoàn cọc:', err);
-      alert('Không thể cập nhật hồ sơ hoàn cọc. Vui lòng thử lại.');
+      showToast('error', 'Không thể cập nhật hồ sơ hoàn cọc. Vui lòng thử lại.');
     }
   };
 
-  const handleRejectDocket = async (id: string) => {
-    const reason = prompt('Nhập lý do bác bỏ yêu cầu hoàn cọc:');
-    if (!reason || !reason.trim()) return;
+  const executeRejectDocket = async () => {
+    if (!rejectModal || !rejectReason.trim()) return;
     try {
-      const cleanId = id.replace(/\D/g, '') || id;
-      await staffService.rejectRefundDocket(cleanId, reason.trim());
+      await staffService.rejectRefundDocket(rejectModal.docketId, rejectReason.trim());
       await fetchDockets();
-      alert('Đã bác bỏ hồ sơ hoàn cọc và lưu lý do vào database!');
+      showToast('success', 'Đã bác bỏ hồ sơ hoàn cọc và lưu lý do vào database!');
+      setRejectModal(null);
+      setRejectReason('');
       setSelectedDocket(null);
     } catch (err) {
       console.error('Lỗi bác bỏ hồ sơ hoàn cọc:', err);
-      alert('Không thể bác bỏ hồ sơ hoàn cọc trên máy chủ. Vui lòng thử lại.');
+      showToast('error', 'Không thể bác bỏ hồ sơ hoàn cọc trên máy chủ. Vui lòng thử lại.');
     }
   };
 
@@ -293,7 +318,7 @@ export const StaffRefundDocketPage: React.FC = () => {
                   <>
                     <button
                       type="button"
-                      onClick={() => handleRejectDocket(selectedDocket.id)}
+                      onClick={() => setRejectModal({ docketId: selectedDocket.id })}
                       className="px-4 py-2 rounded-lg text-xs font-bold border border-red-300 dark:border-red-800 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer"
                     >
                       Từ Chối
@@ -310,6 +335,78 @@ export const StaffRefundDocketPage: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+      )}
+      {/* Reject Reason Modal */}
+      {rejectModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div
+            className={cn(
+              'w-full max-w-md rounded-2xl border p-6 shadow-2xl space-y-4',
+              isDarkMode ? 'bg-[#171F33] border-[#3E4850]/60 text-[#DAE2FD]' : 'bg-white border-slate-200 text-slate-800'
+            )}
+          >
+            <div className="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-slate-700">
+              <h3 className="font-bold text-sm text-red-500">Bác Bỏ Hồ Sơ Hoàn Cọc</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setRejectModal(null);
+                  setRejectReason('');
+                }}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-200 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-300">Nhập lý do bác bỏ yêu cầu:</label>
+              <textarea
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="Ví dụ: Đã quá thời hạn 72h hoàn cọc theo quy định hoặc thiếu giấy xác nhận ngân hàng..."
+                rows={3}
+                className={cn(
+                  'w-full p-2.5 rounded-xl border text-xs outline-none transition-colors resize-none',
+                  isDarkMode ? 'bg-[#101726] border-[#3E4850] text-white focus:border-red-500' : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-red-500'
+                )}
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setRejectModal(null);
+                  setRejectReason('');
+                }}
+                className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                disabled={!rejectReason.trim()}
+                onClick={executeRejectDocket}
+                className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white cursor-pointer shadow-sm"
+              >
+                Xác Nhận Bác Bỏ
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          className={cn(
+            'fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl border shadow-xl flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-bottom-4 duration-200',
+            toast.type === 'success'
+              ? 'bg-emerald-950/90 border-emerald-500/50 text-emerald-200'
+              : 'bg-rose-950/90 border-rose-500/50 text-rose-200'
+          )}
+        >
+          <span>{toast.message}</span>
         </div>
       )}
     </div>

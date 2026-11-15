@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Search,
   Star,
@@ -29,8 +29,14 @@ export const TestDriveSchedulePage: React.FC = () => {
   const [selectedDemoPlate, setSelectedDemoPlate] = useState('');
   const [evalRating, setEvalRating] = useState(5);
   const [evalIntent, setEvalIntent] = useState('Rất cao (Dự kiến đặt cọc trong tuần)');
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  const fetchBookings = async () => {
+  const showToast = (type: 'success' | 'error', message: string) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  const fetchBookings = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -40,8 +46,8 @@ export const TestDriveSchedulePage: React.FC = () => {
       ]);
       setBookings(bookingsData);
       setDemoCars(demoCarsData);
-      if (demoCarsData.length > 0 && !selectedDemoPlate) {
-        setSelectedDemoPlate(demoCarsData[0].bienSo);
+      if (demoCarsData.length > 0) {
+        setSelectedDemoPlate((prev) => prev || demoCarsData[0].bienSo);
       }
     } catch (err) {
       console.error('Lỗi tải lịch hẹn lái thử từ database:', err);
@@ -49,10 +55,34 @@ export const TestDriveSchedulePage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchBookings();
+    let isMounted = true;
+    Promise.all([
+      staffService.getTestDriveBookings(),
+      staffService.getAvailableDemoCars(),
+    ])
+      .then(([bookingsData, demoCarsData]) => {
+        if (isMounted) {
+          setBookings(bookingsData);
+          setDemoCars(demoCarsData);
+          if (demoCarsData.length > 0) {
+            setSelectedDemoPlate((prev) => prev || demoCarsData[0].bienSo);
+          }
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          console.error('Lỗi tải lịch hẹn lái thử từ database:', err);
+          setError('Không thể tải danh sách lịch hẹn lái thử hoặc xe Demo từ SQL Server.');
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const filteredBookings = bookings.filter((b) => {
@@ -66,6 +96,10 @@ export const TestDriveSchedulePage: React.FC = () => {
 
   const handleConfirmDispatch = async () => {
     if (!dispatchItem) return;
+    if (!selectedDemoPlate || demoCars.length === 0) {
+      showToast('error', 'Không có xe Demo khả dụng để điều phối!');
+      return;
+    }
     try {
       await staffService.dispatchTestDrive(dispatchItem.id, selectedDemoPlate);
       setBookings((prev) =>
@@ -75,9 +109,11 @@ export const TestDriveSchedulePage: React.FC = () => {
             : b
         )
       );
+      showToast('success', `Đã điều phối xe demo ${selectedDemoPlate} cho ca lái thử ${dispatchItem.bookingCode}!`);
       setDispatchItem(null);
     } catch (err) {
       console.error('Lỗi điều phối xe lái thử:', err);
+      showToast('error', 'Không thể điều phối xe demo. Vui lòng kiểm tra lại!');
     }
   };
 
@@ -95,9 +131,11 @@ export const TestDriveSchedulePage: React.FC = () => {
             : b
         )
       );
+      showToast('success', `Đã hoàn tất đánh giá và lưu kết quả ca lái thử ${evaluationItem.bookingCode}!`);
       setEvaluationItem(null);
     } catch (err) {
       console.error('Lỗi hoàn tất đánh giá lái thử:', err);
+      showToast('error', 'Không thể lưu đánh giá lái thử. Vui lòng thử lại!');
     }
   };
 
@@ -403,6 +441,19 @@ export const TestDriveSchedulePage: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+      )}
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          className={cn(
+            'fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl border shadow-xl flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-bottom-4 duration-200',
+            toast.type === 'success'
+              ? 'bg-emerald-950/90 border-emerald-500/50 text-emerald-200'
+              : 'bg-rose-950/90 border-rose-500/50 text-rose-200'
+          )}
+        >
+          <span>{toast.message}</span>
         </div>
       )}
     </div>

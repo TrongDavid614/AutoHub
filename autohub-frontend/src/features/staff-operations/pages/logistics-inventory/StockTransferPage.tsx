@@ -73,13 +73,13 @@ export const StockTransferPage: React.FC = () => {
 
   const handleSubmitTransfer = () => {
     if (!selectedStockForTransfer || !fromBranch) {
-      alert('Vui lòng chọn chi nhánh xuất kho điều chuyển!');
+      showToast('Vui lòng chọn chi nhánh xuất kho điều chuyển!');
       return;
     }
 
     const branch = selectedStockForTransfer.branches.find((b) => b.branchName === fromBranch);
     if (!branch || branch.stock < quantity) {
-      alert(`Số lượng chuyển (${quantity}) vượt quá tồn khả dụng của ${fromBranch}!`);
+      showToast(`Số lượng chuyển (${quantity}) vượt quá tồn khả dụng của ${fromBranch}!`);
       return;
     }
 

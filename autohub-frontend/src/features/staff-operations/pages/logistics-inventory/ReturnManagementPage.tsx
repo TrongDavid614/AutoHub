@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Search,
   RefreshCw,
@@ -20,8 +20,15 @@ export const ReturnManagementPage: React.FC = () => {
 
   // Inspection drawer state
   const [inspectionNote, setInspectionNote] = useState('');
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  const fetchReturns = async () => {
+  const showToast = (type: 'success' | 'error', message: string) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  const fetchReturns = useCallback(async () => {
+    setIsLoading(true);
     try {
       const data = await staffService.getReturnItems();
       setReturnItems(data);
@@ -30,10 +37,27 @@ export const ReturnManagementPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchReturns();
+    let isMounted = true;
+    staffService
+      .getReturnItems()
+      .then((data) => {
+        if (isMounted) {
+          setReturnItems(data);
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          console.error('Lỗi tải danh sách đổi trả từ database:', err);
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const filteredItems = useMemo(() => {
@@ -51,9 +75,8 @@ export const ReturnManagementPage: React.FC = () => {
   }, [returnItems, activeTab, searchQuery]);
 
   const handleResolve = async (id: string, resolution: 'REPLACE_NEW' | 'REFUND_MONEY' | 'REJECT') => {
-    const cleanId = id.replace(/\D/g, '') || '1';
     try {
-      await staffService.resolveReturnItem(cleanId, resolution, inspectionNote);
+      await staffService.resolveReturnItem(id, resolution, inspectionNote);
       setReturnItems((prev) =>
         prev.map((item) =>
           item.id === id
@@ -68,9 +91,10 @@ export const ReturnManagementPage: React.FC = () => {
       );
       setSelectedItem(null);
       setInspectionNote('');
-      alert('Đã lưu kết quả giám định và phương án xử lý đổi trả vào database!');
+      showToast('success', 'Đã lưu kết quả giám định và phương án xử lý đổi trả vào database!');
     } catch (err) {
       console.error('Lỗi xử lý đổi trả:', err);
+      showToast('error', 'Không thể xử lý yêu cầu đổi trả. Vui lòng thử lại!');
     }
   };
 
@@ -266,6 +290,19 @@ export const ReturnManagementPage: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+      )}
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          className={cn(
+            'fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl border shadow-xl flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-bottom-4 duration-200',
+            toast.type === 'success'
+              ? 'bg-emerald-950/90 border-emerald-500/50 text-emerald-200'
+              : 'bg-rose-950/90 border-rose-500/50 text-rose-200'
+          )}
+        >
+          <span>{toast.message}</span>
         </div>
       )}
     </div>

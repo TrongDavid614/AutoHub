@@ -4,100 +4,129 @@ import com.autohub.common.dto.ApiResponse;
 import com.autohub.core.deposit.entity.YeuCauHoanCoc;
 import com.autohub.core.deposit.repository.YeuCauHoanCocRepository;
 import com.autohub.core.enums.TrangThaiHoanCoc;
+import com.autohub.modules.staff.dto.RejectDocketRequest;
+import com.autohub.modules.staff.dto.StaffRefundDocketDto;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/staff/refunds")
+@PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
 @RequiredArgsConstructor
 public class StaffRefundController {
 
-    private final YeuCauHoanCocRepository refundRepository;
+        private final YeuCauHoanCocRepository refundRepository;
 
-    @GetMapping
-    @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getRefundDockets() {
-        List<YeuCauHoanCoc> list = refundRepository.findAll();
-        List<Map<String, Object>> result = new ArrayList<>();
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        @GetMapping
+        @Transactional(readOnly = true)
+        public ResponseEntity<ApiResponse<List<StaffRefundDocketDto>>> getRefundDockets() {
+                List<YeuCauHoanCoc> list = refundRepository.findAll();
+                List<StaffRefundDocketDto> result = new ArrayList<>();
+                DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
-        for (YeuCauHoanCoc r : list) {
-            String mappedStatus = "REFUND_REQUESTED";
-            if (r.getTrangThai() != null && r.getTrangThai() != TrangThaiHoanCoc.PENDING) {
-                mappedStatus = r.getTrangThai().name();
-            }
+                for (YeuCauHoanCoc r : list) {
+                        String mappedStatus = "REFUND_REQUESTED";
+                        if (r.getTrangThai() != null && r.getTrangThai() != TrangThaiHoanCoc.PENDING) {
+                                mappedStatus = r.getTrangThai().name();
+                        }
 
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", String.valueOf(r.getId()));
-            map.put("docketCode", "REF-DOC-" + String.format("%02d", r.getId()));
-            map.put("depositCode", r.getPhieuDatCoc() != null ? r.getPhieuDatCoc().getMaPhieuCoc() : "#DEP-" + r.getId());
-            map.put("customerName", r.getPhieuDatCoc() != null && r.getPhieuDatCoc().getNguoiDung() != null
-                    ? r.getPhieuDatCoc().getNguoiDung().getHoTen() : "-");
-            map.put("identityCardNumber", r.getPhieuDatCoc() != null && r.getPhieuDatCoc().getSoCCCD() != null
-                    ? r.getPhieuDatCoc().getSoCCCD() : "-");
-            map.put("carModel", r.getPhieuDatCoc() != null && r.getPhieuDatCoc().getTonKhoXe() != null && r.getPhieuDatCoc().getTonKhoXe().getPhienBanXe() != null
-                    ? r.getPhieuDatCoc().getTonKhoXe().getPhienBanXe().getTenPhienBan() : "Chưa xác định");
-            map.put("depositAmount", r.getPhieuDatCoc() != null && r.getPhieuDatCoc().getSoTienCoc() != null
-                    ? r.getPhieuDatCoc().getSoTienCoc().doubleValue() : 0.0);
-            map.put("reason", r.getLyDo() != null ? r.getLyDo() : "");
-            map.put("reasonType", r.getLoaiLyDo() != null ? r.getLoaiLyDo() : "");
-            map.put("rejectionReason", r.getLyDoTuChoi());
-            map.put("bankName", r.getLoaiLyDo() != null ? "Loại hồ sơ: " + r.getLoaiLyDo() : "Đối soát hoàn về chính chủ cọc");
-            map.put("bankAccountNumber", r.getPhieuDatCoc() != null && r.getPhieuDatCoc().getNguoiDung() != null && r.getPhieuDatCoc().getNguoiDung().getSoDienThoai() != null
-                    ? "SĐT: " + r.getPhieuDatCoc().getNguoiDung().getSoDienThoai() : "-");
-            map.put("bankAccountHolder", r.getPhieuDatCoc() != null && r.getPhieuDatCoc().getNguoiDung() != null
-                    ? r.getPhieuDatCoc().getNguoiDung().getHoTen() : "-");
-            map.put("submittedAt", r.getNgayGui() != null ? r.getNgayGui().format(fmt) : "-");
-            map.put("status", mappedStatus);
-            map.put("evidenceUrls", r.getMinhChung() != null ? List.of(r.getMinhChung()) : List.of());
-            result.add(map);
+                        StaffRefundDocketDto dto = StaffRefundDocketDto.builder()
+                                        .id(String.valueOf(r.getId()))
+                                        .docketCode("REF-DOC-" + String.format("%02d", r.getId()))
+                                        .depositCode(r.getPhieuDatCoc() != null ? r.getPhieuDatCoc().getMaPhieuCoc()
+                                                        : "#DEP-" + r.getId())
+                                        .customerName(r.getPhieuDatCoc() != null
+                                                        && r.getPhieuDatCoc().getNguoiDung() != null
+                                                                        ? r.getPhieuDatCoc().getNguoiDung().getHoTen()
+                                                                        : "-")
+                                        .identityCardNumber(r.getPhieuDatCoc() != null
+                                                        && r.getPhieuDatCoc().getSoCCCD() != null
+                                                                        ? r.getPhieuDatCoc().getSoCCCD()
+                                                                        : "-")
+                                        .carModel(r.getPhieuDatCoc() != null && r.getPhieuDatCoc().getTonKhoXe() != null
+                                                        && r.getPhieuDatCoc().getTonKhoXe().getPhienBanXe() != null
+                                                                        ? r.getPhieuDatCoc().getTonKhoXe()
+                                                                                        .getPhienBanXe()
+                                                                                        .getTenPhienBan()
+                                                                        : "Chưa xác định")
+                                        .depositAmount(r.getPhieuDatCoc() != null
+                                                        && r.getPhieuDatCoc().getSoTienCoc() != null
+                                                                        ? r.getPhieuDatCoc().getSoTienCoc()
+                                                                                        .doubleValue()
+                                                                        : 0.0)
+                                        .reason(r.getLyDo() != null ? r.getLyDo() : "")
+                                        .reasonType(r.getLoaiLyDo() != null ? r.getLoaiLyDo() : "")
+                                        .rejectionReason(r.getLyDoTuChoi())
+                                        .bankName(r.getLoaiLyDo() != null ? "Loại hồ sơ: " + r.getLoaiLyDo()
+                                                        : "Đối soát hoàn về chính chủ cọc")
+                                        .bankAccountNumber(r.getPhieuDatCoc() != null
+                                                        && r.getPhieuDatCoc().getNguoiDung() != null
+                                                        && r.getPhieuDatCoc().getNguoiDung().getSoDienThoai() != null
+                                                                        ? "SĐT: " + r.getPhieuDatCoc().getNguoiDung()
+                                                                                        .getSoDienThoai()
+                                                                        : "-")
+                                        .bankAccountHolder(r.getPhieuDatCoc() != null
+                                                        && r.getPhieuDatCoc().getNguoiDung() != null
+                                                                        ? r.getPhieuDatCoc().getNguoiDung().getHoTen()
+                                                                        : "-")
+                                        .submittedAt(r.getNgayGui() != null ? r.getNgayGui().format(fmt) : "-")
+                                        .status(mappedStatus)
+                                        .evidenceUrls(r.getMinhChung() != null ? List.of(r.getMinhChung()) : List.of())
+                                        .build();
+                        result.add(dto);
+                }
+
+                return ResponseEntity.ok(ApiResponse.ok(result, "Lấy hồ sơ hoàn cọc thành công từ database"));
         }
 
-        return ResponseEntity.ok(ApiResponse.ok(result, "Lấy hồ sơ hoàn cọc thành công từ database"));
-    }
+        @PostMapping("/{id}/verify")
+        @Transactional
+        public ResponseEntity<ApiResponse<String>> verifyDocket(@PathVariable Long id) {
+                YeuCauHoanCoc r = refundRepository.findById(id)
+                                .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ hoàn cọc ID: " + id));
 
-    @PostMapping("/{id}/verify")
-    @Transactional
-    public ResponseEntity<ApiResponse<String>> verifyDocket(
-            @PathVariable Long id,
-            @RequestBody(required = false) Map<String, String> payload
-    ) {
-        YeuCauHoanCoc r = refundRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ hoàn cọc ID: " + id));
+                if (r.getTrangThai() != TrangThaiHoanCoc.PENDING) {
+                        return ResponseEntity.badRequest().body(
+                                        ApiResponse.error("Hồ sơ hoàn cọc phải ở trạng thái chờ duyệt (PENDING)"));
+                }
 
-        r.setTrangThai(TrangThaiHoanCoc.VERIFIED);
-        r.setNgayXuLy(LocalDateTime.now());
-        refundRepository.save(r);
+                r.setTrangThai(TrangThaiHoanCoc.VERIFIED);
+                r.setNgayXuLy(LocalDateTime.now());
+                refundRepository.save(r);
 
-        return ResponseEntity.ok(ApiResponse.ok("VERIFIED", "Đối soát và xác nhận hồ sơ hoàn cọc thành công"));
-    }
-
-    @PostMapping("/{id}/reject")
-    @Transactional
-    public ResponseEntity<ApiResponse<String>> rejectDocket(
-            @PathVariable Long id,
-            @RequestBody(required = false) Map<String, String> payload
-    ) {
-        String reason = payload != null ? payload.get("reason") : null;
-        if (reason == null || reason.isBlank()) {
-            return ResponseEntity.badRequest().body(ApiResponse.error("Vui lòng nhập lý do bác bỏ yêu cầu hoàn cọc"));
+                return ResponseEntity.ok(ApiResponse.ok("VERIFIED", "Đối soát và xác nhận hồ sơ hoàn cọc thành công"));
         }
 
-        YeuCauHoanCoc r = refundRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ hoàn cọc ID: " + id));
+        @PostMapping("/{id}/reject")
+        @Transactional
+        public ResponseEntity<ApiResponse<String>> rejectDocket(
+                        @PathVariable Long id,
+                        @Valid @RequestBody RejectDocketRequest payload) {
+                String reason = payload.getReason();
 
-        r.setTrangThai(TrangThaiHoanCoc.REJECTED);
-        r.setLyDoTuChoi(reason.trim());
-        r.setNgayXuLy(LocalDateTime.now());
-        refundRepository.save(r);
+                YeuCauHoanCoc r = refundRepository.findById(id)
+                                .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ hoàn cọc ID: " + id));
 
-        return ResponseEntity.ok(ApiResponse.ok("REJECTED", "Đã bác bỏ yêu cầu hoàn cọc và lưu lý do vào database"));
-    }
+                if (r.getTrangThai() != TrangThaiHoanCoc.PENDING) {
+                        return ResponseEntity.badRequest().body(
+                                        ApiResponse.error("Hồ sơ hoàn cọc phải ở trạng thái chờ duyệt (PENDING)"));
+                }
+
+                r.setTrangThai(TrangThaiHoanCoc.REJECTED);
+                r.setLyDoTuChoi(reason.trim());
+                r.setNgayXuLy(LocalDateTime.now());
+                refundRepository.save(r);
+
+                return ResponseEntity
+                                .ok(ApiResponse.ok("REJECTED", "Đã bác bỏ yêu cầu hoàn cọc và lưu lý do vào database"));
+        }
 }
-

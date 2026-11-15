@@ -71,7 +71,7 @@ const StaffLayoutContent: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [pathname]);
+  }, []);
 
   const counts = workspaceData?.sidebarCounts;
 

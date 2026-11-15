@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   CheckCircle2,
   Search,
@@ -29,7 +29,8 @@ export const OrderFulfillmentPage: React.FC = () => {
     setTimeout(() => setSuccessToast(null), 3500);
   };
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
+    setIsLoading(true);
     try {
       const data = await staffService.getFulfillmentOrders();
       setOrders(data);
@@ -38,10 +39,27 @@ export const OrderFulfillmentPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchOrders();
+    let isMounted = true;
+    staffService
+      .getFulfillmentOrders()
+      .then((data) => {
+        if (isMounted) {
+          setOrders(data);
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          console.error('Lỗi tải danh sách đơn hàng đóng gói từ database:', err);
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const filteredOrders = useMemo(() => {
@@ -84,7 +102,7 @@ export const OrderFulfillmentPage: React.FC = () => {
   const handleConfirmHandover = async () => {
     if (!selectedOrderForHandover) return;
     if (!trackingNumber.trim()) {
-      alert('Vui lòng nhập hoặc quét mã vận đơn (Waybill barcode)');
+      showToast('Vui lòng nhập hoặc quét mã vận đơn (Waybill barcode)');
       return;
     }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Search,
   ChevronRight,
@@ -20,25 +20,46 @@ export const ConsultationListPage: React.FC = () => {
   const [callNotes, setCallNotes] = useState('');
   const [leads, setLeads] = useState<ConsultationLead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const fetchLeads = async () => {
+  const fetchLeads = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
     try {
       const data = await staffService.getConsultations();
       setLeads(data);
     } catch (err) {
       console.error('Lỗi tải danh sách yêu cầu tư vấn:', err);
+      setError('Không thể tải danh sách yêu cầu tư vấn CRM từ máy chủ.');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   const handleRefresh = () => {
-    setIsLoading(true);
     fetchLeads();
   };
 
   useEffect(() => {
-    fetchLeads();
+    let isMounted = true;
+    staffService
+      .getConsultations()
+      .then((data) => {
+        if (isMounted) {
+          setLeads(data);
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          console.error('Lỗi tải danh sách yêu cầu tư vấn:', err);
+          setError('Không thể tải danh sách yêu cầu tư vấn CRM từ máy chủ.');
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const filteredLeads = leads.filter((lead) => {
@@ -164,7 +185,19 @@ export const ConsultationListPage: React.FC = () => {
       </div>
 
       {/* 3. Lead Cards Grid */}
-      {isLoading ? (
+      {error ? (
+        <div className={cn('p-8 text-center rounded-xl border space-y-3', isDarkMode ? 'bg-[#0B1326] border-red-500/40' : 'bg-red-50 border-red-200')}>
+          <p className="text-xs font-mono text-red-500">{error}</p>
+          <button
+            type="button"
+            onClick={handleRefresh}
+            className="px-4 py-2 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer inline-flex items-center gap-1.5"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            Thử lại
+          </button>
+        </div>
+      ) : isLoading ? (
         <div className="flex flex-col items-center justify-center p-16 space-y-3">
           <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
           <p className="text-xs font-mono text-slate-400">Đang tải danh sách tư vấn từ cơ sở dữ liệu...</p>

@@ -15,4 +15,6 @@ public interface DonHangPhuKienRepository extends JpaRepository<DonHangPhuKien, 
     List<DonHangPhuKien> findByNguoiDungIdOrderByNgayDatDesc(Long nguoiDungId);
     List<DonHangPhuKien> findAllByOrderByNgayDatDesc();
     List<DonHangPhuKien> findByTrangThai(TrangThaiDonHang trangThai);
+    long countByTrangThai(TrangThaiDonHang trangThai);
+    long countByTrangThaiIn(List<TrangThaiDonHang> trangThais);
 }

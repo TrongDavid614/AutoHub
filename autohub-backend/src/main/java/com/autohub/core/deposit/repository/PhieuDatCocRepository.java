@@ -13,4 +13,6 @@ public interface PhieuDatCocRepository extends JpaRepository<PhieuDatCoc, Long> 
     Optional<PhieuDatCoc> findByMaPhieuCoc(String maPhieuCoc);
     List<PhieuDatCoc> findByNguoiDungId(Long nguoiDungId);
     List<PhieuDatCoc> findByTrangThai(TrangThaiPhieuCoc trangThai);
+    long countByTrangThai(TrangThaiPhieuCoc trangThai);
+    long countByXeDinhDanhIsNullAndTrangThai(TrangThaiPhieuCoc trangThai);
 }

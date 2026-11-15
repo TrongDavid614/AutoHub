@@ -4,16 +4,23 @@ import com.autohub.common.dto.ApiResponse;
 import com.autohub.core.engagement.entity.YeuCauTuVan;
 import com.autohub.core.engagement.repository.YeuCauTuVanRepository;
 import com.autohub.core.enums.TrangThaiYeuCauTuVan;
+import com.autohub.modules.staff.dto.AddConsultationNoteRequest;
+import com.autohub.modules.staff.dto.StaffConsultationDto;
+import com.autohub.modules.staff.dto.UpdateConsultationStatusRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/staff/consultations")
+@PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
 @RequiredArgsConstructor
 public class StaffConsultationController {
 
@@ -21,24 +28,25 @@ public class StaffConsultationController {
 
     @GetMapping
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getConsultations() {
+    public ResponseEntity<ApiResponse<List<StaffConsultationDto>>> getConsultations() {
         List<YeuCauTuVan> list = consultationRepository.findAll();
-        List<Map<String, Object>> result = new ArrayList<>();
+        List<StaffConsultationDto> result = new ArrayList<>();
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
         for (YeuCauTuVan y : list) {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", String.valueOf(y.getId()));
-            map.put("customerName", y.getHoTen() != null ? y.getHoTen() : "-");
-            map.put("phone", y.getSoDienThoai() != null ? y.getSoDienThoai() : "");
-            map.put("email", y.getEmail() != null ? y.getEmail() : "");
-            map.put("interestedCar", y.getPhienBanXe() != null ? y.getPhienBanXe().getTenPhienBan() : "Chưa chọn dòng xe");
-            map.put("preferredTime", y.getKhungGioTiepNhan() != null ? y.getKhungGioTiepNhan() : "-");
-            map.put("notes", y.getNoiDungCanTuVan() != null ? y.getNoiDungCanTuVan() : "");
-            map.put("receivedAt", y.getNgayGui() != null ? y.getNgayGui().format(fmt) : "-");
-            map.put("status", y.getTrangThai() != null ? y.getTrangThai().name() : "PENDING");
-            map.put("callHistory", y.getGhiChuCSKH() != null ? List.of(y.getGhiChuCSKH()) : List.of());
-            result.add(map);
+            StaffConsultationDto dto = StaffConsultationDto.builder()
+                    .id(String.valueOf(y.getId()))
+                    .customerName(y.getHoTen() != null ? y.getHoTen() : "-")
+                    .phone(y.getSoDienThoai() != null ? y.getSoDienThoai() : "")
+                    .email(y.getEmail() != null ? y.getEmail() : "")
+                    .interestedCar(y.getPhienBanXe() != null ? y.getPhienBanXe().getTenPhienBan() : "Chưa chọn dòng xe")
+                    .preferredTime(y.getKhungGioTiepNhan() != null ? y.getKhungGioTiepNhan() : "-")
+                    .notes(y.getNoiDungCanTuVan() != null ? y.getNoiDungCanTuVan() : "")
+                    .receivedAt(y.getNgayGui() != null ? y.getNgayGui().format(fmt) : "-")
+                    .status(y.getTrangThai() != null ? y.getTrangThai().name() : "PENDING")
+                    .callHistory(y.getGhiChuCSKH() != null ? List.of(y.getGhiChuCSKH()) : List.of())
+                    .build();
+            result.add(dto);
         }
 
         return ResponseEntity.ok(ApiResponse.ok(result, "Lấy danh sách yêu cầu tư vấn thành công từ database"));
@@ -48,9 +56,9 @@ public class StaffConsultationController {
     @Transactional
     public ResponseEntity<ApiResponse<String>> updateStatus(
             @PathVariable Long id,
-            @RequestBody Map<String, String> payload
+            @Valid @RequestBody UpdateConsultationStatusRequest payload
     ) {
-        String newStatus = payload.get("status");
+        String newStatus = payload.getStatus();
         YeuCauTuVan y = consultationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy yêu cầu tư vấn ID: " + id));
 
@@ -58,7 +66,7 @@ public class StaffConsultationController {
             y.setTrangThai(TrangThaiYeuCauTuVan.valueOf(newStatus));
             consultationRepository.save(y);
             return ResponseEntity.ok(ApiResponse.ok(newStatus, "Cập nhật trạng thái tư vấn thành công"));
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(ApiResponse.error("Trạng thái không hợp lệ: " + newStatus));
         }
     }
@@ -67,14 +75,14 @@ public class StaffConsultationController {
     @Transactional
     public ResponseEntity<ApiResponse<String>> addNote(
             @PathVariable Long id,
-            @RequestBody Map<String, String> payload
+            @Valid @RequestBody AddConsultationNoteRequest payload
     ) {
-        String note = payload.get("note");
+        String note = payload.getNote();
         YeuCauTuVan y = consultationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy yêu cầu tư vấn ID: " + id));
 
         String currentNotes = y.getGhiChuCSKH();
-        y.setGhiChuCSKH(currentNotes != null ? currentNotes + " | " + note : note);
+        y.setGhiChuCSKH(currentNotes != null && !currentNotes.isBlank() ? currentNotes + " | " + note : note);
         consultationRepository.save(y);
 
         return ResponseEntity.ok(ApiResponse.ok(y.getGhiChuCSKH(), "Lưu nhật ký tư vấn CRM thành công vào database"));

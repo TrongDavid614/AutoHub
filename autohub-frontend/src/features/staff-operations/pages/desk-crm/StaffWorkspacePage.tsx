@@ -37,8 +37,26 @@ export const StaffWorkspacePage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    fetchMetrics();
-  }, [fetchMetrics]);
+    let isMounted = true;
+    staffService
+      .getWorkspaceMetrics()
+      .then((data) => {
+        if (isMounted) {
+          setMetrics(data);
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          console.error('Lỗi tải dữ liệu bàn làm việc Showroom từ SQL Server:', err);
+          setError('Không thể kết nối máy chủ để tải dữ liệu vận hành thực tế.');
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Live 1-second countdown for urgentDeposits based on real DB han_giu_xe
   useEffect(() => {

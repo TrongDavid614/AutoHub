@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Clock,
   Search,
@@ -19,9 +19,16 @@ export const DepositAuditPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [selectedDepositForVin, setSelectedDepositForVin] = useState<StaffDepositRecord | null>(null);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [confirmSignModal, setConfirmSignModal] = useState<{ depositId: string; customerName: string } | null>(null);
+
+  const showToast = (type: 'success' | 'error', message: string) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   // Load real deposits and physical VINs from database via API
-  const fetchDeposits = async () => {
+  const fetchDeposits = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -37,10 +44,31 @@ export const DepositAuditPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchDeposits();
+    let isMounted = true;
+    Promise.all([
+      staffService.getStaffDeposits(),
+      staffService.getAvailableVins(),
+    ])
+      .then(([depositsData, vinsData]) => {
+        if (isMounted) {
+          setDeposits(depositsData);
+          setAvailableVins(vinsData);
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          console.error('Lỗi nạp dữ liệu phiếu cọc hoặc VIN kho từ database:', err);
+          setError('Không thể nạp dữ liệu phiếu cọc và số khung VIN từ SQL Server.');
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // 1-second countdown ticking timer
@@ -69,29 +97,29 @@ export const DepositAuditPage: React.FC = () => {
     try {
       await staffService.assignVinToDeposit(selectedDepositForVin.id, vin);
       await fetchDeposits();
-      alert(`Đã gán thành công số khung ${vin} cho khách hàng ${selectedDepositForVin.customerName} và lưu vào database!`);
+      showToast('success', `Đã gán thành công số khung ${vin} cho khách hàng ${selectedDepositForVin.customerName}`);
       setSelectedDepositForVin(null);
     } catch (err) {
       console.error('Lỗi gán VIN:', err);
-      alert('Không thể gán số khung VIN. Vui lòng thử lại.');
+      showToast('error', 'Không thể gán số khung VIN. Vui lòng kiểm tra lại sự tương thích phiên bản.');
     }
   };
 
-  const handleSignContract = async (depositId: string, customerName: string) => {
-    if (confirm(`Xác nhận khách hàng ${customerName} đã đến Showroom hoàn tất ký Hợp Đồng Mua Bán xe vật lý?`)) {
-      try {
-        await staffService.signContract(depositId);
-        setDeposits((prev) =>
-          prev.map((d) =>
-            d.id === depositId
-              ? { ...d, status: 'COMPLETED' as const }
-              : d
-          )
-        );
-      } catch (err) {
-        console.error('Lỗi ký hợp đồng vào CSDL:', err);
-        alert('Không thể cập nhật ký hợp đồng vào CSDL. Vui lòng thử lại!');
-      }
+  const executeSignContract = async (depositId: string) => {
+    try {
+      await staffService.signContract(depositId);
+      setDeposits((prev) =>
+        prev.map((d) =>
+          d.id === depositId
+            ? { ...d, status: 'COMPLETED' as const }
+            : d
+        )
+      );
+      showToast('success', 'Đã ký Hợp Đồng Mua Bán thành công và cập nhật vào hệ thống.');
+      setConfirmSignModal(null);
+    } catch (err) {
+      console.error('Lỗi ký hợp đồng vào CSDL:', err);
+      showToast('error', 'Không thể cập nhật ký hợp đồng vào CSDL. Vui lòng thử lại!');
     }
   };
 
@@ -257,7 +285,7 @@ export const DepositAuditPage: React.FC = () => {
                       {item.assignedVin && item.status !== 'CONTRACT_SIGNED' && item.status !== 'COMPLETED' && (
                         <button
                           type="button"
-                          onClick={() => handleSignContract(item.id, item.customerName)}
+                          onClick={() => setConfirmSignModal({ depositId: item.id, customerName: item.customerName })}
                           className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer"
                         >
                           Ký Hợp Đồng
@@ -370,6 +398,61 @@ export const DepositAuditPage: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+      )}
+      {/* Confirm Sign Contract Modal */}
+      {confirmSignModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div
+            className={cn(
+              'w-full max-w-md rounded-2xl border p-6 shadow-2xl space-y-4',
+              isDarkMode ? 'bg-[#171F33] border-[#3E4850]/60 text-[#DAE2FD]' : 'bg-white border-slate-200 text-slate-800'
+            )}
+          >
+            <div className="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-slate-700">
+              <h3 className="font-bold text-sm">Xác Nhận Ký Hợp Đồng Mua Bán</h3>
+              <button
+                type="button"
+                onClick={() => setConfirmSignModal(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-200 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-xs text-slate-400">
+              Xác nhận khách hàng <strong className="text-white">{confirmSignModal.customerName}</strong> đã đến Showroom hoàn tất ký Hợp Đồng Mua Bán xe vật lý? Trạng thái phiếu cọc sẽ được chuyển sang <strong className="text-emerald-400">COMPLETED</strong> và số VIN sẽ chuyển sang <strong className="text-emerald-400">ĐÃ BÁN</strong>.
+            </p>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setConfirmSignModal(null)}
+                className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer"
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="button"
+                onClick={() => executeSignContract(confirmSignModal.depositId)}
+                className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer shadow-sm"
+              >
+                Xác Nhận Ký HĐMB
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          className={cn(
+            'fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl border shadow-xl flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-bottom-4 duration-200',
+            toast.type === 'success'
+              ? 'bg-emerald-950/90 border-emerald-500/50 text-emerald-200'
+              : 'bg-rose-950/90 border-rose-500/50 text-rose-200'
+          )}
+        >
+          <span>{toast.message}</span>
         </div>
       )}
     </div>

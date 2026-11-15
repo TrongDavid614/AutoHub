@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   CheckCircle2,
   X,
@@ -30,7 +30,8 @@ export const FleetMaintenancePage: React.FC = () => {
     setTimeout(() => setSuccessToast(null), 3500);
   };
 
-  const fetchFleet = async () => {
+  const fetchFleet = useCallback(async () => {
+    setIsLoading(true);
     try {
       const data = await staffService.getDemoFleet();
       setFleet(data);
@@ -39,17 +40,33 @@ export const FleetMaintenancePage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchFleet();
+    let isMounted = true;
+    staffService
+      .getDemoFleet()
+      .then((data) => {
+        if (isMounted) {
+          setFleet(data);
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          console.error('Lỗi tải danh sách xe demo từ database:', err);
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleConfirmMaintenance = async () => {
     if (!selectedCarForMaintenance) return;
-    const cleanId = selectedCarForMaintenance.id.replace(/\D/g, '') || '1';
     try {
-      await staffService.scheduleDemoMaintenance(cleanId, maintenanceReason, expectedReturnDate);
+      await staffService.scheduleDemoMaintenance(selectedCarForMaintenance.id, maintenanceReason, expectedReturnDate);
       setFleet((prev) =>
         prev.map((c) =>
           c.id === selectedCarForMaintenance.id
@@ -66,9 +83,8 @@ export const FleetMaintenancePage: React.FC = () => {
 
   const handleUpdateOdo = async () => {
     if (!selectedCarForOdo || newOdo <= 0) return;
-    const cleanId = selectedCarForOdo.id.replace(/\D/g, '') || '1';
     try {
-      await staffService.updateDemoOdo(cleanId, newOdo);
+      await staffService.updateDemoOdo(selectedCarForOdo.id, newOdo);
       setFleet((prev) =>
         prev.map((c) =>
           c.id === selectedCarForOdo.id
