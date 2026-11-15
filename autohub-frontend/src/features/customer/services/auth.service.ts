@@ -4,8 +4,8 @@ import type { ApiResponse } from '@/types/api.types';
 import type { RegisterRequest, User, LoginResponse } from '@/types/auth.types';
 
 export const authService = {
-  async register(data: RegisterRequest): Promise<User> {
-    const res = await axiosClient.post<unknown, ApiResponse<User>>(
+  async register(data: RegisterRequest): Promise<LoginResponse> {
+    const res = await axiosClient.post<unknown, ApiResponse<LoginResponse>>(
       API_CONFIG.ENDPOINTS.AUTH.REGISTER,
       data
     );
