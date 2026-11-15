@@ -195,13 +195,12 @@ export const LoginPage: React.FC = () => {
               <label className="text-[13px] font-semibold text-[#DAE2FD]">
                 Mật khẩu <span className="text-[#7BD0FF]">*</span>
               </label>
-              <button
-                type="button"
-                onClick={() => setShowForgotPasswordModal(true)}
+              <Link
+                to="/forgot-password"
                 className="text-[12px] text-[#7BD0FF] hover:underline focus:outline-none transition-colors"
               >
                 Quên mật khẩu?
-              </button>
+              </Link>
             </div>
             <div className="relative flex items-center">
               <span className="absolute left-3.5 text-[#BEC8D2] pointer-events-none">
