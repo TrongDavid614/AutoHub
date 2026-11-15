@@ -1,6 +1,6 @@
 import { axiosClient } from '@/lib/axios';
 import { API_CONFIG } from '@/config/api.config';
-import type { ApiResponse } from '@/types/api.types';
+import type { ApiResponse, PageResponse } from '@/types/api.types';
 import type {
   AdminCarMasterItem,
   CreateCarMasterPayload,
@@ -13,20 +13,38 @@ export interface BrandModelOption {
   models: Array<{ id: number; tenDongXe: string; phanKhuc: string; hangXe?: { id: number } }>;
 }
 
+export interface GetCarMasterParams {
+  keyword?: string;
+  brandId?: number;
+  page?: number;
+  size?: number;
+}
+
 export const adminCarService = {
-  async getCarMasterList(keyword?: string, brandId?: number): Promise<AdminCarMasterItem[]> {
-    const params: Record<string, string | number> = {};
-    if (keyword && keyword.trim()) {
-      params.keyword = keyword.trim();
+  async getCarMasterList(params?: GetCarMasterParams): Promise<PageResponse<AdminCarMasterItem>> {
+    const queryParams: Record<string, string | number> = {
+      page: params?.page ?? 0,
+      size: params?.size ?? 10,
+    };
+    if (params?.keyword && params.keyword.trim()) {
+      queryParams.keyword = params.keyword.trim();
     }
-    if (brandId) {
-      params.brandId = brandId;
+    if (params?.brandId) {
+      queryParams.brandId = params.brandId;
     }
-    const res = await axiosClient.get<unknown, ApiResponse<AdminCarMasterItem[]>>(
+    const res = await axiosClient.get<unknown, ApiResponse<PageResponse<AdminCarMasterItem>>>(
       API_CONFIG.ENDPOINTS.ADMIN.CARS,
-      { params }
+      { params: queryParams }
     );
-    return res.data || [];
+    return res.data || {
+      items: [],
+      page: 0,
+      size: 10,
+      totalElements: 0,
+      totalPages: 1,
+      first: true,
+      last: true,
+    };
   },
 
   async getCarMasterById(id: number): Promise<AdminCarMasterItem> {

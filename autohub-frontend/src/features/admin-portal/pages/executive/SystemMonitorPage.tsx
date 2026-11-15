@@ -1,53 +1,107 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Cpu, Database, CreditCard, Clock, Activity } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
 import { cn } from '@/lib/utils';
+import { AdminPagination } from '../../components/AdminPagination';
 
 export const SystemMonitorPage: React.FC = () => {
   const { isDarkMode } = useAdminTheme();
 
-  const auditLogs = [
-    {
-      time: '2026-11-14 11:20:12',
-      module: 'AI_COPILOT',
-      operator: 'Quản trị viên (admin@autohub.vn)',
-      action: 'Tra cứu quy định giải ngân hoàn cọc xe 72h qua Vector Store RAG',
-      result: '200 OK (24ms)',
-      status: 'success',
-    },
-    {
-      time: '2026-11-14 11:15:00',
-      module: 'AI_SENTIMENT',
-      operator: 'Hệ thống kiểm duyệt tự động',
-      action: 'Phân tích ngữ nghĩa nhận xét phụ kiện #REV-014',
-      result: 'POSITIVE (Độ tin cậy: 91%)',
-      status: 'success',
-    },
-    {
-      time: '2026-11-14 11:05:22',
-      module: 'SEPAY_WEBHOOK',
-      operator: 'SePay Webhook (my.sepay.vn)',
-      action: 'Giao dịch cọc xe #DEP-8841 (20.000.000 ₫)',
-      result: 'RspCode: 00 (Thành công)',
-      status: 'success',
-    },
-    {
-      time: '2026-11-14 10:45:18',
-      module: 'STAFF_ACTION',
-      operator: 'STF-004 (Nguyễn Văn Tuấn)',
-      action: 'Gán số khung VIN: VF8-VIN-2026-9921 cho phiếu #DEP-8835',
-      result: '200 OK (Đã khóa xe)',
-      status: 'success',
-    },
-    {
-      time: '2026-11-14 10:30:00',
-      module: 'CRON_JOB',
-      operator: 'System Daemon Scheduler',
-      action: 'Quét tự động phiếu cọc 72h (Đã cảnh báo 4 phiếu)',
-      result: '0 Lỗi (Tác vụ hoàn tất)',
-      status: 'success',
-    },
-  ];
+  const [page, setPage] = useState<number>(0);
+  const [pageSize, setPageSize] = useState<number>(5);
+
+  const auditLogs = useMemo(
+    () => [
+      {
+        time: '2026-11-14 11:20:12',
+        module: 'AI_COPILOT',
+        operator: 'Quản trị viên (admin@autohub.vn)',
+        action: 'Tra cứu quy định giải ngân hoàn cọc xe 72h qua Vector Store RAG',
+        result: '200 OK (24ms)',
+        status: 'success',
+      },
+      {
+        time: '2026-11-14 11:15:00',
+        module: 'AI_SENTIMENT',
+        operator: 'Hệ thống kiểm duyệt tự động',
+        action: 'Phân tích ngữ nghĩa nhận xét phụ kiện #REV-014',
+        result: 'POSITIVE (Độ tin cậy: 91%)',
+        status: 'success',
+      },
+      {
+        time: '2026-11-14 11:05:22',
+        module: 'SEPAY_WEBHOOK',
+        operator: 'SePay Webhook (my.sepay.vn)',
+        action: 'Giao dịch cọc xe #DEP-8841 (20.000.000 ₫)',
+        result: 'RspCode: 00 (Thành công)',
+        status: 'success',
+      },
+      {
+        time: '2026-11-14 10:45:18',
+        module: 'STAFF_ACTION',
+        operator: 'STF-004 (Nguyễn Văn Tuấn)',
+        action: 'Gán số khung VIN: VF8-VIN-2026-9921 cho phiếu #DEP-8835',
+        result: '200 OK (Đã khóa xe)',
+        status: 'success',
+      },
+      {
+        time: '2026-11-14 10:30:00',
+        module: 'CRON_JOB',
+        operator: 'System Daemon Scheduler',
+        action: 'Quét tự động phiếu cọc 72h (Đã cảnh báo 4 phiếu)',
+        result: '0 Lỗi (Tác vụ hoàn tất)',
+        status: 'success',
+      },
+      {
+        time: '2026-11-14 10:15:44',
+        module: 'SECURITY_AUDIT',
+        operator: 'Hệ thống tường lửa Spring Security',
+        action: 'Xác thực JWT Token truy cập Admin Portal phân hệ Master Data',
+        result: '200 AUTHORIZED',
+        status: 'success',
+      },
+      {
+        time: '2026-11-14 09:50:33',
+        module: 'REFUND_SERVICE',
+        operator: 'Admin Tài Chính (finance@autohub.vn)',
+        action: 'Phê duyệt hoàn cọc 72h cho hồ sơ #REF-0012',
+        result: 'APPROVED (20.000.000 ₫)',
+        status: 'success',
+      },
+      {
+        time: '2026-11-14 09:22:10',
+        module: 'SHOWROOM_FLEET',
+        operator: 'STF-003 (Phạm Hoàng Nam)',
+        action: 'Điều phối xe Demo GT-e sẵn sàng phục vụ lịch hẹn lái thử',
+        result: 'READY (Odo: 1.250 km)',
+        status: 'success',
+      },
+      {
+        time: '2026-11-14 08:45:00',
+        module: 'DATABASE_BACKUP',
+        operator: 'SQL Server Agent Job',
+        action: 'Sao lưu định kỳ cơ sở dữ liệu AutoHubDB',
+        result: 'SUCCESS (Full Backup 142MB)',
+        status: 'success',
+      },
+      {
+        time: '2026-11-14 08:00:15',
+        module: 'SYSTEM_STARTUP',
+        operator: 'Docker Engine Production',
+        action: 'Khởi động container autohub-backend (Spring Boot 3.4.1)',
+        result: 'UP (JVM: 21.0.5)',
+        status: 'success',
+      },
+    ],
+    []
+  );
+
+  const totalElements = auditLogs.length;
+  const totalPages = Math.max(1, Math.ceil(totalElements / pageSize));
+  const paginatedLogs = useMemo(() => {
+    const start = page * pageSize;
+    return auditLogs.slice(start, start + pageSize);
+  }, [auditLogs, page, pageSize]);
 
   return (
     <div
@@ -238,7 +292,7 @@ export const SystemMonitorPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className={cn('divide-y font-sans', isDarkMode ? 'divide-[#3E4850]/30' : 'divide-slate-100')}>
-              {(auditLogs ?? []).map((log, idx) => (
+              {paginatedLogs.map((log, idx) => (
                 <tr
                   key={idx}
                   className={cn('transition-colors', isDarkMode ? 'hover:bg-[#131B2E]/60' : 'hover:bg-slate-50/80')}
@@ -264,6 +318,19 @@ export const SystemMonitorPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Bar */}
+        <AdminPagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalElements={totalElements}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setPage(0);
+          }}
+        />
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { axiosClient } from '@/lib/axios';
 import { API_CONFIG } from '@/config/api.config';
-import type { ApiResponse } from '@/types/api.types';
+import type { ApiResponse, PageResponse } from '@/types/api.types';
 import type {
   AdminShowroomItem,
   AdminShowroomDetail,
@@ -12,16 +12,45 @@ import type {
   DemoCarItem,
 } from '@/types/showroom.types';
 
+export interface GetShowroomsParams {
+  keyword?: string;
+  region?: string;
+  active?: boolean;
+  page?: number;
+  size?: number;
+}
+
 export const adminShowroomService = {
   async getShowrooms(
-    params?: { keyword?: string; region?: string; active?: boolean },
+    params?: GetShowroomsParams,
     signal?: AbortSignal
-  ): Promise<AdminShowroomItem[]> {
-    const res = await axiosClient.get<unknown, ApiResponse<AdminShowroomItem[]>>(
+  ): Promise<PageResponse<AdminShowroomItem>> {
+    const queryParams: Record<string, string | number | boolean> = {
+      page: params?.page ?? 0,
+      size: params?.size ?? 10,
+    };
+    if (params?.keyword && params.keyword.trim()) {
+      queryParams.keyword = params.keyword.trim();
+    }
+    if (params?.region && params.region.trim()) {
+      queryParams.region = params.region.trim();
+    }
+    if (params?.active !== undefined) {
+      queryParams.active = params.active;
+    }
+    const res = await axiosClient.get<unknown, ApiResponse<PageResponse<AdminShowroomItem>>>(
       API_CONFIG.ENDPOINTS.ADMIN.SHOWROOMS,
-      { params, signal }
+      { params: queryParams, signal }
     );
-    return res.data || [];
+    return res.data || {
+      items: [],
+      page: 0,
+      size: 10,
+      totalElements: 0,
+      totalPages: 1,
+      first: true,
+      last: true,
+    };
   },
 
   async getShowroomStats(signal?: AbortSignal): Promise<AdminShowroomStats> {

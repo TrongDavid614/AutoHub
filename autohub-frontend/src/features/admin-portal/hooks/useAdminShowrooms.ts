@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { adminShowroomService } from '../services/admin-showroom.service';
 import type {
   AdminShowroomItem,
@@ -33,6 +33,12 @@ export const useAdminShowrooms = () => {
   const [selectedRegion, setSelectedRegion] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
 
+  // Pagination states
+  const [page, setPage] = useState<number>(0);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [totalElements, setTotalElements] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
+
   // Modals & details
   const [isCreateOrEditModalOpen, setIsCreateOrEditModalOpen] = useState<boolean>(false);
   const [editingShowroom, setEditingShowroom] = useState<AdminShowroomItem | null>(null);
@@ -53,20 +59,49 @@ export const useAdminShowrooms = () => {
     }, 4500);
   }, []);
 
-  const fetchShowrooms = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await adminShowroomService.getShowrooms();
-      setShowrooms(data);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Lỗi kết nối máy chủ';
-      setError(msg);
-      showToast('Lỗi tải danh sách showroom: ' + msg, 'error');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [showToast]);
+  const fetchShowrooms = useCallback(
+    async (targetPage = page, targetSize = pageSize) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await adminShowroomService.getShowrooms({
+          keyword: search.trim() || undefined,
+          region: selectedRegion === 'ALL' ? undefined : selectedRegion,
+          active: selectedStatus === 'ALL' ? undefined : selectedStatus === 'ACTIVE',
+          page: targetPage,
+          size: targetSize,
+        });
+        setShowrooms(data.items ?? []);
+        setTotalElements(data.totalElements ?? 0);
+        setTotalPages(data.totalPages ?? 1);
+        setPage(data.page ?? targetPage);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Lỗi kết nối máy chủ';
+        setError(msg);
+        showToast('Lỗi tải danh sách showroom: ' + msg, 'error');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [page, pageSize, search, selectedRegion, selectedStatus, showToast]
+  );
+
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      setPage(newPage);
+      fetchShowrooms(newPage, pageSize);
+    },
+    [fetchShowrooms, pageSize]
+  );
+
+  const handlePageSizeChange = useCallback(
+    (newSize: number) => {
+      setPageSize(newSize);
+      setPage(0);
+      fetchShowrooms(0, newSize);
+    },
+    [fetchShowrooms]
+  );
 
   const fetchStats = useCallback(async () => {
     setIsStatsLoading(true);
@@ -89,34 +124,18 @@ export const useAdminShowrooms = () => {
     }
   }, []);
 
+  // Reset to page 0 whenever filter criteria change
   useEffect(() => {
-    fetchShowrooms();
+    setPage(0);
+    fetchShowrooms(0, pageSize);
+  }, [search, selectedRegion, selectedStatus]);
+
+  useEffect(() => {
     fetchStats();
     fetchProvinces();
-  }, [fetchShowrooms, fetchStats, fetchProvinces]);
+  }, [fetchStats, fetchProvinces]);
 
-  // Filtered showrooms list on client
-  const filteredShowrooms = useMemo(() => {
-    return showrooms.filter((sr) => {
-      if (search.trim()) {
-        const q = search.trim().toLowerCase();
-        const matchName = sr.name.toLowerCase().includes(q);
-        const matchCode = sr.code.toLowerCase().includes(q);
-        const matchAddress = sr.address.toLowerCase().includes(q);
-        const matchHotline = sr.hotline.toLowerCase().includes(q);
-        const matchProvince = sr.provinceName.toLowerCase().includes(q);
-        if (!matchName && !matchCode && !matchAddress && !matchHotline && !matchProvince) return false;
-      }
-      if (selectedRegion !== 'ALL') {
-        if (sr.region !== selectedRegion) return false;
-      }
-      if (selectedStatus !== 'ALL') {
-        const isAct = selectedStatus === 'ACTIVE';
-        if (sr.active !== isAct) return false;
-      }
-      return true;
-    });
-  }, [showrooms, search, selectedRegion, selectedStatus]);
+  const filteredShowrooms = showrooms;
 
   // Open Detail
   const openDetail = async (id: number) => {
@@ -302,6 +321,12 @@ export const useAdminShowrooms = () => {
     showToast,
     fetchShowrooms,
     fetchStats,
+    page,
+    pageSize,
+    totalElements,
+    totalPages,
+    handlePageChange,
+    handlePageSizeChange,
     openDetail,
     closeDetail,
     openCreateModal,

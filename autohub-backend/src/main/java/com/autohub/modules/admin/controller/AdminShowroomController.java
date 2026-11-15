@@ -1,6 +1,7 @@
 package com.autohub.modules.admin.controller;
 
 import com.autohub.common.dto.ApiResponse;
+import com.autohub.common.dto.PageResponseDto;
 import com.autohub.core.car.entity.PhienBanXe;
 import com.autohub.core.car.repository.PhienBanXeRepository;
 import com.autohub.core.enums.TrangThaiXeDemo;
@@ -42,10 +43,12 @@ public class AdminShowroomController {
     private final PhienBanXeRepository phienBanXeRepository;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<AdminShowroomDto>>> getAllShowrooms(
+    public ResponseEntity<ApiResponse<PageResponseDto<AdminShowroomDto>>> getAllShowrooms(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String region,
-            @RequestParam(required = false) Boolean active) {
+            @RequestParam(required = false) Boolean active,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
         List<Showroom> list = showroomRepository.findAllByOrderByIdAsc();
 
@@ -70,7 +73,8 @@ public class AdminShowroomController {
                 })
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(ApiResponse.ok(dtos, "Tải danh sách mạng lưới showroom thành công"));
+        PageResponseDto<AdminShowroomDto> pagedData = PageResponseDto.of(dtos, page, size);
+        return ResponseEntity.ok(ApiResponse.ok(pagedData, "Tải danh sách mạng lưới showroom thành công"));
     }
 
     @GetMapping("/stats")

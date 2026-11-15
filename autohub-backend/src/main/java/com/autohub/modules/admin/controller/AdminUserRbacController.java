@@ -1,6 +1,7 @@
 package com.autohub.modules.admin.controller;
 
 import com.autohub.common.dto.ApiResponse;
+import com.autohub.common.dto.PageResponseDto;
 import com.autohub.core.enums.TrangThaiTaiKhoan;
 import com.autohub.core.enums.VaiTroNguoiDung;
 import com.autohub.core.showroom.entity.Showroom;
@@ -36,10 +37,12 @@ public class AdminUserRbacController {
     private final PasswordEncoder passwordEncoder;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<AdminUserDto>>> getAllUsers(
+    public ResponseEntity<ApiResponse<PageResponseDto<AdminUserDto>>> getAllUsers(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) VaiTroNguoiDung role,
-            @RequestParam(required = false) TrangThaiTaiKhoan status
+            @RequestParam(required = false) TrangThaiTaiKhoan status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
         List<NguoiDung> users = nguoiDungRepository.findAll();
 
@@ -72,7 +75,8 @@ public class AdminUserRbacController {
                 .map(this::toDto)
                 .toList();
 
-        return ResponseEntity.ok(ApiResponse.ok(dtos, "Lấy danh sách người dùng thành công"));
+        PageResponseDto<AdminUserDto> pagedData = PageResponseDto.of(dtos, page, size);
+        return ResponseEntity.ok(ApiResponse.ok(pagedData, "Lấy danh sách người dùng thành công"));
     }
 
     @GetMapping("/stats")

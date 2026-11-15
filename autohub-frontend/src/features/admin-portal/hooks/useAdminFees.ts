@@ -28,6 +28,12 @@ export const useAdminFees = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [keyword, setKeyword] = useState<string>('');
+  const [page, setPage] = useState<number>(0);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [totalElements, setTotalElements] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
+
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -47,14 +53,25 @@ export const useAdminFees = () => {
     }, 4500);
   }, []);
 
-  const fetchFees = useCallback(async () => {
-    try {
-      const data = await adminFeeService.getFees();
-      setFees(data);
-    } catch (err: unknown) {
-      console.warn('Could not fetch registration fees:', err);
-    }
-  }, []);
+  const fetchFees = useCallback(
+    async (currentPage = page, currentSize = pageSize, kw = keyword) => {
+      try {
+        const pagedData = await adminFeeService.getFees({
+          page: currentPage,
+          size: currentSize,
+          keyword: kw,
+        });
+        setFees(pagedData.items ?? []);
+        setPage(pagedData.page ?? 0);
+        setPageSize(pagedData.size ?? 10);
+        setTotalElements(pagedData.totalElements ?? 0);
+        setTotalPages(pagedData.totalPages ?? 1);
+      } catch (err: unknown) {
+        console.warn('Could not fetch registration fees:', err);
+      }
+    },
+    [page, pageSize, keyword]
+  );
 
   const fetchLoans = useCallback(async () => {
     try {
@@ -87,7 +104,7 @@ export const useAdminFees = () => {
     setIsLoading(true);
     setError(null);
     try {
-      await Promise.all([fetchFees(), fetchLoans(), fetchStats(), fetchProvinces()]);
+      await Promise.all([fetchFees(page, pageSize, keyword), fetchLoans(), fetchStats(), fetchProvinces()]);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Lỗi tải dữ liệu biểu phí';
       setError(msg);
@@ -95,11 +112,22 @@ export const useAdminFees = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [fetchFees, fetchLoans, fetchStats, fetchProvinces, showToast]);
+  }, [fetchFees, fetchLoans, fetchStats, fetchProvinces, page, pageSize, keyword, showToast]);
 
   useEffect(() => {
     loadAll();
-  }, [loadAll]);
+  }, [keyword]); // Refetch on search change
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchFees(newPage, pageSize, keyword);
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(0);
+    fetchFees(0, newSize, keyword);
+  };
 
   // Fee modal actions
   const openCreateFeeModal = () => {
@@ -117,21 +145,24 @@ export const useAdminFees = () => {
     setEditingFee(null);
   };
 
-  const handleSaveFee = async (payload: CreateRegistrationFeePayload | UpdateRegistrationFeePayload) => {
+  const handleSaveFee = async (
+    payload: CreateRegistrationFeePayload | UpdateRegistrationFeePayload,
+    isEdit: boolean = Boolean(editingFee)
+  ) => {
     setIsSubmitting(true);
     try {
-      if (editingFee) {
+      if (isEdit && editingFee) {
         await adminFeeService.updateFee(editingFee.id, payload as UpdateRegistrationFeePayload);
-        showToast(`Đã cập nhật biểu phí cho tỉnh/thành ${editingFee.provinceName} thành công`);
+        showToast('Cập nhật biểu phí lăn bánh thành công');
       } else {
         await adminFeeService.createFee(payload as CreateRegistrationFeePayload);
-        showToast('Đã thêm cấu hình biểu phí mới thành công');
+        showToast('Thêm mới biểu phí lăn bánh thành công');
       }
       closeFeeModal();
-      await fetchFees();
+      await fetchFees(page, pageSize, keyword);
       await fetchStats();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Lỗi lưu biểu phí';
+      const msg = err instanceof Error ? err.message : 'Không thể lưu biểu phí';
       showToast(msg, 'error');
     } finally {
       setIsSubmitting(false);
@@ -145,7 +176,7 @@ export const useAdminFees = () => {
     try {
       await adminFeeService.deleteFee(id);
       showToast(`Đã xóa biểu phí của ${provinceName} thành công`);
-      await fetchFees();
+      await fetchFees(page, pageSize, keyword);
       await fetchStats();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Không thể xóa biểu phí';
@@ -169,21 +200,24 @@ export const useAdminFees = () => {
     setEditingLoan(null);
   };
 
-  const handleSaveLoan = async (payload: CreateBankLoanPayload | UpdateBankLoanPayload) => {
+  const handleSaveLoan = async (
+    payload: CreateBankLoanPayload | UpdateBankLoanPayload,
+    isEdit: boolean = Boolean(editingLoan)
+  ) => {
     setIsSubmitting(true);
     try {
-      if (editingLoan) {
+      if (isEdit && editingLoan) {
         await adminFeeService.updateLoan(editingLoan.id, payload as UpdateBankLoanPayload);
-        showToast(`Đã cập nhật gói vay ${editingLoan.bankName} thành công`);
+        showToast(`Cập nhật gói vay ${editingLoan.bankName} thành công`);
       } else {
         await adminFeeService.createLoan(payload as CreateBankLoanPayload);
-        showToast(`Đã thêm gói vay liên kết ${payload.bankName} thành công`);
+        showToast('Thêm mới đối tác gói vay thành công');
       }
       closeLoanModal();
       await fetchLoans();
       await fetchStats();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Lỗi lưu gói vay';
+      const msg = err instanceof Error ? err.message : 'Không thể lưu gói vay';
       showToast(msg, 'error');
     } finally {
       setIsSubmitting(false);
@@ -226,6 +260,14 @@ export const useAdminFees = () => {
     provinces,
     isLoading,
     error,
+    keyword,
+    setKeyword,
+    page,
+    pageSize,
+    totalElements,
+    totalPages,
+    handlePageChange,
+    handlePageSizeChange,
     toastMessage,
     toastType,
     isSubmitting,

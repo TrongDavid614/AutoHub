@@ -1,6 +1,6 @@
 import { axiosClient } from '@/lib/axios';
 import { API_CONFIG } from '@/config/api.config';
-import type { ApiResponse } from '@/types/api.types';
+import type { ApiResponse, PageResponse } from '@/types/api.types';
 
 export interface AdminAccessory {
   id: number;
@@ -48,13 +48,46 @@ export interface UpdateAccessoryPayload {
   active?: boolean;
 }
 
+export interface GetAccessoriesParams {
+  keyword?: string;
+  categoryId?: number;
+  active?: boolean;
+  page?: number;
+  size?: number;
+}
+
 export const adminAccessoryService = {
-  async getAccessories(params?: { keyword?: string; categoryId?: number; active?: boolean }, signal?: AbortSignal): Promise<AdminAccessory[]> {
-    const res = await axiosClient.get<unknown, ApiResponse<AdminAccessory[]>>(
+  async getAccessories(
+    params?: GetAccessoriesParams,
+    signal?: AbortSignal
+  ): Promise<PageResponse<AdminAccessory>> {
+    const queryParams: Record<string, string | number | boolean> = {
+      page: params?.page ?? 0,
+      size: params?.size ?? 10,
+    };
+    if (params?.keyword && params.keyword.trim()) {
+      queryParams.keyword = params.keyword.trim();
+    }
+    if (params?.categoryId) {
+      queryParams.categoryId = params.categoryId;
+    }
+    if (params?.active !== undefined) {
+      queryParams.active = params.active;
+    }
+
+    const res = await axiosClient.get<unknown, ApiResponse<PageResponse<AdminAccessory>>>(
       API_CONFIG.ENDPOINTS.ADMIN.ACCESSORIES,
-      { params, signal }
+      { params: queryParams, signal }
     );
-    return res.data || [];
+    return res.data || {
+      items: [],
+      page: 0,
+      size: 10,
+      totalElements: 0,
+      totalPages: 1,
+      first: true,
+      last: true,
+    };
   },
 
   async getCategories(signal?: AbortSignal): Promise<AccessoryCategory[]> {

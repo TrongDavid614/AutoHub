@@ -1,6 +1,7 @@
 package com.autohub.modules.admin.controller;
 
 import com.autohub.common.dto.ApiResponse;
+import com.autohub.common.dto.PageResponseDto;
 import com.autohub.core.pricing.entity.BieuPhiLanBanh;
 import com.autohub.core.pricing.entity.GoiVayNganHang;
 import com.autohub.core.pricing.entity.TinhThanh;
@@ -104,13 +105,24 @@ public class AdminRegistrationFeeController {
     // ==========================================
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<AdminRegistrationFeeDto>>> getAllRegistrationFees() {
+    public ResponseEntity<ApiResponse<PageResponseDto<AdminRegistrationFeeDto>>> getAllRegistrationFees(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         List<BieuPhiLanBanh> list = bieuPhiLanBanhRepository.findAllByOrderByIdAsc();
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            String q = keyword.trim().toLowerCase();
+            list = list.stream()
+                    .filter(f -> f.getTinhThanh() != null && f.getTinhThanh().getTenTinh() != null
+                            && f.getTinhThanh().getTenTinh().toLowerCase().contains(q))
+                    .collect(Collectors.toList());
+        }
         List<AdminRegistrationFeeDto> dtos = list.stream()
                 .map(this::toFeeDto)
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(ApiResponse.ok(dtos, "Tải biểu phí lăn bánh theo tỉnh thành thành công"));
+        PageResponseDto<AdminRegistrationFeeDto> pagedData = PageResponseDto.of(dtos, page, size);
+        return ResponseEntity.ok(ApiResponse.ok(pagedData, "Tải biểu phí lăn bánh theo tỉnh thành thành công"));
     }
 
     @PostMapping

@@ -1,6 +1,7 @@
 package com.autohub.modules.admin.controller;
 
 import com.autohub.common.dto.ApiResponse;
+import com.autohub.common.dto.PageResponseDto;
 import com.autohub.core.car.entity.PhienBanXe;
 import com.autohub.core.car.entity.XeDinhDanh;
 import com.autohub.core.car.repository.XeDinhDanhRepository;
@@ -45,8 +46,10 @@ public class AdminRefundApprovalController {
     private final NguoiDungRepository nguoiDungRepository;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<AdminRefundDto>>> getRefundRequests(
-            @RequestParam(required = false) String status
+    public ResponseEntity<ApiResponse<PageResponseDto<AdminRefundDto>>> getRefundRequests(
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
         List<YeuCauHoanCoc> list = yeuCauHoanCocRepository.findAll();
 
@@ -61,7 +64,8 @@ public class AdminRefundApprovalController {
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(ApiResponse.ok(result, "Lấy danh sách hồ sơ hoàn cọc thành công"));
+        PageResponseDto<AdminRefundDto> pagedData = PageResponseDto.of(result, page, size);
+        return ResponseEntity.ok(ApiResponse.ok(pagedData, "Lấy danh sách hồ sơ hoàn cọc thành công"));
     }
 
     @PostMapping("/{id}/approve")

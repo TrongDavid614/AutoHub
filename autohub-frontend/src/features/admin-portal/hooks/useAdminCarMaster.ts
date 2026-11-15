@@ -12,6 +12,12 @@ export const useAdminCarMaster = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState<string>('');
+  const [selectedBrandId, setSelectedBrandId] = useState<number | undefined>(undefined);
+  const [page, setPage] = useState<number>(0);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [totalElements, setTotalElements] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
+
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [syncSuccess, setSyncSuccess] = useState<boolean>(false);
   const [syncResult, setSyncResult] = useState<VectorSyncResult | null>(null);
@@ -27,24 +33,47 @@ export const useAdminCarMaster = () => {
     }, 4000);
   }, []);
 
-  const fetchCars = useCallback(async (keyword?: string) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await adminCarService.getCarMasterList(keyword);
-      setCars(data);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Không thể kết nối đến máy chủ backend';
-      setError(msg);
-      showToast('Lỗi tải danh mục xe: ' + msg, 'error');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [showToast]);
+  const fetchCars = useCallback(
+    async (currentPage = page, currentSize = pageSize, keyword = search, brandId = selectedBrandId) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await adminCarService.getCarMasterList({
+          keyword,
+          brandId,
+          page: currentPage,
+          size: currentSize,
+        });
+        setCars(data.items ?? []);
+        setPage(data.page ?? 0);
+        setPageSize(data.size ?? 10);
+        setTotalElements(data.totalElements ?? 0);
+        setTotalPages(data.totalPages ?? 1);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Không thể kết nối đến máy chủ backend';
+        setError(msg);
+        showToast('Lỗi tải danh mục xe: ' + msg, 'error');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [page, pageSize, search, selectedBrandId, showToast]
+  );
 
   useEffect(() => {
-    fetchCars();
-  }, [fetchCars]);
+    fetchCars(0, pageSize, search, selectedBrandId);
+  }, [search, selectedBrandId]); // Reset to page 0 on search/filter change
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchCars(newPage, pageSize, search, selectedBrandId);
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(0);
+    fetchCars(0, newSize, search, selectedBrandId);
+  };
 
   const handleSyncVector = async () => {
     setIsSyncing(true);
@@ -54,8 +83,7 @@ export const useAdminCarMaster = () => {
       setSyncResult(res);
       setSyncSuccess(true);
       showToast(res.message || 'Đã đồng bộ vector database cho AI thành công', 'success');
-      // Refresh list to update vector status timestamp
-      await fetchCars(search);
+      await fetchCars(page, pageSize, search, selectedBrandId);
       setTimeout(() => setSyncSuccess(false), 6000);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Lỗi đồng bộ vector database';
@@ -89,8 +117,8 @@ export const useAdminCarMaster = () => {
     }
     try {
       await adminCarService.deleteCarMaster(variantId);
-      setCars((prev) => prev.filter((c) => c.variantId !== variantId));
       showToast(`Đã xóa thành công phiên bản "${carName}"`, 'success');
+      await fetchCars(page, pageSize, search, selectedBrandId);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Lỗi xóa cấu hình xe';
       showToast(msg, 'error');
@@ -101,8 +129,8 @@ export const useAdminCarMaster = () => {
     setIsSubmitting(true);
     try {
       const created = await adminCarService.createCarMaster(payload);
-      setCars((prev) => [created, ...prev]);
       showToast(`Đã thêm mới thành công: ${created.name} - ${created.version}`, 'success');
+      await fetchCars(0, pageSize, search, selectedBrandId);
       return true;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Lỗi thêm mới dòng xe';
@@ -129,25 +157,21 @@ export const useAdminCarMaster = () => {
     }
   };
 
-  const filteredCars = cars.filter((c) => {
-    if (!search.trim()) return true;
-    const q = search.trim().toLowerCase();
-    return (
-      c.name.toLowerCase().includes(q) ||
-      c.version.toLowerCase().includes(q) ||
-      c.segment.toLowerCase().includes(q) ||
-      c.id.toLowerCase().includes(q) ||
-      c.brandName.toLowerCase().includes(q)
-    );
-  });
-
   return {
     cars,
-    filteredCars,
+    filteredCars: cars,
     isLoading,
     error,
     search,
     setSearch,
+    selectedBrandId,
+    setSelectedBrandId,
+    page,
+    pageSize,
+    totalElements,
+    totalPages,
+    handlePageChange,
+    handlePageSizeChange,
     isSyncing,
     syncSuccess,
     syncResult,
