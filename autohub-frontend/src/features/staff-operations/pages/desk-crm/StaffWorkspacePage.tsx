@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   Users,
   Calendar,
@@ -10,6 +10,11 @@ import {
   Loader2,
   RefreshCw,
   AlertCircle,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  RotateCcw,
+  Building2,
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
 import { staffService } from '@/features/staff-operations/services/staff.service';
@@ -80,6 +85,76 @@ export const StaffWorkspacePage: React.FC = () => {
   const depositBreakdown = metrics?.depositBreakdown || [];
   const todayTimeline = metrics?.todayTimeline || [];
   const urgentDeposits = metrics?.urgentDeposits || [];
+
+  // Filter & Pagination state for "Danh Sách Lịch Lái Thử Hiện Có"
+  const [testDriveSearch, setTestDriveSearch] = useState('');
+  const [testDriveStatus, setTestDriveStatus] = useState<string>('ALL');
+  const [testDriveShowroom, setTestDriveShowroom] = useState<string>('ALL');
+  const [testDrivePage, setTestDrivePage] = useState<number>(1);
+  const [testDrivePageSize, setTestDrivePageSize] = useState<number>(6);
+
+  // Danh sách showroom duy nhất lấy từ dữ liệu thực tế
+  const uniqueShowrooms = useMemo(() => {
+    const set = new Set<string>();
+    todayTimeline.forEach((item) => {
+      if (item.staffName && item.staffName.trim()) {
+        set.add(item.staffName.trim());
+      }
+    });
+    return Array.from(set).sort();
+  }, [todayTimeline]);
+
+  // Bộ lọc lịch lái thử đa điều kiện (Tìm kiếm + Trạng thái + Chi nhánh)
+  const filteredTimeline = useMemo(() => {
+    return todayTimeline.filter((slot) => {
+      // 1. Tìm kiếm từ khóa (Khách, SĐT, Dòng xe, Biển số, Showroom)
+      if (testDriveSearch.trim()) {
+        const q = testDriveSearch.trim().toLowerCase();
+        const matchName = slot.customerName?.toLowerCase().includes(q);
+        const matchPhone = slot.customerPhone?.toLowerCase().includes(q);
+        const matchCar = slot.carModel?.toLowerCase().includes(q);
+        const matchPlate = slot.licensePlate?.toLowerCase().includes(q);
+        const matchShowroom = slot.staffName?.toLowerCase().includes(q);
+        if (!matchName && !matchPhone && !matchCar && !matchPlate && !matchShowroom) {
+          return false;
+        }
+      }
+
+      // 2. Lọc theo trạng thái
+      if (testDriveStatus !== 'ALL') {
+        const s = (slot.status || '').toUpperCase();
+        if (testDriveStatus === 'CONFIRMED') {
+          if (s !== 'CONFIRMED' && s !== 'SCHEDULED') return false;
+        } else if (s !== testDriveStatus) {
+          return false;
+        }
+      }
+
+      // 3. Lọc theo chi nhánh / Showroom
+      if (testDriveShowroom !== 'ALL') {
+        if (slot.staffName?.trim() !== testDriveShowroom) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [todayTimeline, testDriveSearch, testDriveStatus, testDriveShowroom]);
+
+  // Tính toán phân trang
+  const totalPages = Math.max(1, Math.ceil(filteredTimeline.length / testDrivePageSize));
+  const safePage = Math.min(testDrivePage, totalPages);
+  const paginatedTimeline = useMemo(() => {
+    const start = (safePage - 1) * testDrivePageSize;
+    return filteredTimeline.slice(start, start + testDrivePageSize);
+  }, [filteredTimeline, safePage, testDrivePageSize]);
+
+  const handleResetTestDriveFilters = () => {
+    setTestDriveSearch('');
+    setTestDriveStatus('ALL');
+    setTestDriveShowroom('ALL');
+    setTestDrivePage(1);
+  };
 
   return (
     <div
@@ -354,7 +429,7 @@ export const StaffWorkspacePage: React.FC = () => {
             </div>
           </div>
 
-          {/* 4. Main Operational Grid: Today's Timeline */}
+          {/* 4. Main Operational Grid: Today's Timeline with Filter & Pagination */}
           <div
             className={cn(
               'p-5 rounded-xl border space-y-4 transition-colors',
@@ -363,60 +438,323 @@ export const StaffWorkspacePage: React.FC = () => {
                 : 'bg-white border-slate-200 shadow-sm'
             )}
           >
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#3E4850]/40">
+            {/* Header with DB count & filtered count */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-[#3E4850]/40">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-blue-500" />
                 <h2 className={cn('text-sm font-bold uppercase tracking-wider font-mono', isDarkMode ? 'text-white' : 'text-slate-900')}>
                   Danh Sách Lịch Lái Thử Hiện Có
                 </h2>
               </div>
-              <span className="text-[11px] font-mono text-emerald-500 font-bold">
-                {todayTimeline.length} Lịch Hẹn Trong DB
-              </span>
+              <div className="flex items-center gap-2 text-[11px] font-mono">
+                {filteredTimeline.length !== todayTimeline.length && (
+                  <span className="text-amber-500 font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                    Lọc: {filteredTimeline.length} lịch
+                  </span>
+                )}
+                <span className="text-emerald-500 font-bold">
+                  {todayTimeline.length} Lịch Hẹn Trong DB
+                </span>
+              </div>
             </div>
 
+            {/* Filter Control Bar */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1">
+              {/* 1. Search Box */}
+              <div className="relative col-span-1 sm:col-span-2 lg:col-span-2">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  value={testDriveSearch}
+                  onChange={(e) => {
+                    setTestDriveSearch(e.target.value);
+                    setTestDrivePage(1);
+                  }}
+                  placeholder="Tìm khách hàng, SĐT, mẫu xe, biển số, showroom..."
+                  className={cn(
+                    'w-full pl-8 pr-7 py-1.5 rounded-lg text-xs font-mono transition-colors border focus:outline-none focus:ring-1 focus:ring-blue-500',
+                    isDarkMode
+                      ? 'bg-[#131B2E] border-[#3E4850]/50 text-slate-200 placeholder-slate-500 focus:border-[#89CEFF]'
+                      : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-500'
+                  )}
+                />
+                {testDriveSearch && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTestDriveSearch('');
+                      setTestDrivePage(1);
+                    }}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 text-xs cursor-pointer"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+
+              {/* 2. Status Filter */}
+              <div className="relative">
+                <select
+                  value={testDriveStatus}
+                  onChange={(e) => {
+                    setTestDriveStatus(e.target.value);
+                    setTestDrivePage(1);
+                  }}
+                  className={cn(
+                    'w-full px-2.5 py-1.5 rounded-lg text-xs font-mono transition-colors border cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500',
+                    isDarkMode
+                      ? 'bg-[#131B2E] border-[#3E4850]/50 text-slate-200 focus:border-[#89CEFF]'
+                      : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-blue-500'
+                  )}
+                >
+                  <option value="ALL">Tất cả trạng thái</option>
+                  <option value="PENDING">Chờ xếp xe (PENDING)</option>
+                  <option value="CONFIRMED">Đã lên lịch (CONFIRMED)</option>
+                  <option value="COMPLETED">Hoàn tất (COMPLETED)</option>
+                  <option value="CANCELLED">Đã hủy (CANCELLED)</option>
+                </select>
+              </div>
+
+              {/* 3. Showroom Filter */}
+              <div className="relative">
+                <select
+                  value={testDriveShowroom}
+                  onChange={(e) => {
+                    setTestDriveShowroom(e.target.value);
+                    setTestDrivePage(1);
+                  }}
+                  className={cn(
+                    'w-full px-2.5 py-1.5 rounded-lg text-xs font-mono transition-colors border cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500',
+                    isDarkMode
+                      ? 'bg-[#131B2E] border-[#3E4850]/50 text-slate-200 focus:border-[#89CEFF]'
+                      : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-blue-500'
+                  )}
+                >
+                  <option value="ALL">Tất cả chi nhánh</option>
+                  {uniqueShowrooms.map((sr) => (
+                    <option key={sr} value={sr}>
+                      {sr}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Active Filter Badges & Reset Button */}
+            {(testDriveSearch || testDriveStatus !== 'ALL' || testDriveShowroom !== 'ALL') && (
+              <div className="flex flex-wrap items-center gap-2 pt-0.5 text-[11px] font-mono">
+                <span className="text-slate-400">Đang lọc:</span>
+                {testDriveSearch && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/30">
+                    &quot;{testDriveSearch}&quot;
+                  </span>
+                )}
+                {testDriveStatus !== 'ALL' && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                    Trạng thái: {testDriveStatus}
+                  </span>
+                )}
+                {testDriveShowroom !== 'ALL' && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/30">
+                    {testDriveShowroom}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={handleResetTestDriveFilters}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-700/50 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Đặt lại</span>
+                </button>
+              </div>
+            )}
+
+            {/* List or Empty State */}
             {todayTimeline.length === 0 ? (
               <div className="p-8 text-center text-xs font-mono text-slate-400">
                 Chưa có lịch hẹn lái thử nào được ghi nhận trong hệ thống.
               </div>
+            ) : filteredTimeline.length === 0 ? (
+              <div className="p-8 text-center space-y-2 border border-dashed rounded-lg border-slate-700/50">
+                <Search className="w-7 h-7 mx-auto text-slate-500 opacity-60" />
+                <p className={cn('text-xs font-semibold', isDarkMode ? 'text-slate-300' : 'text-slate-700')}>
+                  Không tìm thấy lịch lái thử nào phù hợp với bộ lọc
+                </p>
+                <p className="text-[11px] text-slate-500">
+                  Hãy thử thay đổi từ khóa tìm kiếm hoặc bấm &quot;Đặt lại&quot; để hiển thị toàn bộ {todayTimeline.length} lịch hẹn.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleResetTestDriveFilters}
+                  className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors cursor-pointer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Đặt lại bộ lọc</span>
+                </button>
+              </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {todayTimeline.map((slot) => (
-                  <div
-                    key={slot.id}
-                    className={cn(
-                      'p-3.5 rounded-lg border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3',
-                      isDarkMode
-                        ? 'bg-[#131B2E] border-[#3E4850]/40 hover:border-[#89CEFF]/50'
-                        : 'bg-slate-50 border-slate-200 hover:border-blue-400'
-                    )}
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono font-bold text-blue-600 dark:text-[#89CEFF] px-2 py-0.5 rounded bg-blue-50 dark:bg-[#171F33] border border-blue-200 dark:border-[#3E4850]/60">
-                          {slot.timeSlot}
-                        </span>
-                        <span className={cn('text-xs font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
-                          {slot.carModel}
-                        </span>
-                      </div>
-                      <div className={cn('text-xs flex flex-wrap items-center gap-2', isDarkMode ? 'text-[#88929B]' : 'text-slate-600')}>
-                        <span>
-                          Khách: <strong className={isDarkMode ? 'text-white' : 'text-slate-800'}>{slot.customerName}</strong>
-                          {slot.customerPhone ? ` (${slot.customerPhone})` : ''}
-                        </span>
-                        <span>•</span>
-                        <span className="font-mono text-[11px]">Biển số: {slot.licensePlate}</span>
-                      </div>
-                    </div>
+                {paginatedTimeline.map((slot) => {
+                  const s = (slot.status || '').toUpperCase();
+                  const isCompleted = s === 'COMPLETED';
+                  const isConfirmed = s === 'CONFIRMED' || s === 'SCHEDULED';
+                  const isCancelled = s === 'CANCELLED';
 
-                    <div className="flex items-center gap-2 self-end sm:self-auto">
-                      <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-1 rounded border border-emerald-200 dark:border-emerald-800/40 font-bold">
-                        {slot.staffName}
-                      </span>
+                  return (
+                    <div
+                      key={slot.id}
+                      className={cn(
+                        'p-3.5 rounded-lg border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3',
+                        isDarkMode
+                          ? 'bg-[#131B2E] border-[#3E4850]/40 hover:border-[#89CEFF]/50'
+                          : 'bg-slate-50 border-slate-200 hover:border-blue-400'
+                      )}
+                    >
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-xs font-mono font-bold text-blue-600 dark:text-[#89CEFF] px-2 py-0.5 rounded bg-blue-50 dark:bg-[#171F33] border border-blue-200 dark:border-[#3E4850]/60 shrink-0">
+                            {slot.timeSlot}
+                          </span>
+                          <span className={cn('text-xs font-bold truncate', isDarkMode ? 'text-white' : 'text-slate-900')}>
+                            {slot.carModel}
+                          </span>
+                          <span
+                            className={cn(
+                              'text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border shrink-0',
+                              isCompleted && 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+                              isConfirmed && 'bg-blue-500/15 text-[#89CEFF] border-blue-500/30',
+                              isCancelled && 'bg-rose-500/15 text-rose-400 border-rose-500/30',
+                              !isCompleted && !isConfirmed && !isCancelled && 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                            )}
+                          >
+                            {isCompleted ? 'Hoàn tất' : isConfirmed ? 'Đã lên lịch' : isCancelled ? 'Đã hủy' : 'Chờ xếp xe'}
+                          </span>
+                        </div>
+                        <div className={cn('text-xs flex flex-wrap items-center gap-2', isDarkMode ? 'text-[#88929B]' : 'text-slate-600')}>
+                          <span>
+                            Khách: <strong className={isDarkMode ? 'text-white' : 'text-slate-800'}>{slot.customerName}</strong>
+                            {slot.customerPhone ? ` (${slot.customerPhone})` : ''}
+                          </span>
+                          <span>•</span>
+                          <span className="font-mono text-[11px]">Biển số: {slot.licensePlate}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                        <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-1 rounded border border-emerald-200 dark:border-emerald-800/40 font-bold flex items-center gap-1">
+                          <Building2 className="w-3 h-3 shrink-0" />
+                          <span>{slot.staffName}</span>
+                        </span>
+                      </div>
                     </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Pagination Controls Bar */}
+            {filteredTimeline.length > 0 && (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-[#3E4850]/40">
+                {/* Stats & Page Size */}
+                <div className="flex items-center gap-3 text-xs font-mono text-slate-400">
+                  <span>
+                    Hiển thị <strong className={isDarkMode ? 'text-white' : 'text-slate-800'}>{(safePage - 1) * testDrivePageSize + 1}</strong> -{' '}
+                    <strong className={isDarkMode ? 'text-white' : 'text-slate-800'}>{Math.min(safePage * testDrivePageSize, filteredTimeline.length)}</strong> /{' '}
+                    <strong className="text-emerald-500">{filteredTimeline.length}</strong> lịch hẹn
+                  </span>
+
+                  <span className="hidden sm:inline">•</span>
+
+                  <div className="hidden sm:flex items-center gap-1.5">
+                    <span>Số thẻ/trang:</span>
+                    <select
+                      value={testDrivePageSize}
+                      onChange={(e) => {
+                        setTestDrivePageSize(Number(e.target.value));
+                        setTestDrivePage(1);
+                      }}
+                      className={cn(
+                        'px-2 py-0.5 rounded text-xs font-mono border cursor-pointer focus:outline-none',
+                        isDarkMode
+                          ? 'bg-[#131B2E] border-[#3E4850]/50 text-slate-200'
+                          : 'bg-slate-50 border-slate-200 text-slate-700'
+                      )}
+                    >
+                      <option value={6}>6</option>
+                      <option value={10}>10</option>
+                      <option value={20}>20</option>
+                    </select>
                   </div>
-                ))}
+                </div>
+
+                {/* Page Navigation Buttons */}
+                <div className="flex items-center gap-1 self-center sm:self-auto">
+                  <button
+                    type="button"
+                    disabled={safePage <= 1}
+                    onClick={() => setTestDrivePage((p) => Math.max(1, p - 1))}
+                    className={cn(
+                      'p-1.5 rounded-lg border text-xs font-medium flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed',
+                      isDarkMode
+                        ? 'bg-[#131B2E] border-[#3E4850]/50 hover:bg-[#1C2640] text-slate-200'
+                        : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-700'
+                    )}
+                    title="Trang trước"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    <span className="hidden md:inline text-xs">Trước</span>
+                  </button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((p) => {
+                        if (totalPages <= 7) return true;
+                        if (p === 1 || p === totalPages) return true;
+                        if (Math.abs(p - safePage) <= 1) return true;
+                        return false;
+                      })
+                      .map((p, idx, arr) => {
+                        const prev = arr[idx - 1];
+                        const showEllipsis = prev && p - prev > 1;
+                        return (
+                          <React.Fragment key={p}>
+                            {showEllipsis && <span className="px-1 text-slate-500 text-xs">...</span>}
+                            <button
+                              type="button"
+                              onClick={() => setTestDrivePage(p)}
+                              className={cn(
+                                'w-7 h-7 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer',
+                                safePage === p
+                                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                                  : isDarkMode
+                                  ? 'bg-[#131B2E] border border-[#3E4850]/50 hover:bg-[#1C2640] text-slate-300'
+                                  : 'bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700'
+                              )}
+                            >
+                              {p}
+                            </button>
+                          </React.Fragment>
+                        );
+                      })}
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={safePage >= totalPages}
+                    onClick={() => setTestDrivePage((p) => Math.min(totalPages, p + 1))}
+                    className={cn(
+                      'p-1.5 rounded-lg border text-xs font-medium flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed',
+                      isDarkMode
+                        ? 'bg-[#131B2E] border-[#3E4850]/50 hover:bg-[#1C2640] text-slate-200'
+                        : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-700'
+                    )}
+                    title="Trang sau"
+                  >
+                    <span className="hidden md:inline text-xs">Sau</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             )}
           </div>
