@@ -85,6 +85,13 @@ public class StaffFulfillmentController {
         DonHangPhuKien order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng ID: " + orderId));
 
+        if (order.getTrangThai() == TrangThaiDonHang.CANCELLED) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Không thể đóng gói đơn hàng đã bị hủy"));
+        }
+        if (order.getTrangThai() == TrangThaiDonHang.SHIPPING || order.getTrangThai() == TrangThaiDonHang.DELIVERED) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Đơn hàng này đã được bàn giao xuất kho vận chuyển"));
+        }
+
         order.setTrangThai(TrangThaiDonHang.PROCESSING);
         orderRepository.save(order);
 
@@ -102,6 +109,16 @@ public class StaffFulfillmentController {
     ) {
         DonHangPhuKien order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng ID: " + orderId));
+
+        if (order.getTrangThai() == TrangThaiDonHang.CANCELLED) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Không thể bàn giao đơn hàng đã bị hủy"));
+        }
+        if (order.getTrangThai() == TrangThaiDonHang.DELIVERED) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Đơn hàng này đã giao thành công trước đó"));
+        }
+        if (order.getTrangThai() == TrangThaiDonHang.SHIPPING) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Đơn hàng này đã được bàn giao vận chuyển trước đó"));
+        }
 
         order.setTrangThai(TrangThaiDonHang.SHIPPING);
         order.setDonViVanChuyen(payload.getCourier());

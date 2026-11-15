@@ -74,7 +74,7 @@ export const DepositAuditPage: React.FC = () => {
     }
   };
 
-  const filteredDeposits = deposits.filter((d) =>
+  const filteredDeposits = (deposits ?? []).filter((d) =>
     d.customerName.toLowerCase().includes(search.toLowerCase()) ||
     d.depositCode.toLowerCase().includes(search.toLowerCase()) ||
     d.identityCardNumber.includes(search) ||

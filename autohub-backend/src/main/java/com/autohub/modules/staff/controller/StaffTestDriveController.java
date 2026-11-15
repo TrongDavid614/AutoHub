@@ -107,6 +107,12 @@ public class StaffTestDriveController {
             return ResponseEntity.badRequest().body(ApiResponse.error("Không tìm thấy xe Demo biển số: " + plate));
         }
 
+        // Kiểm tra xe Demo có đang ở trạng thái SAN_SANG không
+        if (matchedDemo.getTrangThai() != TrangThaiXeDemo.SAN_SANG
+                && (b.getXeDemo() == null || !b.getXeDemo().getId().equals(matchedDemo.getId()))) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Xe Demo biển số " + plate + " hiện không sẵn sàng (đang chạy thử hoặc đang bảo dưỡng)"));
+        }
+
         // Nếu lịch hẹn trước đó đã gán xe demo khác, hoàn trả trạng thái xe cũ về SAN_SANG
         if (b.getXeDemo() != null && !b.getXeDemo().getId().equals(matchedDemo.getId())) {
             XeDemo oldDemo = b.getXeDemo();
@@ -136,6 +142,9 @@ public class StaffTestDriveController {
 
         if (b.getTrangThai() == TrangThaiLichHen.CANCELLED) {
             return ResponseEntity.badRequest().body(ApiResponse.error("Không thể hoàn tất lịch hẹn đã bị hủy"));
+        }
+        if (b.getTrangThai() == TrangThaiLichHen.COMPLETED) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Lịch hẹn này đã hoàn tất trước đó"));
         }
 
         // Hoàn trả trạng thái xe Demo về SẴN_SÀNG

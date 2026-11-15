@@ -62,7 +62,7 @@ export const ConsultationListPage: React.FC = () => {
     };
   }, []);
 
-  const filteredLeads = leads.filter((lead) => {
+  const filteredLeads = (leads ?? []).filter((lead) => {
     const matchTab = lead.status === activeTab;
     const matchSearch =
       lead.customerName.toLowerCase().includes(search.toLowerCase()) ||

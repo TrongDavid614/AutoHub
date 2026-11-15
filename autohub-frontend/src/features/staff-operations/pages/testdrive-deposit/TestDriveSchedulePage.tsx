@@ -85,7 +85,7 @@ export const TestDriveSchedulePage: React.FC = () => {
     };
   }, []);
 
-  const filteredBookings = bookings.filter((b) => {
+  const filteredBookings = (bookings ?? []).filter((b) => {
     const matchStatus = statusFilter === 'ALL' || b.status === statusFilter;
     const matchSearch =
       b.customerName.toLowerCase().includes(search.toLowerCase()) ||

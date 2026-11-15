@@ -65,7 +65,17 @@ public class StaffReturnController {
         YeuCauDoiTra r = returnRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy yêu cầu đổi trả ID: " + id));
 
-        r.setTrangThai(TrangThaiDoiTra.APPROVED);
+        if (r.getTrangThai() == TrangThaiDoiTra.APPROVED
+                || r.getTrangThai() == TrangThaiDoiTra.REJECTED
+                || r.getTrangThai() == TrangThaiDoiTra.COMPLETED) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Yêu cầu đổi trả này đã được xử lý trước đó"));
+        }
+
+        if ("REJECT".equalsIgnoreCase(payload.getResolution())) {
+            r.setTrangThai(TrangThaiDoiTra.REJECTED);
+        } else {
+            r.setTrangThai(TrangThaiDoiTra.APPROVED);
+        }
         r.setPhuongAnGiaiQuyet(payload.getResolution());
         if (payload.getInspectionNotes() != null) {
             r.setGhiChuXuLy(payload.getInspectionNotes());

@@ -65,7 +65,7 @@ export const StaffWorkspacePage: React.FC = () => {
         if (!prev) return prev;
         return {
           ...prev,
-          urgentDeposits: prev.urgentDeposits.map((d) => ({
+          urgentDeposits: (prev.urgentDeposits || []).map((d) => ({
             ...d,
             remainingSeconds: Math.max(0, d.remainingSeconds - 1),
           })),

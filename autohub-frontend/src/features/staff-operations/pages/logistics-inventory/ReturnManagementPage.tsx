@@ -14,6 +14,7 @@ export const ReturnManagementPage: React.FC = () => {
   const { isDarkMode } = useAdminTheme();
   const [returnItems, setReturnItems] = useState<StaffReturnItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'ALL' | 'RETURN_REQUESTED' | 'INSPECTING' | 'RESOLVED' | 'REJECTED' | 'APPROVED' | 'COMPLETED'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItem, setSelectedItem] = useState<StaffReturnItem | null>(null);
@@ -29,11 +30,13 @@ export const ReturnManagementPage: React.FC = () => {
 
   const fetchReturns = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const data = await staffService.getReturnItems();
-      setReturnItems(data);
+      setReturnItems(data || []);
     } catch (err) {
       console.error('Lỗi tải danh sách đổi trả từ database:', err);
+      setError('Không thể tải danh sách đổi trả phụ kiện từ cơ sở dữ liệu.');
     } finally {
       setIsLoading(false);
     }
@@ -45,13 +48,14 @@ export const ReturnManagementPage: React.FC = () => {
       .getReturnItems()
       .then((data) => {
         if (isMounted) {
-          setReturnItems(data);
+          setReturnItems(data || []);
           setIsLoading(false);
         }
       })
       .catch((err) => {
         if (isMounted) {
           console.error('Lỗi tải danh sách đổi trả từ database:', err);
+          setError('Không thể tải danh sách đổi trả phụ kiện từ cơ sở dữ liệu.');
           setIsLoading(false);
         }
       });
@@ -61,7 +65,7 @@ export const ReturnManagementPage: React.FC = () => {
   }, []);
 
   const filteredItems = useMemo(() => {
-    return returnItems.filter((item) => {
+    return (returnItems ?? []).filter((item) => {
       const matchTab = activeTab === 'ALL' || item.status === activeTab;
       const matchQuery =
         !searchQuery ||
@@ -176,6 +180,17 @@ export const ReturnManagementPage: React.FC = () => {
         <div className="flex flex-col items-center justify-center p-16 space-y-3">
           <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
           <p className="text-xs font-mono text-slate-400">Đang tải danh sách đổi trả từ cơ sở dữ liệu...</p>
+        </div>
+      ) : error ? (
+        <div className={cn('p-10 text-center rounded-xl border space-y-3', isDarkMode ? 'bg-[#0B1326] border-red-900/50 text-red-300' : 'bg-red-50 border-red-200 text-red-700')}>
+          <p className="text-sm font-semibold">{error}</p>
+          <button
+            type="button"
+            onClick={fetchReturns}
+            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold cursor-pointer inline-flex items-center gap-1.5"
+          >
+            <RefreshCw className="w-3.5 h-3.5" /> Thử lại
+          </button>
         </div>
       ) : filteredItems.length === 0 ? (
         <div className={cn('p-12 text-center rounded-xl border text-sm font-mono', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 text-slate-400' : 'bg-white border-slate-200 text-slate-500')}>

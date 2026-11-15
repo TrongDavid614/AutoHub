@@ -113,6 +113,13 @@ public class StaffDepositVinController {
         PhieuDatCoc deposit = depositRepository.findById(depositId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu cọc ID: " + depositId));
 
+        if (deposit.getTrangThai() == TrangThaiPhieuCoc.CANCELLED
+                || deposit.getTrangThai() == TrangThaiPhieuCoc.EXPIRED
+                || deposit.getTrangThai() == TrangThaiPhieuCoc.REFUNDED
+                || deposit.getTrangThai() == TrangThaiPhieuCoc.COMPLETED) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Không thể gán số khung VIN cho phiếu cọc đã kết thúc hoặc hủy"));
+        }
+
         XeDinhDanh xeDinhDanh = xeDinhDanhRepository.findBySoKhungVIN(vin)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy xe định danh với số khung VIN: " + vin));
 
@@ -163,6 +170,17 @@ public class StaffDepositVinController {
     public ResponseEntity<ApiResponse<String>> signContract(@PathVariable Long depositId) {
         PhieuDatCoc deposit = depositRepository.findById(depositId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy phiếu cọc ID: " + depositId));
+
+        if (deposit.getTrangThai() == TrangThaiPhieuCoc.CANCELLED
+                || deposit.getTrangThai() == TrangThaiPhieuCoc.EXPIRED
+                || deposit.getTrangThai() == TrangThaiPhieuCoc.REFUNDED
+                || deposit.getTrangThai() == TrangThaiPhieuCoc.COMPLETED) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Không thể ký hợp đồng cho phiếu cọc đã kết thúc hoặc hủy"));
+        }
+
+        if (deposit.getXeDinhDanh() == null) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Phiếu cọc chưa được gán số khung VIN định danh"));
+        }
 
         deposit.setTrangThai(TrangThaiPhieuCoc.COMPLETED);
         deposit.setThoiGianHoanTat(LocalDateTime.now());

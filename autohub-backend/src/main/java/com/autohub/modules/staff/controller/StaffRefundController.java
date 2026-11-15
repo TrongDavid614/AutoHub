@@ -1,9 +1,15 @@
 package com.autohub.modules.staff.controller;
 
 import com.autohub.common.dto.ApiResponse;
+import com.autohub.core.car.entity.XeDinhDanh;
+import com.autohub.core.car.repository.XeDinhDanhRepository;
+import com.autohub.core.deposit.entity.PhieuDatCoc;
 import com.autohub.core.deposit.entity.YeuCauHoanCoc;
+import com.autohub.core.deposit.repository.PhieuDatCocRepository;
 import com.autohub.core.deposit.repository.YeuCauHoanCocRepository;
 import com.autohub.core.enums.TrangThaiHoanCoc;
+import com.autohub.core.enums.TrangThaiPhieuCoc;
+import com.autohub.core.enums.TrangThaiXeVIN;
 import com.autohub.modules.staff.dto.RejectDocketRequest;
 import com.autohub.modules.staff.dto.StaffRefundDocketDto;
 import jakarta.validation.Valid;
@@ -25,6 +31,8 @@ import java.util.List;
 public class StaffRefundController {
 
         private final YeuCauHoanCocRepository refundRepository;
+        private final PhieuDatCocRepository depositRepository;
+        private final XeDinhDanhRepository xeDinhDanhRepository;
 
         @GetMapping
         @Transactional(readOnly = true)
@@ -103,6 +111,19 @@ public class StaffRefundController {
                 r.setNgayXuLy(LocalDateTime.now());
                 refundRepository.save(r);
 
+                // Đồng bộ cập nhật trạng thái phiếu cọc sang REFUNDED và thu hồi số khung VIN (nếu có)
+                if (r.getPhieuDatCoc() != null) {
+                        PhieuDatCoc dep = r.getPhieuDatCoc();
+                        dep.setTrangThai(TrangThaiPhieuCoc.REFUNDED);
+                        if (dep.getXeDinhDanh() != null) {
+                                XeDinhDanh vin = dep.getXeDinhDanh();
+                                vin.setTrangThai(TrangThaiXeVIN.CO_SAN);
+                                xeDinhDanhRepository.save(vin);
+                                dep.setXeDinhDanh(null);
+                        }
+                        depositRepository.save(dep);
+                }
+
                 return ResponseEntity.ok(ApiResponse.ok("VERIFIED", "Đối soát và xác nhận hồ sơ hoàn cọc thành công"));
         }
 
@@ -125,6 +146,13 @@ public class StaffRefundController {
                 r.setLyDoTuChoi(reason.trim());
                 r.setNgayXuLy(LocalDateTime.now());
                 refundRepository.save(r);
+
+                // Nếu từ chối hoàn cọc, hoàn trả trạng thái phiếu cọc về PAID
+                if (r.getPhieuDatCoc() != null && r.getPhieuDatCoc().getTrangThai() == TrangThaiPhieuCoc.REFUND_REQUESTED) {
+                        PhieuDatCoc dep = r.getPhieuDatCoc();
+                        dep.setTrangThai(TrangThaiPhieuCoc.PAID);
+                        depositRepository.save(dep);
+                }
 
                 return ResponseEntity
                                 .ok(ApiResponse.ok("REJECTED", "Đã bác bỏ yêu cầu hoàn cọc và lưu lý do vào database"));

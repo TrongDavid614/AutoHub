@@ -63,7 +63,7 @@ export const StaffRefundDocketPage: React.FC = () => {
     };
   }, []);
 
-  const filteredDockets = dockets.filter((d) => {
+  const filteredDockets = (dockets ?? []).filter((d) => {
     const normalizedStatus = d.status === 'PENDING' ? 'REFUND_REQUESTED' : d.status;
     const matchTab = activeTab === 'ALL' || normalizedStatus === activeTab;
     const matchSearch =

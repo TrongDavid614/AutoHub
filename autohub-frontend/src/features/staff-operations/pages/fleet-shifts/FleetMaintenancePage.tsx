@@ -14,6 +14,7 @@ export const FleetMaintenancePage: React.FC = () => {
   const { isDarkMode } = useAdminTheme();
   const [fleet, setFleet] = useState<DemoFleetCar[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedCarForMaintenance, setSelectedCarForMaintenance] = useState<DemoFleetCar | null>(null);
   const [selectedCarForOdo, setSelectedCarForOdo] = useState<DemoFleetCar | null>(null);
 
@@ -32,11 +33,13 @@ export const FleetMaintenancePage: React.FC = () => {
 
   const fetchFleet = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const data = await staffService.getDemoFleet();
-      setFleet(data);
+      setFleet(data || []);
     } catch (err) {
       console.error('Lỗi tải danh sách xe demo từ database:', err);
+      setError('Không thể tải danh sách xe demo từ cơ sở dữ liệu.');
     } finally {
       setIsLoading(false);
     }
@@ -48,13 +51,14 @@ export const FleetMaintenancePage: React.FC = () => {
       .getDemoFleet()
       .then((data) => {
         if (isMounted) {
-          setFleet(data);
+          setFleet(data || []);
           setIsLoading(false);
         }
       })
       .catch((err) => {
         if (isMounted) {
           console.error('Lỗi tải danh sách xe demo từ database:', err);
+          setError('Không thể tải danh sách xe demo từ cơ sở dữ liệu.');
           setIsLoading(false);
         }
       });
@@ -151,13 +155,24 @@ export const FleetMaintenancePage: React.FC = () => {
           <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
           <p className="text-xs font-mono text-slate-400">Đang tải danh sách đội xe Demo từ cơ sở dữ liệu...</p>
         </div>
-      ) : fleet.length === 0 ? (
+      ) : error ? (
+        <div className={cn('p-10 text-center rounded-xl border space-y-3', isDarkMode ? 'bg-[#0B1326] border-red-900/50 text-red-300' : 'bg-red-50 border-red-200 text-red-700')}>
+          <p className="text-sm font-semibold">{error}</p>
+          <button
+            type="button"
+            onClick={fetchFleet}
+            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold cursor-pointer inline-flex items-center gap-1.5"
+          >
+            <RefreshCw className="w-3.5 h-3.5" /> Thử lại
+          </button>
+        </div>
+      ) : (fleet ?? []).length === 0 ? (
         <div className={cn('p-12 text-center rounded-xl border text-sm font-mono', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 text-slate-400' : 'bg-white border-slate-200 text-slate-500')}>
           Không tìm thấy xe Demo nào trong cơ sở dữ liệu.
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {fleet.map((car) => (
+          {(fleet ?? []).map((car) => (
             <div
               key={car.id}
               className={cn(

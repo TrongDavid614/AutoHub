@@ -15,6 +15,7 @@ export const OrderFulfillmentPage: React.FC = () => {
   const { isDarkMode } = useAdminTheme();
   const [orders, setOrders] = useState<StaffFulfillmentOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'NEED_PACK' | 'PACKING' | 'SHIPPED'>('NEED_PACK');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrderForHandover, setSelectedOrderForHandover] = useState<StaffFulfillmentOrder | null>(null);
@@ -31,11 +32,13 @@ export const OrderFulfillmentPage: React.FC = () => {
 
   const fetchOrders = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const data = await staffService.getFulfillmentOrders();
-      setOrders(data);
+      setOrders(data || []);
     } catch (err) {
       console.error('Lỗi tải danh sách đơn hàng đóng gói từ database:', err);
+      setError('Không thể tải danh sách đơn hàng đóng gói từ cơ sở dữ liệu.');
     } finally {
       setIsLoading(false);
     }
@@ -47,13 +50,14 @@ export const OrderFulfillmentPage: React.FC = () => {
       .getFulfillmentOrders()
       .then((data) => {
         if (isMounted) {
-          setOrders(data);
+          setOrders(data || []);
           setIsLoading(false);
         }
       })
       .catch((err) => {
         if (isMounted) {
           console.error('Lỗi tải danh sách đơn hàng đóng gói từ database:', err);
+          setError('Không thể tải danh sách đơn hàng đóng gói từ cơ sở dữ liệu.');
           setIsLoading(false);
         }
       });
@@ -63,14 +67,14 @@ export const OrderFulfillmentPage: React.FC = () => {
   }, []);
 
   const filteredOrders = useMemo(() => {
-    return orders.filter((order) => {
+    return (orders ?? []).filter((order) => {
       const matchTab = order.status === activeTab;
       const matchQuery =
         !searchQuery ||
         order.orderCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
         order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         order.customerPhone.includes(searchQuery) ||
-        order.items.some(
+        (order.items ?? []).some(
           (item) =>
             item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.sku.toLowerCase().includes(searchQuery.toLowerCase())
@@ -81,9 +85,9 @@ export const OrderFulfillmentPage: React.FC = () => {
 
   const counts = useMemo(() => {
     return {
-      NEED_PACK: orders.filter((o) => o.status === 'NEED_PACK').length,
-      PACKING: orders.filter((o) => o.status === 'PACKING').length,
-      SHIPPED: orders.filter((o) => o.status === 'SHIPPED').length,
+      NEED_PACK: (orders ?? []).filter((o) => o.status === 'NEED_PACK').length,
+      PACKING: (orders ?? []).filter((o) => o.status === 'PACKING').length,
+      SHIPPED: (orders ?? []).filter((o) => o.status === 'SHIPPED').length,
     };
   }, [orders]);
 
@@ -234,6 +238,17 @@ export const OrderFulfillmentPage: React.FC = () => {
         <div className="flex flex-col items-center justify-center p-16 space-y-3">
           <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
           <p className="text-xs font-mono text-slate-400">Đang tải danh sách đơn hàng xuất kho từ database...</p>
+        </div>
+      ) : error ? (
+        <div className={cn('p-10 text-center rounded-xl border space-y-3', isDarkMode ? 'bg-[#0B1326] border-red-900/50 text-red-300' : 'bg-red-50 border-red-200 text-red-700')}>
+          <p className="text-sm font-semibold">{error}</p>
+          <button
+            type="button"
+            onClick={fetchOrders}
+            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold cursor-pointer inline-flex items-center gap-1.5"
+          >
+            <RefreshCw className="w-3.5 h-3.5" /> Thử lại
+          </button>
         </div>
       ) : filteredOrders.length === 0 ? (
         <div className={cn('p-12 text-center rounded-xl border text-sm font-mono', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 text-slate-400' : 'bg-white border-slate-200 text-slate-500')}>
