@@ -82,6 +82,11 @@ export const API_CONFIG = {
       SHOWROOMS: '/admin/showrooms',
       SHOWROOMS_STATS: '/admin/showrooms/stats',
       SHOWROOMS_PROVINCES: '/admin/showrooms/provinces',
+      SYSTEM_MONITOR_HEALTH: '/admin/system-monitor/health',
+      SYSTEM_MONITOR_AUDIT_LOGS: '/admin/system-monitor/audit-logs',
+      SYSTEM_MONITOR_PROBE_AI: '/admin/system-monitor/probe-ai',
+      SYSTEM_MONITOR_TRIGGER_CRON: '/admin/system-monitor/trigger-cron',
+      SYSTEM_MONITOR_EXPORT: '/admin/system-monitor/export',
     },
   },
 };
