@@ -7,6 +7,8 @@ export * from './pages/desk-crm/ConsultationListPage';
 export * from './pages/testdrive-deposit/TestDriveSchedulePage';
 export * from './pages/testdrive-deposit/DepositAuditPage';
 export * from './pages/testdrive-deposit/StaffRefundDocketPage';
+export * from './hooks/useStaffDepositAudit';
+export * from './components/DepositCountdownBadge';
 
 // 3. Logistics & Inventory
 export * from './pages/logistics-inventory/OrderFulfillmentPage';
@@ -17,5 +19,6 @@ export * from './pages/logistics-inventory/StockTransferPage';
 export * from './pages/fleet-shifts/FleetMaintenancePage';
 export * from './pages/fleet-shifts/ShiftHandoverPage';
 
-// Mocks
+// Domain Types & Mocks
+export * from '@/types/staff.types';
 export * from './mocks/staff.mock';

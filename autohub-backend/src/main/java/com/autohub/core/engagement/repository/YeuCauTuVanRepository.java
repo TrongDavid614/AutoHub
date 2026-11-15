@@ -10,4 +10,5 @@ import java.util.List;
 @Repository
 public interface YeuCauTuVanRepository extends JpaRepository<YeuCauTuVan, Long> {
     List<YeuCauTuVan> findByTrangThai(TrangThaiYeuCauTuVan trangThai);
+    long countByTrangThai(TrangThaiYeuCauTuVan trangThai);
 }
