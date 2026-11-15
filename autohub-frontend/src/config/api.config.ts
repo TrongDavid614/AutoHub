@@ -82,6 +82,12 @@ export const API_CONFIG = {
       SHOWROOMS: '/admin/showrooms',
       SHOWROOMS_STATS: '/admin/showrooms/stats',
       SHOWROOMS_PROVINCES: '/admin/showrooms/provinces',
+      STAFF_SCHEDULES: '/admin/staff-schedules',
+      STAFF_SCHEDULES_STATS: '/admin/staff-schedules/stats',
+      STAFF_SCHEDULES_STAFF: '/admin/staff-schedules/staff-options',
+      STAFF_SCHEDULES_AUTO: '/admin/staff-schedules/auto-schedule',
+      STAFF_SCHEDULES_SWAP: '/admin/staff-schedules/swap-requests',
+      STAFF_SCHEDULES_EXPORT: '/admin/staff-schedules/export',
     },
   },
 };
