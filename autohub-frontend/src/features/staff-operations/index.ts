@@ -7,6 +7,8 @@ export * from './pages/desk-crm/ConsultationListPage';
 export * from './pages/testdrive-deposit/TestDriveSchedulePage';
 export * from './pages/testdrive-deposit/DepositAuditPage';
 export * from './pages/testdrive-deposit/StaffRefundDocketPage';
+export * from './hooks/useStaffDepositAudit';
+export * from './components/DepositCountdownBadge';
 
 // 3. Logistics & Inventory
 export * from './pages/logistics-inventory/OrderFulfillmentPage';

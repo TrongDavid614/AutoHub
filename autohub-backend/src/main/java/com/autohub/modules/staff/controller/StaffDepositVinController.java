@@ -7,6 +7,7 @@ import com.autohub.core.deposit.entity.PhieuDatCoc;
 import com.autohub.core.deposit.repository.PhieuDatCocRepository;
 import com.autohub.core.enums.TrangThaiPhieuCoc;
 import com.autohub.core.enums.TrangThaiXeVIN;
+import com.autohub.core.showroom.entity.TonKhoXe;
 import com.autohub.modules.staff.dto.AssignVinRequest;
 import com.autohub.modules.staff.dto.AvailableVinOptionDto;
 import com.autohub.modules.staff.dto.StaffDepositDto;
@@ -23,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/staff/deposits")
+@RequestMapping({"/staff/deposits", "/staff/deposit-audit"})
 @PreAuthorize("hasAnyRole('STAFF', 'ADMIN')")
 @RequiredArgsConstructor
 public class StaffDepositVinController {
@@ -68,8 +69,21 @@ public class StaffDepositVinController {
 
     @GetMapping("/available-vins")
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse<List<AvailableVinOptionDto>>> getAvailableVins() {
+    public ResponseEntity<ApiResponse<List<AvailableVinOptionDto>>> getAvailableVins(
+            @RequestParam(required = false) Long depositId
+    ) {
         List<XeDinhDanh> vins = xeDinhDanhRepository.findByTrangThai(TrangThaiXeVIN.CO_SAN);
+        if (depositId != null) {
+            PhieuDatCoc deposit = depositRepository.findById(depositId).orElse(null);
+            if (deposit != null && deposit.getTonKhoXe() != null && deposit.getTonKhoXe().getPhienBanXe() != null) {
+                Long expectedVariantId = deposit.getTonKhoXe().getPhienBanXe().getId();
+                vins = vins.stream()
+                        .filter(v -> v.getTonKhoXe() != null
+                                && v.getTonKhoXe().getPhienBanXe() != null
+                                && expectedVariantId.equals(v.getTonKhoXe().getPhienBanXe().getId()))
+                        .toList();
+            }
+        }
         List<AvailableVinOptionDto> result = new ArrayList<>();
 
         for (XeDinhDanh v : vins) {
@@ -119,10 +133,20 @@ public class StaffDepositVinController {
         if (deposit.getXeDinhDanh() != null && !deposit.getXeDinhDanh().getId().equals(xeDinhDanh.getId())) {
             XeDinhDanh oldVin = deposit.getXeDinhDanh();
             oldVin.setTrangThai(TrangThaiXeVIN.CO_SAN);
+            if (oldVin.getTonKhoXe() != null) {
+                TonKhoXe oldTk = oldVin.getTonKhoXe();
+                oldTk.setSoLuongKhaDung(oldTk.getSoLuongKhaDung() + 1);
+                oldTk.setSoLuongDangGiuCho(Math.max(0, oldTk.getSoLuongDangGiuCho() - 1));
+            }
             xeDinhDanhRepository.save(oldVin);
         }
 
         xeDinhDanh.setTrangThai(TrangThaiXeVIN.DA_GIU_CHO);
+        if (xeDinhDanh.getTonKhoXe() != null) {
+            TonKhoXe tk = xeDinhDanh.getTonKhoXe();
+            tk.setSoLuongKhaDung(Math.max(0, tk.getSoLuongKhaDung() - 1));
+            tk.setSoLuongDangGiuCho(tk.getSoLuongDangGiuCho() + 1);
+        }
         xeDinhDanhRepository.save(xeDinhDanh);
 
         deposit.setXeDinhDanh(xeDinhDanh);
@@ -145,6 +169,10 @@ public class StaffDepositVinController {
         if (deposit.getXeDinhDanh() != null) {
             XeDinhDanh vinEntity = deposit.getXeDinhDanh();
             vinEntity.setTrangThai(TrangThaiXeVIN.DA_BAN);
+            if (vinEntity.getTonKhoXe() != null) {
+                TonKhoXe tk = vinEntity.getTonKhoXe();
+                tk.setSoLuongDangGiuCho(Math.max(0, tk.getSoLuongDangGiuCho() - 1));
+            }
             xeDinhDanhRepository.save(vinEntity);
         }
         depositRepository.save(deposit);

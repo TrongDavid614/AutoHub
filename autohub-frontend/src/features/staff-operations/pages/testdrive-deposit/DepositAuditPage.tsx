@@ -1,125 +1,76 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   Clock,
   Search,
   X,
-  Loader2,
   RefreshCw,
+  AlertTriangle,
+  Car,
+  CheckCircle2,
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
-import { staffService } from '@/features/staff-operations/services/staff.service';
-import type { AvailableVinOption, StaffDepositRecord } from '@/types/staff.types';
+import { useStaffDepositAudit } from '@/features/staff-operations/hooks/useStaffDepositAudit';
+import { DepositCountdownBadge } from '@/features/staff-operations/components/DepositCountdownBadge';
+import type { StaffDepositRecord } from '@/types/staff.types';
 import { cn, formatCurrencyVND } from '@/lib/utils';
 
 export const DepositAuditPage: React.FC = () => {
   const { isDarkMode } = useAdminTheme();
-  const [deposits, setDeposits] = useState<StaffDepositRecord[]>([]);
-  const [availableVins, setAvailableVins] = useState<AvailableVinOption[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    deposits,
+    availableVins,
+    isLoading,
+    error,
+    refetch,
+    fetchAvailableVins,
+    assignVin,
+    signContract,
+  } = useStaffDepositAudit();
+
   const [search, setSearch] = useState('');
   const [selectedDepositForVin, setSelectedDepositForVin] = useState<StaffDepositRecord | null>(null);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [confirmSignModal, setConfirmSignModal] = useState<{ depositId: string; customerName: string } | null>(null);
+  const [isAssigning, setIsAssigning] = useState(false);
+  const [isSigning, setIsSigning] = useState(false);
 
   const showToast = (type: 'success' | 'error', message: string) => {
     setToast({ type, message });
     setTimeout(() => setToast(null), 3500);
   };
 
-  // Load real deposits and physical VINs from database via API
-  const fetchDeposits = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const [depositsData, vinsData] = await Promise.all([
-        staffService.getStaffDeposits(),
-        staffService.getAvailableVins(),
-      ]);
-      setDeposits(depositsData);
-      setAvailableVins(vinsData);
-    } catch (err) {
-      console.error('Lỗi nạp dữ liệu phiếu cọc hoặc VIN kho từ database:', err);
-      setError('Không thể nạp dữ liệu phiếu cọc và số khung VIN từ SQL Server.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    let isMounted = true;
-    Promise.all([
-      staffService.getStaffDeposits(),
-      staffService.getAvailableVins(),
-    ])
-      .then(([depositsData, vinsData]) => {
-        if (isMounted) {
-          setDeposits(depositsData);
-          setAvailableVins(vinsData);
-          setIsLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (isMounted) {
-          console.error('Lỗi nạp dữ liệu phiếu cọc hoặc VIN kho từ database:', err);
-          setError('Không thể nạp dữ liệu phiếu cọc và số khung VIN từ SQL Server.');
-          setIsLoading(false);
-        }
-      });
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // 1-second countdown ticking timer
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setDeposits((prev) =>
-        prev.map((d) => ({
-          ...d,
-          remainingSeconds: Math.max(0, d.remainingSeconds - 1),
-        }))
-      );
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const formatCountdown = (secs: number) => {
-    if (secs <= 0) return 'Đã hết hạn 72h';
-    const h = Math.floor(secs / 3600);
-    const m = Math.floor((secs % 3600) / 60);
-    const s = secs % 60;
-    return `Còn ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  const handleOpenAssignVin = async (deposit: StaffDepositRecord) => {
+    setSelectedDepositForVin(deposit);
+    await fetchAvailableVins(deposit.id);
   };
 
-  const handleAssignVin = async (vin: string) => {
-    if (!selectedDepositForVin) return;
+  const handleAssignVinSubmit = async (vin: string) => {
+    if (!selectedDepositForVin || isAssigning) return;
+    setIsAssigning(true);
     try {
-      await staffService.assignVinToDeposit(selectedDepositForVin.id, vin);
-      await fetchDeposits();
+      await assignVin(selectedDepositForVin.id, vin);
       showToast('success', `Đã gán thành công số khung ${vin} cho khách hàng ${selectedDepositForVin.customerName}`);
       setSelectedDepositForVin(null);
     } catch (err) {
       console.error('Lỗi gán VIN:', err);
       showToast('error', 'Không thể gán số khung VIN. Vui lòng kiểm tra lại sự tương thích phiên bản.');
+    } finally {
+      setIsAssigning(false);
     }
   };
 
   const executeSignContract = async (depositId: string) => {
+    if (isSigning) return;
+    setIsSigning(true);
     try {
-      await staffService.signContract(depositId);
-      setDeposits((prev) =>
-        prev.map((d) =>
-          d.id === depositId
-            ? { ...d, status: 'COMPLETED' as const }
-            : d
-        )
-      );
-      showToast('success', 'Đã ký Hợp Đồng Mua Bán thành công và cập nhật vào hệ thống.');
+      await signContract(depositId);
+      showToast('success', 'Đã ký Hợp Đồng Mua Bán thành công và cập nhật số khung sang trạng thái ĐÃ BÁN.');
       setConfirmSignModal(null);
     } catch (err) {
       console.error('Lỗi ký hợp đồng vào CSDL:', err);
       showToast('error', 'Không thể cập nhật ký hợp đồng vào CSDL. Vui lòng thử lại!');
+    } finally {
+      setIsSigning(false);
     }
   };
 
@@ -151,16 +102,17 @@ export const DepositAuditPage: React.FC = () => {
             Đối Soát Cọc Xe 72 Giờ & Gán Số Khung VIN Xe Vật Lý
           </h1>
           <p className={cn('text-sm mt-0.5', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-            Dữ liệu trực tiếp từ SQL Server: Kiểm tra đối soát thanh toán SePay, số CCCD và gán số khung VIN trong kho xe.
+            Dữ liệu đồng bộ SQL Server: Đối soát thanh toán cọc SePay, đối chiếu CCCD và gán số khung VIN từ kho xe khả dụng.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={fetchDeposits}
+            onClick={refetch}
+            disabled={isLoading}
             className={cn(
-              'px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 cursor-pointer transition-colors',
+              'px-3.5 py-2 rounded-lg border text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors',
               isDarkMode
                 ? 'bg-[#131B2E] border-[#3E4850]/50 hover:bg-[#1C2640] text-slate-200'
                 : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-700'
@@ -202,48 +154,84 @@ export const DepositAuditPage: React.FC = () => {
         </div>
         <div className="flex items-center gap-3 text-xs font-mono">
           <span>Tổng số phiếu cọc: <strong className="text-blue-500">{deposits.length}</strong></span>
+          <span className="text-slate-400">•</span>
+          <span>Khớp tìm kiếm: <strong className="text-emerald-500">{filteredDeposits.length}</strong></span>
         </div>
       </div>
 
-      {/* 3. Table / Card List */}
+      {/* 3. Table / State Handling */}
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center p-16 space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-          <p className="text-xs font-mono text-slate-400">Đang tải danh sách phiếu cọc từ cơ sở dữ liệu...</p>
+        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-[#3E4850]/40 shadow-xs">
+          <div className="p-8 space-y-4">
+            <div className="h-4 bg-slate-200 dark:bg-slate-700/50 rounded-md w-1/4 animate-pulse" />
+            <div className="space-y-3">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="h-12 bg-slate-100 dark:bg-[#131B2E]/60 rounded-lg animate-pulse" />
+              ))}
+            </div>
+          </div>
         </div>
       ) : error ? (
-        <div className={cn('p-10 text-center rounded-xl border space-y-3', isDarkMode ? 'bg-[#0B1326] border-red-900/50 text-red-300' : 'bg-red-50 border-red-200 text-red-700')}>
-          <p className="text-sm font-semibold">{error}</p>
+        <div
+          className={cn(
+            'p-8 text-center rounded-xl border space-y-4',
+            isDarkMode ? 'bg-[#0B1326] border-red-900/50 text-red-300' : 'bg-red-50 border-red-200 text-red-700'
+          )}
+        >
+          <div className="flex items-center justify-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-red-500" />
+            <p className="text-sm font-semibold">{error}</p>
+          </div>
           <button
             type="button"
-            onClick={fetchDeposits}
-            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold cursor-pointer"
+            onClick={refetch}
+            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold cursor-pointer transition-colors"
           >
             Thử lại
           </button>
         </div>
       ) : filteredDeposits.length === 0 ? (
-        <div className={cn('p-12 text-center rounded-xl border text-sm font-mono', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 text-slate-400' : 'bg-white border-slate-200 text-slate-500')}>
-          Không tìm thấy phiếu cọc nào trong cơ sở dữ liệu.
+        <div
+          className={cn(
+            'p-16 text-center rounded-xl border space-y-3',
+            isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 text-slate-400' : 'bg-white border-slate-200 text-slate-500'
+          )}
+        >
+          <Car className="w-10 h-10 mx-auto text-slate-400/60" />
+          <p className="text-sm font-medium">Không tìm thấy phiếu cọc nào cần đối soát.</p>
+          <p className="text-xs text-slate-400">
+            {search ? 'Vui lòng thử tìm kiếm với từ khóa khác.' : 'Tất cả các phiếu cọc hiện tại đã được gán VIN hoặc đã ký hợp đồng.'}
+          </p>
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-[#3E4850]/40 shadow-xs">
           <table className="w-full text-left text-xs">
-            <thead className={cn('font-mono uppercase text-[11px] border-b', isDarkMode ? 'bg-[#131B2E] text-slate-400 border-[#3E4850]/40' : 'bg-slate-50 text-slate-500 border-slate-200')}>
+            <thead
+              className={cn(
+                'font-mono uppercase text-[11px] border-b',
+                isDarkMode ? 'bg-[#131B2E] text-slate-400 border-[#3E4850]/40' : 'bg-slate-50 text-slate-500 border-slate-200'
+              )}
+            >
               <tr>
                 <th className="py-3.5 px-4 font-semibold">Mã Phiếu Cọc</th>
                 <th className="py-3.5 px-4 font-semibold">Khách Hàng</th>
                 <th className="py-3.5 px-4 font-semibold">Số CCCD</th>
                 <th className="py-3.5 px-4 font-semibold">Mẫu Xe Yêu Cầu</th>
                 <th className="py-3.5 px-4 font-semibold">Số Tiền Cọc</th>
-                <th className="py-3.5 px-4 font-semibold">Đếm Ngược 72h</th>
+                <th className="py-3.5 px-4 font-semibold">Thời Hạn Giữ Xe</th>
                 <th className="py-3.5 px-4 font-semibold">Số Khung VIN Gán</th>
                 <th className="py-3.5 px-4 font-semibold text-right">Thao Tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-[#3E4850]/30">
               {filteredDeposits.map((item) => (
-                <tr key={item.id} className={cn('hover:bg-slate-50/50 dark:hover:bg-[#131B2E]/50 transition-colors', isDarkMode ? 'bg-[#0B1326]' : 'bg-white')}>
+                <tr
+                  key={item.id}
+                  className={cn(
+                    'hover:bg-slate-50/50 dark:hover:bg-[#131B2E]/50 transition-colors',
+                    isDarkMode ? 'bg-[#0B1326]' : 'bg-white'
+                  )}
+                >
                   <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-[#89CEFF]">
                     {item.depositCode}
                   </td>
@@ -259,12 +247,16 @@ export const DepositAuditPage: React.FC = () => {
                   <td className="py-3.5 px-4 font-mono font-bold text-emerald-600 dark:text-emerald-400">
                     {formatCurrencyVND(item.depositAmount)}
                   </td>
-                  <td className="py-3.5 px-4 font-mono font-semibold text-amber-500">
-                    {formatCountdown(item.remainingSeconds)}
+                  <td className="py-3.5 px-4">
+                    <DepositCountdownBadge
+                      initialSeconds={item.remainingSeconds}
+                      status={item.status}
+                    />
                   </td>
                   <td className="py-3.5 px-4 font-mono">
                     {item.assignedVin ? (
-                      <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800 font-bold">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800 font-bold">
+                        <CheckCircle2 className="w-3 h-3 text-blue-500" />
                         {item.assignedVin}
                       </span>
                     ) : (
@@ -276,7 +268,7 @@ export const DepositAuditPage: React.FC = () => {
                       {!item.assignedVin && (
                         <button
                           type="button"
-                          onClick={() => setSelectedDepositForVin(item)}
+                          onClick={() => handleOpenAssignVin(item)}
                           className="px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer"
                         >
                           Gán VIN Kho
@@ -292,7 +284,7 @@ export const DepositAuditPage: React.FC = () => {
                         </button>
                       )}
                       {(item.status === 'CONTRACT_SIGNED' || item.status === 'COMPLETED') && (
-                        <span className="text-[11px] font-mono text-emerald-500 font-bold">Đã ký HĐMB</span>
+                        <span className="text-[11px] font-mono text-emerald-500 font-bold">✓ Đã Hoàn Tất</span>
                       )}
                     </div>
                   </td>
@@ -306,7 +298,12 @@ export const DepositAuditPage: React.FC = () => {
       {/* Modal Gán VIN */}
       {selectedDepositForVin && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className={cn('w-full max-w-lg p-6 rounded-2xl border space-y-4 shadow-2xl', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]' : 'bg-white border-slate-200')}>
+          <div
+            className={cn(
+              'w-full max-w-lg p-6 rounded-2xl border space-y-4 shadow-2xl',
+              isDarkMode ? 'bg-[#0B1326] border-[#3E4850]' : 'bg-white border-slate-200'
+            )}
+          >
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#3E4850]/40">
               <div>
                 <span className="text-[10px] uppercase font-mono text-blue-500 font-bold block">Thao Tác Gán Số Khung</span>
@@ -323,7 +320,12 @@ export const DepositAuditPage: React.FC = () => {
               </button>
             </div>
 
-            <div className={cn('p-4 rounded-xl border space-y-2 text-xs', isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40' : 'bg-slate-50 border-slate-200')}>
+            <div
+              className={cn(
+                'p-4 rounded-xl border space-y-2 text-xs',
+                isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40' : 'bg-slate-50 border-slate-200'
+              )}
+            >
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <span className={cn('text-[10px] uppercase font-mono block', isDarkMode ? 'text-[#88929B]' : 'text-slate-400')}>Khách hàng</span>
@@ -353,8 +355,13 @@ export const DepositAuditPage: React.FC = () => {
 
               <div className="space-y-2.5 max-h-60 overflow-y-auto">
                 {availableVins.length === 0 ? (
-                  <div className={cn('p-6 text-center rounded-xl border text-xs font-mono', isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-500')}>
-                    Hiện không còn số khung VIN nào ở trạng thái CO_SAN trong cơ sở dữ liệu.
+                  <div
+                    className={cn(
+                      'p-6 text-center rounded-xl border text-xs font-mono',
+                      isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-500'
+                    )}
+                  >
+                    Hiện không còn số khung VIN nào ở trạng thái CO_SAN phù hợp với phiên bản xe cọc.
                   </div>
                 ) : (
                   availableVins.map((item) => (
@@ -386,10 +393,11 @@ export const DepositAuditPage: React.FC = () => {
                       <div className="pt-2 flex justify-end">
                         <button
                           type="button"
-                          onClick={() => handleAssignVin(item.vin)}
-                          className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer shadow-sm"
+                          disabled={isAssigning}
+                          onClick={() => handleAssignVinSubmit(item.vin)}
+                          className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer shadow-sm disabled:opacity-50"
                         >
-                          Khóa VIN Này Cho Khách
+                          {isAssigning ? 'Đang gán...' : 'Khóa VIN Này Cho Khách'}
                         </button>
                       </div>
                     </div>
@@ -400,6 +408,7 @@ export const DepositAuditPage: React.FC = () => {
           </div>
         </div>
       )}
+
       {/* Confirm Sign Contract Modal */}
       {confirmSignModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
@@ -432,10 +441,11 @@ export const DepositAuditPage: React.FC = () => {
               </button>
               <button
                 type="button"
+                disabled={isSigning}
                 onClick={() => executeSignContract(confirmSignModal.depositId)}
-                className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer shadow-sm"
+                className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer shadow-sm disabled:opacity-50"
               >
-                Xác Nhận Ký HĐMB
+                {isSigning ? 'Đang cập nhật...' : 'Xác Nhận Ký HĐMB'}
               </button>
             </div>
           </div>
