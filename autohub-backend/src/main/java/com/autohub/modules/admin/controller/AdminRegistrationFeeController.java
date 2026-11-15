@@ -2,10 +2,13 @@ package com.autohub.modules.admin.controller;
 
 import com.autohub.common.dto.ApiResponse;
 import com.autohub.core.pricing.entity.BieuPhiLanBanh;
+import com.autohub.core.pricing.entity.GoiVayNganHang;
 import com.autohub.core.pricing.entity.TinhThanh;
 import com.autohub.core.pricing.repository.BieuPhiLanBanhRepository;
+import com.autohub.core.pricing.repository.GoiVayNganHangRepository;
 import com.autohub.core.pricing.repository.TinhThanhRepository;
 import com.autohub.modules.admin.dto.*;
+import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,169 +21,368 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
-@RequestMapping("/admin/registration-fees")
+@RequestMapping({"/admin/registration-fees", "/admin/fees"})
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminRegistrationFeeController {
 
     private final BieuPhiLanBanhRepository bieuPhiLanBanhRepository;
     private final TinhThanhRepository tinhThanhRepository;
+    private final GoiVayNganHangRepository goiVayNganHangRepository;
 
-    // Danh sách cấu hình gói vay ngân hàng liên kết tham chiếu
-    private static final List<BankLoanPackageDto> BANK_LOANS = new CopyOnWriteArrayList<>(List.of(
-            BankLoanPackageDto.builder().id("VCB").bank("Vietcombank").firstYearRate(6.99).floatRate(10.5).maxTenorYears(8).maxLtvPercent(80).build(),
-            BankLoanPackageDto.builder().id("TCB").bank("Techcombank").firstYearRate(7.49).floatRate(11.2).maxTenorYears(8).maxLtvPercent(85).build(),
-            BankLoanPackageDto.builder().id("VPB").bank("VPBank").firstYearRate(7.99).floatRate(11.8).maxTenorYears(7).maxLtvPercent(80).build(),
-            BankLoanPackageDto.builder().id("SHB").bank("Shinhan Bank").firstYearRate(6.80).floatRate(10.2).maxTenorYears(8).maxLtvPercent(75).build()
-    ));
+    @PostConstruct
+    public void initDefaultBankLoans() {
+        try {
+            if (goiVayNganHangRepository.count() == 0) {
+                log.info("Khởi tạo danh sách ngân hàng liên kết và gói vay ưu đãi mặc định...");
+                List<GoiVayNganHang> list = new ArrayList<>();
+                list.add(GoiVayNganHang.builder()
+                        .tenNganHang("Vietcombank")
+                        .maNganHang("VCB")
+                        .laiSuatNamDau(6.99)
+                        .laiSuatThaNoi(10.5)
+                        .kyHanVayToiDaNam(8)
+                        .hanMucVayToiDaPhanTram(80)
+                        .ghiChu("Ưu đãi lãi suất cố định 12 tháng đầu, miễn phí phạt trả nợ trước hạn từ năm thứ 5")
+                        .dangHoatDong(true)
+                        .build());
+                list.add(GoiVayNganHang.builder()
+                        .tenNganHang("Techcombank")
+                        .maNganHang("TCB")
+                        .laiSuatNamDau(7.49)
+                        .laiSuatThaNoi(11.2)
+                        .kyHanVayToiDaNam(8)
+                        .hanMucVayToiDaPhanTram(85)
+                        .ghiChu("Hỗ trợ duyệt hồ sơ siêu tốc trong 4 giờ làm việc qua hạn mức liên kết AutoHub VIP")
+                        .dangHoatDong(true)
+                        .build());
+                list.add(GoiVayNganHang.builder()
+                        .tenNganHang("VPBank")
+                        .maNganHang("VPB")
+                        .laiSuatNamDau(7.99)
+                        .laiSuatThaNoi(11.8)
+                        .kyHanVayToiDaNam(7)
+                        .hanMucVayToiDaPhanTram(80)
+                        .ghiChu("Tài trợ đến 80% giá trị xe lăn bánh, thủ tục thẩm định linh hoạt không chứng minh phức tạp")
+                        .dangHoatDong(true)
+                        .build());
+                list.add(GoiVayNganHang.builder()
+                        .tenNganHang("Shinhan Bank")
+                        .maNganHang("SHB")
+                        .laiSuatNamDau(6.80)
+                        .laiSuatThaNoi(10.2)
+                        .kyHanVayToiDaNam(8)
+                        .hanMucVayToiDaPhanTram(75)
+                        .ghiChu("Lãi suất ưu đãi hấp dẫn dành riêng cho ô tô điện thân thiện môi trường")
+                        .dangHoatDong(true)
+                        .build());
+                list.add(GoiVayNganHang.builder()
+                        .tenNganHang("BIDV")
+                        .maNganHang("BIDV")
+                        .laiSuatNamDau(7.10)
+                        .laiSuatThaNoi(10.8)
+                        .kyHanVayToiDaNam(8)
+                        .hanMucVayToiDaPhanTram(80)
+                        .ghiChu("Gói tín dụng xanh đồng hành cùng chương trình chuyển đổi Net Zero 2026")
+                        .dangHoatDong(true)
+                        .build());
+
+                goiVayNganHangRepository.saveAll(list);
+                log.info("Đã khởi tạo thành công {} gói vay ngân hàng liên kết!", list.size());
+            }
+        } catch (Exception ex) {
+            log.warn("Không thể tự động seed gói vay ngân hàng: {}", ex.getMessage());
+        }
+    }
+
+    // ==========================================
+    // 1. BIỂU PHÍ LĂN BÁNH & TRƯỚC BẠ THEO TỈNH
+    // ==========================================
 
     @GetMapping
+    public ResponseEntity<ApiResponse<List<AdminRegistrationFeeDto>>> getAllRegistrationFees() {
+        List<BieuPhiLanBanh> list = bieuPhiLanBanhRepository.findAllByOrderByIdAsc();
+        List<AdminRegistrationFeeDto> dtos = list.stream()
+                .map(this::toFeeDto)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(ApiResponse.ok(dtos, "Tải biểu phí lăn bánh theo tỉnh thành thành công"));
+    }
+
+    @PostMapping
     @Transactional
-    public ResponseEntity<ApiResponse<FeeOverviewResponse>> getFeeOverview() {
-        FeeOverviewResponse response = loadFeeOverview();
-        return ResponseEntity.ok(ApiResponse.ok(response, "Lấy danh sách biểu phí lăn bánh và lãi suất vay thành công"));
+    public ResponseEntity<ApiResponse<AdminRegistrationFeeDto>> createRegistrationFee(
+            @Valid @RequestBody CreateRegistrationFeeRequest request) {
+
+        TinhThanh tinhThanh = tinhThanhRepository.findById(request.getProvinceId())
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy tỉnh/thành phố với ID: " + request.getProvinceId()));
+
+        if (bieuPhiLanBanhRepository.existsByTinhThanhId(request.getProvinceId())) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Biểu phí cho tỉnh/thành '" + tinhThanh.getTenTinh() + "' đã tồn tại"));
+        }
+
+        BieuPhiLanBanh fee = BieuPhiLanBanh.builder()
+                .tinhThanh(tinhThanh)
+                .tyLePhiTruocBa(request.getRegistrationTaxRate())
+                .phiCapBienSo(request.getLicensePlateFee())
+                .phiDangKiem(request.getInspectionFee() != null ? request.getInspectionFee() : BigDecimal.valueOf(340000))
+                .phiBaoTriDuongBo(request.getRoadMaintenanceFee() != null ? request.getRoadMaintenanceFee() : BigDecimal.valueOf(1560000))
+                .phiBaoHiemTNDS(request.getMandatoryInsuranceFee() != null ? request.getMandatoryInsuranceFee() : BigDecimal.valueOf(873400))
+                .ngayApDung(request.getEffectiveDate() != null ? request.getEffectiveDate() : LocalDate.now())
+                .ngayHetHieuLuc(request.getExpiryDate())
+                .build();
+
+        fee = bieuPhiLanBanhRepository.save(fee);
+        log.info("Admin created new registration fee for province: {}", tinhThanh.getTenTinh());
+
+        return ResponseEntity.ok(ApiResponse.ok(toFeeDto(fee), "Thêm biểu phí lăn bánh mới thành công"));
     }
 
     @PutMapping("/{id}")
     @Transactional
-    public ResponseEntity<ApiResponse<RegistrationFeeDto>> updateRegistrationFee(
+    public ResponseEntity<ApiResponse<AdminRegistrationFeeDto>> updateRegistrationFee(
             @PathVariable Long id,
             @Valid @RequestBody UpdateRegistrationFeeRequest request) {
 
-        if (request.getTyLePhiTruocBa() < 0 || request.getTyLePhiTruocBa() > 100) {
-            return ResponseEntity.badRequest().body(ApiResponse.error("Tỷ lệ lệ phí trước bạ phải từ 0% đến 100%"));
-        }
-        if (request.getPhiCapBienSo().compareTo(BigDecimal.ZERO) < 0) {
-            return ResponseEntity.badRequest().body(ApiResponse.error("Phí cấp biển số không được âm"));
-        }
-        if (request.getPhiDangKiem().compareTo(BigDecimal.ZERO) < 0) {
-            return ResponseEntity.badRequest().body(ApiResponse.error("Phí đăng kiểm không được âm"));
-        }
-        if (request.getPhiBaoTriDuongBo().compareTo(BigDecimal.ZERO) < 0) {
-            return ResponseEntity.badRequest().body(ApiResponse.error("Phí bảo trì đường bộ không được âm"));
-        }
-        if (request.getPhiBaoHiemTnds().compareTo(BigDecimal.ZERO) < 0) {
-            return ResponseEntity.badRequest().body(ApiResponse.error("Phí bảo hiểm TNDS không được âm"));
-        }
+        BieuPhiLanBanh fee = bieuPhiLanBanhRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy biểu phí với ID: " + id));
 
-        // Tìm theo id của biểu phí hoặc fallback theo tinhThanhId
-        Optional<BieuPhiLanBanh> opt = bieuPhiLanBanhRepository.findById(id);
-        if (opt.isEmpty()) {
-            opt = bieuPhiLanBanhRepository.findByTinhThanhId(id);
-        }
+        if (request.getRegistrationTaxRate() != null) fee.setTyLePhiTruocBa(request.getRegistrationTaxRate());
+        if (request.getLicensePlateFee() != null) fee.setPhiCapBienSo(request.getLicensePlateFee());
+        if (request.getInspectionFee() != null) fee.setPhiDangKiem(request.getInspectionFee());
+        if (request.getRoadMaintenanceFee() != null) fee.setPhiBaoTriDuongBo(request.getRoadMaintenanceFee());
+        if (request.getMandatoryInsuranceFee() != null) fee.setPhiBaoHiemTNDS(request.getMandatoryInsuranceFee());
+        if (request.getEffectiveDate() != null) fee.setNgayApDung(request.getEffectiveDate());
+        if (request.getExpiryDate() != null) fee.setNgayHetHieuLuc(request.getExpiryDate());
 
-        if (opt.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+        fee = bieuPhiLanBanhRepository.save(fee);
+        log.info("Admin updated registration fee #{}", id);
 
-        BieuPhiLanBanh entity = opt.get();
-        entity.setTyLePhiTruocBa(request.getTyLePhiTruocBa());
-        entity.setPhiCapBienSo(request.getPhiCapBienSo());
-        entity.setPhiDangKiem(request.getPhiDangKiem());
-        entity.setPhiBaoTriDuongBo(request.getPhiBaoTriDuongBo());
-        entity.setPhiBaoHiemTNDS(request.getPhiBaoHiemTnds());
-
-        BieuPhiLanBanh saved = bieuPhiLanBanhRepository.save(entity);
-        return ResponseEntity.ok(ApiResponse.ok(toDto(saved), "Cập nhật biểu phí tỉnh thành thành công"));
+        return ResponseEntity.ok(ApiResponse.ok(toFeeDto(fee), "Cập nhật biểu phí lăn bánh thành công"));
     }
 
-    @PostMapping("/batch-update")
+    @DeleteMapping("/{id}")
     @Transactional
-    public ResponseEntity<ApiResponse<FeeOverviewResponse>> batchUpdateFees(
-            @Valid @RequestBody BatchUpdateFeeRequest request) {
+    public ResponseEntity<ApiResponse<Void>> deleteRegistrationFee(@PathVariable Long id) {
+        BieuPhiLanBanh fee = bieuPhiLanBanhRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy biểu phí với ID: " + id));
 
-        // 1. Cập nhật biểu phí tỉnh thành
-        if (request.getProvincialFees() != null && !request.getProvincialFees().isEmpty()) {
-            for (RegistrationFeeDto item : request.getProvincialFees()) {
-                if (item.getTyLePhiTruocBa() == null || item.getTyLePhiTruocBa() < 0 || item.getTyLePhiTruocBa() > 100) {
-                    return ResponseEntity.badRequest().body(ApiResponse.error("Tỷ lệ lệ phí trước bạ của '" + item.getTenTinhThanh() + "' không hợp lệ"));
-                }
+        bieuPhiLanBanhRepository.delete(fee);
+        log.info("Admin deleted registration fee #{}", id);
 
-                Optional<BieuPhiLanBanh> opt = Optional.empty();
-                if (item.getId() != null) {
-                    opt = bieuPhiLanBanhRepository.findById(item.getId());
-                }
-                if (opt.isEmpty() && item.getTinhThanhId() != null) {
-                    opt = bieuPhiLanBanhRepository.findByTinhThanhId(item.getTinhThanhId());
-                }
-
-                if (opt.isPresent()) {
-                    BieuPhiLanBanh entity = opt.get();
-                    entity.setTyLePhiTruocBa(item.getTyLePhiTruocBa());
-                    if (item.getPhiCapBienSo() != null) entity.setPhiCapBienSo(item.getPhiCapBienSo());
-                    if (item.getPhiDangKiem() != null) entity.setPhiDangKiem(item.getPhiDangKiem());
-                    if (item.getPhiBaoTriDuongBo() != null) entity.setPhiBaoTriDuongBo(item.getPhiBaoTriDuongBo());
-                    if (item.getPhiBaoHiemTnds() != null) entity.setPhiBaoHiemTNDS(item.getPhiBaoHiemTnds());
-                    bieuPhiLanBanhRepository.save(entity);
-                }
-            }
-        }
-
-        // 2. Cập nhật thông số gói vay ngân hàng nếu có
-        if (request.getBankLoans() != null && !request.getBankLoans().isEmpty()) {
-            BANK_LOANS.clear();
-            BANK_LOANS.addAll(request.getBankLoans());
-        }
-
-        FeeOverviewResponse response = loadFeeOverview();
-        return ResponseEntity.ok(ApiResponse.ok(response, "Lưu toàn bộ cấu hình biểu phí lăn bánh & lãi suất thành công"));
+        return ResponseEntity.ok(ApiResponse.ok(null, "Xóa biểu phí thành công"));
     }
 
-    private FeeOverviewResponse loadFeeOverview() {
-        List<TinhThanh> provinces = tinhThanhRepository.findAll();
-        List<RegistrationFeeDto> feeDtos = new ArrayList<>();
+    // ==========================================
+    // 2. GÓI VAY NGÂN HÀNG & LÃI SUẤT TRẢ GÓP
+    // ==========================================
 
-        for (TinhThanh province : provinces) {
-            Optional<BieuPhiLanBanh> bpOpt = bieuPhiLanBanhRepository.findByTinhThanhId(province.getId());
-            BieuPhiLanBanh bp;
+    @GetMapping("/loans")
+    public ResponseEntity<ApiResponse<List<AdminBankLoanDto>>> getAllBankLoans() {
+        List<GoiVayNganHang> list = goiVayNganHangRepository.findAllByOrderByIdAsc();
+        List<AdminBankLoanDto> dtos = list.stream()
+                .map(this::toLoanDto)
+                .collect(Collectors.toList());
 
-            if (bpOpt.isPresent()) {
-                bp = bpOpt.get();
-            } else {
-                // Tự động khởi tạo biểu phí mặc định theo vùng quy chuẩn nếu tỉnh chưa có bản ghi
-                boolean isVung1 = province.getPhanVungBienSo() != null && province.getPhanVungBienSo().contains("1");
-                bp = BieuPhiLanBanh.builder()
-                        .tinhThanh(province)
-                        .tyLePhiTruocBa(isVung1 ? 12.0 : 10.0)
-                        .phiCapBienSo(BigDecimal.valueOf(isVung1 ? 20000000 : 1000000))
-                        .phiDangKiem(BigDecimal.valueOf(90000))
-                        .phiBaoTriDuongBo(BigDecimal.valueOf(1560000))
-                        .phiBaoHiemTNDS(BigDecimal.valueOf(480700))
-                        .ngayApDung(LocalDate.now())
-                        .ngayHetHieuLuc(null)
-                        .build();
-                bp = bieuPhiLanBanhRepository.save(bp);
-            }
+        return ResponseEntity.ok(ApiResponse.ok(dtos, "Tải danh sách gói vay ngân hàng thành công"));
+    }
 
-            feeDtos.add(toDto(bp));
+    @PostMapping("/loans")
+    @Transactional
+    public ResponseEntity<ApiResponse<AdminBankLoanDto>> createBankLoan(
+            @Valid @RequestBody CreateBankLoanRequest request) {
+
+        String name = request.getBankName().trim();
+        if (goiVayNganHangRepository.existsByTenNganHangIgnoreCase(name)) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Ngân hàng '" + name + "' đã tồn tại trong danh sách liên kết"));
         }
 
-        return FeeOverviewResponse.builder()
-                .provincialFees(feeDtos)
-                .bankLoans(new ArrayList<>(BANK_LOANS))
+        GoiVayNganHang loan = GoiVayNganHang.builder()
+                .tenNganHang(name)
+                .maNganHang(request.getBankCode() != null ? request.getBankCode().trim().toUpperCase() : null)
+                .logoUrl(request.getLogoUrl())
+                .laiSuatNamDau(request.getFirstYearRate())
+                .laiSuatThaNoi(request.getFloatingRate())
+                .kyHanVayToiDaNam(request.getMaxTenorYears())
+                .hanMucVayToiDaPhanTram(request.getMaxLtvPercent())
+                .ghiChu(request.getNote())
+                .dangHoatDong(request.getActive() != null ? request.getActive() : true)
+                .build();
+
+        loan = goiVayNganHangRepository.save(loan);
+        log.info("Admin added bank loan: {}", loan.getTenNganHang());
+
+        return ResponseEntity.ok(ApiResponse.ok(toLoanDto(loan), "Thêm gói vay ngân hàng mới thành công"));
+    }
+
+    @PutMapping("/loans/{id}")
+    @Transactional
+    public ResponseEntity<ApiResponse<AdminBankLoanDto>> updateBankLoan(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateBankLoanRequest request) {
+
+        GoiVayNganHang loan = goiVayNganHangRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy gói vay với ID: " + id));
+
+        if (request.getBankName() != null && !request.getBankName().trim().isEmpty()) {
+            String name = request.getBankName().trim();
+            if (goiVayNganHangRepository.existsByTenNganHangIgnoreCaseAndIdNot(name, id)) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("Tên ngân hàng '" + name + "' đã tồn tại"));
+            }
+            loan.setTenNganHang(name);
+        }
+
+        if (request.getBankCode() != null) loan.setMaNganHang(request.getBankCode().trim().toUpperCase());
+        if (request.getLogoUrl() != null) loan.setLogoUrl(request.getLogoUrl());
+        if (request.getFirstYearRate() != null) loan.setLaiSuatNamDau(request.getFirstYearRate());
+        if (request.getFloatingRate() != null) loan.setLaiSuatThaNoi(request.getFloatingRate());
+        if (request.getMaxTenorYears() != null) loan.setKyHanVayToiDaNam(request.getMaxTenorYears());
+        if (request.getMaxLtvPercent() != null) loan.setHanMucVayToiDaPhanTram(request.getMaxLtvPercent());
+        if (request.getNote() != null) loan.setGhiChu(request.getNote());
+        if (request.getActive() != null) loan.setDangHoatDong(request.getActive());
+
+        loan = goiVayNganHangRepository.save(loan);
+        log.info("Admin updated bank loan #{}", id);
+
+        return ResponseEntity.ok(ApiResponse.ok(toLoanDto(loan), "Cập nhật gói vay ngân hàng thành công"));
+    }
+
+    @PutMapping("/loans/{id}/status")
+    @Transactional
+    public ResponseEntity<ApiResponse<AdminBankLoanDto>> toggleBankLoanStatus(
+            @PathVariable Long id,
+            @RequestParam boolean active) {
+
+        GoiVayNganHang loan = goiVayNganHangRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy gói vay với ID: " + id));
+
+        loan.setDangHoatDong(active);
+        loan = goiVayNganHangRepository.save(loan);
+        log.info("Admin toggled bank loan #{} active to {}", id, active);
+
+        return ResponseEntity.ok(ApiResponse.ok(toLoanDto(loan), "Cập nhật trạng thái gói vay thành công"));
+    }
+
+    @DeleteMapping("/loans/{id}")
+    @Transactional
+    public ResponseEntity<ApiResponse<Void>> deleteBankLoan(@PathVariable Long id) {
+        GoiVayNganHang loan = goiVayNganHangRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy gói vay với ID: " + id));
+
+        goiVayNganHangRepository.delete(loan);
+        log.info("Admin deleted bank loan #{}", id);
+
+        return ResponseEntity.ok(ApiResponse.ok(null, "Xóa gói vay ngân hàng thành công"));
+    }
+
+    // ==========================================
+    // 3. THỐNG KÊ TỔNG QUAN
+    // ==========================================
+
+    @GetMapping("/stats")
+    public ResponseEntity<ApiResponse<FeeStatsDto>> getFeeStats() {
+        int totalProvinces = (int) tinhThanhRepository.count();
+        List<BieuPhiLanBanh> fees = bieuPhiLanBanhRepository.findAll();
+        int configuredProvinces = fees.size();
+
+        double avgTax = fees.stream()
+                .filter(f -> f.getTyLePhiTruocBa() != null)
+                .mapToDouble(BieuPhiLanBanh::getTyLePhiTruocBa)
+                .average()
+                .orElse(10.0);
+
+        List<GoiVayNganHang> loans = goiVayNganHangRepository.findByDangHoatDongTrueOrderByIdAsc();
+        double lowestRate = loans.stream()
+                .filter(l -> l.getLaiSuatNamDau() != null)
+                .mapToDouble(GoiVayNganHang::getLaiSuatNamDau)
+                .min()
+                .orElse(6.8);
+
+        int maxLtv = loans.stream()
+                .filter(l -> l.getHanMucVayToiDaPhanTram() != null)
+                .mapToInt(GoiVayNganHang::getHanMucVayToiDaPhanTram)
+                .max()
+                .orElse(85);
+
+        FeeStatsDto stats = FeeStatsDto.builder()
+                .totalProvinces(totalProvinces)
+                .configuredProvinces(configuredProvinces)
+                .avgRegistrationTaxRate(Math.round(avgTax * 10.0) / 10.0)
+                .evTaxRate(0.0)
+                .totalBankPartners(loans.size())
+                .lowestInterestRate(lowestRate)
+                .maxLtv(maxLtv)
+                .build();
+
+        return ResponseEntity.ok(ApiResponse.ok(stats, "Tải thống kê biểu phí & lãi suất thành công"));
+    }
+
+    // ==========================================
+    // MAPPERS
+    // ==========================================
+
+    private AdminRegistrationFeeDto toFeeDto(BieuPhiLanBanh b) {
+        TinhThanh tt = b.getTinhThanh();
+        LocalDate now = LocalDate.now();
+        boolean isActive = b.getNgayHetHieuLuc() == null || !b.getNgayHetHieuLuc().isBefore(now);
+
+        return AdminRegistrationFeeDto.builder()
+                .id(b.getId())
+                .provinceId(tt != null ? tt.getId() : null)
+                .provinceName(tt != null ? tt.getTenTinh() : "Toàn quốc")
+                .region(resolveRegion(tt))
+                .licensePlateZone(tt != null ? tt.getPhanVungBienSo() : "Vùng 2")
+                .registrationTaxRate(b.getTyLePhiTruocBa() != null ? b.getTyLePhiTruocBa() : 10.0)
+                .electricTaxRate(0.0)
+                .licensePlateFee(b.getPhiCapBienSo() != null ? b.getPhiCapBienSo() : BigDecimal.valueOf(1000000))
+                .inspectionFee(b.getPhiDangKiem() != null ? b.getPhiDangKiem() : BigDecimal.valueOf(340000))
+                .roadMaintenanceFee(b.getPhiBaoTriDuongBo() != null ? b.getPhiBaoTriDuongBo() : BigDecimal.valueOf(1560000))
+                .mandatoryInsuranceFee(b.getPhiBaoHiemTNDS() != null ? b.getPhiBaoHiemTNDS() : BigDecimal.valueOf(873400))
+                .effectiveDate(b.getNgayApDung())
+                .expiryDate(b.getNgayHetHieuLuc())
+                .active(isActive)
                 .build();
     }
 
-    private RegistrationFeeDto toDto(BieuPhiLanBanh entity) {
-        TinhThanh province = entity.getTinhThanh();
-        return RegistrationFeeDto.builder()
-                .id(entity.getId())
-                .tinhThanhId(province != null ? province.getId() : null)
-                .tenTinhThanh(province != null ? province.getTenTinh() : "N/A")
-                .phanVungBienSo(province != null ? province.getPhanVungBienSo() : "N/A")
-                .tyLePhiTruocBa(entity.getTyLePhiTruocBa() != null ? entity.getTyLePhiTruocBa() : 10.0)
-                .phiCapBienSo(entity.getPhiCapBienSo() != null ? entity.getPhiCapBienSo() : BigDecimal.ZERO)
-                .phiDangKiem(entity.getPhiDangKiem() != null ? entity.getPhiDangKiem() : BigDecimal.valueOf(90000))
-                .phiBaoTriDuongBo(entity.getPhiBaoTriDuongBo() != null ? entity.getPhiBaoTriDuongBo() : BigDecimal.valueOf(1560000))
-                .phiBaoHiemTnds(entity.getPhiBaoHiemTNDS() != null ? entity.getPhiBaoHiemTNDS() : BigDecimal.valueOf(480700))
-                .ngayApDung(entity.getNgayApDung())
-                .ngayHetHieuLuc(entity.getNgayHetHieuLuc())
+    private AdminBankLoanDto toLoanDto(GoiVayNganHang g) {
+        return AdminBankLoanDto.builder()
+                .id(g.getId())
+                .bankName(g.getTenNganHang())
+                .bankCode(g.getMaNganHang())
+                .logoUrl(g.getLogoUrl())
+                .firstYearRate(g.getLaiSuatNamDau())
+                .floatingRate(g.getLaiSuatThaNoi())
+                .maxTenorYears(g.getKyHanVayToiDaNam())
+                .maxLtvPercent(g.getHanMucVayToiDaPhanTram())
+                .note(g.getGhiChu())
+                .active(g.isDangHoatDong())
                 .build();
+    }
+
+    private String resolveRegion(TinhThanh tinhThanh) {
+        if (tinhThanh == null || tinhThanh.getTenTinh() == null) return "Toàn quốc";
+        String name = tinhThanh.getTenTinh().toLowerCase();
+
+        if (name.contains("hà nội") || name.contains("quảng ninh") || name.contains("hải phòng") ||
+                name.contains("hưng yên") || name.contains("hải dương") || name.contains("bắc ninh") ||
+                name.contains("vĩnh phúc") || name.contains("thái nguyên") || name.contains("nam định") ||
+                name.contains("ninh bình") || name.contains("thái bình") || name.contains("hà nam") ||
+                name.contains("bắc giang") || name.contains("phú thọ") || name.contains("lạng sơn") ||
+                name.contains("hòa bình")) {
+            return "Miền Bắc";
+        }
+
+        if (name.contains("đà nẵng") || name.contains("huế") || name.contains("quảng nam") ||
+                name.contains("quảng ngãi") || name.contains("bình định") || name.contains("khánh hòa") ||
+                name.contains("nghệ an") || name.contains("hà tĩnh") || name.contains("thanh hóa") ||
+                name.contains("lâm đồng")) {
+            return "Miền Trung";
+        }
+
+        return "Miền Nam";
     }
 }
