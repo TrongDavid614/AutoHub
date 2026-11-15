@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Shield, Lock, User, Eye, EyeOff, AlertCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { authService } from '@/features/customer/services/auth.service';
@@ -183,14 +183,20 @@ export const AdminStaffLoginPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Back to Client Store Link */}
-        <div className="text-center mt-6">
-          <a
-            href="/"
-            className="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+        {/* Footer Navigation Links */}
+        <div className="flex items-center justify-between text-xs text-slate-500 mt-6 px-1">
+          <Link
+            to="/cars"
+            className="hover:text-blue-400 transition-colors"
           >
-            ← Quay lại Trang Chủ AutoHub
-          </a>
+            ← Quay lại Showroom
+          </Link>
+          <Link
+            to="/admin/login"
+            className="hover:text-rose-400 transition-colors"
+          >
+            Cổng Quản Trị Viên (Admin) →
+          </Link>
         </div>
       </div>
     </div>
