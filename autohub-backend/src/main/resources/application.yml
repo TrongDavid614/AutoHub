@@ -1,7 +1,7 @@
 server:
   port: 8080
   servlet:
-    context-path: /api/v1
+    context-path: /api
 
 spring:
   application:
@@ -10,7 +10,7 @@ spring:
   datasource:
     url: jdbc:sqlserver://localhost:1433;databaseName=AutoHubDB;encrypt=true;trustServerCertificate=true;sendStringParametersAsUnicode=true
     username: sa
-    password: sapassword
+    password: YourPassword123@
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
     hikari:
       maximum-pool-size: 15
@@ -19,7 +19,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.SQLServerDialect
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
@@ -30,13 +30,15 @@ jwt:
   access-token-expiration: 86400000
 
 sepay:
-  api-token: your_sepay_webhook_api_token_here
-  account-number: "0912345678"
-  bank-brand-name: "MBBank"
+  api-token: your_sepay_api_token_here
+  account-number: "5811676579"
+  bank-brand-name: "BIDV"
 
-gemini:
-  api-key: ${GEMINI_API_KEY:your_gemini_api_key_here}
-  model: gemini-1.5-pro
+openrouter:
+  api:
+    key: ${OPENROUTER_API_KEY:your_openrouter_api_key_here}
+    url: https://openrouter.ai/api/v1/chat/completions
+    model: deepseek/deepseek-chat
 
 cors:
   allowed-origins:

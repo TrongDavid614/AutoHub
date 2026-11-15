@@ -46,10 +46,9 @@ export const LoginPage: React.FC = () => {
       login(res.accessToken, res.user);
 
       setIsLoading(false);
-      // Điều hướng tự động theo vai trò nếu không có tham số redirect cụ thể
-      const explicitRedirect = searchParams.get('redirect');
-      if (explicitRedirect) {
-        navigate(explicitRedirect);
+      // Chuyển hướng tới trang đích hoặc dựa vào phân quyền role
+      if (redirectUrl && redirectUrl !== '/') {
+        navigate(redirectUrl);
       } else if (res.user.role === 'ROLE_ADMIN') {
         navigate('/admin/dashboard');
       } else if (res.user.role === 'ROLE_STAFF') {
@@ -57,9 +56,10 @@ export const LoginPage: React.FC = () => {
       } else {
         navigate('/');
       }
-    } catch {
+    } catch (err: unknown) {
       setIsLoading(false);
-      setErrorMessage('Email hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại.');
+      const errRes = (err as { response?: { data?: { message?: string } } })?.response?.data;
+      setErrorMessage(errRes?.message || 'Email hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại.');
     }
   };
 
