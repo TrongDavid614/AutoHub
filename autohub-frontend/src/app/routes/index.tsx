@@ -28,6 +28,7 @@ import {
   LoginPage,
   RegisterPage,
   RegisterSuccessPage,
+  ForgotPasswordPage,
   AdminStaffLoginPage,
   AdminLoginPage,
   AiConsultantPage,
@@ -119,6 +120,8 @@ export const router = createBrowserRouter([
       { path: 'auth/register', element: <RegisterPage /> },
       { path: 'register', element: <RegisterPage /> },
       { path: 'auth/register-success', element: <RegisterSuccessPage /> },
+      { path: 'auth/forgot-password', element: <ForgotPasswordPage /> },
+      { path: 'forgot-password', element: <ForgotPasswordPage /> },
       {
         path: 'unauthorized',
         element: (

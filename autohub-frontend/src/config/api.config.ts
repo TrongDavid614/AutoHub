@@ -8,6 +8,9 @@ export const API_CONFIG = {
       REFRESH: '/auth/refresh',
       ME: '/auth/me',
       LOGOUT: '/auth/logout',
+      FORGOT_PASSWORD: '/auth/forgot-password',
+      VERIFY_OTP: '/auth/verify-otp',
+      RESET_PASSWORD: '/auth/reset-password',
     },
     CARS: {
       BASE: '/cars',

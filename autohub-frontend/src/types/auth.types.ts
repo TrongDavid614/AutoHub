@@ -44,3 +44,25 @@ export interface AuthState {
   role: Role | null;
   isAuthenticated: boolean;
 }
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface VerifyOtpRequest {
+  email: string;
+  otp: string;
+}
+
+export interface VerifyOtpResponse {
+  verified: boolean;
+  resetToken: string;
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  resetToken: string;
+  newPassword: string;
+}
+
