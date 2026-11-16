@@ -55,10 +55,10 @@ export const AiEngineMonitorCard: React.FC<AiEngineMonitorCardProps> = ({
               isDarkMode ? 'text-white' : 'text-slate-900'
             }`}>
               <Zap className="w-3.5 h-3.5 text-blue-500" />
-              OpenRouter AI API
+              Google Gemini AI API
             </span>
             <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-mono font-bold">
-              OPENROUTER API
+              GEMINI FLASH
             </span>
           </div>
 
@@ -94,7 +94,7 @@ export const AiEngineMonitorCard: React.FC<AiEngineMonitorCardProps> = ({
           </div>
         </div>
 
-        {/* Block 2: Vector Database (RAG Semantic Store) */}
+        {/* Block 2: Spring AI SQL Tool RAG (Realtime AutoHubDB) */}
         <div className={`p-4 rounded-xl border space-y-3 transition-colors ${
           isDarkMode
             ? 'bg-[#0B1326] border-[#3E4850]/40'
@@ -105,33 +105,33 @@ export const AiEngineMonitorCard: React.FC<AiEngineMonitorCardProps> = ({
               isDarkMode ? 'text-white' : 'text-slate-900'
             }`}>
               <Database className="w-3.5 h-3.5 text-purple-500" />
-              Vector Database
+              Spring AI SQL Tool RAG
             </span>
             <span className="px-2 py-0.5 rounded bg-purple-500/15 text-purple-600 dark:text-purple-400 text-[10px] font-mono font-bold">
-              RAG STORE
+              AUTOHUB SQL RAG
             </span>
           </div>
 
           <div className="space-y-1.5 text-xs">
             <div className="flex justify-between items-center text-[11px] font-mono">
-              <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}>Trạng thái:</span>
+              <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}>Trạng thái CSDL:</span>
               <span className="text-emerald-500 font-bold">KẾT NỐI TỐT</span>
             </div>
 
             <div className="flex justify-between items-center text-[11px] font-mono">
-              <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}>Số lượng Embeddings:</span>
+              <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}>Lượt tư vấn hôm nay:</span>
               <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                {status.vectorDb.indexedEmbeddingsCount.toLocaleString()} Vectors
+                {status.vectorDb.indexedEmbeddingsCount.toLocaleString()} Lượt
               </span>
             </div>
 
             <div className="flex justify-between items-center text-[11px] font-mono">
-              <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}>Độ trễ Cosine RAG:</span>
+              <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}>Độ trễ trung bình:</span>
               <span className="text-emerald-500 font-bold">{status.vectorDb.queryLatencyMs} ms</span>
             </div>
 
             <div className={`text-[10px] pt-1 ${isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}`}>
-              Sẵn sàng phục vụ tra cứu thông số kỹ thuật xe đối kháng kết hợp OpenRouter (DeepSeek)
+              4 Spring AI @Tool truy vấn thời gian thực từ AutoHubDB (dbo.phien_ban_xe, dbo.ton_kho_xe, dbo.bieu_phi_lan_banh, dbo.phu_kien)
             </div>
           </div>
         </div>

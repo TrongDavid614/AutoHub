@@ -67,7 +67,7 @@ export const AiConsultantWidget: React.FC = () => {
           <AiMessageItem
             key={msg.id}
             message={msg}
-            onSelectPrompt={(prompt) => void sendMessage(prompt)}
+            onSelectPrompt={(prompt, carId, carName) => void sendMessage(prompt, carId, carName)}
             isSending={isSending}
           />
         ))}

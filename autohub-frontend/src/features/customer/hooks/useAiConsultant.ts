@@ -7,7 +7,7 @@ export interface UseAiConsultantResult {
   isLoading: boolean;
   isSending: boolean;
   error: string | null;
-  sendMessage: (promptText: string) => Promise<void>;
+  sendMessage: (promptText: string, contextCarId?: number, contextCarName?: string) => Promise<void>;
   refetch: () => Promise<void>;
 }
 
@@ -32,8 +32,20 @@ export const useAiConsultant = (): UseAiConsultantResult => {
   }, []);
 
   const sendMessage = useCallback(
-    async (promptText: string) => {
+    async (promptText: string, contextCarId?: number, contextCarName?: string) => {
       if (!promptText.trim()) return;
+
+      // Tự động tìm xe trong ngữ cảnh gần nhất nếu không truyền thủ công
+      let resolvedCarId = contextCarId;
+      let resolvedCarName = contextCarName;
+
+      if (!resolvedCarName) {
+        const latestWithCar = [...messages].reverse().find((m) => m.recommendedVehicle);
+        if (latestWithCar?.recommendedVehicle) {
+          resolvedCarId = latestWithCar.recommendedVehicle.variantId;
+          resolvedCarName = latestWithCar.recommendedVehicle.name;
+        }
+      }
 
       const userTime = new Intl.DateTimeFormat('vi-VN', {
         hour: '2-digit',
@@ -53,7 +65,11 @@ export const useAiConsultant = (): UseAiConsultantResult => {
       setIsSending(true);
 
       try {
-        const aiReply = await aiConsultantService.sendMessage(promptText);
+        const aiReply = await aiConsultantService.sendMessage(
+          promptText,
+          resolvedCarId,
+          resolvedCarName
+        );
         setMessages((prev) => [...prev, aiReply]);
       } catch (err: unknown) {
         const errorMsg = err instanceof Error ? err.message : 'Lỗi khi gửi yêu cầu đến AI';
@@ -71,7 +87,7 @@ export const useAiConsultant = (): UseAiConsultantResult => {
         setIsSending(false);
       }
     },
-    []
+    [messages]
   );
 
   useEffect(() => {

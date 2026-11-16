@@ -2,14 +2,15 @@ package com.autohub.modules.auth.service;
 
 import com.autohub.common.exception.AppException;
 import com.autohub.common.security.JwtTokenProvider;
+import com.autohub.common.service.EmailService;
 import com.autohub.core.enums.TrangThaiTaiKhoan;
 import com.autohub.core.enums.VaiTroNguoiDung;
 import com.autohub.core.user.entity.NguoiDung;
 import com.autohub.core.user.repository.NguoiDungRepository;
-import com.autohub.modules.auth.dto.LoginRequest;
-import com.autohub.modules.auth.dto.LoginResponse;
-import com.autohub.modules.auth.dto.RegisterRequest;
-import com.autohub.modules.auth.dto.UserInfoDto;
+import com.autohub.modules.auth.dto.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -30,6 +37,25 @@ public class AuthService {
     private final NguoiDungRepository nguoiDungRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final EmailService emailService;
+
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
+    // Cache lưu trữ phiên OTP reset mật khẩu (Email -> OtpSession)
+    private final Map<String, OtpSession> otpSessionCache = new ConcurrentHashMap<>();
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    private static class OtpSession {
+        private String otpCode;
+        private LocalDateTime otpExpiresAt;
+        private boolean verified;
+        private String resetToken;
+        private LocalDateTime resetTokenExpiresAt;
+        @Builder.Default
+        private int failedAttempts = 0;
+    }
 
     @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request) {
@@ -150,6 +176,125 @@ public class AuthService {
                 .orElseThrow(() -> new AppException("Không tìm thấy thông tin tài khoản hiện tại", HttpStatus.NOT_FOUND));
 
         return mapToUserInfoDto(user);
+    }
+
+    // ==========================================
+    // UC05: YÊU CẦU CẤP LẠI MẬT KHẨU QUA EMAIL (OTP 6 SỐ)
+    // ==========================================
+
+    @Transactional(readOnly = true)
+    public void requestPasswordResetOtp(ForgotPasswordRequest request) {
+        String email = request.getEmail().trim().toLowerCase();
+
+        NguoiDung user = nguoiDungRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException("Không tìm thấy tài khoản tương ứng với email: " + email, HttpStatus.NOT_FOUND));
+
+        if (user.isDeleted()) {
+            throw new AppException("Tài khoản không tồn tại hoặc đã bị xóa khỏi hệ thống", HttpStatus.NOT_FOUND);
+        }
+
+        if (user.getTrangThaiTaiKhoan() == TrangThaiTaiKhoan.BI_KHOA) {
+            throw new AppException("Tài khoản của bạn đã bị khóa bảo mật. Vui lòng liên hệ Quản trị viên để được hỗ trợ.", HttpStatus.FORBIDDEN);
+        }
+
+        // Sinh mã OTP 6 chữ số ngẫu nhiên
+        int randomPin = 100000 + SECURE_RANDOM.nextInt(900000);
+        String otpCode = String.format("%06d", randomPin);
+
+        // Lưu vào bộ nhớ đệm (hết hạn sau 5 phút)
+        OtpSession session = OtpSession.builder()
+                .otpCode(otpCode)
+                .otpExpiresAt(LocalDateTime.now().plusMinutes(5))
+                .verified(false)
+                .build();
+        otpSessionCache.put(email, session);
+
+        // Gửi email chứa mã OTP
+        emailService.sendOtpEmail(email, otpCode, user.getHoTen());
+        log.info("[AuthService] Đã khởi tạo OTP khôi phục mật khẩu cho email: {}", email);
+    }
+
+    public VerifyOtpResponse verifyPasswordResetOtp(VerifyOtpRequest request) {
+        String email = request.getEmail().trim().toLowerCase();
+        String inputOtp = request.getOtp().trim();
+
+        OtpSession session = otpSessionCache.get(email);
+        if (session == null) {
+            throw new AppException("Chưa có yêu cầu OTP nào được gửi đến email này hoặc mã đã hết hạn.", HttpStatus.BAD_REQUEST);
+        }
+
+        if (LocalDateTime.now().isAfter(session.getOtpExpiresAt())) {
+            otpSessionCache.remove(email);
+            throw new AppException("Mã OTP đã hết hiệu lực (quá 5 phút). Vui lòng yêu cầu gửi lại mã mới.", HttpStatus.BAD_REQUEST);
+        }
+
+        if (!session.getOtpCode().equals(inputOtp)) {
+            session.setFailedAttempts(session.getFailedAttempts() + 1);
+            if (session.getFailedAttempts() >= 5) {
+                otpSessionCache.remove(email);
+                throw new AppException("Bạn đã nhập sai mã OTP quá 5 lần. Vì lý do an toàn, mã xác thực này đã bị hủy. Vui lòng yêu cầu mã mới.", HttpStatus.BAD_REQUEST);
+            }
+            int remaining = 5 - session.getFailedAttempts();
+            throw new AppException("Mã OTP không chính xác. Bạn còn " + remaining + " lần thử. Vui lòng kiểm tra lại hộp thư.", HttpStatus.BAD_REQUEST);
+        }
+
+        // OTP hợp lệ: cấp phát resetToken có hạn 10 phút
+        String resetToken = UUID.randomUUID().toString();
+        session.setVerified(true);
+        session.setResetToken(resetToken);
+        session.setResetTokenExpiresAt(LocalDateTime.now().plusMinutes(10));
+        otpSessionCache.put(email, session);
+
+        log.info("[AuthService] Xác thực OTP thành công cho email: {}", email);
+        return VerifyOtpResponse.builder()
+                .verified(true)
+                .resetToken(resetToken)
+                .email(email)
+                .build();
+    }
+
+    @Transactional
+    public void resetPasswordWithToken(ResetPasswordRequest request) {
+        String email = request.getEmail().trim().toLowerCase();
+        String token = request.getResetToken().trim();
+        String newPassword = request.getNewPassword();
+
+        OtpSession session = otpSessionCache.get(email);
+        if (session == null || !session.isVerified() || session.getResetToken() == null) {
+            throw new AppException("Phiên đặt lại mật khẩu không hợp lệ hoặc chưa được xác thực OTP.", HttpStatus.BAD_REQUEST);
+        }
+
+        if (LocalDateTime.now().isAfter(session.getResetTokenExpiresAt())) {
+            otpSessionCache.remove(email);
+            throw new AppException("Phiên đặt lại mật khẩu đã hết hạn. Vui lòng yêu cầu lại từ đầu.", HttpStatus.BAD_REQUEST);
+        }
+
+        if (!session.getResetToken().equals(token)) {
+            throw new AppException("Mã token xác thực không hợp lệ.", HttpStatus.BAD_REQUEST);
+        }
+
+        if (newPassword.length() < 8) {
+            throw new AppException("Mật khẩu mới phải có tối thiểu 8 ký tự.", HttpStatus.BAD_REQUEST);
+        }
+
+        NguoiDung user = nguoiDungRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException("Không tìm thấy tài khoản người dùng", HttpStatus.NOT_FOUND));
+
+        if (user.isDeleted()) {
+            throw new AppException("Tài khoản không tồn tại hoặc đã bị xóa khỏi hệ thống.", HttpStatus.NOT_FOUND);
+        }
+
+        if (user.getTrangThaiTaiKhoan() == TrangThaiTaiKhoan.BI_KHOA) {
+            throw new AppException("Tài khoản của bạn đã bị khóa bảo mật. Vui lòng liên hệ Quản trị viên để được hỗ trợ.", HttpStatus.FORBIDDEN);
+        }
+
+        // Cập nhật mật khẩu băm mới
+        user.setMatKhauBam(passwordEncoder.encode(newPassword));
+        nguoiDungRepository.save(user);
+
+        // Hủy phiên OTP sau khi đổi mật khẩu thành công
+        otpSessionCache.remove(email);
+        log.info("[AuthService] Đổi mật khẩu thành công qua OTP cho tài khoản: {}", email);
     }
 
     private UserInfoDto mapToUserInfoDto(NguoiDung user) {

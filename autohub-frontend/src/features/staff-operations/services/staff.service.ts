@@ -12,6 +12,7 @@ import type {
   StaffRefundDocket,
   StaffReturnItem,
   StaffTestDriveBooking,
+  StaffAiReplySuggestionDto,
   WorkspaceMetricsResponse,
 } from '@/types/staff.types';
 
@@ -34,6 +35,14 @@ export const staffService = {
   async addConsultationNote(id: string, note: string): Promise<string> {
     const res = await axiosClient.post<ApiResponse<string>>(`${ENDPOINTS.CONSULTATIONS}/${id}/notes`, { note });
     const apiRes = res as unknown as ApiResponse<string>;
+    return apiRes.data;
+  },
+
+  async getAiReplySuggestion(id: string): Promise<StaffAiReplySuggestionDto> {
+    const res = await axiosClient.post<ApiResponse<StaffAiReplySuggestionDto>>(
+      `${ENDPOINTS.CONSULTATIONS}/${id}/ai-suggest-reply`
+    );
+    const apiRes = res as unknown as ApiResponse<StaffAiReplySuggestionDto>;
     return apiRes.data;
   },
 

@@ -6,6 +6,8 @@ import {
   Send,
   Loader2,
   RefreshCw,
+  Sparkles,
+  Info,
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
 import { staffService } from '@/features/staff-operations/services/staff.service';
@@ -18,6 +20,8 @@ export const ConsultationListPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [selectedLead, setSelectedLead] = useState<ConsultationLead | null>(null);
   const [callNotes, setCallNotes] = useState('');
+  const [isGeneratingAiReply, setIsGeneratingAiReply] = useState(false);
+  const [aiStockNote, setAiStockNote] = useState<string | null>(null);
   const [leads, setLeads] = useState<ConsultationLead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -101,6 +105,23 @@ export const ConsultationListPage: React.FC = () => {
       setCallNotes('');
     } catch (err) {
       console.error('Lỗi lưu nhật ký cuộc gọi:', err);
+    }
+  };
+
+  const handleAiSuggestReply = async () => {
+    if (!selectedLead) return;
+    setIsGeneratingAiReply(true);
+    try {
+      const res = await staffService.getAiReplySuggestion(selectedLead.id);
+      if (res && res.suggestedReply) {
+        setCallNotes(res.suggestedReply);
+        setAiStockNote(res.stockNote);
+      }
+    } catch (err) {
+      console.error('Lỗi khi AI gợi ý phản hồi:', err);
+      alert('Không thể kết nối đến Spring AI. Vui lòng kiểm tra lại kết nối!');
+    } finally {
+      setIsGeneratingAiReply(false);
     }
   };
 
@@ -299,26 +320,51 @@ export const ConsultationListPage: React.FC = () => {
               </div>
 
               <div>
-                <span className="font-bold text-slate-400 text-[10px] uppercase block mb-1">Thêm Nhật Ký Cuộc Gọi Mới</span>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Ghi chú nội dung sau cuộc gọi..."
-                    value={callNotes}
-                    onChange={(e) => setCallNotes(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleAddCallNote()}
-                    className={cn(
-                      'flex-1 px-3 py-2 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-blue-500',
-                      isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/50 text-white' : 'bg-white border-slate-200'
-                    )}
-                  />
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="font-bold text-slate-400 text-[10px] uppercase block">
+                    Thêm Nhật Ký Cuộc Gọi / Kịch Bản Phản Hồi
+                  </span>
                   <button
                     type="button"
-                    onClick={handleAddCallNote}
-                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer transition-colors flex items-center gap-1.5"
+                    onClick={handleAiSuggestReply}
+                    disabled={isGeneratingAiReply}
+                    className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white cursor-pointer inline-flex items-center gap-1.5 transition-all shadow-xs disabled:opacity-50"
                   >
-                    <Send className="w-3.5 h-3.5" /> Gửi
+                    <Sparkles className={cn('w-3.5 h-3.5', isGeneratingAiReply && 'animate-spin')} />
+                    {isGeneratingAiReply ? 'AI Đang soạn kịch bản...' : '✨ AI Gợi ý phản hồi'}
                   </button>
+                </div>
+
+                {aiStockNote && (
+                  <div className="mb-2.5 p-2.5 rounded-xl border bg-blue-50/70 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800 text-[11px] flex items-start gap-2 text-blue-700 dark:text-blue-300">
+                    <Info className="w-4 h-4 mt-0.5 shrink-0 text-blue-500" />
+                    <div>
+                      <span className="font-bold block text-[10px] uppercase tracking-wide">Tình trạng xe Showroom (SQL Server):</span>
+                      {aiStockNote}
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <textarea
+                    rows={3}
+                    placeholder="Ghi chú nội dung sau cuộc gọi hoặc dùng AI gợi ý kịch bản phản hồi..."
+                    value={callNotes}
+                    onChange={(e) => setCallNotes(e.target.value)}
+                    className={cn(
+                      'w-full px-3 py-2 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none leading-relaxed',
+                      isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/50 text-white placeholder-slate-500' : 'bg-white border-slate-200 placeholder-slate-400'
+                    )}
+                  />
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={handleAddCallNote}
+                      className="px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer transition-colors flex items-center gap-1.5 text-xs shadow-xs"
+                    >
+                      <Send className="w-3.5 h-3.5" /> Lưu nhật ký
+                    </button>
+                  </div>
                 </div>
               </div>
 

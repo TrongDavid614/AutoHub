@@ -9,6 +9,17 @@ export interface GetReviewsParams {
   size?: number;
 }
 
+export interface ReviewAiModerationDto {
+  reviewId: number;
+  displayId: string;
+  rating: number;
+  comment: string;
+  classification: 'CLEAN_POSITIVE' | 'COMPLAINT_VALID' | 'TOXIC_SPAM';
+  confidence: number;
+  reason: string;
+  suggestedAction: 'APPROVE' | 'REJECT' | 'MANUAL_CHECK';
+}
+
 export const adminReviewService = {
   async getReviews(params?: GetReviewsParams, signal?: AbortSignal): Promise<PageResponse<AdminReview>> {
     const queryParams: Record<string, string | number> = {
@@ -52,5 +63,12 @@ export const adminReviewService = {
       reviewIds || []
     );
     return res.data;
+  },
+
+  async scanPendingReviews(): Promise<ReviewAiModerationDto[]> {
+    const res = await axiosClient.post<unknown, ApiResponse<ReviewAiModerationDto[]>>(
+      `${API_CONFIG.ENDPOINTS.ADMIN.REVIEWS}/ai-scan-pending`
+    );
+    return res.data || [];
   },
 };

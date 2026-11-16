@@ -253,3 +253,12 @@ export interface ShiftHandoverRecord {
   notes: string;
   createdAt?: string;
 }
+
+export interface StaffAiReplySuggestionDto {
+  consultationId: number;
+  customerName: string;
+  interestedCar: string;
+  suggestedReply: string;
+  stockNote: string;
+  latencyMs: number;
+}
