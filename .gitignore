@@ -57,6 +57,9 @@ Thumbs.db
 *.sw?
 
 .codegraph/
+.postman/
+postman/collections/
+postman/globals/
 
 # Application secrets & environment configs
 autohub-backend/src/main/resources/application.yml
