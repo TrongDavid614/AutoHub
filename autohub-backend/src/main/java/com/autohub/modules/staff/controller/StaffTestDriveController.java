@@ -162,4 +162,33 @@ public class StaffTestDriveController {
 
         return ResponseEntity.ok(ApiResponse.ok("COMPLETED", "Hoàn tất ca lái thử và lưu biên bản đánh giá"));
     }
+
+    @PostMapping("/{id}/cancel")
+    @Transactional
+    public ResponseEntity<ApiResponse<String>> cancelTestDrive(
+            @PathVariable Long id,
+            @RequestParam(required = false) String reason
+    ) {
+        LichHenLaiThu b = testDriveRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch hẹn ID: " + id));
+
+        if (b.getTrangThai() == TrangThaiLichHen.COMPLETED) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Không thể hủy ca lái thử đã hoàn tất"));
+        }
+
+        // Giải phóng xe Demo về trạng thái SẴN SÀNG
+        if (b.getXeDemo() != null) {
+            XeDemo demo = b.getXeDemo();
+            demo.setTrangThai(TrangThaiXeDemo.SAN_SANG);
+            xeDemoRepository.save(demo);
+        }
+
+        b.setTrangThai(TrangThaiLichHen.CANCELLED);
+        if (reason != null && !reason.isBlank()) {
+            b.setGhiChu((b.getGhiChu() != null ? b.getGhiChu() + " | " : "") + "[Hủy: " + reason.trim() + "]");
+        }
+        testDriveRepository.save(b);
+
+        return ResponseEntity.ok(ApiResponse.ok("CANCELLED", "Đã hủy ca lái thử và giải phóng xe Demo về trạng thái SẴN SÀNG"));
+    }
 }

@@ -111,20 +111,14 @@ public class StaffRefundController {
                 r.setNgayXuLy(LocalDateTime.now());
                 refundRepository.save(r);
 
-                // Đồng bộ cập nhật trạng thái phiếu cọc sang REFUNDED và thu hồi số khung VIN (nếu có)
+                // Đồng bộ cập nhật trạng thái phiếu cọc tiếp tục chuyển sang Admin phê duyệt giải ngân (UC40)
                 if (r.getPhieuDatCoc() != null) {
                         PhieuDatCoc dep = r.getPhieuDatCoc();
-                        dep.setTrangThai(TrangThaiPhieuCoc.REFUNDED);
-                        if (dep.getXeDinhDanh() != null) {
-                                XeDinhDanh vin = dep.getXeDinhDanh();
-                                vin.setTrangThai(TrangThaiXeVIN.CO_SAN);
-                                xeDinhDanhRepository.save(vin);
-                                dep.setXeDinhDanh(null);
-                        }
+                        dep.setTrangThai(TrangThaiPhieuCoc.REFUND_REQUESTED);
                         depositRepository.save(dep);
                 }
 
-                return ResponseEntity.ok(ApiResponse.ok("VERIFIED", "Đối soát và xác nhận hồ sơ hoàn cọc thành công"));
+                return ResponseEntity.ok(ApiResponse.ok("VERIFIED", "Đối soát và xác nhận hồ sơ hoàn cọc thành công, đã chuyển tiếp hồ sơ lên Admin phê duyệt giải ngân"));
         }
 
         @PostMapping("/{id}/reject")

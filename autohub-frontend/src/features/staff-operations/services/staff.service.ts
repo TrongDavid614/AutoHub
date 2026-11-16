@@ -131,6 +131,14 @@ export const staffService = {
     return apiRes.data;
   },
 
+  async cancelTestDrive(id: string, reason?: string): Promise<string> {
+    const res = await axiosClient.post<ApiResponse<string>>(`${ENDPOINTS.TEST_DRIVES}/${id}/cancel`, null, {
+      params: reason ? { reason } : undefined,
+    });
+    const apiRes = res as unknown as ApiResponse<string>;
+    return apiRes.data;
+  },
+
   // 5. Đóng gói đơn hàng phụ kiện (UC23)
   async getFulfillmentOrders(): Promise<StaffFulfillmentOrder[]> {
     const res = await axiosClient.get<ApiResponse<StaffFulfillmentOrder[]>>(ENDPOINTS.FULFILLMENT);

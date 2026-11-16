@@ -15,7 +15,7 @@ export const ReturnManagementPage: React.FC = () => {
   const [returnItems, setReturnItems] = useState<StaffReturnItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'ALL' | 'RETURN_REQUESTED' | 'INSPECTING' | 'RESOLVED' | 'REJECTED' | 'APPROVED' | 'COMPLETED'>('ALL');
+  const [activeTab, setActiveTab] = useState<'ALL' | 'RETURN_REQUESTED' | 'APPROVED' | 'COMPLETED'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedItem, setSelectedItem] = useState<StaffReturnItem | null>(null);
 
@@ -157,7 +157,7 @@ export const ReturnManagementPage: React.FC = () => {
         </div>
 
         <div className="flex bg-slate-100 dark:bg-[#131B2E] p-1 rounded-xl border border-slate-200 dark:border-[#3E4850]/40 text-xs">
-          {(['ALL', 'APPROVED', 'COMPLETED'] as const).map((tab) => (
+          {(['ALL', 'RETURN_REQUESTED', 'APPROVED', 'COMPLETED'] as const).map((tab) => (
             <button
               key={tab}
               type="button"
@@ -168,6 +168,7 @@ export const ReturnManagementPage: React.FC = () => {
               )}
             >
               {tab === 'ALL' && 'Tất Cả'}
+              {tab === 'RETURN_REQUESTED' && 'Chờ Giám Định'}
               {tab === 'APPROVED' && 'Đã Tiếp Nhận Kho'}
               {tab === 'COMPLETED' && 'Đã Đổi Mới / Hoàn Tất'}
             </button>
@@ -235,12 +236,14 @@ export const ReturnManagementPage: React.FC = () => {
                 <span
                   className={cn(
                     'text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase border',
+                    item.status === 'RETURN_REQUESTED' && 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800/40',
                     item.status === 'APPROVED' && 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border-blue-200',
                     item.status === 'COMPLETED' && 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-200',
-                    item.status === 'RESOLVED' && 'bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border-purple-200'
+                    item.status === 'RESOLVED' && 'bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border-purple-200',
+                    item.status === 'REJECTED' && 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border-rose-200'
                   )}
                 >
-                  {item.status === 'APPROVED' ? 'ĐÃ TIẾP NHẬN' : item.status === 'COMPLETED' ? 'ĐÃ ĐỔI MỚI' : item.status}
+                  {item.status === 'RETURN_REQUESTED' ? 'CHỜ GIÁM ĐỊNH' : item.status === 'APPROVED' ? 'ĐÃ TIẾP NHẬN' : item.status === 'COMPLETED' ? 'ĐÃ ĐỔI MỚI' : item.status === 'REJECTED' ? 'TỪ CHỐI' : item.status}
                 </span>
 
                 <button

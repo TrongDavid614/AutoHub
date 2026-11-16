@@ -8,6 +8,7 @@ import com.autohub.core.accessory.entity.DonHangPhuKien;
 import com.autohub.core.accessory.entity.GioHang;
 import com.autohub.core.accessory.entity.PhuKien;
 import com.autohub.core.accessory.entity.PhuongThucVanChuyen;
+import com.autohub.core.accessory.entity.YeuCauDoiTra;
 import com.autohub.core.accessory.repository.ChiTietDonHangRepository;
 import com.autohub.core.accessory.repository.ChiTietGioHangRepository;
 import com.autohub.core.accessory.repository.DanhGiaRepository;
@@ -15,8 +16,10 @@ import com.autohub.core.accessory.repository.DonHangPhuKienRepository;
 import com.autohub.core.accessory.repository.GioHangRepository;
 import com.autohub.core.accessory.repository.PhuKienRepository;
 import com.autohub.core.accessory.repository.PhuongThucVanChuyenRepository;
+import com.autohub.core.accessory.repository.YeuCauDoiTraRepository;
 import com.autohub.core.enums.PhuongThucThanhToan;
 import com.autohub.core.enums.TrangThaiDanhGia;
+import com.autohub.core.enums.TrangThaiDoiTra;
 import com.autohub.core.enums.TrangThaiDonHang;
 import com.autohub.core.pricing.entity.Voucher;
 import com.autohub.core.pricing.repository.VoucherRepository;
@@ -50,6 +53,7 @@ public class CustomerOrderController {
     private final GioHangRepository gioHangRepository;
     private final ChiTietGioHangRepository chiTietGioHangRepository;
     private final PhuongThucVanChuyenRepository phuongThucVanChuyenRepository;
+    private final YeuCauDoiTraRepository yeuCauDoiTraRepository;
 
     @Value("${sepay.account-number:5811676579}")
     private String sepayAccountNumber;
@@ -150,6 +154,23 @@ public class CustomerOrderController {
         donHangRepository.save(order);
 
         List<ChiTietDonHang> items = chiTietDonHangRepository.findByDonHangId(id);
+
+        // Đồng bộ tạo hồ sơ YeuCauDoiTra cho bộ phận Staff kiểm định kho (UC25)
+        if (yeuCauDoiTraRepository.findByDonHangId(id).isEmpty()) {
+            ChiTietDonHang firstItem = !items.isEmpty() ? items.get(0) : null;
+            Integer returnQty = (firstItem != null && firstItem.getSoLuong() != null) ? firstItem.getSoLuong() : 1;
+            YeuCauDoiTra returnReq = YeuCauDoiTra.builder()
+                    .donHang(order)
+                    .chiTietDonHang(firstItem)
+                    .soLuongDoiTra(returnQty)
+                    .lyDo(reason)
+                    .phuongAnMongMuon("DOI_HANG")
+                    .ngayGui(LocalDateTime.now())
+                    .trangThai(TrangThaiDoiTra.PENDING)
+                    .build();
+            yeuCauDoiTraRepository.save(returnReq);
+        }
+
         return ResponseEntity.ok(ApiResponse.ok(mapOrderToDto(order, items), "Gửi yêu cầu đổi trả thành công!"));
     }
 
@@ -181,10 +202,15 @@ public class CustomerOrderController {
     @Setter
     public static class SubmitReviewRequestDto {
         private Long customerId;
+        private Integer rating;
+        private String comment;
+        private Long orderDetailId;
+        private Long accessoryId;
+        private List<String> images;
         private List<ReviewItemDto> reviews;
     }
 
-    @PostMapping("/{id}/reviews")
+    @PostMapping(value = {"/{id}/reviews", "/{id}/review"})
     @Transactional
     public ResponseEntity<ApiResponse<String>> submitReview(
             @PathVariable Long id,
@@ -198,8 +224,34 @@ public class CustomerOrderController {
         NguoiDung customer = nguoiDungRepository.findById(customerId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng"));
 
-        if (request.getReviews() != null) {
-            for (ReviewItemDto r : request.getReviews()) {
+        List<ChiTietDonHang> orderItems = chiTietDonHangRepository.findByDonHangId(id);
+
+        List<ReviewItemDto> reviewList = request.getReviews();
+        if ((reviewList == null || reviewList.isEmpty()) && request.getRating() != null) {
+            reviewList = new ArrayList<>();
+            if (request.getOrderDetailId() != null) {
+                ReviewItemDto single = new ReviewItemDto();
+                single.setOrderDetailId(request.getOrderDetailId());
+                single.setAccessoryId(request.getAccessoryId());
+                single.setRating(request.getRating());
+                single.setComment(request.getComment());
+                single.setImages(request.getImages());
+                reviewList.add(single);
+            } else {
+                for (ChiTietDonHang ctdh : orderItems) {
+                    ReviewItemDto itemDto = new ReviewItemDto();
+                    itemDto.setOrderDetailId(ctdh.getId());
+                    itemDto.setAccessoryId(ctdh.getPhuKien() != null ? ctdh.getPhuKien().getId() : null);
+                    itemDto.setRating(request.getRating());
+                    itemDto.setComment(request.getComment());
+                    itemDto.setImages(request.getImages());
+                    reviewList.add(itemDto);
+                }
+            }
+        }
+
+        if (reviewList != null && !reviewList.isEmpty()) {
+            for (ReviewItemDto r : reviewList) {
                 PhuKien pk = null;
                 ChiTietDonHang ctdh = null;
 
@@ -214,10 +266,7 @@ public class CustomerOrderController {
                 }
 
                 if (pk != null && ctdh != null) {
-                    final Long ctdhId = ctdh.getId();
-                    Optional<DanhGia> existing = danhGiaRepository.findAll().stream()
-                            .filter(d -> d.getChiTietDonHang() != null && ctdhId.equals(d.getChiTietDonHang().getId()))
-                            .findFirst();
+                    Optional<DanhGia> existing = danhGiaRepository.findByChiTietDonHangId(ctdh.getId());
 
                     DanhGia dg = existing.orElseGet(() -> DanhGia.builder()
                             .chiTietDonHang(null)
@@ -229,8 +278,9 @@ public class CustomerOrderController {
                     dg.setPhuKien(pk);
                     dg.setChiTietDonHang(ctdh);
                     dg.setSoSao(r.getRating() != null ? r.getRating() : 5);
-                    dg.setNoiDung(r.getComment());
-                    dg.setTrangThaiDuyet(TrangThaiDanhGia.APPROVED);
+                    dg.setNoiDung(r.getComment() != null ? r.getComment() : "Sản phẩm chất lượng tốt.");
+                    // Mặc định chuyển sang PENDING để Admin kiểm duyệt tại UC32
+                    dg.setTrangThaiDuyet(TrangThaiDanhGia.PENDING);
                     dg.setNgayDanhGia(LocalDateTime.now());
 
                     if (r.getImages() != null && !r.getImages().isEmpty()) {
@@ -245,7 +295,7 @@ public class CustomerOrderController {
             }
         }
 
-        return ResponseEntity.ok(ApiResponse.ok("Đánh giá sản phẩm đã được lưu trữ thành công!"));
+        return ResponseEntity.ok(ApiResponse.ok("Đánh giá sản phẩm đã được gửi thành công và đang chờ Admin duyệt!"));
     }
 
     @Getter
