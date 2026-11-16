@@ -60,6 +60,7 @@ Thumbs.db
 .postman/
 postman/collections/
 postman/globals/
+postman/environments/
 
 # Application secrets & environment configs
 autohub-backend/src/main/resources/application.yml
