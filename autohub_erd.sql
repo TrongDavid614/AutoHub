@@ -722,20 +722,20 @@ INSERT INTO dbo.showroom (tinh_thanh_id, ten_showroom, dia_chi, so_dien_thoai, g
 GO
 
 -- 3. NẠP NGƯỜI DÙNG (Admin, Staff từ staff.mock.ts, Khách hàng từ orders.mock.ts)
--- Mật khẩu chung: Password123@ (đã băm BCrypt chuẩn)
+-- Mật khẩu chung: Test@1234 (đã băm BCrypt chuẩn đồng bộ với Backend AuthDataSeeder)
 INSERT INTO dbo.nguoi_dung (showroom_id, ho_ten, email, mat_khau_bam, so_dien_thoai, anh_dai_dien, so_cccd, ngay_sinh, gioi_tinh, vai_tro, trang_thai_tai_khoan, ngay_tao) VALUES
 -- Admin điều hành toàn hệ thống
-(NULL, N'Trần Đức Nam (Admin)', 'admin@autohub.vn', '$2a$10$E8783h59h9oY6z3i/oPj0uY1b8/bE5eC7N9nFzEa.7X6cZpM4D8nS', '0988888888', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200', '001099001234', '1995-08-20', N'Nam', 'ROLE_ADMIN', 'HOAT_DONG', SYSDATETIME()),
+(NULL, N'Trần Đức Nam (Admin)', 'admin@autohub.vn', '$2a$10$tOkAH9ZS/CXYXCNKQnTQ3Od8/BODQtdYDhb0s21uzvCJIsQiQ.KVu', '0988888888', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200', '001099001234', '1995-08-20', N'Nam', 'ROLE_ADMIN', 'HOAT_DONG', SYSDATETIME()),
 -- Các nhân sự trong staff.mock.ts
-(1, N'Nguyễn Văn Tuấn', 'tuan.nguyen@autohub.vn', '$2a$10$E8783h59h9oY6z3i/oPj0uY1b8/bE5eC7N9nFzEa.7X6cZpM4D8nS', '0977112233', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200', '001098005678', '1998-03-15', N'Nam', 'ROLE_STAFF', 'HOAT_DONG', SYSDATETIME()),
-(2, N'Lê Quốc Bảo', 'bao.le@autohub.vn', '$2a$10$E8783h59h9oY6z3i/oPj0uY1b8/bE5eC7N9nFzEa.7X6cZpM4D8nS', '0977334455', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200', '079097008899', '1997-11-04', N'Nam', 'ROLE_STAFF', 'HOAT_DONG', SYSDATETIME()),
-(1, N'Trần Thu Hà', 'ha.tran@autohub.vn', '$2a$10$E8783h59h9oY6z3i/oPj0uY1b8/bE5eC7N9nFzEa.7X6cZpM4D8nS', '0988445566', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200', '001095007788', '1999-06-25', N'Nữ', 'ROLE_STAFF', 'HOAT_DONG', SYSDATETIME()),
+(1, N'Nguyễn Văn Tuấn', 'tuan.nguyen@autohub.vn', '$2a$10$tOkAH9ZS/CXYXCNKQnTQ3Od8/BODQtdYDhb0s21uzvCJIsQiQ.KVu', '0977112233', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200', '001098005678', '1998-03-15', N'Nam', 'ROLE_STAFF', 'HOAT_DONG', SYSDATETIME()),
+(2, N'Lê Quốc Bảo', 'bao.le@autohub.vn', '$2a$10$tOkAH9ZS/CXYXCNKQnTQ3Od8/BODQtdYDhb0s21uzvCJIsQiQ.KVu', '0977334455', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200', '079097008899', '1997-11-04', N'Nam', 'ROLE_STAFF', 'HOAT_DONG', SYSDATETIME()),
+(1, N'Trần Thu Hà', 'ha.tran@autohub.vn', '$2a$10$tOkAH9ZS/CXYXCNKQnTQ3Od8/BODQtdYDhb0s21uzvCJIsQiQ.KVu', '0988445566', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200', '001095007788', '1999-06-25', N'Nữ', 'ROLE_STAFF', 'HOAT_DONG', SYSDATETIME()),
 -- Khách hàng VIP trong orders.mock.ts và staff.mock.ts
-(NULL, N'Nguyễn Văn A', 'vana@gmail.com', '$2a$10$E8783h59h9oY6z3i/oPj0uY1b8/bE5eC7N9nFzEa.7X6cZpM4D8nS', '0912345678', 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=200', '079201009988', '1990-12-10', N'Nam', 'ROLE_CUSTOMER', 'HOAT_DONG', SYSDATETIME()),
-(NULL, N'Trần Hoàng Nam', 'nam.tran@gmail.com', '$2a$10$E8783h59h9oY6z3i/oPj0uY1b8/bE5eC7N9nFzEa.7X6cZpM4D8nS', '0988123456', NULL, '079198008819', '1992-05-18', N'Nam', 'ROLE_CUSTOMER', 'HOAT_DONG', SYSDATETIME()),
-(NULL, N'Nguyễn Bích Thủy', 'thuy.nguyen@company.vn', '$2a$10$E8783h59h9oY6z3i/oPj0uY1b8/bE5eC7N9nFzEa.7X6cZpM4D8nS', '0903882119', NULL, '079092004561', '1994-09-02', N'Nữ', 'ROLE_CUSTOMER', 'HOAT_DONG', SYSDATETIME()),
-(NULL, N'Lê Hoàng Long', 'long.le@fpt.com', '$2a$10$E8783h59h9oY6z3i/oPj0uY1b8/bE5eC7N9nFzEa.7X6cZpM4D8nS', '0977441223', NULL, '001201009988', '1988-04-12', N'Nam', 'ROLE_CUSTOMER', 'HOAT_DONG', SYSDATETIME()),
-(NULL, N'Nguyễn Văn Trọng', 'trong@gmail.com', '$2a$10$86ZuQlnD3M4Xjk.Grij5Xut1O9w2dPMEOnfieuTNO8tqwLxqzqr8O', '0912345679', 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200', '079201009999', '1996-01-01', N'Nam', 'ROLE_CUSTOMER', 'HOAT_DONG', SYSDATETIME());
+(NULL, N'Nguyễn Văn A', 'vana@gmail.com', '$2a$10$tOkAH9ZS/CXYXCNKQnTQ3Od8/BODQtdYDhb0s21uzvCJIsQiQ.KVu', '0912345678', 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=200', '079201009988', '1990-12-10', N'Nam', 'ROLE_CUSTOMER', 'HOAT_DONG', SYSDATETIME()),
+(NULL, N'Trần Hoàng Nam', 'nam.tran@gmail.com', '$2a$10$tOkAH9ZS/CXYXCNKQnTQ3Od8/BODQtdYDhb0s21uzvCJIsQiQ.KVu', '0988123456', NULL, '079198008819', '1992-05-18', N'Nam', 'ROLE_CUSTOMER', 'HOAT_DONG', SYSDATETIME()),
+(NULL, N'Nguyễn Bích Thủy', 'thuy.nguyen@company.vn', '$2a$10$tOkAH9ZS/CXYXCNKQnTQ3Od8/BODQtdYDhb0s21uzvCJIsQiQ.KVu', '0903882119', NULL, '079092004561', '1994-09-02', N'Nữ', 'ROLE_CUSTOMER', 'HOAT_DONG', SYSDATETIME()),
+(NULL, N'Lê Hoàng Long', 'long.le@fpt.com', '$2a$10$tOkAH9ZS/CXYXCNKQnTQ3Od8/BODQtdYDhb0s21uzvCJIsQiQ.KVu', '0977441223', NULL, '001201009988', '1988-04-12', N'Nam', 'ROLE_CUSTOMER', 'HOAT_DONG', SYSDATETIME()),
+(NULL, N'Nguyễn Văn Trọng', 'trong@gmail.com', '$2a$10$tOkAH9ZS/CXYXCNKQnTQ3Od8/BODQtdYDhb0s21uzvCJIsQiQ.KVu', '0912345679', 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200', '079201009999', '1996-01-01', N'Nam', 'ROLE_CUSTOMER', 'HOAT_DONG', SYSDATETIME());
 GO
 
 -- 4. SỔ ĐỊA CHỈ KHÁCH HÀNG
