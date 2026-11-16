@@ -1,5 +1,6 @@
 package com.autohub.modules.admin.service;
 
+import com.autohub.core.deposit.scheduler.DepositExpirationScheduler;
 import com.autohub.modules.admin.dto.*;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class DefaultAdminSystemMonitorServiceImpl implements AdminSystemMonitorService {
+
+    private final DepositExpirationScheduler depositExpirationScheduler;
 
     @Value("${openrouter.api.key:}")
     private String openRouterApiKey;
@@ -303,7 +306,8 @@ public class DefaultAdminSystemMonitorServiceImpl implements AdminSystemMonitorS
         String resultMessage;
 
         if ("AutoCancel72hDepositDaemon".equalsIgnoreCase(jobName)) {
-            resultMessage = "Đã quét thành công 42 phiếu cọc trong toàn hệ thống: 0 phiếu hết hạn bị hủy, 4 phiếu đã gửi thông báo đôn đốc hoàn tất hợp đồng.";
+            int expiredCount = depositExpirationScheduler.scanAndExpireOverdueDeposits();
+            resultMessage = "Đã quét và xử lý thành công toàn hệ thống: " + expiredCount + " phiếu cọc quá hạn 72h đã được tự động hủy và giải phóng xe về trạng thái CO_SAN.";
         } else if ("SyncVectorEmbeddingJob".equalsIgnoreCase(jobName)) {
             resultMessage = "Đã lập chỉ mục và đồng bộ thành công 1.250 vector embeddings từ Master Data xe và phụ kiện sang Vector Store RAG.";
         } else if ("InventoryRestockAlertJob".equalsIgnoreCase(jobName)) {
