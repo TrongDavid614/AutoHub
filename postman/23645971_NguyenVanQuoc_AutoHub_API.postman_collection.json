@@ -1,0 +1,2163 @@
+{
+  "info": {
+    "_postman_id": "c7659421-autohub-23645971-iuh-test-v2",
+    "name": "23645971_NguyenVanQuoc_AutoHub_API",
+    "description": "Tập kiểm thử tự động toàn diện dự án AutoHub - Nền tảng TMĐT Ô Tô & Phụ Kiện Điện Tử (44 Test Cases)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01. Authentication & Phân Quyền RBAC",
+      "item": [
+        {
+          "name": "1. Đăng nhập Khách hàng (Customer)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Trả về Access Token hợp lệ\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data.accessToken).to.be.a('string');",
+                  "    pm.environment.set(\"customerToken\", jsonData.data.accessToken);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ],
+              "query": []
+            },
+            "description": "Xác thực tài khoản khách hàng thành công và trích xuất Bearer Token",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrUsername\": \"trong@gmail.com\",\n  \"password\": \"123456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "2. Đăng nhập Nhân viên Showroom (Staff)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Trả về Staff Access Token\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data.accessToken).to.be.a('string');",
+                  "    pm.environment.set(\"staffToken\", jsonData.data.accessToken);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ],
+              "query": []
+            },
+            "description": "Đăng nhập tài khoản nhân viên showroom, lấy Bearer Token quyền ROLE_STAFF",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrUsername\": \"staff.test@autohub.vn\",\n  \"password\": \"Test@1234\"\n}"
+            }
+          }
+        },
+        {
+          "name": "3. Đăng nhập Quản trị viên (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Trả về Admin Access Token\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data.accessToken).to.be.a('string');",
+                  "    pm.environment.set(\"adminToken\", jsonData.data.accessToken);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ],
+              "query": []
+            },
+            "description": "Đăng nhập tài khoản Admin Master, lấy Bearer Token quyền ROLE_ADMIN",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrUsername\": \"admin@autohub.vn\",\n  \"password\": \"Test@1234\"\n}"
+            }
+          }
+        },
+        {
+          "name": "4. Đăng nhập sai mật khẩu (Negative Case)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400 or 401\", function () {",
+                  "    pm.expect([400, 401]).to.include(pm.response.code);",
+                  "});",
+                  "pm.test(\"Từ chối xác thực và báo lỗi\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(false);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ],
+              "query": []
+            },
+            "description": "Kiểm tra cơ chế bảo mật khi người dùng nhập sai mật khẩu",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailOrUsername\": \"trong@gmail.com\",\n  \"password\": \"WrongPassword999\"\n}"
+            }
+          }
+        },
+        {
+          "name": "5. Xem thông tin tài khoản cá nhân (Profile)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Profile trả về đúng email đăng nhập\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data.email).to.eql(\"trong@gmail.com\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customer/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer",
+                "profile"
+              ],
+              "query": []
+            },
+            "description": "Lấy thông tin profile người dùng hiện tại thông qua JWT Token",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "6. Chặn Customer truy cập API Quản trị Admin (Negative Case 403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 403 Forbidden\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/system-monitor/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "system-monitor",
+                "health"
+              ],
+              "query": []
+            },
+            "description": "Kiểm thử ma trận phân quyền RBAC: Khách hàng không có quyền truy cập API Quản trị hệ thống",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Danh Mục Dòng Xe & Phiên Bản",
+      "item": [
+        {
+          "name": "7. Lấy danh sách toàn bộ dòng xe",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Mảng dòng xe có từ 5 mẫu trở lên\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data.length).to.be.at.least(5);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customer/cars",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer",
+                "cars"
+              ],
+              "query": []
+            },
+            "description": "Truy vấn danh mục tất cả dòng xe ô tô điện đang phân phối",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "8. Lấy chi tiết dòng xe hợp lệ (id=1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Dòng xe có id=1 và chứa danh sách phiên bản\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data.id).to.eql(1);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customer/cars/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer",
+                "cars",
+                "1"
+              ],
+              "query": []
+            },
+            "description": "Truy vấn chi tiết thông số kỹ thuật và hình ảnh dòng xe theo ID",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "9. Lấy chi tiết dòng xe không tồn tại (Negative Case 404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 404 Not Found\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customer/cars/9999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer",
+                "cars",
+                "9999"
+              ],
+              "query": []
+            },
+            "description": "Truy vấn dòng xe với ID không tồn tại trên hệ thống",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "10. So sánh thông số kỹ thuật 2 phiên bản xe",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"So sánh trả về đúng danh sách 2 phiên bản\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data.cars.length).to.eql(2);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customer/cars/compare?variantIds=1,2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer",
+                "cars",
+                "compare"
+              ],
+              "query": [
+                {
+                  "key": "variantIds",
+                  "value": "1,2"
+                }
+              ]
+            },
+            "description": "So sánh đối chiếu chi tiết thông số giữa các phiên bản xe điện",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Phụ Kiện Ô Tô & Giỏ Hàng",
+      "item": [
+        {
+          "name": "11. Lấy danh mục nhóm phụ kiện chính hãng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Có danh mục phụ kiện\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data.length).to.be.at.least(1);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customer/accessories/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer",
+                "accessories",
+                "categories"
+              ],
+              "query": []
+            },
+            "description": "Lấy danh mục phân loại phụ kiện: Sạc, Nội thất, Ngoại thất, Đồ chơi xe",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "12. Lấy danh sách phụ kiện chính hãng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Danh sách phụ kiện có từ 5 sản phẩm trở lên\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data.length).to.be.at.least(5);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customer/accessories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer",
+                "accessories"
+              ],
+              "query": []
+            },
+            "description": "Lấy danh sách sản phẩm phụ kiện ô tô đang bán",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "13. Tìm kiếm phụ kiện theo từ khóa Wallbox",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Kết quả tìm kiếm khớp từ khóa\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data.length).to.be.at.least(1);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customer/accessories?keyword=Wallbox",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer",
+                "accessories"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "Wallbox"
+                }
+              ]
+            },
+            "description": "Tìm kiếm nhanh phụ kiện bằng từ khóa tên sản phẩm",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "14. Lấy chi tiết phụ kiện hợp lệ (id=1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Phụ kiện có id=1 và có giá bán\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data.id).to.eql(1);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customer/accessories/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer",
+                "accessories",
+                "1"
+              ],
+              "query": []
+            },
+            "description": "Lấy thông tin chi tiết một phụ kiện cụ thể",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "15. Lấy chi tiết phụ kiện không tồn tại (Negative Case 404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 404 Not Found\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customer/accessories/9999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer",
+                "accessories",
+                "9999"
+              ],
+              "query": []
+            },
+            "description": "Kiểm thử khi truy vấn mã phụ kiện không tồn tại",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "16. Thêm phụ kiện vào giỏ hàng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Thêm vào giỏ hàng thành công\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/cart/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer",
+                "cart",
+                "items"
+              ],
+              "query": []
+            },
+            "description": "Khách hàng thêm sản phẩm phụ kiện vào giỏ hàng cá nhân",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accessoryId\": 1,\n  \"quantity\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "17. Lấy danh sách giỏ hàng hiện tại",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Giỏ hàng trả về danh sách sản phẩm và tổng tiền\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data).to.have.property('items');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customer/cart",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer",
+                "cart"
+              ],
+              "query": []
+            },
+            "description": "Truy vấn các mặt hàng đang có trong giỏ của khách hàng",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04. Đặt Cọc & Giữ Xe Trực Tuyến",
+      "item": [
+        {
+          "name": "18. Tra cứu lịch sử đặt cọc của Khách hàng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Trả về mảng phiếu cọc của khách hàng\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customer/deposits",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer",
+                "deposits"
+              ],
+              "query": []
+            },
+            "description": "Xem danh sách các phiếu đặt cọc giữ xe trực tuyến của khách hàng",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "19. Tra cứu chi tiết phiếu cọc đã tạo (id=1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Phiếu cọc đúng mã tra cứu\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data.id).to.eql(1);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customer/deposits/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer",
+                "deposits",
+                "1"
+              ],
+              "query": []
+            },
+            "description": "Tra cứu thông tin chi tiết tiến độ thanh toán của phiếu cọc xe",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "20. Webhook SePay - Chặn sai API Key (Negative Case 401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 401 Unauthorized\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Apikey WRONG_INVALID_SECRET_KEY"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment/sepay-webhook",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment",
+                "sepay-webhook"
+              ],
+              "query": []
+            },
+            "description": "Cơ chế bảo mật Webhook thanh toán SePay: Chặn các request giả mạo",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 99991,\n  \"gateway\": \"BIDV\",\n  \"transactionDate\": \"2026-11-17 00:00:00\",\n  \"accountNumber\": \"5811676579\",\n  \"content\": \"AH DEP DEP-8812\",\n  \"transferType\": \"in\",\n  \"transferAmount\": 20000000\n}"
+            }
+          }
+        },
+        {
+          "name": "21. Webhook SePay - Xác nhận giao dịch cọc xe hợp lệ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Xác nhận SePay thành công\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Apikey autohub_sepay_secret_2026_998877"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/payment/sepay-webhook",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "payment",
+                "sepay-webhook"
+              ],
+              "query": []
+            },
+            "description": "Webhook tự động kích hoạt trạng thái cọc PAID và thời hạn giữ xe 72h",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 99992,\n  \"gateway\": \"BIDV\",\n  \"transactionDate\": \"2026-11-17 00:00:00\",\n  \"accountNumber\": \"5811676579\",\n  \"content\": \"AH DEP DEP-GTE-2026-8812\",\n  \"transferType\": \"in\",\n  \"transferAmount\": 20000000\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05. Đơn Hàng Phụ Kiện Trực Tuyến",
+      "item": [
+        {
+          "name": "22. Lấy danh sách đơn hàng đã mua",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Trả về mảng danh sách đơn hàng\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customer/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer",
+                "orders"
+              ],
+              "query": []
+            },
+            "description": "Khách hàng tra cứu lịch sử mua sắm phụ kiện",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "23. Tra cứu chi tiết đơn hàng id=1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Đơn hàng có chi tiết danh sách sản phẩm\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data.id).to.eql(1);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customer/orders/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer",
+                "orders",
+                "1"
+              ],
+              "query": []
+            },
+            "description": "Xem chi tiết một đơn hàng, thông tin giao hàng và chi tiết sản phẩm",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06. Đăng Ký Lái Thử & Xe Demo",
+      "item": [
+        {
+          "name": "24. Lấy danh sách lịch hẹn lái thử của Khách hàng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Trả về danh sách lịch hẹn lái thử\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customer/engagement/test-drives",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer",
+                "engagement",
+                "test-drives"
+              ],
+              "query": []
+            },
+            "description": "Khách hàng tra cứu lịch hẹn trải nghiệm lái thử xe tại showroom",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "25. Đặt lịch lái thử vi phạm chưa cam kết GPLX (Negative Case 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Báo lỗi yêu cầu cam kết bằng lái xe\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(false);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/engagement/test-drives",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer",
+                "engagement",
+                "test-drives"
+              ],
+              "query": []
+            },
+            "description": "Kiểm thử ràng buộc pháp lý: Bắt buộc khách hàng phải có cam kết GPLX hợp lệ",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phienBanId\": 1,\n  \"showroomId\": 1,\n  \"thoiGianHen\": \"2026-11-20T10:00:00\",\n  \"hoTenKhach\": \"Nguyễn Văn Trọng\",\n  \"soDienThoaiKhach\": \"0912345678\",\n  \"camKetGplx\": false,\n  \"diaDiemLaiThu\": \"Showroom AutoHub Sài Gòn Central\"\n}"
+            }
+          }
+        },
+        {
+          "name": "26. Đặt lịch lái thử vi phạm thời gian dưới 24h (Negative Case 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Báo lỗi đặt lịch hẹn quá sát giờ\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(false);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/customer/engagement/test-drives",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer",
+                "engagement",
+                "test-drives"
+              ],
+              "query": []
+            },
+            "description": "Kiểm thử ràng buộc nghiệp vụ: Lịch hẹn lái thử phải đặt trước ít nhất 24 giờ",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phienBanId\": 1,\n  \"showroomId\": 1,\n  \"thoiGianHen\": \"2026-11-17T02:00:00\",\n  \"hoTenKhach\": \"Nguyễn Văn Trọng\",\n  \"soDienThoaiKhach\": \"0912345678\",\n  \"camKetGplx\": true,\n  \"diaDiemLaiThu\": \"Showroom AutoHub Sài Gòn Central\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07. Cổng Nghiệp Vụ Nhân Viên Showroom",
+      "item": [
+        {
+          "name": "27. Nhân viên Showroom xem tổng quan Workspace",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Workspace trả về số liệu ca trực và thống kê ca hẹn\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/staff/workspace",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "staff",
+                "workspace"
+              ],
+              "query": []
+            },
+            "description": "Bảng điều khiển nghiệp vụ của nhân viên trực showroom",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "28. Nhân viên xem danh sách ca lái thử cần phục vụ",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Trả về danh sách ca hẹn lái thử\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/staff/test-drives",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "staff",
+                "test-drives"
+              ],
+              "query": []
+            },
+            "description": "Quản lý lịch hẹn lái thử thuộc showroom nhân viên đang trực",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "29. Nhân viên tra cứu đội xe Demo khả dụng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Đội xe demo có từ 1 xe trở lên\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data.length).to.be.at.least(1);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/staff/test-drives/demo-cars",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "staff",
+                "test-drives",
+                "demo-cars"
+              ],
+              "query": []
+            },
+            "description": "Tra cứu danh sách xe lái thử demo đang sẵn sàng tại showroom",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "30. Nhân viên tra cứu phiếu cọc chờ cấp phát số VIN",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Trả về mảng phiếu cọc chờ gán VIN\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/staff/deposits",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "staff",
+                "deposits"
+              ],
+              "query": []
+            },
+            "description": "Quy trình phân bổ xe: Tìm các phiếu cọc đã thanh toán để gán số khung VIN",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{staffToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "08. Chính Sách, Tài Chính & Phê Duyệt",
+      "item": [
+        {
+          "name": "31. Dự toán chi phí lăn bánh ô tô theo tỉnh thành",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Dự toán có chi phí lăn bánh và miễn 100% lệ phí trước bạ xe điện\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data).to.have.property('tongChiPhiLanBanh');",
+                  "    pm.expect(jsonData.data.isElectric).to.eql(true);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/customer/estimator/calculate?variantId=1&provinceId=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "customer",
+                "estimator",
+                "calculate"
+              ],
+              "query": [
+                {
+                  "key": "variantId",
+                  "value": "1"
+                },
+                {
+                  "key": "provinceId",
+                  "value": "1"
+                }
+              ]
+            },
+            "description": "Tính chi tiết giá lăn bánh gồm phí biển số, bảo hiểm, phí đường bộ",
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "32. Lấy biểu phí lăn bánh theo quy định nhà nước",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Trả về danh sách biểu phí các tỉnh thành\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/registration-fees",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "registration-fees"
+              ],
+              "query": []
+            },
+            "description": "Quản lý định mức biểu phí trước bạ và phí đăng ký biển số theo khu vực",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "33. Lấy biểu lãi suất vay trả góp ngân hàng liên kết",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Có từ 2 gói vay ngân hàng trở lên\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data.length).to.be.at.least(2);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/registration-fees/loans",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "registration-fees",
+                "loans"
+              ],
+              "query": []
+            },
+            "description": "Quản lý chính sách gói vay ưu đãi mua xe trả góp (Vietcombank, BIDV)",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "34. Thống kê biểu phí đăng ký xe toàn quốc",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Thống kê phí hợp lệ\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/registration-fees/stats",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "registration-fees",
+                "stats"
+              ],
+              "query": []
+            },
+            "description": "Báo cáo tổng hợp số lượng cấu hình phí và ngân hàng đối tác",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "35. Admin tra cứu danh sách yêu cầu hoàn cọc",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Trả về danh sách hồ sơ hoàn cọc\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/refunds",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "refunds"
+              ],
+              "query": []
+            },
+            "description": "Danh sách các yêu cầu hủy hợp đồng và rút tiền cọc cần phê duyệt",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "09. Tác Vụ Ngầm Tự Động Hóa (UC34 - UC36)",
+      "item": [
+        {
+          "name": "36. UC34 - Tự động thu hồi cọc 72h & Hủy đơn hàng 15m",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"UC34 thực thi thành công và có số liệu quét\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data).to.have.property('expiredDeposits72h');",
+                  "    pm.expect(jsonData.data).to.have.property('cancelledAccessoryOrders');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/automation/sweep-expired",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "automation",
+                "sweep-expired"
+              ],
+              "query": []
+            },
+            "description": "Kích hoạt kiểm thử daemon quét tự động giải phóng cọc xe 72h và hủy đơn phụ kiện quá hạn 15m",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "37. UC35 - Tự động hủy lịch lái thử chưa duyệt trước 12h",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"UC35 thực thi thành công\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data).to.have.property('cancelledTestDrives');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/automation/sweep-test-drives",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "automation",
+                "sweep-test-drives"
+              ],
+              "query": []
+            },
+            "description": "Kích hoạt kiểm thử daemon quét hủy lịch lái thử PENDING chưa được duyệt trước 12 giờ",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "38. UC36 - Tự động gửi email nhắc lịch lái thử trước 24h",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"UC36 thực thi thành công\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data).to.have.property('remindersSent');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/automation/send-reminders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "automation",
+                "send-reminders"
+              ],
+              "query": []
+            },
+            "description": "Kích hoạt kiểm thử daemon quét gửi email HTML nhắc hẹn lái thử cho khách hàng trước 24h",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "39. Tra cứu trạng thái hàng đợi các tác vụ tự động hóa",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Hàng đợi tự động hóa đầy đủ các chỉ số nghiệp vụ\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data).to.have.property('pendingPaymentDeposits');",
+                  "    pm.expect(jsonData.data).to.have.property('pendingTestDrives');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/automation/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "automation",
+                "status"
+              ],
+              "query": []
+            },
+            "description": "Giám sát số lượng phiếu cọc, đơn hàng và lịch hẹn đang chờ xử lý ngầm",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Quản Trị Hệ Thống & Telemetry",
+      "item": [
+        {
+          "name": "40. Giám sát sức khỏe toàn hệ thống (System Health Monitor)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Hệ thống online và giám sát đủ các dịch vụ cốt lõi\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data).to.have.property('openRouter');",
+                  "    pm.expect(jsonData.data).to.have.property('paymentGateway');",
+                  "    pm.expect(jsonData.data).to.have.property('cronJobs');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/system-monitor/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "system-monitor",
+                "health"
+              ],
+              "query": []
+            },
+            "description": "Bảng điều khiển giám sát tài nguyên CPU/RAM, AI OpenRouter, SePay Webhook và Cron Daemons",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "41. Kích hoạt chạy ngầm từ System Monitor Dashboard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Tác vụ daemon hoàn thành và ghi log kiểm toán\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data.status).to.eql(\"SUCCESS\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/admin/system-monitor/trigger-cron",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "system-monitor",
+                "trigger-cron"
+              ],
+              "query": []
+            },
+            "description": "Thao tác trực tiếp từ nút 'Chạy quét 72h ngay' trên màn hình System Monitor của Admin",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jobName\": \"AutoCancel72hDepositDaemon\"\n}"
+            }
+          }
+        },
+        {
+          "name": "42. Báo Cáo Phân Tích Hành Vi & Telemetry Người Dùng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Báo cáo Telemetry đầy đủ chỉ số thời gian thực từ AutoHubDB\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data).to.have.property('avgDwellTimeSeconds');",
+                  "    pm.expect(jsonData.data).to.have.property('interact360Percentage');",
+                  "    pm.expect(jsonData.data).to.have.property('aiAverageLatencyMs');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/analytics/overview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "analytics",
+                "overview"
+              ],
+              "query": []
+            },
+            "description": "Tổng hợp thời gian ngắm xe Dwell Time, tương tác 360 độ và thời gian phản hồi AI Telemetry",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "43. Tra cứu lịch sử Nhật Ký Kiểm Toán (Audit Logs)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Có nhật ký kiểm toán hệ thống\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data.length).to.be.at.least(1);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/system-monitor/audit-logs?limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "system-monitor",
+                "audit-logs"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Truy vết hoạt động của quản trị viên, nhân viên và các tác vụ ngầm tự động",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "44. Xuất Báo Cáo Nhật Ký Kiểm Toán (.csv Excel UTF-8)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Content-Type trả về file CSV nhị phân\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/csv\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/system-monitor/export",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "system-monitor",
+                "export"
+              ],
+              "query": []
+            },
+            "description": "Tải về tệp CSV kiểm toán bảo mật có gắn BOM chuẩn tiếng Việt cho Excel",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api",
+      "type": "string"
+    }
+  ]
+}

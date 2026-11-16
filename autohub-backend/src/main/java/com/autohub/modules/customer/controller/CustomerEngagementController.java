@@ -138,6 +138,13 @@ public class CustomerEngagementController {
         NguoiDung user = nguoiDungRepository.findById(custId)
                 .orElseGet(() -> nguoiDungRepository.findAll().stream().findFirst().orElse(null));
 
+        // RÀNG BUỘC 0: Kiểm tra cam kết giấy phép lái xe hợp lệ (Theo CHECK CK_lh_gplx)
+        if (req.getCamKetGplx() != null && !req.getCamKetGplx()) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(
+                    "Theo quy định an toàn và pháp luật giao thông, quý khách bắt buộc phải có Giấy phép lái xe (GPLX) hợp lệ để tham gia trải nghiệm lái thử!"
+            ));
+        }
+
         // RÀNG BUỘC 1: Kiểm tra người dùng đã có lịch PENDING hay chưa (Theo Unique index UX_lh_pending)
         if (user != null) {
             List<LichHenLaiThu> pendingList = lichHenLaiThuRepository.findByNguoiDungId(user.getId()).stream()

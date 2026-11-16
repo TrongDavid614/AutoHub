@@ -315,6 +315,7 @@ CREATE TABLE dbo.nhat_ky_tu_van (
     noi_dung_trao_doi   NVARCHAR(MAX) NOT NULL,
     ngan_sach_du_kien   DECIMAL(18,2) NULL,
     ket_qua_cuoc_goi    NVARCHAR(100) NULL,
+    thoi_gian_phan_hoi_ms INT NULL CONSTRAINT DF_nktv_ms DEFAULT 0,
     thoi_gian_tuong_tac DATETIME2(0)  NOT NULL CONSTRAINT DF_nktv_tg DEFAULT SYSDATETIME(),
     CONSTRAINT PK_nhat_ky_tu_van PRIMARY KEY (id),
     CONSTRAINT FK_nktv_yctv FOREIGN KEY (yeu_cau_tu_van_id) REFERENCES dbo.yeu_cau_tu_van(id),

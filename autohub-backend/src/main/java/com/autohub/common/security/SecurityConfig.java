@@ -59,7 +59,7 @@ public class SecurityConfig {
                 // 1. Công khai các endpoint Authentication & Tra cứu khách vãng lai
                 .requestMatchers("/auth/login", "/auth/register", "/auth/forgot-password", "/auth/verify-otp", "/auth/reset-password").permitAll()
                 .requestMatchers("/customer/cars/**", "/customer/accessories/**", "/accessories/**").permitAll()
-                .requestMatchers("/payment/**").permitAll()
+                .requestMatchers("/payment/**", "/sepay/**").permitAll()
                 .requestMatchers("/ai/**", "/ai-consultant/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/tracking/**").permitAll()
