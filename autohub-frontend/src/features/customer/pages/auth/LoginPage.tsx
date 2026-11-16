@@ -20,9 +20,6 @@ export const LoginPage: React.FC = () => {
   // Submission & Validation states
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
-  const [forgotEmail, setForgotEmail] = useState('');
-  const [forgotSuccess, setForgotSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,17 +75,6 @@ export const LoginPage: React.FC = () => {
       setIsLoading(false);
       navigate(redirectUrl);
     }, 600);
-  };
-
-  const handleSendForgotPassword = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!forgotEmail.trim()) return;
-    setForgotSuccess(true);
-    setTimeout(() => {
-      setForgotSuccess(false);
-      setShowForgotPasswordModal(false);
-      setForgotEmail('');
-    }, 2500);
   };
 
   return (
@@ -319,70 +305,7 @@ export const LoginPage: React.FC = () => {
             </Link>
           </div>
         </div>
-
-
       </div>
-
-      {/* Forgot Password Modal (Glassmorphic EV Popup) */}
-      {showForgotPasswordModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fadeIn">
-          <div className="w-full max-w-[420px] rounded-xl bg-[#171F33] border border-[#2D3449] shadow-2xl p-6 relative">
-            <div className="flex items-center justify-between pb-3 border-b border-[#2D3449]">
-              <h3 className="text-lg font-semibold text-[#DAE2FD]">Khôi phục mật khẩu</h3>
-              <button
-                type="button"
-                onClick={() => setShowForgotPasswordModal(false)}
-                className="w-7 h-7 rounded bg-[#131B2E] text-[#BEC8D2] hover:text-white flex items-center justify-center"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {forgotSuccess ? (
-              <div className="py-6 text-center">
-                <div className="w-12 h-12 rounded-full bg-[#34D399]/10 text-[#34D399] flex items-center justify-center mx-auto mb-3">
-                  <Check className="w-6 h-6" />
-                </div>
-                <h4 className="text-sm font-semibold text-[#DAE2FD]">Đã gửi mã khôi phục!</h4>
-                <p className="text-xs text-[#BEC8D2] mt-1">
-                  Vui lòng kiểm tra hộp thư đến của bạn để thiết lập mật khẩu mới.
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleSendForgotPassword} className="mt-4 flex flex-col gap-4">
-                <p className="text-xs text-[#BEC8D2]">
-                  Nhập địa chỉ email đăng ký của bạn. Hệ thống sẽ gửi mã telemetry OTP xác thực tài khoản 1 chạm.
-                </p>
-                <div>
-                  <input
-                    type="email"
-                    required
-                    value={forgotEmail}
-                    onChange={(e) => setForgotEmail(e.target.value)}
-                    placeholder="khachhang@autohub.vn"
-                    className="w-full h-10 px-3 bg-[#060E20] border border-[#2D3449] focus:border-[#00A6E0] rounded text-sm text-[#DAE2FD] placeholder:text-[#88929B]/60 focus:outline-none"
-                  />
-                </div>
-                <div className="flex gap-2 justify-end pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowForgotPasswordModal(false)}
-                    className="px-4 py-2 rounded bg-[#131B2E] text-xs text-[#BEC8D2] hover:text-white"
-                  >
-                    Hủy bỏ
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 rounded bg-[#00A6E0] hover:bg-[#0EA5E9] text-xs font-semibold text-[#060E20]"
-                  >
-                    Gửi liên kết OTP
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

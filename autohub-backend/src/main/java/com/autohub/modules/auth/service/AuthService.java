@@ -53,6 +53,8 @@ public class AuthService {
         private boolean verified;
         private String resetToken;
         private LocalDateTime resetTokenExpiresAt;
+        @Builder.Default
+        private int failedAttempts = 0;
     }
 
     @Transactional(readOnly = true)
@@ -227,7 +229,13 @@ public class AuthService {
         }
 
         if (!session.getOtpCode().equals(inputOtp)) {
-            throw new AppException("Mã OTP không chính xác. Vui lòng kiểm tra lại hộp thư.", HttpStatus.BAD_REQUEST);
+            session.setFailedAttempts(session.getFailedAttempts() + 1);
+            if (session.getFailedAttempts() >= 5) {
+                otpSessionCache.remove(email);
+                throw new AppException("Bạn đã nhập sai mã OTP quá 5 lần. Vì lý do an toàn, mã xác thực này đã bị hủy. Vui lòng yêu cầu mã mới.", HttpStatus.BAD_REQUEST);
+            }
+            int remaining = 5 - session.getFailedAttempts();
+            throw new AppException("Mã OTP không chính xác. Bạn còn " + remaining + " lần thử. Vui lòng kiểm tra lại hộp thư.", HttpStatus.BAD_REQUEST);
         }
 
         // OTP hợp lệ: cấp phát resetToken có hạn 10 phút
@@ -271,6 +279,14 @@ public class AuthService {
 
         NguoiDung user = nguoiDungRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException("Không tìm thấy tài khoản người dùng", HttpStatus.NOT_FOUND));
+
+        if (user.isDeleted()) {
+            throw new AppException("Tài khoản không tồn tại hoặc đã bị xóa khỏi hệ thống.", HttpStatus.NOT_FOUND);
+        }
+
+        if (user.getTrangThaiTaiKhoan() == TrangThaiTaiKhoan.BI_KHOA) {
+            throw new AppException("Tài khoản của bạn đã bị khóa bảo mật. Vui lòng liên hệ Quản trị viên để được hỗ trợ.", HttpStatus.FORBIDDEN);
+        }
 
         // Cập nhật mật khẩu băm mới
         user.setMatKhauBam(passwordEncoder.encode(newPassword));

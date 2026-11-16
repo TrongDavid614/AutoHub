@@ -17,6 +17,23 @@ import { authService } from '../../services/auth.service';
 
 type Step = 'EMAIL' | 'OTP' | 'NEW_PASSWORD' | 'SUCCESS';
 
+// Helper to extract clean Vietnamese error message from Axios / backend response
+const extractErrorMessage = (err: unknown, fallback: string): string => {
+  if (err && typeof err === 'object') {
+    const resData = (err as { response?: { data?: { message?: string } } })?.response?.data;
+    if (resData?.message && typeof resData.message === 'string') {
+      return resData.message;
+    }
+    if ('message' in err && typeof (err as { message: unknown }).message === 'string') {
+      const msg = (err as { message: string }).message;
+      if (!msg.toLowerCase().includes('status code')) {
+        return msg;
+      }
+    }
+  }
+  return fallback;
+};
+
 export const ForgotPasswordPage: React.FC = () => {
   const navigate = useNavigate();
 
@@ -90,8 +107,7 @@ export const ForgotPasswordPage: React.FC = () => {
       // Focus on first OTP input after transition
       setTimeout(() => otpInputRefs.current[0]?.focus(), 150);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Không thể gửi mã OTP. Vui lòng thử lại sau.';
-      setErrorMessage(msg);
+      setErrorMessage(extractErrorMessage(err, 'Không thể gửi mã OTP. Vui lòng kiểm tra lại email hoặc thử lại sau.'));
     } finally {
       setIsLoading(false);
     }
@@ -112,8 +128,20 @@ export const ForgotPasswordPage: React.FC = () => {
   };
 
   const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
+    if (e.key === 'Backspace') {
+      if (!otpDigits[index] && index > 0) {
+        otpInputRefs.current[index - 1]?.focus();
+      } else if (otpDigits[index]) {
+        const newOtp = [...otpDigits];
+        newOtp[index] = '';
+        setOtpDigits(newOtp);
+      }
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+      e.preventDefault();
       otpInputRefs.current[index - 1]?.focus();
+    } else if (e.key === 'ArrowRight' && index < 5) {
+      e.preventDefault();
+      otpInputRefs.current[index + 1]?.focus();
     }
   };
 
@@ -151,8 +179,7 @@ export const ForgotPasswordPage: React.FC = () => {
       setSuccessMessage('Xác thực mã OTP thành công! Vui lòng thiết lập mật khẩu mới.');
       setStep('NEW_PASSWORD');
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Mã OTP không chính xác hoặc đã hết hạn.';
-      setErrorMessage(msg);
+      setErrorMessage(extractErrorMessage(err, 'Mã OTP không chính xác hoặc đã hết hạn.'));
     } finally {
       setIsLoading(false);
     }
@@ -173,8 +200,7 @@ export const ForgotPasswordPage: React.FC = () => {
       setOtpDigits(['', '', '', '', '', '']);
       otpInputRefs.current[0]?.focus();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Không thể gửi lại mã OTP.';
-      setErrorMessage(msg);
+      setErrorMessage(extractErrorMessage(err, 'Không thể gửi lại mã OTP. Vui lòng thử lại sau.'));
     } finally {
       setIsLoading(false);
     }
@@ -205,8 +231,7 @@ export const ForgotPasswordPage: React.FC = () => {
       });
       setStep('SUCCESS');
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Không thể đặt lại mật khẩu. Vui lòng thử lại.';
-      setErrorMessage(msg);
+      setErrorMessage(extractErrorMessage(err, 'Không thể đặt lại mật khẩu. Vui lòng thử lại.'));
     } finally {
       setIsLoading(false);
     }
@@ -324,6 +349,7 @@ export const ForgotPasswordPage: React.FC = () => {
                     value={digit}
                     onChange={(e) => handleOtpChange(idx, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                    onPaste={handleOtpPaste}
                     className="w-10 sm:w-12 h-12 text-center text-lg sm:text-xl font-mono font-bold bg-[#131D33] border border-[#23334F] rounded-xl text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40 transition-all"
                   />
                 ))}
