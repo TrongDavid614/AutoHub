@@ -13,4 +13,5 @@ public interface YeuCauHoanCocRepository extends JpaRepository<YeuCauHoanCoc, Lo
     Optional<YeuCauHoanCoc> findByPhieuDatCocId(Long phieuDatCocId);
     List<YeuCauHoanCoc> findByTrangThai(TrangThaiHoanCoc trangThai);
     long countByTrangThai(TrangThaiHoanCoc trangThai);
+    long countByPhieuDatCocNguoiDungId(Long nguoiDungId);
 }

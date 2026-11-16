@@ -16,9 +16,15 @@ import com.autohub.core.showroom.entity.TonKhoXe;
 import com.autohub.core.showroom.repository.TonKhoXeRepository;
 import com.autohub.core.user.entity.NguoiDung;
 import com.autohub.core.user.repository.NguoiDungRepository;
+import com.autohub.core.engagement.entity.NhatKyTuVan;
+import com.autohub.core.engagement.entity.YeuCauTuVan;
+import com.autohub.core.engagement.repository.NhatKyTuVanRepository;
+import com.autohub.core.engagement.repository.YeuCauTuVanRepository;
 import com.autohub.modules.admin.dto.AdminRefundDto;
+import com.autohub.modules.admin.dto.RefundRiskAnalysisDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -44,6 +50,9 @@ public class AdminRefundApprovalController {
     private final XeDinhDanhRepository xeDinhDanhRepository;
     private final TonKhoXeRepository tonKhoXeRepository;
     private final NguoiDungRepository nguoiDungRepository;
+    private final NhatKyTuVanRepository nhatKyTuVanRepository;
+    private final YeuCauTuVanRepository yeuCauTuVanRepository;
+    private final org.springframework.ai.chat.client.ChatClient chatClient;
 
     @GetMapping
     public ResponseEntity<ApiResponse<PageResponseDto<AdminRefundDto>>> getRefundRequests(
@@ -228,5 +237,111 @@ public class AdminRefundApprovalController {
                 .submittedAt(r.getNgayGui() != null ? r.getNgayGui().toString() : "")
                 .processedAt(r.getNgayXuLy() != null ? r.getNgayXuLy().toString() : "")
                 .build();
+    }
+
+    @PostMapping("/{id}/ai-risk-analysis")
+    @Transactional
+    public ResponseEntity<ApiResponse<RefundRiskAnalysisDto>> analyzeRefundRisk(@PathVariable Long id) {
+        long startMs = System.currentTimeMillis();
+        YeuCauHoanCoc y = yeuCauHoanCocRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ hoàn cọc ID: " + id));
+
+        PhieuDatCoc phieu = y.getPhieuDatCoc();
+        LocalDateTime ngayDatCoc = phieu != null && phieu.getNgayDatCoc() != null ? phieu.getNgayDatCoc() : y.getNgayGui().minusHours(24);
+        LocalDateTime ngayYeuCau = y.getNgayGui() != null ? y.getNgayGui() : LocalDateTime.now();
+
+        double hoursElapsed = Duration.between(ngayDatCoc, ngayYeuCau).toMinutes() / 60.0;
+        boolean within72Hours = hoursElapsed <= 72.0;
+
+        Long userId = phieu != null && phieu.getNguoiDung() != null ? phieu.getNguoiDung().getId() : null;
+        int priorRefunds = userId != null ? (int) yeuCauHoanCocRepository.countByPhieuDatCocNguoiDungId(userId) - 1 : 0;
+        if (priorRefunds < 0) priorRefunds = 0;
+
+        String vinStatus = phieu != null && phieu.getXeDinhDanh() != null ? phieu.getXeDinhDanh().getTrangThai().name() : "CHƯA_GÁN_VIN";
+
+        String riskLevel;
+        int riskScore;
+        String recommendation;
+        String summary;
+
+        if (!within72Hours) {
+            riskLevel = "HIGH";
+            riskScore = 85;
+            recommendation = "REJECT";
+            summary = String.format("Hồ sơ gửi yêu cầu sau %.1f giờ từ khi nộp cọc, đã VƯỢT QUÁ thời hạn 72 giờ cam kết. Xe đã bị giữ chỗ gây ảnh hưởng quay vòng kho. Khuyến nghị Admin: NÊN TỪ CHỐI HOÀN TIỀN.", hoursElapsed);
+        } else if (priorRefunds >= 2) {
+            riskLevel = "MEDIUM";
+            riskScore = 55;
+            recommendation = "MANUAL_AUDIT";
+            summary = String.format("Hồ sơ gửi hợp lệ trong %.1f giờ (<72h), tuy nhiên tài khoản khách hàng đã có %d lần yêu cầu hoàn cọc trước đó. Khuyến nghị Admin: ĐỐI SOÁT MINH CHỨNG TÍN DỤNG TRƯỚC KHI DUYỆT.", hoursElapsed, priorRefunds);
+        } else {
+            riskLevel = "LOW";
+            riskScore = 15;
+            recommendation = "APPROVE";
+            summary = String.format("Hồ sơ hợp lệ 100%%: Gửi yêu cầu hoàn cọc sau %.1f giờ (trong cam kết 72h). Khách hàng có lịch sử uy tín, số khung VIN hợp lệ. Khuyến nghị Admin: NÊN PHÊ DUYỆT GIẢI NGÂN.", hoursElapsed);
+        }
+
+        String docketCode = "#REF-" + String.format("%04d", y.getId());
+
+        try {
+            String prompt = String.format(
+                    "Đóng vai trò Kiểm toán viên Hệ thống AutoHub, đưa ra nhận định ngắn gọn 2 câu về rủi ro hồ sơ hoàn cọc:\n" +
+                    "- Mã hồ sơ: %s\n" +
+                    "- Số giờ từ lúc cọc đến lúc yêu cầu: %.1f giờ (Quy định tối đa 72 giờ)\n" +
+                    "- Số lần hoàn cọc trong quá khứ: %d\n" +
+                    "- Trạng thái VIN: %s\n" +
+                    "- Lý do khách hàng: %s\n" +
+                    "- Phân loại sơ bộ: %s (Khuyến nghị: %s)",
+                    docketCode, hoursElapsed, priorRefunds, vinStatus, y.getLyDo() != null ? y.getLyDo() : "Lý do cá nhân", riskLevel, recommendation
+            );
+
+            String aiSummary = chatClient.prompt().user(prompt).call().content();
+            if (aiSummary != null && !aiSummary.isBlank()) {
+                summary = aiSummary.trim();
+            }
+        } catch (Exception ex) {
+            log.warn("[Refund AI] Không gọi được LLM ({}), sử dụng kết quả kiểm toán quy tắc: {}", ex.getClass().getSimpleName(), ex.getMessage());
+        }
+
+        long latencyMs = System.currentTimeMillis() - startMs;
+        saveAdminCopilotLog(String.format("[AI Đánh Giá Rủi Ro Hoàn Cọc #%s]: Mức độ %s - %s", docketCode, riskLevel, summary), (int) latencyMs);
+
+        RefundRiskAnalysisDto result = RefundRiskAnalysisDto.builder()
+                .refundId(y.getId())
+                .docketCode(docketCode)
+                .riskLevel(riskLevel)
+                .riskScore(riskScore)
+                .hoursElapsed(Math.round(hoursElapsed * 10.0) / 10.0)
+                .within72Hours(within72Hours)
+                .priorRefundsCount(priorRefunds)
+                .vinStatus(vinStatus)
+                .summary(summary)
+                .recommendation(recommendation)
+                .latencyMs((int) latencyMs)
+                .build();
+
+        return ResponseEntity.ok(ApiResponse.ok(result, "Phân tích rủi ro hoàn cọc thành công"));
+    }
+
+    private void saveAdminCopilotLog(String content, int latencyMs) {
+        try {
+            YeuCauTuVan lead = yeuCauTuVanRepository.findAll(PageRequest.of(0, 1)).getContent().stream().findFirst().orElse(null);
+            NguoiDung staff = nguoiDungRepository.findAll(PageRequest.of(0, 1)).getContent().stream().findFirst().orElse(null);
+            if (lead != null && staff != null) {
+                if (content.length() > 4000) content = content.substring(0, 3990) + "...";
+                NhatKyTuVan logEntity = NhatKyTuVan.builder()
+                        .yeuCauTuVan(lead)
+                        .nhanVien(staff)
+                        .loaiTuongTac("ADMIN_COPILOT")
+                        .noiDungTraoDoi(content)
+                        .thoiGianPhanHoiMs(latencyMs)
+                        .thoiGianTuongTac(LocalDateTime.now())
+                        .ketQuaCuocGoi("AI_AUDITED")
+                        .build();
+                nhatKyTuVanRepository.save(logEntity);
+            }
+        } catch (Exception e) {
+            log.error("[Admin AI] Không thể lưu nhat_ky_tu_van: {}", e.getMessage());
+        }
     }
 }

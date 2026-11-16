@@ -26,6 +26,20 @@ export interface GetRefundParams {
   size?: number;
 }
 
+export interface RefundRiskAnalysisDto {
+  refundId: number;
+  docketCode: string;
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+  riskScore: number;
+  hoursElapsed: number;
+  within72Hours: boolean;
+  priorRefundsCount: number;
+  vinStatus: string;
+  summary: string;
+  recommendation: 'APPROVE' | 'REJECT' | 'MANUAL_AUDIT';
+  latencyMs: number;
+}
+
 export const adminRefundService = {
   getRefundRequests: async (params?: GetRefundParams): Promise<PageResponse<RefundItem>> => {
     const queryParams: Record<string, string | number> = {
@@ -57,5 +71,12 @@ export const adminRefundService = {
   rejectRefund: async (id: number, reason: string): Promise<void> => {
     const params = `?reason=${encodeURIComponent(reason.trim())}`;
     await axiosClient.post(`${API_CONFIG.ENDPOINTS.ADMIN.REFUNDS}/${id}/reject${params}`);
+  },
+
+  analyzeRisk: async (id: number): Promise<RefundRiskAnalysisDto> => {
+    const res = await axiosClient.post<ApiResponse<RefundRiskAnalysisDto>>(
+      `${API_CONFIG.ENDPOINTS.ADMIN.REFUNDS}/${id}/ai-risk-analysis`
+    );
+    return (res as unknown as ApiResponse<RefundRiskAnalysisDto>).data;
   },
 };
