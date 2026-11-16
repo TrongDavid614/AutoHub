@@ -61,7 +61,7 @@ CREATE TABLE dbo.nguoi_dung (
     ho_ten               NVARCHAR(100) NOT NULL,
     email                NVARCHAR(100)  NOT NULL,
     mat_khau_bam         NVARCHAR(100)  NOT NULL,
-    so_dien_thoai        CHAR(10)      NOT NULL,
+    so_dien_thoai        CHAR(10)      NULL,
     anh_dai_dien         NVARCHAR(500) NULL,
     so_cccd              CHAR(12)      NULL,
     ngay_sinh            DATE          NULL,
@@ -77,7 +77,7 @@ CREATE TABLE dbo.nguoi_dung (
     CONSTRAINT CK_nd_vai_tro CHECK (vai_tro IN ('ROLE_CUSTOMER','ROLE_STAFF','ROLE_ADMIN')),
     CONSTRAINT CK_nd_trang_thai CHECK (trang_thai_tai_khoan IN ('CHUA_KICH_HOAT','HOAT_DONG','BI_KHOA')),
     CONSTRAINT CK_nd_ho_ten CHECK (LEN(LTRIM(RTRIM(ho_ten))) > 0),
-    CONSTRAINT CK_nd_sdt CHECK (so_dien_thoai LIKE '0[35789][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
+    CONSTRAINT CK_nd_sdt CHECK (so_dien_thoai IS NULL OR so_dien_thoai LIKE '0[35789][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
     CONSTRAINT CK_nd_cccd CHECK (so_cccd IS NULL OR (LEN(so_cccd) = 12 AND so_cccd NOT LIKE '%[^0-9]%')),
     CONSTRAINT CK_nd_gioi_tinh CHECK (gioi_tinh IS NULL OR gioi_tinh IN (N'Nam', N'Nữ', N'Khác', 'NAM', 'NU', 'KHAC'))
 );

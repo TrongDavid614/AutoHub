@@ -29,6 +29,12 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.ok(response, "Đăng nhập thành công"));
     }
 
+    @PostMapping("/google")
+    public ResponseEntity<ApiResponse<LoginResponse>> loginWithGoogle(@Valid @RequestBody GoogleLoginRequest request) {
+        LoginResponse response = authService.loginWithGoogle(request);
+        return ResponseEntity.ok(ApiResponse.ok(response, "Đăng nhập Google thành công"));
+    }
+
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserInfoDto>> getCurrentUser() {
         UserInfoDto userInfo = authService.getCurrentUser();

@@ -7,6 +7,7 @@ import type {
   LoginResponse,
   VerifyOtpResponse,
   ResetPasswordRequest,
+  GoogleLoginRequest,
 } from '@/types/auth.types';
 
 export const authService = {
@@ -62,5 +63,13 @@ export const authService = {
       payload
     );
     return res.data || res.message;
+  },
+
+  async loginGoogle(payload: GoogleLoginRequest): Promise<LoginResponse> {
+    const res = await axiosClient.post<unknown, ApiResponse<LoginResponse>>(
+      API_CONFIG.ENDPOINTS.AUTH.GOOGLE,
+      payload
+    );
+    return res.data;
   },
 };

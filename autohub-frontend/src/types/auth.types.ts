@@ -66,3 +66,9 @@ export interface ResetPasswordRequest {
   newPassword: string;
 }
 
+export interface GoogleLoginRequest {
+  code?: string;
+  idToken?: string;
+  redirectUri?: string;
+}
+
