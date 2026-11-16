@@ -46,7 +46,8 @@ interface NavGroup {
 
 const AdminLayoutContent: React.FC = () => {
   const { pathname } = useLocation();
-  const { user, logout } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();
   const { isDarkMode, toggleTheme } = useAdminTheme();
 
@@ -555,7 +556,7 @@ const AdminLayoutContent: React.FC = () => {
                       type="button"
                       onClick={() => {
                         logout();
-                        navigate('/auth/login');
+                        navigate('/admin/login');
                       }}
                       className={cn(
                         'w-full flex items-center gap-2 px-2.5 py-1.5 rounded text-[#EF4444] transition-colors cursor-pointer text-left',

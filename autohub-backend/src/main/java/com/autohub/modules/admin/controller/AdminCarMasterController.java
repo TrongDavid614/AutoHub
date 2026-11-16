@@ -1,6 +1,7 @@
 package com.autohub.modules.admin.controller;
 
 import com.autohub.common.dto.ApiResponse;
+import com.autohub.common.dto.PageResponseDto;
 import com.autohub.core.car.entity.DongXe;
 import com.autohub.core.car.entity.HangXe;
 import com.autohub.core.car.entity.HinhAnhXe;
@@ -47,9 +48,11 @@ public class AdminCarMasterController {
     private volatile int lastVectorLatencyMs = 18;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<AdminCarMasterItemDto>>> getCarMasterList(
+    public ResponseEntity<ApiResponse<PageResponseDto<AdminCarMasterItemDto>>> getCarMasterList(
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) Long brandId
+            @RequestParam(required = false) Long brandId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
         List<PhienBanXe> allCars = phienBanXeRepository.findAll().stream()
                 .filter(c -> !c.isDeleted())
@@ -82,7 +85,8 @@ public class AdminCarMasterController {
                 .sorted(Comparator.comparingInt(this::getPriorityRank).thenComparing(AdminCarMasterItemDto::getVariantId))
                 .toList();
 
-        return ResponseEntity.ok(ApiResponse.ok(dtoList, "Lấy danh mục dòng xe & phiên bản thành công"));
+        PageResponseDto<AdminCarMasterItemDto> pagedData = PageResponseDto.of(dtoList, page, size);
+        return ResponseEntity.ok(ApiResponse.ok(pagedData, "Lấy danh mục dòng xe & phiên bản thành công"));
     }
 
     @GetMapping("/{id}")
@@ -327,10 +331,10 @@ public class AdminCarMasterController {
                 .totalSynced(activeCars.size())
                 .latencyMs(lastVectorLatencyMs)
                 .syncedAt(lastVectorSyncedAt)
-                .message("Đã băm nhỏ " + activeCars.size() + " phiên bản cấu hình và nhúng vector vào Vector Database trong " + lastVectorLatencyMs + "ms. Trợ lý AI OpenRouter đã đồng bộ dữ liệu mới nhất!")
+                .message("Đã làm mới dữ liệu và đồng bộ 4 Tools Spring AI trên AutoHubDB (dbo.phien_ban_xe, dbo.ton_kho_xe, dbo.bieu_phi_lan_banh, dbo.phu_kien) trong " + lastVectorLatencyMs + "ms. Trợ lý AI sẵn sàng phục vụ thời gian thực!")
                 .build();
 
-        return ResponseEntity.ok(ApiResponse.ok(res, "Đồng bộ Vector DB cho Trợ lý AI thành công"));
+        return ResponseEntity.ok(ApiResponse.ok(res, "Đồng bộ chỉ mục dữ liệu Spring AI thành công"));
     }
 
     @GetMapping("/brands-and-models")

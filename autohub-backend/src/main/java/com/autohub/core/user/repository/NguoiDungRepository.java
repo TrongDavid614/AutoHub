@@ -13,6 +13,7 @@ public interface NguoiDungRepository extends JpaRepository<NguoiDung, Long> {
     Optional<NguoiDung> findBySoDienThoai(String soDienThoai);
     Optional<NguoiDung> findBySoCCCD(String soCCCD);
     boolean existsByEmail(String email);
+    boolean existsBySoDienThoai(String soDienThoai);
 
     long countByShowroomId(Long showroomId);
     List<NguoiDung> findByShowroomIdOrderByIdAsc(Long showroomId);

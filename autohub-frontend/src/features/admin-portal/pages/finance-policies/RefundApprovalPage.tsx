@@ -9,9 +9,11 @@ import {
   FileText,
   Clock,
   X,
+  Sparkles,
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
-import { adminRefundService, type RefundItem } from '../../services/admin-refund.service';
+import { adminRefundService, type RefundItem, type RefundRiskAnalysisDto } from '../../services/admin-refund.service';
+import { AdminPagination } from '../../components/AdminPagination';
 
 export const RefundApprovalPage: React.FC = () => {
   const { isDarkMode } = useAdminTheme();
@@ -20,28 +22,56 @@ export const RefundApprovalPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [processingId, setProcessingId] = useState<number | null>(null);
+  const [aiRiskMap, setAiRiskMap] = useState<Record<number, RefundRiskAnalysisDto>>({});
+  const [analyzingRiskId, setAnalyzingRiskId] = useState<number | null>(null);
+
+  const [page, setPage] = useState<number>(0);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [totalElements, setTotalElements] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
 
   // Modal từ chối
   const [rejectItem, setRejectItem] = useState<RefundItem | null>(null);
   const [rejectReason, setRejectReason] = useState<string>('');
 
-  const fetchDockets = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await adminRefundService.getRefundRequests();
-      setDockets(data);
-    } catch (err) {
-      console.error('Failed to fetch refund requests:', err);
-      setError('Không thể kết nối đến máy chủ để tải danh sách hồ sơ hoàn cọc.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const fetchDockets = useCallback(
+    async (currentPage = page, currentSize = pageSize) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const pagedData = await adminRefundService.getRefundRequests({
+          page: currentPage,
+          size: currentSize,
+        });
+        setDockets(pagedData.items ?? []);
+        setPage(pagedData.page ?? 0);
+        setPageSize(pagedData.size ?? 10);
+        setTotalElements(pagedData.totalElements ?? 0);
+        setTotalPages(pagedData.totalPages ?? 1);
+      } catch (err) {
+        console.error('Failed to fetch refund requests:', err);
+        setError('Không thể kết nối đến máy chủ để tải danh sách hồ sơ hoàn cọc.');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [page, pageSize]
+  );
 
   useEffect(() => {
-    fetchDockets();
-  }, [fetchDockets]);
+    fetchDockets(0, pageSize);
+  }, []);
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchDockets(newPage, pageSize);
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(0);
+    fetchDockets(0, newSize);
+  };
 
   // Phê duyệt giải ngân
   const handleApprove = async (id: number, docketCode: string) => {
@@ -102,6 +132,20 @@ export const RefundApprovalPage: React.FC = () => {
     }
   };
 
+  // Đánh giá rủi ro bằng Spring AI
+  const handleAnalyzeRisk = async (id: number) => {
+    setAnalyzingRiskId(id);
+    try {
+      const result = await adminRefundService.analyzeRisk(id);
+      setAiRiskMap((prev) => ({ ...prev, [id]: result }));
+    } catch (err) {
+      console.error('AI risk analysis failed:', err);
+      alert('Không thể thực hiện đánh giá rủi ro AI cho hồ sơ này. Vui lòng kiểm tra lại dịch vụ Backend.');
+    } finally {
+      setAnalyzingRiskId(null);
+    }
+  };
+
   const pendingCount = (dockets ?? []).filter(
     (d) => d.status === 'VERIFIED' || d.status === 'PENDING'
   ).length;
@@ -126,7 +170,7 @@ export const RefundApprovalPage: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={fetchDockets}
+            onClick={() => fetchDockets()}
             title="Làm mới danh sách"
             className={`p-2 rounded-lg border transition-colors cursor-pointer ${
               isDarkMode
@@ -202,7 +246,7 @@ export const RefundApprovalPage: React.FC = () => {
           <p className="text-xs text-slate-400">Vui lòng kiểm tra lại dịch vụ Backend hoặc mạng nội bộ.</p>
           <button
             type="button"
-            onClick={fetchDockets}
+            onClick={() => fetchDockets()}
             className="flex items-center gap-1.5 px-4 py-2 mt-2 rounded-lg text-xs font-semibold bg-red-600 hover:bg-red-700 text-white cursor-pointer shadow-sm transition-colors"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -224,7 +268,7 @@ export const RefundApprovalPage: React.FC = () => {
           </p>
           <button
             type="button"
-            onClick={fetchDockets}
+            onClick={() => fetchDockets()}
             className="flex items-center gap-1.5 px-3.5 py-1.5 mt-2 rounded-lg text-xs font-semibold border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -322,7 +366,26 @@ export const RefundApprovalPage: React.FC = () => {
                     </div>
 
                     {isPending && (
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <button
+                          type="button"
+                          disabled={analyzingRiskId === docket.id}
+                          onClick={() => handleAnalyzeRisk(docket.id)}
+                          className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer disabled:opacity-50 ${
+                            isDarkMode
+                              ? 'border-blue-800/40 text-blue-300 hover:bg-blue-950/40'
+                              : 'border-blue-200 text-blue-700 hover:bg-blue-50'
+                          }`}
+                          title="Đánh giá rủi ro hồ sơ hoàn cọc bằng Spring AI"
+                        >
+                          {analyzingRiskId === docket.id ? (
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin text-blue-500" />
+                          ) : (
+                            <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+                          )}
+                          <span>{aiRiskMap[docket.id] ? 'Quét lại AI' : '✨ AI Đánh giá rủi ro'}</span>
+                        </button>
+
                         <button
                           type="button"
                           disabled={isProcessing}
@@ -354,11 +417,85 @@ export const RefundApprovalPage: React.FC = () => {
                     )}
                   </div>
                 </div>
+
+                {/* AI Risk Analysis Panel */}
+                {aiRiskMap[docket.id] && (() => {
+                  const aiRisk = aiRiskMap[docket.id];
+                  const isLow = aiRisk.riskLevel === 'LOW';
+                  const isHigh = aiRisk.riskLevel === 'HIGH';
+
+                  return (
+                    <div className={`mt-4 p-3.5 rounded-xl border text-xs transition-all ${
+                      isLow
+                        ? isDarkMode
+                          ? 'bg-emerald-950/30 border-emerald-800/50 text-emerald-200'
+                          : 'bg-emerald-50/80 border-emerald-200 text-emerald-900'
+                        : isHigh
+                        ? isDarkMode
+                          ? 'bg-red-950/30 border-red-800/50 text-red-200'
+                          : 'bg-red-50/80 border-red-200 text-red-900'
+                        : isDarkMode
+                        ? 'bg-amber-950/30 border-amber-800/50 text-amber-200'
+                        : 'bg-amber-50/80 border-amber-200 text-amber-900'
+                    }`}>
+                      <div className="flex items-center justify-between gap-2 flex-wrap pb-2 border-b border-current/20">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="w-4 h-4 text-current animate-pulse" />
+                          <span className="font-bold tracking-wide">SPRING AI COPILOT:</span>
+                          <span className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold ${
+                            isLow
+                              ? 'bg-emerald-600 text-white'
+                              : isHigh
+                              ? 'bg-red-600 text-white'
+                              : 'bg-amber-600 text-white'
+                          }`}>
+                            {isLow
+                              ? '🟢 RỦI RO THẤP (KHUYẾN NGHỊ DUYỆT)'
+                              : isHigh
+                              ? '🔴 RỦI RO CAO (QUÁ HẠN 72H HOẶC CẦN KIỂM TRA)'
+                              : '🟡 RỦI RO VỪA (CẦN ĐỐI SOÁT KỸ)'}
+                          </span>
+                        </div>
+                        <div className="text-[11px] font-mono opacity-80">
+                          Điểm rủi ro: <strong>{aiRisk.riskScore}/100</strong> • Phản hồi: <strong>{aiRisk.latencyMs}ms</strong>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 py-2 text-[11px] border-b border-current/10">
+                        <div>
+                          Thời gian từ lúc cọc: <strong>{aiRisk.hoursElapsed} giờ</strong> ({aiRisk.within72Hours ? '✓ Hợp lệ trong 72h' : '✕ Quá 72h'})
+                        </div>
+                        <div>
+                          Lịch sử rút cọc của khách: <strong>{aiRisk.priorRefundsCount} lần</strong>
+                        </div>
+                        <div>
+                          Trạng thái xe trong kho: <strong>{aiRisk.vinStatus}</strong>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 text-xs leading-relaxed">
+                        <strong>Nhận định chuyên gia AI: </strong>
+                        <span>{aiRisk.summary}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             );
           })}
         </div>
       )}
+
+      {/* Pagination */}
+      <AdminPagination
+        currentPage={page}
+        pageSize={pageSize}
+        totalElements={totalElements}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
+        isLoading={loading}
+      />
 
       {/* Modal Từ Chối Hoàn Cọc */}
       {rejectItem && (

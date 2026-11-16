@@ -12,6 +12,7 @@ import {
   Power,
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
+import { AdminPagination } from '../../components/AdminPagination';
 import {
   adminAccessoryService,
   type AdminAccessory,
@@ -27,6 +28,10 @@ export const AccessoryMasterPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<number | 'ALL'>('ALL');
+  const [page, setPage] = useState<number>(0);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [totalElements, setTotalElements] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
 
   // Modals state
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
@@ -49,30 +54,55 @@ export const AccessoryMasterPage: React.FC = () => {
   const [editPrice, setEditPrice] = useState<number>(0);
   const [editStock, setEditStock] = useState<number>(0);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const [accList, catList] = await Promise.all([
-        adminAccessoryService.getAccessories(),
-        adminAccessoryService.getCategories(),
-      ]);
-      setAccessories(accList);
-      setCategories(catList);
-      if (catList.length > 0 && createForm.categoryId === 0) {
-        setCreateForm((prev) => ({ ...prev, categoryId: catList[0].id }));
+  const fetchData = useCallback(
+    async (currentPage = page, currentSize = pageSize) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [pagedResult, catList] = await Promise.all([
+          adminAccessoryService.getAccessories({
+            page: currentPage,
+            size: currentSize,
+            keyword: search,
+            categoryId: selectedCategory === 'ALL' ? undefined : selectedCategory,
+          }),
+          categories.length > 0 ? Promise.resolve(categories) : adminAccessoryService.getCategories(),
+        ]);
+        setAccessories(pagedResult.items ?? []);
+        setPage(pagedResult.page ?? 0);
+        setPageSize(pagedResult.size ?? 10);
+        setTotalElements(pagedResult.totalElements ?? 0);
+        setTotalPages(pagedResult.totalPages ?? 1);
+        if (categories.length === 0) {
+          setCategories(catList);
+          if (catList.length > 0 && createForm.categoryId === 0) {
+            setCreateForm((prev) => ({ ...prev, categoryId: catList[0].id }));
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load accessories:', err);
+        setError('Không thể kết nối đến máy chủ để tải danh mục phụ kiện. Vui lòng thử lại!');
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Failed to load accessories:', err);
-      setError('Không thể kết nối đến máy chủ để tải danh mục phụ kiện. Vui lòng thử lại!');
-    } finally {
-      setLoading(false);
-    }
-  }, [createForm.categoryId]);
+    },
+    [page, pageSize, search, selectedCategory, categories, createForm.categoryId]
+  );
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchData(0, pageSize);
+  }, [search, selectedCategory]); // Reset to page 0 on search or category filter change
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchData(newPage, pageSize);
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(0);
+    fetchData(0, newSize);
+  };
 
   const showNotification = (msg: string) => {
     setSuccessToast(msg);
@@ -152,14 +182,7 @@ export const AccessoryMasterPage: React.FC = () => {
     }
   };
 
-  const filteredAccessories = (accessories ?? []).filter((a) => {
-    const matchSearch =
-      a.name.toLowerCase().includes(search.toLowerCase()) ||
-      a.sku.toLowerCase().includes(search.toLowerCase()) ||
-      a.brand.toLowerCase().includes(search.toLowerCase());
-    const matchCat = selectedCategory === 'ALL' || a.categoryId === selectedCategory;
-    return matchSearch && matchCat;
-  });
+  const filteredAccessories = accessories ?? [];
 
   const lowStockCount = (accessories ?? []).filter((a) => a.stock <= a.minThreshold).length;
 
@@ -184,7 +207,7 @@ export const AccessoryMasterPage: React.FC = () => {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={fetchData}
+            onClick={() => fetchData()}
             disabled={loading}
             title="Làm mới dữ liệu"
             className={`p-2 rounded-lg border transition-colors cursor-pointer ${
@@ -307,7 +330,7 @@ export const AccessoryMasterPage: React.FC = () => {
           </div>
           <button
             type="button"
-            onClick={fetchData}
+            onClick={() => fetchData()}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer inline-flex items-center gap-1.5"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -428,6 +451,17 @@ export const AccessoryMasterPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          <AdminPagination
+            currentPage={page}
+            pageSize={pageSize}
+            totalElements={totalElements}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+            isLoading={loading}
+          />
         </div>
       )}
 

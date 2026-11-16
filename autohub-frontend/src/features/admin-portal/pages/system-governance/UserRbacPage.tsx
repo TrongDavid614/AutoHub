@@ -23,6 +23,7 @@ import { useAdminUsers } from '../../hooks/useAdminUsers';
 import { UserStatsCards } from '../../components/UserStatsCards';
 import { CreateUserModal } from '../../components/CreateUserModal';
 import { UpdateUserRoleModal } from '../../components/UpdateUserRoleModal';
+import { AdminPagination } from '../../components/AdminPagination';
 
 export const UserRbacPage: React.FC = () => {
   const { isDarkMode } = useAdminTheme();
@@ -36,9 +37,15 @@ export const UserRbacPage: React.FC = () => {
     roleFilter,
     statusFilter,
     toastMessage,
+    page,
+    pageSize,
+    totalElements,
+    totalPages,
     setKeyword,
     setRoleFilter,
     setStatusFilter,
+    handlePageChange,
+    handlePageSizeChange,
     refetch,
     toggleStatus,
     updateRole,
@@ -480,6 +487,17 @@ export const UserRbacPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          <AdminPagination
+            currentPage={page}
+            pageSize={pageSize}
+            totalElements={totalElements}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+            isLoading={isLoading}
+          />
         </div>
       )}
 

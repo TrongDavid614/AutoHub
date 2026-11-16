@@ -1,15 +1,158 @@
 import React from 'react';
 import { Bot, Database, User } from 'lucide-react';
 import type { AiChatMessage } from '@/types/ai.types';
+import { cn } from '@/lib/utils';
 import { RecommendedCarCard } from './RecommendedCarCard';
 import { RecommendedAccessoryCard } from './RecommendedAccessoryCard';
+import { RolloutFeeCard } from './RolloutFeeCard';
+import { InventoryStockCard } from './InventoryStockCard';
+import { DepositPolicyCard } from './DepositPolicyCard';
 import { AiPromptChips } from './AiPromptChips';
 
 export interface AiMessageItemProps {
   message: AiChatMessage;
-  onSelectPrompt: (prompt: string) => void;
+  onSelectPrompt: (prompt: string, contextCarId?: number, contextCarName?: string) => void;
   isSending?: boolean;
 }
+
+export const formatSuggestedPrompts = (prompts: string[], carName?: string): string[] => {
+  if (!carName || !prompts) return prompts ?? [];
+  return prompts.map((p) => {
+    if (p.includes(carName)) return p;
+    if (p.startsWith('Tính chi phí lăn bánh')) {
+      return p.replace('Tính chi phí lăn bánh', `Tính chi phí lăn bánh ${carName}`);
+    }
+    if (p.startsWith('Kiểm tra tồn kho')) {
+      return p
+        .replace('Kiểm tra tồn kho xe sẵn giao', `Kiểm tra tồn kho ${carName} sẵn giao`)
+        .replace('Kiểm tra tồn kho xe có sẵn', `Kiểm tra tồn kho ${carName} sẵn giao`)
+        .replace('Kiểm tra tồn kho', `Kiểm tra tồn kho ${carName}`);
+    }
+    if (p.startsWith('Đặt cọc giữ xe') && !p.includes(carName)) {
+      return `Đặt cọc giữ xe ${carName} 72h ngay bây giờ`;
+    }
+    return p;
+  });
+};
+
+const parseInlineMarkdown = (text: string): React.ReactNode[] => {
+  if (!text) return [];
+
+  // Match **bold** OR `code` OR *italic*
+  const tokenRegex = /(\*\*[^*]+\*\*|`[^`]+`|\*(?:(?!\*)[^\s])(?:(?!\*)[^\n])*?(?:(?!\*)[^\s])\*|\*(?:(?!\*)\S)\*)/g;
+  const parts = text.split(tokenRegex);
+
+  return parts
+    .map((part, pIdx) => {
+      if (!part) return null;
+
+      if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
+        return (
+          <strong key={pIdx} className="font-semibold text-white">
+            {part.slice(2, -2)}
+          </strong>
+        );
+      }
+
+      if (part.startsWith('`') && part.endsWith('`') && part.length >= 2) {
+        return (
+          <code
+            key={pIdx}
+            className="px-1.5 py-0.5 rounded bg-[#131B2E] text-[#89CEFF] font-mono text-xs border border-[#3E4850]/40"
+          >
+            {part.slice(1, -1)}
+          </code>
+        );
+      }
+
+      if (
+        part.startsWith('*') &&
+        part.endsWith('*') &&
+        part.length >= 2 &&
+        !part.startsWith('**')
+      ) {
+        return (
+          <em key={pIdx} className="italic text-[#89CEFF]">
+            {part.slice(1, -1)}
+          </em>
+        );
+      }
+
+      return part;
+    })
+    .filter(Boolean);
+};
+
+const renderFormattedMessageContent = (content: string) => {
+  const lines = content.split('\n');
+
+  return (
+    <div className="space-y-1 text-[15px] leading-[24px]">
+      {lines.map((line, idx) => {
+        const trimmed = line.trim();
+
+        // 1. Phân cách ngang
+        if (trimmed.startsWith('───') || trimmed.startsWith('---') || trimmed.startsWith('***')) {
+          return <hr key={idx} className="my-2 border-[#3E4850]/50" />;
+        }
+
+        // 2. Dòng trống
+        if (!trimmed) {
+          return <div key={idx} className="h-1.5" />;
+        }
+
+        // 3. Tiêu đề Markdown: ###, ##, #
+        const headingMatch = trimmed.match(/^(#{1,6})\s+(.+)$/);
+        if (headingMatch) {
+          return (
+            <div
+              key={idx}
+              className="text-[16px] font-bold text-white tracking-wide pt-1.5 pb-0.5"
+            >
+              {parseInlineMarkdown(headingMatch[2])}
+            </div>
+          );
+        }
+
+        // 4. Danh sách gạch đầu dòng (• hoặc - hoặc *)
+        const bulletMatch = trimmed.match(/^([•\-\*])\s+(.+)$/);
+        if (bulletMatch) {
+          return (
+            <div key={idx} className="flex items-start gap-2 pl-2 text-[#DAE2FD]">
+              <span className="text-[#89CEFF] select-none font-bold mt-0.5">•</span>
+              <span className="flex-1 break-words">{parseInlineMarkdown(bulletMatch[2])}</span>
+            </div>
+          );
+        }
+
+        // 5. Dòng bắt đầu bằng icon / emoji
+        const isHeaderEmoji =
+          trimmed.startsWith('🚗') ||
+          trimmed.startsWith('📊') ||
+          trimmed.startsWith('🏆') ||
+          trimmed.startsWith('💰') ||
+          trimmed.startsWith('👉') ||
+          trimmed.startsWith('💡') ||
+          trimmed.startsWith('📍') ||
+          trimmed.startsWith('🛠️') ||
+          trimmed.startsWith('🎯') ||
+          trimmed.startsWith('👋');
+
+        return (
+          <p
+            key={idx}
+            className={cn(
+              'break-words',
+              isHeaderEmoji ? 'font-medium text-white' : 'text-[#DAE2FD]'
+            )}
+          >
+            {parseInlineMarkdown(trimmed)}
+          </p>
+        );
+      })}
+    </div>
+  );
+};
 
 export const AiMessageItem: React.FC<AiMessageItemProps> = ({
   message,
@@ -29,7 +172,7 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = ({
             <span className="text-[15px] font-normal text-[#DAE2FD]">{message.senderTitle}</span>
           </div>
 
-          <div className="p-4 rounded-lg bg-[#222A3D] border border-[#3E4850]/40 shadow-md text-[15px] text-[#DAE2FD] leading-[24px]">
+          <div className="p-4 rounded-lg bg-[#222A3D] border border-[#3E4850]/40 shadow-md text-[15px] text-[#DAE2FD] leading-[24px] whitespace-pre-line break-words">
             {message.content}
           </div>
         </div>
@@ -58,10 +201,10 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = ({
           </span>
         </div>
 
-        {/* 1. Plain Content bubble matching Figma: bg #171F33 */}
+        {/* 1. Plain Content bubble matching Figma: bg #171F33 with markdown formatting & clean line breaks */}
         {message.content && (
-          <div className="p-4 rounded-lg bg-[#171F33] border border-[#3E4850]/40 shadow-sm text-[15px] text-[#DAE2FD] leading-[24px]">
-            {message.content}
+          <div className="p-4 rounded-lg bg-[#171F33] border border-[#3E4850]/40 shadow-sm text-[15px] text-[#DAE2FD] leading-[24px] whitespace-pre-line break-words">
+            {renderFormattedMessageContent(message.content)}
           </div>
         )}
 
@@ -101,21 +244,43 @@ export const AiMessageItem: React.FC<AiMessageItemProps> = ({
           </div>
         )}
 
-        {/* 4. Embedded Recommended Vehicle Card */}
-        {message.recommendedVehicle && (
-          <RecommendedCarCard vehicle={message.recommendedVehicle} />
+        {/* 4. Generative UI Blocks theo uiBlockType */}
+        {/* Block: CAR_CARD */}
+        {(message.uiBlockType === 'CAR_CARD' || (!message.uiBlockType && message.recommendedVehicle)) &&
+          message.recommendedVehicle && (
+            <RecommendedCarCard vehicle={message.recommendedVehicle} />
+          )}
+
+        {/* Block: ROLLOUT_TABLE */}
+        {message.uiBlockType === 'ROLLOUT_TABLE' && message.rolloutFeeData && (
+          <RolloutFeeCard data={message.rolloutFeeData} />
         )}
 
-        {/* 5. Embedded Recommended Accessory Card */}
-        {message.recommendedAccessory && (
-          <RecommendedAccessoryCard accessory={message.recommendedAccessory} />
+        {/* Block: INVENTORY_CARD */}
+        {message.uiBlockType === 'INVENTORY_CARD' && (message.inventoryData ?? []).length > 0 && (
+          <InventoryStockCard stocks={message.inventoryData ?? []} />
         )}
+
+        {/* Block: DEPOSIT_POLICY */}
+        {message.uiBlockType === 'DEPOSIT_POLICY' && <DepositPolicyCard />}
+
+        {/* Block: ACCESSORY_LIST */}
+        {(message.uiBlockType === 'ACCESSORY_LIST' || (!message.uiBlockType && message.recommendedAccessory)) &&
+          message.recommendedAccessory && (
+            <RecommendedAccessoryCard accessory={message.recommendedAccessory} />
+          )}
 
         {/* 6. Next Prompts Chips */}
         {message.suggestedPrompts && message.suggestedPrompts.length > 0 && (
           <AiPromptChips
-            prompts={message.suggestedPrompts}
-            onSelectPrompt={onSelectPrompt}
+            prompts={formatSuggestedPrompts(message.suggestedPrompts, message.recommendedVehicle?.name)}
+            onSelectPrompt={(selectedPrompt) =>
+              onSelectPrompt(
+                selectedPrompt,
+                message.recommendedVehicle?.variantId,
+                message.recommendedVehicle?.name
+              )
+            }
             disabled={isSending}
           />
         )}

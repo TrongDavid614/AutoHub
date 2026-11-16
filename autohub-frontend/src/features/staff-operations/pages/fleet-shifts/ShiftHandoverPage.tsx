@@ -54,7 +54,7 @@ export const ShiftHandoverPage: React.FC = () => {
     e.preventDefault();
 
     if (!assetsChecklist.keysInSafe) {
-      alert('Chưa thu hồi đủ chìa khóa xe Demo vào tủ an toàn!');
+      showToast('Chưa thu hồi đủ chìa khóa xe Demo vào tủ an toàn!');
       return;
     }
 

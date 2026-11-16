@@ -15,6 +15,7 @@ import {
 import { useAdminTheme } from '@/context/AdminThemeContext';
 import { useAdminCarMaster } from '../../hooks/useAdminCarMaster';
 import { CreateCarModal } from '../../components/CreateCarModal';
+import { AdminPagination } from '../../components/AdminPagination';
 import { cn } from '@/lib/utils';
 import type { AdminCarMasterItem } from '@/types/car.types';
 
@@ -28,6 +29,12 @@ export const CarMasterPage: React.FC = () => {
     error,
     search,
     setSearch,
+    page,
+    pageSize,
+    totalElements,
+    totalPages,
+    handlePageChange,
+    handlePageSizeChange,
     isSyncing,
     syncSuccess,
     syncResult,
@@ -135,7 +142,7 @@ export const CarMasterPage: React.FC = () => {
           </div>
           <button
             type="button"
-            onClick={() => fetchCars(search)}
+            onClick={() => fetchCars()}
             className="flex items-center gap-1 px-2.5 py-1 rounded bg-rose-600 text-white font-semibold text-[11px] hover:bg-rose-700 cursor-pointer"
           >
             <RefreshCw className="w-3 h-3" />
@@ -495,6 +502,17 @@ export const CarMasterPage: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {/* Pagination */}
+      <AdminPagination
+        currentPage={page}
+        pageSize={pageSize}
+        totalElements={totalElements}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
+        isLoading={isLoading}
+      />
 
       {/* Create Car Modal */}
       <CreateCarModal

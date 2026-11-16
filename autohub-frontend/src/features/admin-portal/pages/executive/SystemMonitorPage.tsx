@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
 import { cn } from '@/lib/utils';
+import { AdminPagination } from '../../components/AdminPagination';
 import { adminSystemMonitorService } from '@/features/admin-portal/services/admin-system-monitor.service';
 import type {
   SystemMonitorHealth,
@@ -338,6 +339,21 @@ export const SystemMonitorPage: React.FC = () => {
       return true;
     });
   }, [auditLogs, selectedModule, selectedStatus, keyword]);
+
+  const [page, setPage] = useState<number>(0);
+  const [pageSize, setPageSize] = useState<number>(10);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(0);
+  }, [selectedModule, selectedStatus, keyword]);
+
+  const totalElements = filteredLogs.length;
+  const totalPages = Math.max(1, Math.ceil(totalElements / pageSize));
+  const paginatedLogs = useMemo(() => {
+    const start = page * pageSize;
+    return filteredLogs.slice(start, start + pageSize);
+  }, [filteredLogs, page, pageSize]);
 
   return (
     <div
@@ -821,14 +837,14 @@ export const SystemMonitorPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className={cn('divide-y font-sans', isDarkMode ? 'divide-[#3E4850]/30' : 'divide-slate-100')}>
-              {filteredLogs.length === 0 ? (
+              {paginatedLogs.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-8 text-center text-slate-400 font-mono text-xs">
                     Không tìm thấy nhật ký kiểm toán phù hợp với bộ lọc hiện tại.
                   </td>
                 </tr>
               ) : (
-                filteredLogs.map((log) => {
+                paginatedLogs.map((log) => {
                   const badgeColor =
                     log.module.includes('AI')
                       ? isDarkMode
@@ -892,6 +908,19 @@ export const SystemMonitorPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Bar */}
+        <AdminPagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalElements={totalElements}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setPage(0);
+          }}
+        />
       </div>
 
       {/* ==================== MODAL: AUDIT LOG DETAIL ==================== */}

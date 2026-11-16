@@ -1,6 +1,7 @@
 package com.autohub.modules.admin.controller;
 
 import com.autohub.common.dto.ApiResponse;
+import com.autohub.common.dto.PageResponseDto;
 import com.autohub.core.pricing.entity.Voucher;
 import com.autohub.core.pricing.repository.VoucherRepository;
 import com.autohub.modules.admin.dto.AdminVoucherDto;
@@ -28,13 +29,23 @@ public class AdminVoucherController {
     private final VoucherRepository voucherRepository;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<AdminVoucherDto>>> getAllVouchers() {
+    public ResponseEntity<ApiResponse<PageResponseDto<AdminVoucherDto>>> getAllVouchers(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         List<Voucher> list = voucherRepository.findAllByOrderByIdDesc();
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            String q = keyword.trim().toUpperCase();
+            list = list.stream()
+                    .filter(v -> v.getMaVoucher() != null && v.getMaVoucher().toUpperCase().contains(q))
+                    .collect(Collectors.toList());
+        }
         List<AdminVoucherDto> dtos = list.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(ApiResponse.ok(dtos, "Tải danh sách voucher khuyến mãi thành công"));
+        PageResponseDto<AdminVoucherDto> pagedData = PageResponseDto.of(dtos, page, size);
+        return ResponseEntity.ok(ApiResponse.ok(pagedData, "Tải danh sách voucher khuyến mãi thành công"));
     }
 
     @PostMapping

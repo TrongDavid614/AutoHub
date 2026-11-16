@@ -13,12 +13,14 @@ import {
   ToggleRight,
   ShieldCheck,
   MapPin,
+  Search,
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
 import { cn } from '@/lib/utils';
 import { useAdminFees } from '../../hooks/useAdminFees';
 import { CreateOrEditFeeModal } from '../../components/CreateOrEditFeeModal';
 import { CreateOrEditLoanModal } from '../../components/CreateOrEditLoanModal';
+import { AdminPagination } from '../../components/AdminPagination';
 
 export const RegistrationFeePage: React.FC = () => {
   const { isDarkMode } = useAdminTheme();
@@ -32,6 +34,14 @@ export const RegistrationFeePage: React.FC = () => {
     provinces,
     isLoading,
     error,
+    keyword,
+    setKeyword,
+    page,
+    pageSize,
+    totalElements,
+    totalPages,
+    handlePageChange,
+    handlePageSizeChange,
     toastMessage,
     toastType,
     isSubmitting,
@@ -333,6 +343,35 @@ export const RegistrationFeePage: React.FC = () => {
         </div>
       )}
 
+      {/* Search Bar for Fees */}
+      {activeTab === 'fees' && (
+        <div
+          className={cn(
+            'flex items-center justify-between gap-3 p-3.5 rounded-xl border transition-colors',
+            isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40' : 'bg-white border-slate-200'
+          )}
+        >
+          <div className="relative w-full max-w-sm">
+            <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+            <input
+              type="text"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              placeholder="Tìm theo tên tỉnh/thành, mã tỉnh..."
+              className={cn(
+                'w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border focus:outline-none transition-colors',
+                isDarkMode
+                  ? 'bg-[#131B2E] border-[#3E4850]/50 text-white placeholder-slate-500 focus:border-[#89CEFF]'
+                  : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white'
+              )}
+            />
+          </div>
+          <span className={cn('text-xs font-mono', isDarkMode ? 'text-slate-400' : 'text-slate-500')}>
+            {totalElements} Tỉnh/Thành
+          </span>
+        </div>
+      )}
+
       {/* Main Table Content */}
       <div
         className={cn(
@@ -600,6 +639,18 @@ export const RegistrationFeePage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {activeTab === 'fees' && (
+        <AdminPagination
+          currentPage={page}
+          pageSize={pageSize}
+          totalElements={totalElements}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+          isLoading={isLoading}
+        />
+      )}
 
       {/* Modals */}
       <CreateOrEditFeeModal

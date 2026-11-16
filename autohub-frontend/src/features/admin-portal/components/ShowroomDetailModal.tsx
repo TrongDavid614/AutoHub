@@ -19,7 +19,6 @@ import type {
   AdminShowroomDetail,
   CreateDemoCarPayload,
 } from '@/types/showroom.types';
-import type { AdminCarMasterItem } from '@/types/car.types';
 
 interface ShowroomDetailModalProps {
   isOpen: boolean;
@@ -64,8 +63,9 @@ export const ShowroomDetailModal: React.FC<ShowroomDetailModalProps> = ({
       setDemoError(null);
       // Fetch cars for demo car assignment
       adminCarService
-        .getCarMasterList()
-        .then((cars: AdminCarMasterItem[]) => {
+        .getCarMasterList({ size: 100 })
+        .then((paged) => {
+          const cars = paged.items ?? [];
           const list: Array<{ id: number; fullName: string }> = cars.map((c) => ({
             id: c.variantId,
             fullName: `${c.name} - ${c.version}`,

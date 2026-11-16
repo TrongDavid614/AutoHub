@@ -1,19 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Search,
   Star,
-  MapPin,
-  ShieldCheck,
   X,
   List,
   Calendar as CalendarIcon,
+  Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
-import {
-  MOCK_STAFF_TEST_DRIVES,
-  MOCK_DEMO_FLEET,
-  type StaffTestDriveBooking,
-} from '@/features/staff-operations/mocks/staff.mock';
+import { staffService } from '@/features/staff-operations/services/staff.service';
+import type { DemoCarOption, StaffTestDriveBooking } from '@/types/staff.types';
 import { cn } from '@/lib/utils';
 
 export const TestDriveSchedulePage: React.FC = () => {
@@ -21,16 +18,74 @@ export const TestDriveSchedulePage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'table' | 'timeline'>('table');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'CONFIRMED' | 'COMPLETED'>('ALL');
-  const [bookings, setBookings] = useState<StaffTestDriveBooking[]>(MOCK_STAFF_TEST_DRIVES);
+  const [bookings, setBookings] = useState<StaffTestDriveBooking[]>([]);
+  const [demoCars, setDemoCars] = useState<DemoCarOption[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Modals state
   const [dispatchItem, setDispatchItem] = useState<StaffTestDriveBooking | null>(null);
   const [evaluationItem, setEvaluationItem] = useState<StaffTestDriveBooking | null>(null);
-  const [selectedDemoPlate, setSelectedDemoPlate] = useState('51K-992.14');
+  const [selectedDemoPlate, setSelectedDemoPlate] = useState('');
   const [evalRating, setEvalRating] = useState(5);
   const [evalIntent, setEvalIntent] = useState('Rất cao (Dự kiến đặt cọc trong tuần)');
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  const filteredBookings = bookings.filter((b) => {
+  const showToast = (type: 'success' | 'error', message: string) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  const fetchBookings = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const [bookingsData, demoCarsData] = await Promise.all([
+        staffService.getTestDriveBookings(),
+        staffService.getAvailableDemoCars(),
+      ]);
+      setBookings(bookingsData);
+      setDemoCars(demoCarsData);
+      if (demoCarsData.length > 0) {
+        setSelectedDemoPlate((prev) => prev || demoCarsData[0].bienSo);
+      }
+    } catch (err) {
+      console.error('Lỗi tải lịch hẹn lái thử từ database:', err);
+      setError('Không thể tải danh sách lịch hẹn lái thử hoặc xe Demo từ SQL Server.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    Promise.all([
+      staffService.getTestDriveBookings(),
+      staffService.getAvailableDemoCars(),
+    ])
+      .then(([bookingsData, demoCarsData]) => {
+        if (isMounted) {
+          setBookings(bookingsData);
+          setDemoCars(demoCarsData);
+          if (demoCarsData.length > 0) {
+            setSelectedDemoPlate((prev) => prev || demoCarsData[0].bienSo);
+          }
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          console.error('Lỗi tải lịch hẹn lái thử từ database:', err);
+          setError('Không thể tải danh sách lịch hẹn lái thử hoặc xe Demo từ SQL Server.');
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const filteredBookings = (bookings ?? []).filter((b) => {
     const matchStatus = statusFilter === 'ALL' || b.status === statusFilter;
     const matchSearch =
       b.customerName.toLowerCase().includes(search.toLowerCase()) ||
@@ -39,33 +94,49 @@ export const TestDriveSchedulePage: React.FC = () => {
     return matchStatus && matchSearch;
   });
 
-  const handleConfirmDispatch = () => {
+  const handleConfirmDispatch = async () => {
     if (!dispatchItem) return;
-    setBookings((prev) =>
-      prev.map((b) =>
-        b.id === dispatchItem.id
-          ? { ...b, status: 'CONFIRMED' as const, assignedDemoCar: selectedDemoPlate }
-          : b
-      )
-    );
-    setDispatchItem(null);
+    if (!selectedDemoPlate || demoCars.length === 0) {
+      showToast('error', 'Không có xe Demo khả dụng để điều phối!');
+      return;
+    }
+    try {
+      await staffService.dispatchTestDrive(dispatchItem.id, selectedDemoPlate);
+      setBookings((prev) =>
+        prev.map((b) =>
+          b.id === dispatchItem.id
+            ? { ...b, status: 'CONFIRMED' as const, assignedDemoPlate: selectedDemoPlate }
+            : b
+        )
+      );
+      showToast('success', `Đã điều phối xe demo ${selectedDemoPlate} cho ca lái thử ${dispatchItem.bookingCode}!`);
+      setDispatchItem(null);
+    } catch (err) {
+      console.error('Lỗi điều phối xe lái thử:', err);
+      showToast('error', 'Không thể điều phối xe demo. Vui lòng kiểm tra lại!');
+    }
   };
 
-  const handleCompleteEvaluation = () => {
+  const handleCompleteEvaluation = async () => {
     if (!evaluationItem) return;
-    setBookings((prev) =>
-      prev.map((b) =>
-        b.id === evaluationItem.id
-          ? {
-              ...b,
-              status: 'COMPLETED' as const,
-              satisfactionRating: evalRating,
-              customerPurchaseIntent: evalIntent,
-            }
-          : b
-      )
-    );
-    setEvaluationItem(null);
+    try {
+      await staffService.completeTestDrive(evaluationItem.id, {
+        rating: evalRating,
+        intent: evalIntent,
+      });
+      setBookings((prev) =>
+        prev.map((b) =>
+          b.id === evaluationItem.id
+            ? { ...b, status: 'COMPLETED' as const }
+            : b
+        )
+      );
+      showToast('success', `Đã hoàn tất đánh giá và lưu kết quả ca lái thử ${evaluationItem.bookingCode}!`);
+      setEvaluationItem(null);
+    } catch (err) {
+      console.error('Lỗi hoàn tất đánh giá lái thử:', err);
+      showToast('error', 'Không thể lưu đánh giá lái thử. Vui lòng thử lại!');
+    }
   };
 
   return (
@@ -85,452 +156,304 @@ export const TestDriveSchedulePage: React.FC = () => {
         )}
       >
         <div>
-          
           <h1 className={cn('text-xl md:text-2xl font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
-            Điều Phối Xe Demo & Quản Lý Lịch Hẹn Lái Thử Xe
+            Điều Phối & Đánh Giá Ca Lái Thử Showroom (UC21)
           </h1>
           <p className={cn('text-sm mt-0.5', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-            Xác minh cam kết Giấy phép lái xe (GPLX), phân bổ xe Demo khả dụng và ghi nhận biên bản đánh giá trải nghiệm thực tế.
+            Dữ liệu trực tiếp từ SQL Server: Kiểm tra cam kết GPLX, gán biển số xe demo và ghi nhận mức độ hài lòng khách hàng.
           </p>
         </div>
 
-        {/* View mode toggle switch */}
-        <div
-          className={cn(
-            'flex p-1 rounded-lg border w-fit gap-1',
-            isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/50' : 'bg-slate-100 border-slate-200'
-          )}
-        >
+        <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setViewMode('table')}
+            onClick={fetchBookings}
             className={cn(
-              'px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5',
-              viewMode === 'table'
-                ? isDarkMode
-                  ? 'bg-[#171F33] text-[#89CEFF] border border-[#89CEFF]/30'
-                  : 'bg-white text-blue-600 shadow-2xs'
-                : isDarkMode
-                ? 'text-[#88929B] hover:text-white'
-                : 'text-slate-600 hover:text-slate-900'
+              'px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 cursor-pointer transition-colors',
+              isDarkMode
+                ? 'bg-[#131B2E] border-[#3E4850]/50 hover:bg-[#1C2640] text-slate-200'
+                : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-700'
             )}
           >
-            <List className="w-3.5 h-3.5" />
-            <span>Chế độ Bảng</span>
+            <RefreshCw className={cn('w-3.5 h-3.5', isLoading && 'animate-spin')} />
+            Làm mới
           </button>
-          <button
-            type="button"
-            onClick={() => setViewMode('timeline')}
-            className={cn(
-              'px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1.5',
-              viewMode === 'timeline'
-                ? isDarkMode
-                  ? 'bg-[#171F33] text-[#89CEFF] border border-[#89CEFF]/30'
-                  : 'bg-white text-blue-600 shadow-2xs'
-                : isDarkMode
-                ? 'text-[#88929B] hover:text-white'
-                : 'text-slate-600 hover:text-slate-900'
-            )}
-          >
-            <CalendarIcon className="w-3.5 h-3.5" />
-            <span>Chế độ Lịch Biểu</span>
-          </button>
+          <div className="flex bg-slate-100 dark:bg-[#131B2E] p-1 rounded-xl border border-slate-200 dark:border-[#3E4850]/40">
+            <button
+              type="button"
+              onClick={() => setViewMode('table')}
+              className={cn(
+                'px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all',
+                viewMode === 'table' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-500'
+              )}
+            >
+              <List className="w-3.5 h-3.5" /> Dạng Bảng
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('timeline')}
+              className={cn(
+                'px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all',
+                viewMode === 'timeline' ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-500'
+              )}
+            >
+              <CalendarIcon className="w-3.5 h-3.5" /> Timeline
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* 2. Filter Bar */}
-      <div
-        className={cn(
-          'p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors',
-          isDarkMode
-            ? 'bg-[#0B1326] border-[#3E4850]/40 shadow-sm'
-            : 'bg-white border-slate-200 shadow-xs'
-        )}
-      >
-        <div className="flex items-center gap-2">
-          {(['ALL', 'PENDING', 'CONFIRMED', 'COMPLETED'] as const).map((status) => (
+      {/* 2. Filter & Search */}
+      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+        <div className="relative w-full sm:w-96">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Tìm theo mã lịch hẹn, tên khách hoặc mẫu xe..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className={cn(
+              'w-full pl-10 pr-4 py-2.5 rounded-xl border text-xs transition-all focus:outline-none focus:ring-2 focus:ring-blue-500',
+              isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 text-white placeholder-[#88929B]' : 'bg-white border-slate-200'
+            )}
+          />
+        </div>
+
+        <div className="flex bg-slate-100 dark:bg-[#131B2E] p-1 rounded-xl border border-slate-200 dark:border-[#3E4850]/40 text-xs">
+          {(['ALL', 'PENDING', 'CONFIRMED', 'COMPLETED'] as const).map((tab) => (
             <button
-              key={status}
+              key={tab}
               type="button"
-              onClick={() => setStatusFilter(status)}
+              onClick={() => setStatusFilter(tab)}
               className={cn(
-                'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer',
-                statusFilter === status
-                  ? isDarkMode
-                    ? 'bg-[#171F33] text-[#89CEFF] border border-[#89CEFF]/30'
-                    : 'bg-blue-50 text-blue-600 border border-blue-200 shadow-2xs'
-                  : isDarkMode
-                  ? 'text-[#88929B] hover:text-white'
-                  : 'text-slate-500 hover:text-slate-900'
+                'px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer',
+                statusFilter === tab ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-500'
               )}
             >
-              {status === 'ALL'
-                ? 'Tất Cả Lịch Hẹn'
-                : status === 'PENDING'
-                ? 'Chờ Phê Duyệt'
-                : status === 'CONFIRMED'
-                ? 'Đã Gán Xe'
-                : 'Đã Hoàn Tất'}
+              {tab === 'ALL' && 'Tất Cả'}
+              {tab === 'PENDING' && 'Chờ Duyệt'}
+              {tab === 'CONFIRMED' && 'Đã Lên Lịch'}
+              {tab === 'COMPLETED' && 'Đã Hoàn Tất'}
             </button>
           ))}
         </div>
-
-        <div className="relative w-full sm:w-72">
-          <Search
-            className={cn(
-              'w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2',
-              isDarkMode ? 'text-[#88929B]' : 'text-slate-400'
-            )}
-          />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm theo khách, mã hẹn, dòng xe..."
-            className={cn(
-              'w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border outline-none transition-colors',
-              isDarkMode
-                ? 'bg-[#131B2E] border-[#3E4850]/50 text-white placeholder-[#88929B] focus:border-[#89CEFF]'
-                : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-500'
-            )}
-          />
-        </div>
       </div>
 
-      {/* 3. Table or Timeline View */}
-      {viewMode === 'table' ? (
-        <div
-          className={cn(
-            'rounded-xl border overflow-hidden transition-colors',
-            isDarkMode
-              ? 'bg-[#0B1326] border-[#3E4850]/40 shadow-lg'
-              : 'bg-white border-slate-200 shadow-sm'
-          )}
-        >
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead
-                className={cn(
-                  'font-mono uppercase text-[11px] border-b',
-                  isDarkMode ? 'bg-[#131B2E] text-[#88929B] border-[#3E4850]/40' : 'bg-slate-50 text-slate-500 border-slate-200'
-                )}
-              >
-                <tr>
-                  <th className="py-3 px-4">Mã Hẹn</th>
-                  <th className="py-3 px-4">Khách Hàng & SĐT</th>
-                  <th className="py-3 px-4">Mẫu Xe Yêu Cầu</th>
-                  <th className="py-3 px-4">Thời Gian Hẹn</th>
-                  <th className="py-3 px-4">Địa Điểm</th>
-                  <th className="py-3 px-4 text-center">Cam Kết GPLX</th>
-                  <th className="py-3 px-4 text-center">Xe Demo Gán</th>
-                  <th className="py-3 px-4 text-right">Thao Tác</th>
-                </tr>
-              </thead>
-              <tbody className={cn('divide-y font-sans', isDarkMode ? 'divide-[#3E4850]/30' : 'divide-slate-100')}>
-                {filteredBookings.map((b) => (
-                  <tr
-                    key={b.id}
-                    className={cn(
-                      'transition-colors',
-                      isDarkMode ? 'hover:bg-[#131B2E]/60' : 'hover:bg-slate-50'
+      {/* 3. Bookings Table */}
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center p-16 space-y-3">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+          <p className="text-xs font-mono text-slate-400">Đang tải lịch hẹn lái thử từ cơ sở dữ liệu...</p>
+        </div>
+      ) : error ? (
+        <div className={cn('p-10 text-center rounded-xl border space-y-3', isDarkMode ? 'bg-[#0B1326] border-red-900/50 text-red-300' : 'bg-red-50 border-red-200 text-red-700')}>
+          <p className="text-sm font-semibold">{error}</p>
+          <button
+            type="button"
+            onClick={fetchBookings}
+            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold cursor-pointer"
+          >
+            Thử lại
+          </button>
+        </div>
+      ) : filteredBookings.length === 0 ? (
+        <div className={cn('p-12 text-center rounded-xl border text-sm font-mono', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 text-slate-400' : 'bg-white border-slate-200 text-slate-500')}>
+          Không tìm thấy ca lái thử nào trong cơ sở dữ liệu.
+        </div>
+      ) : (
+        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-[#3E4850]/40 shadow-xs">
+          <table className="w-full text-left text-xs">
+            <thead className={cn('font-mono uppercase text-[11px] border-b', isDarkMode ? 'bg-[#131B2E] text-slate-400 border-[#3E4850]/40' : 'bg-slate-50 text-slate-500 border-slate-200')}>
+              <tr>
+                <th className="py-3.5 px-4 font-semibold">Mã Ca Lái Thử</th>
+                <th className="py-3.5 px-4 font-semibold">Khách Hàng</th>
+                <th className="py-3.5 px-4 font-semibold">Mẫu Xe</th>
+                <th className="py-3.5 px-4 font-semibold">Thời Gian Hẹn</th>
+                <th className="py-3.5 px-4 font-semibold">Xe Demo Gán</th>
+                <th className="py-3.5 px-4 font-semibold">Trạng Thái</th>
+                <th className="py-3.5 px-4 font-semibold text-right">Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200 dark:divide-[#3E4850]/30">
+              {filteredBookings.map((b) => (
+                <tr key={b.id} className={cn('hover:bg-slate-50/50 dark:hover:bg-[#131B2E]/50 transition-colors', isDarkMode ? 'bg-[#0B1326]' : 'bg-white')}>
+                  <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-[#89CEFF]">
+                    {b.bookingCode}
+                  </td>
+                  <td className="py-3.5 px-4">
+                    <div className="font-semibold">{b.customerName}</div>
+                    <div className="text-[11px] text-slate-400">{b.phone}</div>
+                  </td>
+                  <td className="py-3.5 px-4 font-semibold">{b.carModel}</td>
+                  <td className="py-3.5 px-4 font-mono">{b.scheduledTime}</td>
+                  <td className="py-3.5 px-4 font-mono">
+                    {b.assignedDemoPlate ? (
+                      <span className="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-300 border border-blue-200 dark:border-blue-800 font-bold">
+                        {b.assignedDemoPlate}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400 italic">Chưa gán xe</span>
                     )}
-                  >
-                    <td className="py-3 px-4 font-mono font-bold text-blue-600 dark:text-[#89CEFF]">
-                      {b.bookingCode}
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className={cn('font-semibold', isDarkMode ? 'text-white' : 'text-slate-900')}>
-                        {b.customerName}
-                      </div>
-                      <div className={cn('text-[11px] font-mono', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-                        {b.customerPhone}
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className={cn('font-medium', isDarkMode ? 'text-white' : 'text-slate-800')}>
-                        {b.carModel}
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 font-mono text-[11px]">{b.preferredTime}</td>
-                    <td className="py-3 px-4">
-                      <span className="inline-flex items-center gap-1 text-[11px]">
-                        <MapPin className="w-3 h-3 text-blue-500" />
-                        <span>{b.locationType === 'SHOWROOM' ? 'Tại Showroom' : 'Tận Nhà Khách'}</span>
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40 font-bold">
-                        <ShieldCheck className="w-3 h-3" />
-                        <span>GPLX Hợp Lệ</span>
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-center font-mono">
-                      {b.assignedDemoCar ? (
-                        <span className="text-[11px] px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/40 font-bold">
-                          {b.assignedDemoCar}
-                        </span>
-                      ) : (
-                        <span className="text-[10px] text-amber-600 dark:text-amber-400 italic">
-                          Chưa gán xe
-                        </span>
+                  </td>
+                  <td className="py-3.5 px-4 font-mono">
+                    <span
+                      className={cn(
+                        'text-[10px] px-2 py-0.5 rounded font-bold uppercase border',
+                        b.status === 'PENDING' && 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200',
+                        b.status === 'CONFIRMED' && 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border-blue-200',
+                        b.status === 'COMPLETED' && 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-200'
                       )}
-                    </td>
-                    <td className="py-3 px-4 text-right">
+                    >
+                      {b.status === 'PENDING' ? 'CHỜ DUYỆT' : b.status === 'CONFIRMED' ? 'ĐÃ LÊN LỊCH' : 'HOÀN TẤT'}
+                    </span>
+                  </td>
+                  <td className="py-3.5 px-4 text-right">
+                    <div className="flex items-center justify-end gap-1.5">
                       {b.status === 'PENDING' && (
                         <button
                           type="button"
                           onClick={() => setDispatchItem(b)}
-                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer shadow-sm"
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
                         >
-                          Gán Xe Demo
+                          Điều Phối Xe
                         </button>
                       )}
                       {b.status === 'CONFIRMED' && (
                         <button
                           type="button"
                           onClick={() => setEvaluationItem(b)}
-                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer shadow-sm"
+                          className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
                         >
-                          Ghi Biên Bản
+                          Đánh Giá Sau Lái
                         </button>
                       )}
                       {b.status === 'COMPLETED' && (
-                        <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-bold">
-                          ✓ Đã Hoàn Tất
-                        </span>
+                        <span className="text-[11px] font-mono text-emerald-500 font-bold">Đã lưu PDI & ODO</span>
                       )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : (
-        /* Timeline View */
-        <div
-          className={cn(
-            'p-5 rounded-xl border space-y-4 transition-colors',
-            isDarkMode
-              ? 'bg-[#0B1326] border-[#3E4850]/40 shadow-lg'
-              : 'bg-white border-slate-200 shadow-sm'
-          )}
-        >
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#3E4850]/40">
-            <span className="text-xs font-mono font-bold text-blue-500 uppercase">
-              Bàn Cờ Phân Làn 3 Xe Demo Tại Showroom (08:00 - 18:00)
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {MOCK_DEMO_FLEET.filter((c) => c.status === 'SAN_SANG').map((car) => (
-              <div
-                key={car.id}
-                className={cn(
-                  'p-4 rounded-xl border space-y-3',
-                  isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/50' : 'bg-slate-50 border-slate-200'
-                )}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-mono font-bold text-xs text-blue-600 dark:text-[#89CEFF] px-2 py-0.5 rounded bg-blue-50 dark:bg-[#171F33] border border-blue-200 dark:border-[#3E4850]/60">
-                    {car.licensePlate}
-                  </span>
-                  <span className="text-[10px] font-mono text-emerald-500 font-bold">SẴN SÀNG</span>
-                </div>
-                <div>
-                  <div className={cn('font-bold text-sm', isDarkMode ? 'text-white' : 'text-slate-900')}>{car.carModel}</div>
-                  <div className={cn('text-xs', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>{car.variant} • {car.color}</div>
-                </div>
-                <div className="pt-2 border-t border-slate-200 dark:border-[#3E4850]/40 space-y-1.5 text-xs">
-                  <div className="flex justify-between text-[11px] font-mono">
-                    <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}>09:30 - 11:00:</span>
-                    <span className="text-emerald-500 font-bold">Khách: Trần Hoàng Nam</span>
-                  </div>
-                  <div className="flex justify-between text-[11px] font-mono">
-                    <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}>14:30 - 16:00:</span>
-                    <span className="text-blue-500 font-bold">Khách: Đặng Quốc Huy</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
-      {/* Modal 1: Gán xe Demo (<DispatchModal>) */}
+      {/* Modal điều phối xe */}
       {dispatchItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div
-            className={cn(
-              'w-full max-w-lg rounded-xl border p-6 space-y-5 shadow-2xl transition-colors',
-              isDarkMode ? 'bg-[#0B1326] border-[#3E4850] text-[#DAE2FD]' : 'bg-white border-slate-200 text-slate-800'
-            )}
-          >
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#3E4850]/40">
-              <div className="space-y-0.5">
-                <span className="text-[10px] font-mono text-blue-500 uppercase font-bold">Điều Phối Xe Demo Lái Thử</span>
-                <h3 className={cn('text-sm font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
-                  Phê Duyệt Lịch Hẹn {dispatchItem.bookingCode}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setDispatchItem(null)}
-                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white"
-              >
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className={cn('w-full max-w-md p-6 rounded-2xl border space-y-4 shadow-2xl', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]' : 'bg-white border-slate-200')}>
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#3E4850]/40">
+              <h3 className={cn('text-base font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
+                Gán Xe Lái Thử Cho {dispatchItem.bookingCode}
+              </h3>
+              <button type="button" onClick={() => setDispatchItem(null)} className="p-1.5 rounded-lg border cursor-pointer border-slate-200">
                 <X className="w-4 h-4" />
               </button>
             </div>
-
-            <div className="space-y-3 text-xs">
-              <div className={cn('p-3 rounded-lg border', isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40' : 'bg-slate-50 border-slate-200')}>
-                <div>Khách hàng: <strong className={isDarkMode ? 'text-white' : 'text-slate-900'}>{dispatchItem.customerName}</strong> ({dispatchItem.customerPhone})</div>
-                <div>Mẫu xe đăng ký: <strong className="text-blue-500">{dispatchItem.carModel}</strong></div>
-                <div>Khung giờ: <strong className="font-mono">{dispatchItem.preferredTime}</strong></div>
-              </div>
-
-              <div className="space-y-2">
-                <label className={cn('block font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
-                  Chọn xe Demo khả dụng tại Showroom:
-                </label>
-                <div className="space-y-2">
-                  {MOCK_DEMO_FLEET.filter((c) => c.status === 'SAN_SANG').map((car) => (
-                    <label
-                      key={car.id}
-                      className={cn(
-                        'flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors',
-                        selectedDemoPlate === car.licensePlate
-                          ? isDarkMode
-                            ? 'bg-[#171F33] border-blue-500 text-white'
-                            : 'bg-blue-50 border-blue-400 text-blue-900'
-                          : isDarkMode
-                          ? 'bg-[#131B2E] border-[#3E4850]/40'
-                          : 'bg-slate-50 border-slate-200'
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="radio"
-                          name="demoCar"
-                          checked={selectedDemoPlate === car.licensePlate}
-                          onChange={() => setSelectedDemoPlate(car.licensePlate)}
-                        />
-                        <div>
-                          <div className="font-bold">{car.carModel} • {car.variant}</div>
-                          <div className={cn('text-[11px] font-mono', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-                            Biển số: {car.licensePlate} • Odo: {car.currentOdoKm.toLocaleString()} km
-                          </div>
-                        </div>
-                      </div>
-                      <span className="text-[10px] font-mono text-emerald-500 font-bold">SAN_SANG</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-3 border-t border-slate-100 dark:border-[#3E4850]/40">
-              <button
-                type="button"
-                onClick={() => setDispatchItem(null)}
-                className="px-4 py-2 rounded-lg text-xs font-semibold cursor-pointer border border-slate-300 dark:border-[#3E4850]/60"
-              >
-                Hủy
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDispatch}
-                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold cursor-pointer transition-colors"
-              >
-                Xác Nhận & Gửi Email Khách
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal 2: Ghi nhận biên bản đánh giá (<EvaluationModal>) */}
-      {evaluationItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div
-            className={cn(
-              'w-full max-w-lg rounded-xl border p-6 space-y-5 shadow-2xl transition-colors',
-              isDarkMode ? 'bg-[#0B1326] border-[#3E4850] text-[#DAE2FD]' : 'bg-white border-slate-200 text-slate-800'
-            )}
-          >
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#3E4850]/40">
-              <div className="space-y-0.5">
-                <span className="text-[10px] font-mono text-emerald-500 uppercase font-bold">Biên Bản Kết Thúc Lái Thử</span>
-                <h3 className={cn('text-sm font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
-                  Ghi Nhận Đánh Giá Khách Hàng ({evaluationItem.customerName})
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setEvaluationItem(null)}
-                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block font-bold mb-1">Mức độ hài lòng của khách (1 - 5 sao):</label>
+                <label className="block text-slate-400 font-bold mb-1">Chọn biển số xe Demo từ Database:</label>
+                {demoCars.length === 0 ? (
+                  <div className="p-3 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-300 text-xs">
+                    Không có xe Demo nào đang hoạt động trong cơ sở dữ liệu.
+                  </div>
+                ) : (
+                  <select
+                    value={selectedDemoPlate}
+                    onChange={(e) => setSelectedDemoPlate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border text-xs bg-white dark:bg-[#131B2E] border-slate-200 dark:border-[#3E4850]"
+                  >
+                    {demoCars.map((car) => (
+                      <option key={car.id} value={car.bienSo}>
+                        {car.bienSo} ({car.model}{car.showroom ? ` - ${car.showroom}` : ''})
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  disabled={!selectedDemoPlate}
+                  onClick={handleConfirmDispatch}
+                  className="px-4 py-2 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer disabled:opacity-50"
+                >
+                  Xác Nhận Xuất Xe Lái Thử
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal đánh giá sau lái thử */}
+      {evaluationItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className={cn('w-full max-w-md p-6 rounded-2xl border space-y-4 shadow-2xl', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]' : 'bg-white border-slate-200')}>
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#3E4850]/40">
+              <h3 className={cn('text-base font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
+                Ghi Nhận Kết Quả Ca Lái Thử {evaluationItem.bookingCode}
+              </h3>
+              <button type="button" onClick={() => setEvaluationItem(null)} className="p-1.5 rounded-lg border cursor-pointer border-slate-200">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-400 font-bold mb-1">Mức độ hài lòng của khách (1 - 5 sao):</label>
                 <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
+                  {[1, 2, 3, 4, 5].map((s) => (
                     <button
-                      key={star}
+                      key={s}
                       type="button"
-                      onClick={() => setEvalRating(star)}
+                      onClick={() => setEvalRating(s)}
                       className={cn(
-                        'p-2 rounded-lg border flex items-center gap-1 font-bold cursor-pointer',
-                        evalRating >= star
-                          ? 'bg-amber-500/20 text-amber-500 border-amber-500/40'
-                          : 'bg-slate-100 dark:bg-[#131B2E] border-slate-200 dark:border-[#3E4850]/40 text-slate-400'
+                        'p-2 rounded-lg border font-bold flex items-center gap-1 cursor-pointer',
+                        evalRating >= s ? 'bg-amber-500 text-white border-amber-500' : 'border-slate-200'
                       )}
                     >
-                      <Star className="w-4 h-4 fill-current" />
-                      <span>{star}</span>
+                      <Star className="w-3.5 h-3.5 fill-current" /> {s}
                     </button>
                   ))}
                 </div>
               </div>
-
               <div>
-                <label className="block font-bold mb-1">Ý định mua xe / Đặt cọc giữ chỗ:</label>
+                <label className="block text-slate-400 font-bold mb-1">Ý định chốt cọc:</label>
                 <select
                   value={evalIntent}
                   onChange={(e) => setEvalIntent(e.target.value)}
-                  className={cn(
-                    'w-full p-2 text-xs rounded-lg border outline-none',
-                    isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/50 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
-                  )}
+                  className="w-full px-3 py-2 rounded-xl border text-xs bg-white dark:bg-[#131B2E] border-slate-200 dark:border-[#3E4850]"
                 >
                   <option value="Rất cao (Dự kiến đặt cọc trong tuần)">Rất cao (Dự kiến đặt cọc trong tuần)</option>
-                  <option value="Trung bình (Cần bàn thêm với gia đình)">Trung bình (Cần bàn thêm với gia đình)</option>
-                  <option value="Thấp (Chưa ưng ý cảm giác lái)">Thấp (Chưa ưng ý cảm giác lái)</option>
+                  <option value="Trung bình (Đang cân nhắc thêm mẫu xe đối thủ)">Trung bình (Đang cân nhắc thêm mẫu xe đối thủ)</option>
+                  <option value="Thấp (Chưa hài lòng cảm giác lái)">Thấp (Chưa hài lòng cảm giác lái)</option>
                 </select>
               </div>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-3 border-t border-slate-100 dark:border-[#3E4850]/40">
-              <button
-                type="button"
-                onClick={() => setEvaluationItem(null)}
-                className="px-4 py-2 rounded-lg text-xs font-semibold cursor-pointer border border-slate-300 dark:border-[#3E4850]/60"
-              >
-                Hủy
-              </button>
-              <button
-                type="button"
-                onClick={handleCompleteEvaluation}
-                className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold cursor-pointer transition-colors"
-              >
-                Hoàn Tất & Trả Xe Demo Về Kho
-              </button>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={handleCompleteEvaluation}
+                  className="px-4 py-2 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+                >
+                  Hoàn Tất & Lưu Biên Bản
+                </button>
+              </div>
             </div>
           </div>
+        </div>
+      )}
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          className={cn(
+            'fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl border shadow-xl flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-bottom-4 duration-200',
+            toast.type === 'success'
+              ? 'bg-emerald-950/90 border-emerald-500/50 text-emerald-200'
+              : 'bg-rose-950/90 border-rose-500/50 text-rose-200'
+          )}
+        >
+          <span>{toast.message}</span>
         </div>
       )}
     </div>

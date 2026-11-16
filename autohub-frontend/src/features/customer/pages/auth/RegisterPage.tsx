@@ -41,8 +41,26 @@ export const RegisterPage: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    if (!fullName.trim() || !phoneNumber.trim() || !email.trim() || !password) {
+    const trimmedFullName = fullName.trim();
+    const trimmedEmail = email.trim().toLowerCase();
+
+    // Chuẩn hóa số điện thoại
+    let cleanPhone = phoneNumber.trim().replace(/[\s.-]/g, '');
+    if (cleanPhone.startsWith('+84')) {
+      cleanPhone = '0' + cleanPhone.slice(3);
+    } else if (cleanPhone.startsWith('84') && cleanPhone.length === 11) {
+      cleanPhone = '0' + cleanPhone.slice(2);
+    } else if (!cleanPhone.startsWith('0') && cleanPhone.length === 9) {
+      cleanPhone = '0' + cleanPhone;
+    }
+
+    if (!trimmedFullName || !cleanPhone || !trimmedEmail || !password) {
       setError('Vui lòng điền đầy đủ các thông tin bắt buộc (*)');
+      return;
+    }
+
+    if (!/^0[35789]\d{8}$/.test(cleanPhone)) {
+      setError('Số điện thoại không hợp lệ. Vui lòng nhập 10 chữ số (đầu số 03, 05, 07, 08, 09).');
       return;
     }
 
@@ -63,22 +81,23 @@ export const RegisterPage: React.FC = () => {
 
     try {
       setIsSubmitting(true);
-      const user = await authService.register({
-        fullName,
-        phoneNumber,
-        email,
+      const res = await authService.register({
+        fullName: trimmedFullName,
+        phoneNumber: cleanPhone,
+        email: trimmedEmail,
         password,
         agreeTerms,
         receiveMarketing,
       });
 
-      // Auto login user into store
-      login(`jwt_mock_token_${Date.now()}`, user);
+      // Auto login user into store with real JWT token
+      login(res.accessToken, res.user);
       setIsSubmitting(false);
-      navigate(`/auth/register-success?name=${encodeURIComponent(fullName)}&email=${encodeURIComponent(email)}`);
-    } catch {
+      navigate(`/auth/register-success?name=${encodeURIComponent(trimmedFullName)}&email=${encodeURIComponent(trimmedEmail)}`);
+    } catch (err: unknown) {
       setIsSubmitting(false);
-      setError('Có lỗi xảy ra trong quá trình đăng ký. Vui lòng thử lại.');
+      const apiError = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      setError(apiError || 'Có lỗi xảy ra trong quá trình đăng ký. Vui lòng thử lại.');
     }
   };
 

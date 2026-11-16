@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   CalendarDays,
   Clock,
@@ -17,589 +17,359 @@ import {
   Sparkles,
   Trash2,
   Phone,
+  RefreshCw,
+  AlertCircle,
+  Sliders,
+  Check,
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
 import { cn } from '@/lib/utils';
+import { adminStaffScheduleService } from '@/features/admin-portal/services/admin-staff-schedule.service';
+import { adminShowroomService } from '@/features/admin-portal/services/admin-showroom.service';
+import type {
+  ShiftType,
+  StaffMember,
+  ShiftAssignment,
+  SwapRequest,
+  StaffScheduleStats,
+  AutoScheduleResult,
+} from '@/types/staff-schedule.types';
 
-export type ShiftType = 'MORNING' | 'AFTERNOON' | 'FULL_DAY';
-export type StaffRoleCategory = 'SALES' | 'TEST_DRIVE' | 'WAREHOUSE' | 'SUPERVISOR';
-export type ShiftStatus = 'CONFIRMED' | 'IN_PROGRESS' | 'PENDING_CONFIRMATION' | 'LEAVE_REQUESTED';
-
-export interface StaffMember {
-  id: string;
-  name: string;
-  phone: string;
-  role: StaffRoleCategory;
-  roleLabel: string;
-  showroomId: string;
-  showroomName: string;
-  avatarColor: string;
+// ==================== DATE HELPER FUNCTIONS ====================
+function getMonday(d: Date): Date {
+  const date = new Date(d);
+  const day = date.getDay();
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+  const monday = new Date(date.setDate(diff));
+  monday.setHours(0, 0, 0, 0);
+  return monday;
 }
 
-export interface ShiftAssignment {
-  id: string;
-  staffId: string;
-  staffName: string;
-  staffCode: string;
-  role: StaffRoleCategory;
-  roleLabel: string;
-  showroomId: string;
-  showroomName: string;
-  dayOfWeek: number; // 0: Thứ 2, 1: Thứ 3, ..., 6: Chủ Nhật
-  dateString: string; // "27/10/2026"
-  shiftType: ShiftType;
-  shiftHours: string;
-  specificTask: string;
-  status: ShiftStatus;
-  notes?: string;
+function getWeekNumber(d: Date): number {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  return Math.ceil(((date.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 }
 
-export interface SwapRequest {
-  id: string;
-  requesterName: string;
-  requesterCode: string;
-  currentDate: string;
-  currentShift: string;
-  targetStaffName: string;
-  targetStaffCode: string;
-  targetDate: string;
-  targetShift: string;
-  reason: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+function formatDDMMYYYY(d: Date): string {
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
 }
 
-const SHOWROOMS = [
-  { id: 'ALL', name: 'Toàn Hệ Thống Showroom' },
-  { id: 'SR-HCM-01', name: 'Sài Gòn Central (Q.7)' },
-  { id: 'SR-HN-01', name: 'Cầu Giấy (Hà Nội)' },
-  { id: 'SR-DN-01', name: 'Đà Nẵng Riverside' },
+function formatYYYYMMDD(d: Date): string {
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${year}-${month}-${day}`;
+}
+
+const DAY_LABELS = [
+  'Thứ Hai',
+  'Thứ Ba',
+  'Thứ Tư',
+  'Thứ Năm',
+  'Thứ Sáu',
+  'Thứ Bảy',
+  'Chủ Nhật',
 ];
 
-const STAFF_LIST: StaffMember[] = [
+// Fallback initial data if offline
+const FALLBACK_SHOWROOMS = [
+  { id: 'ALL', numericId: 0, name: 'Toàn Hệ Thống Showroom' },
+  { id: 'SR-1', numericId: 1, name: 'AutoHub Mỹ Đình (Hà Nội)' },
+  { id: 'SR-2', numericId: 2, name: 'AutoHub Sài Gòn Central (Q.7)' },
+  { id: 'SR-3', numericId: 3, name: 'AutoHub Cẩm Lệ (Đà Nẵng)' },
+];
+
+const FALLBACK_STAFF: StaffMember[] = [
   {
     id: 'STF-001',
+    numericId: 1,
     name: 'Nguyễn Quản Trị',
     phone: '0912.000.999',
     role: 'SUPERVISOR',
     roleLabel: 'Giám Sát Vận Hành',
-    showroomId: 'SR-HCM-01',
-    showroomName: 'Sài Gòn Central (Q.7)',
+    showroomId: 'SR-2',
+    showroomName: 'AutoHub Sài Gòn Central (Q.7)',
     avatarColor: 'bg-emerald-600',
   },
   {
     id: 'STF-002',
+    numericId: 2,
     name: 'Lê Quốc Bảo',
     phone: '0908.112.233',
     role: 'SALES',
     roleLabel: 'Tư Vấn Bán Hàng',
-    showroomId: 'SR-HCM-01',
-    showroomName: 'Sài Gòn Central (Q.7)',
+    showroomId: 'SR-2',
+    showroomName: 'AutoHub Sài Gòn Central (Q.7)',
     avatarColor: 'bg-blue-600',
   },
   {
     id: 'STF-003',
+    numericId: 3,
     name: 'Phạm Hoàng Nam',
     phone: '0933.445.566',
     role: 'TEST_DRIVE',
     roleLabel: 'Điều Phối Lái Thử',
-    showroomId: 'SR-HCM-01',
-    showroomName: 'Sài Gòn Central (Q.7)',
+    showroomId: 'SR-2',
+    showroomName: 'AutoHub Sài Gòn Central (Q.7)',
     avatarColor: 'bg-cyan-600',
   },
   {
     id: 'STF-004',
+    numericId: 4,
     name: 'Nguyễn Văn Tuấn',
     phone: '0988.123.456',
     role: 'SUPERVISOR',
     roleLabel: 'Trưởng Ca Showroom',
-    showroomId: 'SR-HCM-01',
-    showroomName: 'Sài Gòn Central (Q.7)',
+    showroomId: 'SR-1',
+    showroomName: 'AutoHub Mỹ Đình (Hà Nội)',
     avatarColor: 'bg-indigo-600',
   },
   {
     id: 'STF-005',
+    numericId: 5,
     name: 'Đặng Minh Khôi',
     phone: '0977.334.455',
     role: 'WAREHOUSE',
     roleLabel: 'Kho & Đóng Gói Phụ Kiện',
-    showroomId: 'SR-HCM-01',
-    showroomName: 'Sài Gòn Central (Q.7)',
+    showroomId: 'SR-2',
+    showroomName: 'AutoHub Sài Gòn Central (Q.7)',
     avatarColor: 'bg-amber-600',
   },
   {
     id: 'STF-006',
+    numericId: 6,
     name: 'Trần Thị Thu Hà',
     phone: '0977.888.999',
     role: 'SALES',
     roleLabel: 'Tư Vấn Bán Hàng',
-    showroomId: 'SR-HN-01',
-    showroomName: 'Cầu Giấy (Hà Nội)',
+    showroomId: 'SR-1',
+    showroomName: 'AutoHub Mỹ Đình (Hà Nội)',
     avatarColor: 'bg-rose-600',
   },
   {
     id: 'STF-007',
+    numericId: 7,
     name: 'Vũ Hải Đăng',
     phone: '0966.777.888',
     role: 'TEST_DRIVE',
     roleLabel: 'Điều Phối Lái Thử',
-    showroomId: 'SR-HN-01',
-    showroomName: 'Cầu Giấy (Hà Nội)',
+    showroomId: 'SR-1',
+    showroomName: 'AutoHub Mỹ Đình (Hà Nội)',
     avatarColor: 'bg-teal-600',
   },
   {
     id: 'STF-008',
+    numericId: 8,
     name: 'Hoàng Gia Bảo',
     phone: '0919.223.344',
     role: 'SALES',
     roleLabel: 'Tư Vấn Bán Hàng',
-    showroomId: 'SR-DN-01',
-    showroomName: 'Đà Nẵng Riverside',
+    showroomId: 'SR-3',
+    showroomName: 'AutoHub Cẩm Lệ (Đà Nẵng)',
     avatarColor: 'bg-violet-600',
   },
   {
     id: 'STF-009',
+    numericId: 9,
     name: 'Bùi Phương Thảo',
     phone: '0944.556.677',
     role: 'WAREHOUSE',
     roleLabel: 'Kho & Bàn Giao Xe',
-    showroomId: 'SR-DN-01',
-    showroomName: 'Đà Nẵng Riverside',
+    showroomId: 'SR-3',
+    showroomName: 'AutoHub Cẩm Lệ (Đà Nẵng)',
     avatarColor: 'bg-pink-600',
-  },
-];
-
-const WEEK_DAYS = [
-  { index: 0, label: 'Thứ Hai', dateStr: '27/10/2026' },
-  { index: 1, label: 'Thứ Ba', dateStr: '28/10/2026' },
-  { index: 2, label: 'Thứ Tư', dateStr: '29/10/2026' },
-  { index: 3, label: 'Thứ Năm', dateStr: '30/10/2026' },
-  { index: 4, label: 'Thứ Sáu', dateStr: '31/10/2026' },
-  { index: 5, label: 'Thứ Bảy', dateStr: '01/11/2026' },
-  { index: 6, label: 'Chủ Nhật', dateStr: '02/11/2026' },
-];
-
-const INITIAL_SHIFTS: ShiftAssignment[] = [
-  // Thứ 2
-  {
-    id: 'SH-001',
-    staffId: 'STF-004',
-    staffName: 'Nguyễn Văn Tuấn',
-    staffCode: 'STF-004',
-    role: 'SUPERVISOR',
-    roleLabel: 'Trưởng Ca',
-    showroomId: 'SR-HCM-01',
-    showroomName: 'Sài Gòn Central',
-    dayOfWeek: 0,
-    dateString: '27/10/2026',
-    shiftType: 'MORNING',
-    shiftHours: '08:00 - 15:00',
-    specificTask: 'Điều phối mở cửa showroom, bàn giao tủ khóa Demo',
-    status: 'CONFIRMED',
-  },
-  {
-    id: 'SH-002',
-    staffId: 'STF-002',
-    staffName: 'Lê Quốc Bảo',
-    staffCode: 'STF-002',
-    role: 'SALES',
-    roleLabel: 'Tư Vấn Khách',
-    showroomId: 'SR-HCM-01',
-    showroomName: 'Sài Gòn Central',
-    dayOfWeek: 0,
-    dateString: '27/10/2026',
-    shiftType: 'MORNING',
-    shiftHours: '08:00 - 15:00',
-    specificTask: 'Tiếp đón khách tham quan showroom & cọc giữ chỗ 72h',
-    status: 'CONFIRMED',
-  },
-  {
-    id: 'SH-003',
-    staffId: 'STF-003',
-    staffName: 'Phạm Hoàng Nam',
-    staffCode: 'STF-003',
-    role: 'TEST_DRIVE',
-    roleLabel: 'Lái Thử Xe',
-    showroomId: 'SR-HCM-01',
-    showroomName: 'Sài Gòn Central',
-    dayOfWeek: 0,
-    dateString: '27/10/2026',
-    shiftType: 'AFTERNOON',
-    shiftHours: '14:30 - 21:00',
-    specificTask: 'Phụ trách 4 lượt trải nghiệm GT-e & VF8',
-    status: 'CONFIRMED',
-  },
-  {
-    id: 'SH-004',
-    staffId: 'STF-005',
-    staffName: 'Đặng Minh Khôi',
-    staffCode: 'STF-005',
-    role: 'WAREHOUSE',
-    roleLabel: 'Kho Phụ Kiện',
-    showroomId: 'SR-HCM-01',
-    showroomName: 'Sài Gòn Central',
-    dayOfWeek: 0,
-    dateString: '27/10/2026',
-    shiftType: 'FULL_DAY',
-    shiftHours: '08:30 - 17:30',
-    specificTask: 'Kiểm kê sạc 800V SiC & đóng gói 18 kiện xuất kho',
-    status: 'CONFIRMED',
-  },
-
-  // Thứ 3
-  {
-    id: 'SH-005',
-    staffId: 'STF-002',
-    staffName: 'Lê Quốc Bảo',
-    staffCode: 'STF-002',
-    role: 'SALES',
-    roleLabel: 'Tư Vấn Khách',
-    showroomId: 'SR-HCM-01',
-    showroomName: 'Sài Gòn Central',
-    dayOfWeek: 1,
-    dateString: '28/10/2026',
-    shiftType: 'MORNING',
-    shiftHours: '08:00 - 15:00',
-    specificTask: 'Tư vấn hợp đồng tài chính mua trả góp cho khách',
-    status: 'CONFIRMED',
-  },
-  {
-    id: 'SH-006',
-    staffId: 'STF-004',
-    staffName: 'Nguyễn Văn Tuấn',
-    staffCode: 'STF-004',
-    role: 'SUPERVISOR',
-    roleLabel: 'Trưởng Ca',
-    showroomId: 'SR-HCM-01',
-    showroomName: 'Sài Gòn Central',
-    dayOfWeek: 1,
-    dateString: '28/10/2026',
-    shiftType: 'AFTERNOON',
-    shiftHours: '14:30 - 21:00',
-    specificTask: 'Trực POS thanh toán cọc xe & bàn giao biên bản cuối ngày',
-    status: 'CONFIRMED',
-  },
-  {
-    id: 'SH-007',
-    staffId: 'STF-006',
-    staffName: 'Trần Thị Thu Hà',
-    staffCode: 'STF-006',
-    role: 'SALES',
-    roleLabel: 'Tư Vấn Khách',
-    showroomId: 'SR-HN-01',
-    showroomName: 'Cầu Giấy (Hà Nội)',
-    dayOfWeek: 1,
-    dateString: '28/10/2026',
-    shiftType: 'FULL_DAY',
-    shiftHours: '08:30 - 17:30',
-    specificTask: 'Tiếp khách showroom miền Bắc & đối soát cọc VIN',
-    status: 'CONFIRMED',
-  },
-
-  // Thứ 4 (Hôm nay)
-  {
-    id: 'SH-008',
-    staffId: 'STF-003',
-    staffName: 'Phạm Hoàng Nam',
-    staffCode: 'STF-003',
-    role: 'TEST_DRIVE',
-    roleLabel: 'Lái Thử Xe',
-    showroomId: 'SR-HCM-01',
-    showroomName: 'Sài Gòn Central',
-    dayOfWeek: 2,
-    dateString: '29/10/2026',
-    shiftType: 'MORNING',
-    shiftHours: '08:00 - 15:00',
-    specificTask: 'Kiểm tra pin, áp suất lốp 4 xe demo trước giờ lái thử',
-    status: 'IN_PROGRESS',
-  },
-  {
-    id: 'SH-009',
-    staffId: 'STF-004',
-    staffName: 'Nguyễn Văn Tuấn',
-    staffCode: 'STF-004',
-    role: 'SUPERVISOR',
-    roleLabel: 'Trưởng Ca',
-    showroomId: 'SR-HCM-01',
-    showroomName: 'Sài Gòn Central',
-    dayOfWeek: 2,
-    dateString: '29/10/2026',
-    shiftType: 'MORNING',
-    shiftHours: '08:00 - 15:00',
-    specificTask: 'Giám sát điều phối nhân sự tiếp nhận lead tư vấn',
-    status: 'IN_PROGRESS',
-  },
-  {
-    id: 'SH-010',
-    staffId: 'STF-002',
-    staffName: 'Lê Quốc Bảo',
-    staffCode: 'STF-002',
-    role: 'SALES',
-    roleLabel: 'Tư Vấn Khách',
-    showroomId: 'SR-HCM-01',
-    showroomName: 'Sài Gòn Central',
-    dayOfWeek: 2,
-    dateString: '29/10/2026',
-    shiftType: 'AFTERNOON',
-    shiftHours: '14:30 - 21:00',
-    specificTask: 'Bàn giao ca trực chiều, tiếp nhận khách VIP',
-    status: 'PENDING_CONFIRMATION',
-  },
-  {
-    id: 'SH-011',
-    staffId: 'STF-007',
-    staffName: 'Vũ Hải Đăng',
-    staffCode: 'STF-007',
-    role: 'TEST_DRIVE',
-    roleLabel: 'Lái Thử Xe',
-    showroomId: 'SR-HN-01',
-    showroomName: 'Cầu Giấy (Hà Nội)',
-    dayOfWeek: 2,
-    dateString: '29/10/2026',
-    shiftType: 'AFTERNOON',
-    shiftHours: '14:30 - 21:00',
-    specificTask: 'Hỗ trợ khách lái thử tuyến đường cao tốc Nhật Tân',
-    status: 'CONFIRMED',
-  },
-
-  // Thứ 5
-  {
-    id: 'SH-012',
-    staffId: 'STF-005',
-    staffName: 'Đặng Minh Khôi',
-    staffCode: 'STF-005',
-    role: 'WAREHOUSE',
-    roleLabel: 'Kho Phụ Kiện',
-    showroomId: 'SR-HCM-01',
-    showroomName: 'Sài Gòn Central',
-    dayOfWeek: 3,
-    dateString: '30/10/2026',
-    shiftType: 'FULL_DAY',
-    shiftHours: '08:30 - 17:30',
-    specificTask: 'Soạn đơn giao hàng COD phụ kiện & kiểm định tem chống giả',
-    status: 'CONFIRMED',
-  },
-  {
-    id: 'SH-013',
-    staffId: 'STF-008',
-    staffName: 'Hoàng Gia Bảo',
-    staffCode: 'STF-008',
-    role: 'SALES',
-    roleLabel: 'Tư Vấn Khách',
-    showroomId: 'SR-DN-01',
-    showroomName: 'Đà Nẵng Riverside',
-    dayOfWeek: 3,
-    dateString: '30/10/2026',
-    shiftType: 'MORNING',
-    shiftHours: '08:00 - 15:00',
-    specificTask: 'Tiếp đón khách ký hợp đồng cọc xe VIN 72h',
-    status: 'CONFIRMED',
-  },
-
-  // Thứ 6
-  {
-    id: 'SH-014',
-    staffId: 'STF-002',
-    staffName: 'Lê Quốc Bảo',
-    staffCode: 'STF-002',
-    role: 'SALES',
-    roleLabel: 'Tư Vấn Khách',
-    showroomId: 'SR-HCM-01',
-    showroomName: 'Sài Gòn Central',
-    dayOfWeek: 4,
-    dateString: '31/10/2026',
-    shiftType: 'MORNING',
-    shiftHours: '08:00 - 15:00',
-    specificTask: 'Tư vấn dự toán lăn bánh và đối soát voucher cho khách',
-    status: 'CONFIRMED',
-  },
-  {
-    id: 'SH-015',
-    staffId: 'STF-003',
-    staffName: 'Phạm Hoàng Nam',
-    staffCode: 'STF-003',
-    role: 'TEST_DRIVE',
-    roleLabel: 'Lái Thử Xe',
-    showroomId: 'SR-HCM-01',
-    showroomName: 'Sài Gòn Central',
-    dayOfWeek: 4,
-    dateString: '31/10/2026',
-    shiftType: 'AFTERNOON',
-    shiftHours: '14:30 - 21:00',
-    specificTask: 'Hỗ trợ khách hàng test tính năng sạc nhanh 800V',
-    status: 'CONFIRMED',
-  },
-
-  // Thứ 7 (Cuối tuần cao điểm)
-  {
-    id: 'SH-016',
-    staffId: 'STF-004',
-    staffName: 'Nguyễn Văn Tuấn',
-    staffCode: 'STF-004',
-    role: 'SUPERVISOR',
-    roleLabel: 'Trưởng Ca',
-    showroomId: 'SR-HCM-01',
-    showroomName: 'Sài Gòn Central',
-    dayOfWeek: 5,
-    dateString: '01/11/2026',
-    shiftType: 'FULL_DAY',
-    shiftHours: '08:00 - 21:00',
-    specificTask: 'Trực cao điểm cuối tuần, đón tiếp đoàn khách sự kiện lái thử',
-    status: 'CONFIRMED',
-  },
-  {
-    id: 'SH-017',
-    staffId: 'STF-002',
-    staffName: 'Lê Quốc Bảo',
-    staffCode: 'STF-002',
-    role: 'SALES',
-    roleLabel: 'Tư Vấn Khách',
-    showroomId: 'SR-HCM-01',
-    showroomName: 'Sài Gòn Central',
-    dayOfWeek: 5,
-    dateString: '01/11/2026',
-    shiftType: 'MORNING',
-    shiftHours: '08:00 - 15:00',
-    specificTask: 'Hỗ trợ sự kiện ra mắt gói phụ kiện bảo hành mở rộng',
-    status: 'CONFIRMED',
-  },
-  {
-    id: 'SH-018',
-    staffId: 'STF-003',
-    staffName: 'Phạm Hoàng Nam',
-    staffCode: 'STF-003',
-    role: 'TEST_DRIVE',
-    roleLabel: 'Lái Thử Xe',
-    showroomId: 'SR-HCM-01',
-    showroomName: 'Sài Gòn Central',
-    dayOfWeek: 5,
-    dateString: '01/11/2026',
-    shiftType: 'AFTERNOON',
-    shiftHours: '14:30 - 21:00',
-    specificTask: 'Đồng hành 6 lượt lái thử xe demo GT-e',
-    status: 'CONFIRMED',
-  },
-
-  // Chủ Nhật
-  {
-    id: 'SH-019',
-    staffId: 'STF-005',
-    staffName: 'Đặng Minh Khôi',
-    staffCode: 'STF-005',
-    role: 'WAREHOUSE',
-    roleLabel: 'Kho Phụ Kiện',
-    showroomId: 'SR-HCM-01',
-    showroomName: 'Sài Gòn Central',
-    dayOfWeek: 6,
-    dateString: '02/11/2026',
-    shiftType: 'MORNING',
-    shiftHours: '08:00 - 15:00',
-    specificTask: 'Bàn giao phụ kiện lắp đặt trực tiếp tại xưởng dịch vụ',
-    status: 'CONFIRMED',
-  },
-  {
-    id: 'SH-020',
-    staffId: 'STF-002',
-    staffName: 'Lê Quốc Bảo',
-    staffCode: 'STF-002',
-    role: 'SALES',
-    roleLabel: 'Tư Vấn Khách',
-    showroomId: 'SR-HCM-01',
-    showroomName: 'Sài Gòn Central',
-    dayOfWeek: 6,
-    dateString: '02/11/2026',
-    shiftType: 'AFTERNOON',
-    shiftHours: '14:30 - 21:00',
-    specificTask: 'Tổng kết doanh số tuần và báo cáo hợp đồng cọc giữ xe',
-    status: 'CONFIRMED',
-  },
-];
-
-const INITIAL_SWAP_REQUESTS: SwapRequest[] = [
-  {
-    id: 'SW-101',
-    requesterName: 'Lê Quốc Bảo',
-    requesterCode: 'STF-002',
-    currentDate: '29/10/2026',
-    currentShift: 'Ca Chiều (14:30 - 21:00)',
-    targetStaffName: 'Phạm Hoàng Nam',
-    targetStaffCode: 'STF-003',
-    targetDate: '30/10/2026',
-    targetShift: 'Ca Sáng (08:00 - 15:00)',
-    reason: 'Có lịch đón gia đình từ quê lên bến xe miền Đông lúc 16h',
-    status: 'PENDING',
-  },
-  {
-    id: 'SW-102',
-    requesterName: 'Vũ Hải Đăng',
-    requesterCode: 'STF-007',
-    currentDate: '31/10/2026',
-    currentShift: 'Ca Chiều (14:30 - 21:00)',
-    targetStaffName: 'Trần Thị Thu Hà',
-    targetStaffCode: 'STF-006',
-    targetDate: '01/11/2026',
-    targetShift: 'Ca Sáng (08:00 - 15:00)',
-    reason: 'Tham gia lớp tập huấn chứng chỉ an toàn pin điện cao áp EV',
-    status: 'PENDING',
   },
 ];
 
 export const StaffSchedulePage: React.FC = () => {
   const { isDarkMode } = useAdminTheme();
 
-  // State management
-  const [shifts, setShifts] = useState<ShiftAssignment[]>(INITIAL_SHIFTS);
-  const [swapRequests, setSwapRequests] = useState<SwapRequest[]>(INITIAL_SWAP_REQUESTS);
+  // Week Reference State (tracks actual Monday of the active week)
+  const [currentMonday, setCurrentMonday] = useState<Date>(() => getMonday(new Date()));
+
+  // Active dates in the week
+  const weekDays = useMemo(() => {
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(currentMonday);
+      d.setDate(currentMonday.getDate() + i);
+      const isToday = formatYYYYMMDD(d) === formatYYYYMMDD(new Date());
+      return {
+        index: i,
+        label: DAY_LABELS[i],
+        dateStr: formatDDMMYYYY(d),
+        isoDate: formatYYYYMMDD(d),
+        isToday,
+      };
+    });
+  }, [currentMonday]);
+
+  const currentWeekNumber = useMemo(() => getWeekNumber(currentMonday), [currentMonday]);
+
+  // Main Data States
+  const [shifts, setShifts] = useState<ShiftAssignment[]>([]);
+  const [swapRequests, setSwapRequests] = useState<SwapRequest[]>([]);
+  const [staffList, setStaffList] = useState<StaffMember[]>(FALLBACK_STAFF);
+  const [showrooms, setShowrooms] = useState<{ id: string; numericId: number; name: string }[]>(FALLBACK_SHOWROOMS);
+  const [stats, setStats] = useState<StaffScheduleStats>({
+    totalShiftsThisWeek: 0,
+    testDriveShifts: 0,
+    warehouseShifts: 0,
+    salesShifts: 0,
+    supervisorShifts: 0,
+    pendingSwapRequests: 0,
+    coverageRate: '100% Đạt chỉ tiêu',
+    activeStaffCount: 0,
+  });
+
+  // Loading & Filter States
+  const [loading, setLoading] = useState<boolean>(true);
   const [selectedShowroom, setSelectedShowroom] = useState<string>('ALL');
   const [selectedShiftTypeFilter, setSelectedShiftTypeFilter] = useState<string>('ALL');
   const [selectedRoleFilter, setSelectedRoleFilter] = useState<string>('ALL');
   const [searchKeyword, setSearchKeyword] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'WEEK_MATRIX' | 'SWAP_REQUESTS'>('WEEK_MATRIX');
-  const [currentWeekIndex, setCurrentWeekIndex] = useState<number>(44); // Tuần 44
-
-  // Modal State
-  const [selectedShiftDetail, setSelectedShiftDetail] = useState<ShiftAssignment | null>(null);
-
-  const staffWeekShifts = useMemo(() => {
-    if (!selectedShiftDetail) return [];
-    return shifts.filter((s) => s.staffId === selectedShiftDetail.staffId);
-  }, [shifts, selectedShiftDetail]);
-
-  const staffInfo = useMemo(() => {
-    if (!selectedShiftDetail) return null;
-    return STAFF_LIST.find((s) => s.id === selectedShiftDetail.staffId);
-  }, [selectedShiftDetail]);
-
-  const [showAssignModal, setShowAssignModal] = useState<boolean>(false);
-  const [modalTargetDay, setModalTargetDay] = useState<number>(0);
-  const [selectedStaffForAssign, setSelectedStaffForAssign] = useState<string>(STAFF_LIST[1].id);
-  const [selectedShiftTypeForAssign, setSelectedShiftTypeForAssign] = useState<ShiftType>('MORNING');
-  const [selectedShowroomForAssign, setSelectedShowroomForAssign] = useState<string>('SR-HCM-01');
-  const [taskNoteForAssign, setTaskNoteForAssign] = useState<string>('');
 
   // Toast feedback state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastType, setToastType] = useState<'SUCCESS' | 'ERROR'>('SUCCESS');
 
-  const showToast = (msg: string) => {
+  const showToast = (msg: string, type: 'SUCCESS' | 'ERROR' = 'SUCCESS') => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
+    setToastType(type);
+    setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // Filtered shifts
+  // Modals
+  const [selectedShiftDetail, setSelectedShiftDetail] = useState<ShiftAssignment | null>(null);
+  const [showAssignModal, setShowAssignModal] = useState<boolean>(false);
+  const [modalTargetDay, setModalTargetDay] = useState<number>(0);
+  const [selectedStaffForAssign, setSelectedStaffForAssign] = useState<string>('');
+  const [selectedShiftTypeForAssign, setSelectedShiftTypeForAssign] = useState<ShiftType>('MORNING');
+  const [selectedShowroomForAssign, setSelectedShowroomForAssign] = useState<number>(1);
+  const [taskNoteForAssign, setTaskNoteForAssign] = useState<string>('');
+
+  // Auto Schedule Modal
+  const [showAutoScheduleModal, setShowAutoScheduleModal] = useState<boolean>(false);
+  const [autoScheduleTargetShowroom, setAutoScheduleTargetShowroom] = useState<number>(0); // 0 = all
+  const [autoScheduleStrategy, setAutoScheduleStrategy] = useState<'BALANCED' | 'WEEKEND_HEAVY'>('BALANCED');
+  const [autoScheduleMaxShifts, setAutoScheduleMaxShifts] = useState<number>(5);
+  const [isExecutingAutoSchedule, setIsExecutingAutoSchedule] = useState<boolean>(false);
+  const [lastAutoResult, setLastAutoResult] = useState<AutoScheduleResult | null>(null);
+
+  // Load Showrooms & Staff Roster on Mount
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadMeta() {
+      try {
+        const [srList, stList] = await Promise.allSettled([
+          adminShowroomService.getShowrooms({ size: 100 }),
+          adminStaffScheduleService.getStaffOptions(),
+        ]);
+
+        if (!isMounted) return;
+
+        if (srList.status === 'fulfilled') {
+          const showroomItems = srList.value.items || srList.value.content || [];
+          if (showroomItems.length > 0) {
+            const mapped = [
+              { id: 'ALL', numericId: 0, name: 'Toàn Hệ Thống Showroom' },
+              ...showroomItems.map((s) => ({
+                id: `SR-${s.id}`,
+                numericId: s.id,
+                name: s.name,
+              })),
+            ];
+            setShowrooms(mapped);
+            if (showroomItems[0]?.id) {
+              setSelectedShowroomForAssign(showroomItems[0].id);
+            }
+          }
+        }
+
+        if (stList.status === 'fulfilled' && stList.value.length > 0) {
+          setStaffList(stList.value);
+          setSelectedStaffForAssign(stList.value[0]?.id || '');
+        } else {
+          setSelectedStaffForAssign(FALLBACK_STAFF[0]?.id || '');
+        }
+      } catch (err) {
+        console.warn('Using fallback showroom and staff metadata:', err);
+      }
+    }
+
+    loadMeta();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Fetch Schedules, Stats & Swap Requests for Current Week
+  const loadWeekData = useCallback(async () => {
+    setLoading(true);
+    const startDateStr = formatYYYYMMDD(currentMonday);
+    const endDateStr = formatYYYYMMDD(new Date(currentMonday.getTime() + 6 * 86400000));
+
+    const selectedShowroomObj = showrooms.find((s) => s.id === selectedShowroom);
+    const showroomIdParam = selectedShowroomObj && selectedShowroomObj.numericId > 0 ? selectedShowroomObj.numericId : null;
+
+    try {
+      const [schedRes, statsRes, swapsRes] = await Promise.allSettled([
+        adminStaffScheduleService.getSchedules({
+          showroomId: showroomIdParam,
+          startDate: startDateStr,
+          endDate: endDateStr,
+          shiftType: selectedShiftTypeFilter !== 'ALL' ? selectedShiftTypeFilter : undefined,
+          role: selectedRoleFilter !== 'ALL' ? selectedRoleFilter : undefined,
+          keyword: searchKeyword.trim() || undefined,
+        }),
+        adminStaffScheduleService.getStats({
+          showroomId: showroomIdParam,
+          startDate: startDateStr,
+          endDate: endDateStr,
+        }),
+        adminStaffScheduleService.getSwapRequests(),
+      ]);
+
+      if (schedRes.status === 'fulfilled') {
+        setShifts(schedRes.value);
+      }
+      if (statsRes.status === 'fulfilled') {
+        setStats(statsRes.value);
+      }
+      if (swapsRes.status === 'fulfilled') {
+        setSwapRequests(swapsRes.value);
+      }
+    } catch (err) {
+      console.error('Error fetching weekly staff schedule:', err);
+      showToast('Không thể kết nối đến máy chủ. Đang hiển thị bản nháp tạm.', 'ERROR');
+    } finally {
+      setLoading(false);
+    }
+  }, [currentMonday, selectedShowroom, selectedShiftTypeFilter, selectedRoleFilter, searchKeyword, showrooms]);
+
+  useEffect(() => {
+    loadWeekData();
+  }, [loadWeekData]);
+
+  // Filtered shifts in UI
   const filteredShifts = useMemo(() => {
     return shifts.filter((item) => {
-      // Showroom filter
       if (selectedShowroom !== 'ALL' && item.showroomId !== selectedShowroom) {
         return false;
       }
-      // Shift Type filter
       if (selectedShiftTypeFilter !== 'ALL' && item.shiftType !== selectedShiftTypeFilter) {
         return false;
       }
-      // Role filter
       if (selectedRoleFilter !== 'ALL' && item.role !== selectedRoleFilter) {
         return false;
       }
-      // Search keyword
       if (searchKeyword.trim()) {
         const query = searchKeyword.toLowerCase();
         const matchName = item.staffName.toLowerCase().includes(query);
@@ -611,7 +381,41 @@ export const StaffSchedulePage: React.FC = () => {
     });
   }, [shifts, selectedShowroom, selectedShiftTypeFilter, selectedRoleFilter, searchKeyword]);
 
-  // Handle Quick Add Shift to day
+  // Shifts of staff in week for detail view
+  const staffWeekShifts = useMemo(() => {
+    if (!selectedShiftDetail) return [];
+    return shifts.filter(
+      (s) =>
+        s.staffId === selectedShiftDetail.staffId ||
+        (s.staffNumericId && s.staffNumericId === selectedShiftDetail.staffNumericId)
+    );
+  }, [shifts, selectedShiftDetail]);
+
+  const staffInfo = useMemo(() => {
+    if (!selectedShiftDetail) return null;
+    return (
+      staffList.find(
+        (s) =>
+          s.id === selectedShiftDetail.staffId ||
+          (s.numericId && s.numericId === selectedShiftDetail.staffNumericId)
+      ) || null
+    );
+  }, [selectedShiftDetail, staffList]);
+
+  // Navigate Weeks
+  const handlePrevWeek = () => {
+    setCurrentMonday((prev) => new Date(prev.getTime() - 7 * 86400000));
+  };
+
+  const handleNextWeek = () => {
+    setCurrentMonday((prev) => new Date(prev.getTime() + 7 * 86400000));
+  };
+
+  const handleResetToCurrentWeek = () => {
+    setCurrentMonday(getMonday(new Date()));
+  };
+
+  // Open Quick Add Modal
   const handleOpenAssignModal = (dayIndex: number, defaultShift: ShiftType = 'MORNING') => {
     setModalTargetDay(dayIndex);
     setSelectedShiftTypeForAssign(defaultShift);
@@ -620,76 +424,178 @@ export const StaffSchedulePage: React.FC = () => {
   };
 
   // Submit Shift Assignment
-  const handleSaveAssignment = (e: React.FormEvent) => {
+  const handleSaveAssignment = async (e: React.FormEvent) => {
     e.preventDefault();
-    const staff = STAFF_LIST.find((s) => s.id === selectedStaffForAssign);
-    if (!staff) return;
+    const staff = staffList.find((s) => s.id === selectedStaffForAssign) || staffList[0];
+    if (!staff) {
+      showToast('Vui lòng chọn nhân viên!', 'ERROR');
+      return;
+    }
 
-    const showroom = SHOWROOMS.find((sr) => sr.id === selectedShowroomForAssign) || SHOWROOMS[1];
-    const targetDayInfo = WEEK_DAYS[modalTargetDay];
+    const targetDayInfo = weekDays[modalTargetDay];
+    const shiftCode =
+      selectedShiftTypeForAssign === 'MORNING'
+        ? 'CA_SANG'
+        : selectedShiftTypeForAssign === 'AFTERNOON'
+        ? 'CA_CHIEU'
+        : 'CA_HANH_CHINH';
 
-    const hoursMap: Record<ShiftType, string> = {
-      MORNING: '08:00 - 15:00',
-      AFTERNOON: '14:30 - 21:00',
-      FULL_DAY: '08:30 - 17:30',
-    };
+    try {
+      const created = await adminStaffScheduleService.createSchedule({
+        staffId: staff.numericId,
+        showroomId: selectedShowroomForAssign,
+        ngayTruc: targetDayInfo.isoDate,
+        caTruc: shiftCode,
+        ghiChu: taskNoteForAssign.trim() || undefined,
+      });
 
-    const newAssignment: ShiftAssignment = {
-      id: `SH-${Date.now().toString().slice(-4)}`,
-      staffId: staff.id,
-      staffName: staff.name,
-      staffCode: staff.id,
-      role: staff.role,
-      roleLabel: staff.roleLabel,
-      showroomId: showroom.id,
-      showroomName: showroom.name,
-      dayOfWeek: modalTargetDay,
-      dateString: targetDayInfo.dateStr,
-      shiftType: selectedShiftTypeForAssign,
-      shiftHours: hoursMap[selectedShiftTypeForAssign],
-      specificTask: taskNoteForAssign.trim() || 'Trực vận hành showroom tiêu chuẩn',
-      status: 'CONFIRMED',
-    };
-
-    setShifts((prev) => [...prev, newAssignment]);
-    setShowAssignModal(false);
-    showToast(`Đã phân công thành công ${staff.name} (${staff.id}) vào ${targetDayInfo.label}!`);
+      setShifts((prev) => [...prev, created]);
+      setShowAssignModal(false);
+      showToast(
+        `Đã phân công thành công ${staff.name} (${staff.id}) vào ${targetDayInfo.label} (${targetDayInfo.dateStr})!`
+      );
+      loadWeekData();
+    } catch (err: unknown) {
+      const errorMsg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Không thể lưu ca trực. Vui lòng kiểm tra trùng ca.';
+      showToast(errorMsg, 'ERROR');
+    }
   };
 
-  // Remove shift
-  const handleDeleteShift = (shiftId: string, staffName: string) => {
-    if (window.confirm(`Xác nhận xóa ca làm việc của ${staffName}?`)) {
+  // Delete shift
+  const handleDeleteShift = async (shiftId: string, staffName: string) => {
+    if (!window.confirm(`Xác nhận xóa ca làm việc của ${staffName}?`)) return;
+
+    const numericId = parseInt(shiftId.replace(/\D/g, ''), 10);
+    try {
+      if (numericId > 0) {
+        await adminStaffScheduleService.deleteSchedule(numericId);
+      }
       setShifts((prev) => prev.filter((s) => s.id !== shiftId));
       showToast(`Đã xóa ca trực của ${staffName}.`);
+      loadWeekData();
+    } catch (err) {
+      console.error('Error deleting shift:', err);
+      showToast('Lỗi khi xóa ca trực trên hệ thống.', 'ERROR');
+    }
+  };
+
+  // Execute Auto Scheduling Algorithm
+  const handleRunAutoSchedule = async () => {
+    setIsExecutingAutoSchedule(true);
+    try {
+      const result = await adminStaffScheduleService.autoSchedule({
+        showroomId: autoScheduleTargetShowroom > 0 ? autoScheduleTargetShowroom : null,
+        startDate: formatYYYYMMDD(currentMonday),
+        maxShiftsPerStaff: autoScheduleMaxShifts,
+        strategy: autoScheduleStrategy,
+        replaceExisting: true,
+      });
+
+      setLastAutoResult(result);
+      setShowAutoScheduleModal(false);
+      showToast(result.message || 'Thuật toán đã tối ưu hóa phân ca làm việc thành công!');
+      loadWeekData();
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Thuật toán xếp ca gặp lỗi khi phân bổ nhân sự.';
+      showToast(msg, 'ERROR');
+    } finally {
+      setIsExecutingAutoSchedule(false);
     }
   };
 
   // Handle Swap Request Approval
-  const handleApproveSwap = (id: string, req: SwapRequest) => {
-    setSwapRequests((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status: 'APPROVED' } : r))
-    );
-    showToast(`Đã phê duyệt yêu cầu đổi ca trực giữa ${req.requesterName} và ${req.targetStaffName}!`);
+  const handleApproveSwap = async (id: string, req: SwapRequest) => {
+    try {
+      await adminStaffScheduleService.approveSwapRequest(id);
+      setSwapRequests((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, status: 'APPROVED' } : r))
+      );
+      showToast(`Đã phê duyệt đổi ca giữa ${req.requesterName} và ${req.targetStaffName}!`);
+      loadWeekData();
+    } catch (err) {
+      console.error('Error approving swap request:', err);
+      showToast('Phê duyệt đổi ca thất bại.', 'ERROR');
+    }
   };
 
-  const handleRejectSwap = (id: string, req: SwapRequest) => {
-    setSwapRequests((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status: 'REJECTED' } : r))
-    );
-    showToast(`Đã từ chối yêu cầu đổi ca trực của ${req.requesterName}.`);
+  const handleRejectSwap = async (id: string, req: SwapRequest) => {
+    try {
+      await adminStaffScheduleService.rejectSwapRequest(id);
+      setSwapRequests((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, status: 'REJECTED' } : r))
+      );
+      showToast(`Đã từ chối yêu cầu đổi ca của ${req.requesterName}.`);
+    } catch (err) {
+      console.error('Error rejecting swap request:', err);
+      showToast('Từ chối đổi ca thất bại.', 'ERROR');
+    }
   };
 
-  // Auto-schedule generator
-  const handleAutoSchedule = () => {
-    showToast('Hệ thống đã tự động phân bổ cân bằng ca trực theo năng suất và định mức giờ làm!');
+  // Export CSV/Excel
+  const handleExportCsv = async () => {
+    try {
+      showToast('Đang tạo và tải về bảng lịch trực tuần (.csv UTF-8 cho Excel)...');
+      const selectedShowroomObj = showrooms.find((s) => s.id === selectedShowroom);
+      const showroomIdParam = selectedShowroomObj && selectedShowroomObj.numericId > 0 ? selectedShowroomObj.numericId : null;
+
+      const blob = await adminStaffScheduleService.exportCsv({
+        showroomId: showroomIdParam,
+        startDate: formatYYYYMMDD(currentMonday),
+        endDate: formatYYYYMMDD(new Date(currentMonday.getTime() + 6 * 86400000)),
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `lich_truc_showroom_tuan_${currentWeekNumber}_${formatYYYYMMDD(currentMonday)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.warn('Fallback frontend CSV export:', err);
+      // Fallback frontend CSV generation
+      let csvContent = '\uFEFFMã Ca,Chi Nhánh Showroom,Thứ,Ngày Trực,Ca Làm Việc,Khung Giờ,Mã NV,Họ Và Tên,Vị Trí Phụ Trách,Nhiệm Vụ Phân Công,Trạng Thái\n';
+      filteredShifts.forEach((s) => {
+        csvContent += `"${s.id}","${s.showroomName}","${DAY_LABELS[s.dayOfWeek]}","${s.dateString}","${s.shiftType}","${s.shiftHours}","${s.staffCode}","${s.staffName}","${s.roleLabel}","${s.specificTask.replace(/"/g, '""')}","${s.status}"\n`;
+      });
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `lich_truc_showroom_tuan_${currentWeekNumber}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
   };
 
   return (
-    <div className={cn('space-y-6 antialiased transition-colors duration-300', isDarkMode ? 'text-[#DAE2FD]' : 'text-slate-800')}>
+    <div
+      className={cn(
+        'space-y-6 antialiased transition-colors duration-300',
+        isDarkMode ? 'text-[#DAE2FD]' : 'text-slate-800'
+      )}
+    >
       {/* Toast Feedback */}
       {toastMessage && (
-        <div className="fixed top-20 right-8 z-50 flex items-center gap-3 px-4 py-3 bg-emerald-600 text-white text-sm font-medium rounded-xl shadow-2xl border border-emerald-500 animate-fadeIn">
-          <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+        <div
+          className={cn(
+            'fixed top-20 right-8 z-50 flex items-center gap-3 px-4 py-3 text-white text-sm font-medium rounded-xl shadow-2xl border animate-fadeIn',
+            toastType === 'SUCCESS'
+              ? 'bg-emerald-600 border-emerald-500'
+              : 'bg-rose-600 border-rose-500'
+          )}
+        >
+          {toastType === 'SUCCESS' ? (
+            <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+          ) : (
+            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          )}
           <span>{toastMessage}</span>
         </div>
       )}
@@ -705,15 +611,19 @@ export const StaffSchedulePage: React.FC = () => {
       >
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-500 text-[10px] font-mono font-bold">
-              100% ĐỘ PHỦ CA
+            <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-500 text-[10px] font-mono font-bold flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3" />
+              {stats.coverageRate || '100% ĐỘ PHỦ CA'}
+            </span>
+            <span className="px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-400 text-[10px] font-mono font-bold">
+              {stats.activeStaffCount || staffList.length} NHÂN SỰ VẬN HÀNH
             </span>
           </div>
           <h1 className={cn('text-xl md:text-2xl font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
             Phân Công Lịch Trực & Ca Làm Việc Nhân Viên
           </h1>
           <p className={cn('text-sm mt-0.5 max-w-2xl', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-            Quản trị điều phối nhân sự showroom, phân bổ ca lái thử xe demo, hỗ trợ đóng gói phụ kiện và đối soát bàn giao ca trực trên toàn hệ thống.
+            Thuật toán điều phối nhân sự tự động cân bằng số ca, đảm bảo định mức thời giờ làm việc theo luật lao động và duy trì 100% độ phủ dịch vụ showroom.
           </p>
         </div>
 
@@ -721,36 +631,53 @@ export const StaffSchedulePage: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
-            onClick={handleAutoSchedule}
+            onClick={loadWeekData}
+            disabled={loading}
             className={cn(
-              'h-[38px] flex items-center gap-2 px-3.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer',
+              'h-[38px] flex items-center gap-1.5 px-3 rounded-lg text-xs font-semibold border transition-all cursor-pointer',
               isDarkMode
-                ? 'bg-[#171F33] text-[#89CEFF] border-[#89CEFF]/40 hover:border-[#89CEFF]'
-                : 'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100'
+                ? 'bg-[#0B1326] text-slate-300 border-[#3E4850] hover:text-white'
+                : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
             )}
-            title="Tự động phân bổ lịch làm việc thông minh"
+            title="Tải lại dữ liệu tuần"
           >
-            <Sparkles className="w-4 h-4 text-amber-400" />
-            <span className="hidden sm:inline">Tự Động Xếp Ca</span>
+            <RefreshCw className={cn('w-3.5 h-3.5', loading && 'animate-spin')} />
+            <span className="hidden sm:inline">Làm Mới</span>
           </button>
 
           <button
             type="button"
-            onClick={() => alert('Đang xuất bảng lịch trực tuần ra định dạng Excel (.xlsx)...')}
+            onClick={() => setShowAutoScheduleModal(true)}
+            className={cn(
+              'h-[38px] flex items-center gap-2 px-3.5 rounded-lg text-xs font-bold border transition-all cursor-pointer',
+              isDarkMode
+                ? 'bg-[#171F33] text-[#89CEFF] border-[#89CEFF]/40 hover:border-[#89CEFF] shadow-sm'
+                : 'bg-sky-50 text-sky-700 border-sky-300 hover:bg-sky-100'
+            )}
+            title="Mở cấu hình thuật toán tự động xếp ca"
+          >
+            <Sparkles className="w-4 h-4 text-amber-400" />
+            <span>Tự Động Xếp Ca</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleExportCsv}
             className={cn(
               'h-[38px] flex items-center gap-2 px-3.5 rounded-lg text-xs font-medium border transition-all cursor-pointer',
               isDarkMode
                 ? 'bg-[#0B1326] text-[#DAE2FD] hover:text-white border-[#3E4850]/70'
                 : 'bg-white text-slate-700 hover:text-slate-900 border-slate-300'
             )}
+            title="Xuất bảng phân công ra định dạng Excel / CSV"
           >
             <FileSpreadsheet className="w-4 h-4 text-emerald-500" />
-            <span className="hidden sm:inline">Xuất Excel</span>
+            <span className="hidden sm:inline">Xuất Excel (.csv)</span>
           </button>
 
           <button
             type="button"
-            onClick={() => handleOpenAssignModal(2, 'MORNING')}
+            onClick={() => handleOpenAssignModal(0, 'MORNING')}
             className="h-[38px] flex items-center gap-2 px-4 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/20 transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" />
@@ -758,6 +685,33 @@ export const StaffSchedulePage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Auto-Schedule Algorithm Summary Banner (if executed recently) */}
+      {lastAutoResult && (
+        <div
+          className={cn(
+            'p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-fadeIn',
+            isDarkMode ? 'bg-[#17233B] border-[#89CEFF]/40 text-[#DAE2FD]' : 'bg-sky-50 border-sky-200 text-sky-900'
+          )}
+        >
+          <div className="flex items-center gap-2.5">
+            <Sparkles className="w-5 h-5 text-amber-400 flex-shrink-0" />
+            <div>
+              <span className="font-bold">{lastAutoResult.message}</span>
+              <div className="text-[11px] opacity-80 mt-0.5">
+                Chiến lược: <strong>{lastAutoResult.strategy === 'BALANCED' ? 'Cân Bằng Phân Bổ' : 'Ưu Tiên Cuối Tuần'}</strong> • Tổng {lastAutoResult.totalShiftsCreated} ca trực • Bình quân {lastAutoResult.avgShiftsPerStaff} ca/nhân viên (~{lastAutoResult.avgHoursPerStaff} giờ làm/tuần)
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setLastAutoResult(null)}
+            className="text-slate-400 hover:text-white p-1 self-end sm:self-center"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* KPI Cards Matrix */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -774,9 +728,9 @@ export const StaffSchedulePage: React.FC = () => {
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className={cn('text-2xl font-black font-mono', isDarkMode ? 'text-white' : 'text-slate-900')}>
-              {shifts.length}
+              {stats.totalShiftsThisWeek || filteredShifts.length}
             </span>
-            <span className="text-[11px] font-mono text-emerald-500 font-bold">100% Đạt chỉ tiêu</span>
+            <span className="text-[11px] font-mono text-emerald-500 font-bold">{stats.coverageRate}</span>
           </div>
         </div>
 
@@ -793,7 +747,7 @@ export const StaffSchedulePage: React.FC = () => {
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className={cn('text-2xl font-black font-mono', isDarkMode ? 'text-white' : 'text-slate-900')}>
-              {shifts.filter((s) => s.role === 'TEST_DRIVE').length}
+              {stats.testDriveShifts || filteredShifts.filter((s) => s.role === 'TEST_DRIVE').length}
             </span>
             <span className="text-[11px] font-mono text-cyan-500 font-bold">Bảo đảm 100% xe</span>
           </div>
@@ -812,7 +766,7 @@ export const StaffSchedulePage: React.FC = () => {
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className={cn('text-2xl font-black font-mono', isDarkMode ? 'text-white' : 'text-slate-900')}>
-              {shifts.filter((s) => s.role === 'WAREHOUSE').length}
+              {stats.warehouseShifts || filteredShifts.filter((s) => s.role === 'WAREHOUSE').length}
             </span>
             <span className="text-[11px] font-mono text-amber-500 font-bold">Xuất kho liên tục</span>
           </div>
@@ -885,11 +839,11 @@ export const StaffSchedulePage: React.FC = () => {
             </button>
           </div>
 
-          {/* Week Navigator */}
+          {/* Dynamic Week Navigator */}
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setCurrentWeekIndex((prev) => prev - 1)}
+              onClick={handlePrevWeek}
               className={cn(
                 'p-1.5 rounded-md border text-xs cursor-pointer transition-colors',
                 isDarkMode ? 'border-[#3E4850] hover:bg-[#171F33]' : 'border-slate-300 hover:bg-slate-100'
@@ -906,12 +860,14 @@ export const StaffSchedulePage: React.FC = () => {
               )}
             >
               <Clock className="w-3.5 h-3.5 text-blue-500" />
-              <span>Tuần {currentWeekIndex} (27/10 - 02/11/2026)</span>
+              <span>
+                Tuần {currentWeekNumber} ({weekDays[0]?.dateStr} - {weekDays[6]?.dateStr})
+              </span>
             </div>
 
             <button
               type="button"
-              onClick={() => setCurrentWeekIndex((prev) => prev + 1)}
+              onClick={handleNextWeek}
               className={cn(
                 'p-1.5 rounded-md border text-xs cursor-pointer transition-colors',
                 isDarkMode ? 'border-[#3E4850] hover:bg-[#171F33]' : 'border-slate-300 hover:bg-slate-100'
@@ -923,10 +879,12 @@ export const StaffSchedulePage: React.FC = () => {
 
             <button
               type="button"
-              onClick={() => setCurrentWeekIndex(44)}
+              onClick={handleResetToCurrentWeek}
               className={cn(
                 'px-2.5 py-1.5 rounded-md text-[11px] font-semibold border cursor-pointer transition-colors',
-                isDarkMode ? 'border-[#3E4850] text-[#89CEFF] hover:bg-[#171F33]' : 'border-slate-300 text-blue-600 hover:bg-slate-50'
+                isDarkMode
+                  ? 'border-[#3E4850] text-[#89CEFF] hover:bg-[#171F33]'
+                  : 'border-slate-300 text-blue-600 hover:bg-slate-50'
               )}
             >
               Hôm nay
@@ -949,7 +907,7 @@ export const StaffSchedulePage: React.FC = () => {
                   : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-blue-500'
               )}
             >
-              {SHOWROOMS.map((sr) => (
+              {showrooms.map((sr) => (
                 <option key={sr.id} value={sr.id}>
                   {sr.name}
                 </option>
@@ -1002,7 +960,9 @@ export const StaffSchedulePage: React.FC = () => {
           <div>
             <label className="block text-[11px] font-mono text-slate-400 mb-1">Tìm Nhân Viên / Nhiệm Vụ:</label>
             <div className="relative">
-              <Search className={cn('w-4 h-4 absolute left-3 top-2.5', isDarkMode ? 'text-slate-400' : 'text-slate-500')} />
+              <Search
+                className={cn('w-4 h-4 absolute left-3 top-2.5', isDarkMode ? 'text-slate-400' : 'text-slate-500')}
+              />
               <input
                 type="text"
                 value={searchKeyword}
@@ -1025,9 +985,10 @@ export const StaffSchedulePage: React.FC = () => {
         /* 1. WEEKLY MATRIX BOARD */
         <div className="overflow-x-auto pb-4 -mx-2 px-2">
           <div className="min-w-[1200px] grid grid-cols-7 gap-3">
-            {WEEK_DAYS.map((day) => {
-              const dayShifts = filteredShifts.filter((s) => s.dayOfWeek === day.index);
-              const isToday = day.index === 2; // Giả lập hôm nay Thứ Tư
+            {weekDays.map((day) => {
+              const dayShifts = filteredShifts.filter(
+                (s) => s.dayOfWeek === day.index || (s.isoDate && s.isoDate === day.isoDate)
+              );
 
               return (
                 <div
@@ -1035,7 +996,10 @@ export const StaffSchedulePage: React.FC = () => {
                   className={cn(
                     'rounded-xl border flex flex-col transition-all duration-200',
                     isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40' : 'bg-white border-slate-200 shadow-2xs',
-                    isToday && (isDarkMode ? 'ring-2 ring-[#89CEFF]/60 border-[#89CEFF]' : 'ring-2 ring-blue-500/40 border-blue-400')
+                    day.isToday &&
+                      (isDarkMode
+                        ? 'ring-2 ring-[#89CEFF]/60 border-[#89CEFF]'
+                        : 'ring-2 ring-blue-500/40 border-blue-400')
                   )}
                 >
                   {/* Day Column Header */}
@@ -1043,13 +1007,14 @@ export const StaffSchedulePage: React.FC = () => {
                     className={cn(
                       'p-3 border-b flex items-center justify-between',
                       isDarkMode ? 'border-[#3E4850]/40 bg-[#131B2E]/60' : 'border-slate-100 bg-slate-50/80',
-                      isToday && (isDarkMode ? 'bg-blue-950/40 text-[#89CEFF]' : 'bg-blue-50/80 text-blue-700')
+                      day.isToday &&
+                        (isDarkMode ? 'bg-blue-950/40 text-[#89CEFF]' : 'bg-blue-50/80 text-blue-700')
                     )}
                   >
                     <div>
                       <div className="flex items-center gap-1.5">
                         <span className="font-bold text-xs">{day.label}</span>
-                        {isToday && (
+                        {day.isToday && (
                           <span className="px-1.5 py-0.2 text-[9px] font-mono uppercase bg-blue-500 text-white rounded font-black">
                             Hôm nay
                           </span>
@@ -1126,7 +1091,12 @@ export const StaffSchedulePage: React.FC = () => {
                           >
                             {/* Shift Header & Delete Quick Action */}
                             <div className="flex items-center justify-between gap-1">
-                              <span className={cn('px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border', shiftBadgeColor)}>
+                              <span
+                                className={cn(
+                                  'px-1.5 py-0.5 rounded text-[10px] font-mono font-bold border',
+                                  shiftBadgeColor
+                                )}
+                              >
                                 {shift.shiftType === 'MORNING'
                                   ? 'SÁNG (08-15h)'
                                   : shift.shiftType === 'AFTERNOON'
@@ -1155,7 +1125,12 @@ export const StaffSchedulePage: React.FC = () => {
                                 {shift.staffName.split(' ').slice(-1)[0][0]}
                               </div>
                               <div className="min-w-0 flex-1">
-                                <div className={cn('font-bold truncate text-[11px]', isDarkMode ? 'text-white' : 'text-slate-900')}>
+                                <div
+                                  className={cn(
+                                    'font-bold truncate text-[11px]',
+                                    isDarkMode ? 'text-white' : 'text-slate-900'
+                                  )}
+                                >
                                   {shift.staffName}
                                 </div>
                                 <div className="text-[10px] font-mono text-slate-400">
@@ -1168,7 +1143,9 @@ export const StaffSchedulePage: React.FC = () => {
                             <div
                               className={cn(
                                 'p-1.5 rounded text-[10px] leading-tight flex items-start gap-1.5 border',
-                                isDarkMode ? 'bg-[#0B1326]/70 border-[#3E4850]/40 text-slate-300' : 'bg-white border-slate-200 text-slate-700'
+                                isDarkMode
+                                  ? 'bg-[#0B1326]/70 border-[#3E4850]/40 text-slate-300'
+                                  : 'bg-white border-slate-200 text-slate-700'
                               )}
                             >
                               <div className="mt-0.5 flex-shrink-0">{roleIcon}</div>
@@ -1183,6 +1160,8 @@ export const StaffSchedulePage: React.FC = () => {
                                   <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
                                   Đang trực
                                 </span>
+                              ) : shift.status === 'COMPLETED' ? (
+                                <span className="text-slate-400 font-medium">Hoàn thành</span>
                               ) : (
                                 <span className="text-emerald-400 font-medium flex items-center gap-1">
                                   <CheckCircle2 className="w-3 h-3" />
@@ -1223,96 +1202,292 @@ export const StaffSchedulePage: React.FC = () => {
           </div>
 
           <div className="space-y-3">
-            {swapRequests.map((req) => (
-              <div
-                key={req.id}
-                className={cn(
-                  'p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all',
-                  isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/60' : 'bg-slate-50 border-slate-200 shadow-2xs'
-                )}
-              >
-                <div className="space-y-2 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                      {req.id}
-                    </span>
-                    <strong className={cn('text-sm', isDarkMode ? 'text-white' : 'text-slate-900')}>
-                      {req.requesterName} ({req.requesterCode})
-                    </strong>
-                    <ArrowRightLeft className="w-3.5 h-3.5 text-slate-400" />
-                    <strong className={cn('text-sm', isDarkMode ? 'text-white' : 'text-slate-900')}>
-                      {req.targetStaffName} ({req.targetStaffCode})
-                    </strong>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono text-slate-400">
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-blue-400" />
-                      <span>
-                        Ca hiện tại: <strong>{req.currentDate} ({req.currentShift})</strong>
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>
-                        Đổi sang: <strong>{req.targetDate} ({req.targetShift})</strong>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div
-                    className={cn(
-                      'p-2 rounded text-xs border leading-relaxed',
-                      isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 text-slate-300' : 'bg-white border-slate-200 text-slate-700'
-                    )}
-                  >
-                    <strong>Lý do xin đổi:</strong> {req.reason}
-                  </div>
-                </div>
-
-                {/* Approval actions */}
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {req.status === 'PENDING' ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => handleRejectSwap(req.id, req)}
-                        className={cn(
-                          'px-3 py-2 rounded-lg text-xs font-semibold border transition-colors cursor-pointer',
-                          isDarkMode
-                            ? 'border-rose-500/40 text-rose-400 hover:bg-rose-500/10'
-                            : 'border-rose-200 text-rose-600 hover:bg-rose-50'
-                        )}
-                      >
-                        Từ Chối
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleApproveSwap(req.id, req)}
-                        className="px-4 py-2 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-colors cursor-pointer"
-                      >
-                        Duyệt Đổi Ca
-                      </button>
-                    </>
-                  ) : req.status === 'APPROVED' ? (
-                    <span className="px-3 py-1.5 rounded-lg text-xs font-bold font-mono bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
-                      <CheckCircle2 className="w-4 h-4" />
-                      ĐÃ PHÊ DUYỆT
-                    </span>
-                  ) : (
-                    <span className="px-3 py-1.5 rounded-lg text-xs font-bold font-mono bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center gap-1.5">
-                      <X className="w-4 h-4" />
-                      ĐÃ TỪ CHỐI
-                    </span>
-                  )}
-                </div>
+            {swapRequests.length === 0 ? (
+              <div className="p-8 text-center text-slate-400 text-xs font-mono">
+                Hiện tại không có yêu cầu đổi ca nào đang chờ duyệt.
               </div>
-            ))}
+            ) : (
+              swapRequests.map((req) => (
+                <div
+                  key={req.id}
+                  className={cn(
+                    'p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all',
+                    isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/60' : 'bg-slate-50 border-slate-200 shadow-2xs'
+                  )}
+                >
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                        {req.id}
+                      </span>
+                      <strong className={cn('text-sm', isDarkMode ? 'text-white' : 'text-slate-900')}>
+                        {req.requesterName} ({req.requesterCode})
+                      </strong>
+                      <ArrowRightLeft className="w-3.5 h-3.5 text-slate-400" />
+                      <strong className={cn('text-sm', isDarkMode ? 'text-white' : 'text-slate-900')}>
+                        {req.targetStaffName} ({req.targetStaffCode})
+                      </strong>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono text-slate-400">
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-blue-400" />
+                        <span>
+                          Ca hiện tại: <strong>{req.currentDate} ({req.currentShift})</strong>
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>
+                          Đổi sang: <strong>{req.targetDate} ({req.targetShift})</strong>
+                        </span>
+                      </div>
+                    </div>
+
+                    <div
+                      className={cn(
+                        'p-2 rounded text-xs border leading-relaxed',
+                        isDarkMode
+                          ? 'bg-[#0B1326] border-[#3E4850]/40 text-slate-300'
+                          : 'bg-white border-slate-200 text-slate-700'
+                      )}
+                    >
+                      <strong>Lý do xin đổi:</strong> {req.reason}
+                    </div>
+                  </div>
+
+                  {/* Approval actions */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {req.status === 'PENDING' ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleRejectSwap(req.id, req)}
+                          className={cn(
+                            'px-3 py-2 rounded-lg text-xs font-semibold border transition-colors cursor-pointer',
+                            isDarkMode
+                              ? 'border-rose-500/40 text-rose-400 hover:bg-rose-500/10'
+                              : 'border-rose-200 text-rose-600 hover:bg-rose-50'
+                          )}
+                        >
+                          Từ Chối
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleApproveSwap(req.id, req)}
+                          className="px-4 py-2 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-colors cursor-pointer"
+                        >
+                          Duyệt Đổi Ca
+                        </button>
+                      </>
+                    ) : req.status === 'APPROVED' ? (
+                      <span className="px-3 py-1.5 rounded-lg text-xs font-bold font-mono bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4" />
+                        ĐÃ PHÊ DUYỆT
+                      </span>
+                    ) : (
+                      <span className="px-3 py-1.5 rounded-lg text-xs font-bold font-mono bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center gap-1.5">
+                        <X className="w-4 h-4" />
+                        ĐÃ TỪ CHỐI
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}
 
-      {/* MODAL: ASSIGN / EDIT SHIFT */}
+      {/* ==================== MODAL: AUTO-SCHEDULE CONFIGURATION ==================== */}
+      {showAutoScheduleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div
+            className={cn(
+              'w-full max-w-lg rounded-2xl border p-6 shadow-2xl space-y-5 relative',
+              isDarkMode ? 'bg-[#131B2E] border-[#3E4850] text-white' : 'bg-white border-slate-200 text-slate-900'
+            )}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-surface-highlight/40">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-amber-400" />
+                <h3 className="text-base font-bold">Thuật Toán Tự Động Phân Bổ Ca Trực</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAutoScheduleModal(false)}
+                className="text-slate-400 hover:text-white transition-colors cursor-pointer p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Explanation box */}
+            <div
+              className={cn(
+                'p-3.5 rounded-xl border text-xs space-y-2 leading-relaxed',
+                isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/50 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'
+              )}
+            >
+              <div className="flex items-center gap-1.5 font-bold text-amber-400">
+                <Sliders className="w-4 h-4" />
+                <span>Tiêu chuẩn thuật toán tối ưu hóa đa mục tiêu:</span>
+              </div>
+              <ul className="list-disc pl-4 space-y-1 text-[11px] opacity-90">
+                <li>Bảo đảm 100% độ phủ ca: Trưởng ca, Tư vấn khách, Lái thử xe demo và Kho phụ kiện.</li>
+                <li>Ràng buộc cứng: Không double-booking nhân viên trong cùng 1 ngày.</li>
+                <li>Tuân thủ luật lao động: Định mức tối đa {autoScheduleMaxShifts} ca (~35-40 giờ/tuần), bảo đảm ít nhất 1-2 ngày nghỉ hồi phục.</li>
+                <li>Tránh ca liền kề: Tránh xếp ca Chiều hôm trước (21:00) rồi ca Sáng hôm sau (08:00) để đảm bảo tối thiểu 11 giờ nghỉ liên tục.</li>
+              </ul>
+            </div>
+
+            {/* Form */}
+            <div className="space-y-4 text-xs">
+              {/* Showroom Target */}
+              <div>
+                <label className="block text-[11px] font-mono text-slate-400 mb-1 font-semibold">
+                  Phạm Vi Showroom Áp Dụng:
+                </label>
+                <select
+                  value={autoScheduleTargetShowroom}
+                  onChange={(e) => setAutoScheduleTargetShowroom(Number(e.target.value))}
+                  className={cn(
+                    'w-full px-3 py-2.5 text-xs border rounded-lg focus:outline-none transition-colors cursor-pointer',
+                    isDarkMode
+                      ? 'bg-[#0B1326] border-[#3E4850] text-white focus:border-[#89CEFF]'
+                      : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-blue-500'
+                  )}
+                >
+                  <option value={0}>Toàn Bộ Chi Nhánh Showroom (Tất cả)</option>
+                  {showrooms
+                    .filter((sr) => sr.numericId > 0)
+                    .map((sr) => (
+                      <option key={sr.id} value={sr.numericId}>
+                        {sr.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              {/* Strategy Choice */}
+              <div>
+                <label className="block text-[11px] font-mono text-slate-400 mb-1 font-semibold">
+                  Chiến Lược Phân Bổ Thuật Toán:
+                </label>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setAutoScheduleStrategy('BALANCED')}
+                    className={cn(
+                      'p-3 rounded-xl border text-left transition-all cursor-pointer',
+                      autoScheduleStrategy === 'BALANCED'
+                        ? 'bg-blue-600/15 border-blue-500 text-white font-bold ring-1 ring-blue-500/50'
+                        : isDarkMode
+                        ? 'bg-[#0B1326] border-[#3E4850] text-slate-400'
+                        : 'bg-slate-50 border-slate-300 text-slate-700'
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-xs">Cân Bằng Chuẩn Hóa</span>
+                      {autoScheduleStrategy === 'BALANCED' && <Check className="w-3.5 h-3.5 text-blue-400" />}
+                    </div>
+                    <p className="text-[10px] opacity-75 mt-1">
+                      Phân bổ đều số ca giữa các nhân sự cùng vị trí. Tối thiểu hóa phương sai giờ làm.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setAutoScheduleStrategy('WEEKEND_HEAVY')}
+                    className={cn(
+                      'p-3 rounded-xl border text-left transition-all cursor-pointer',
+                      autoScheduleStrategy === 'WEEKEND_HEAVY'
+                        ? 'bg-amber-600/15 border-amber-500 text-white font-bold ring-1 ring-amber-500/50'
+                        : isDarkMode
+                        ? 'bg-[#0B1326] border-[#3E4850] text-slate-400'
+                        : 'bg-slate-50 border-slate-300 text-slate-700'
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-xs">Cao Điểm Cuối Tuần</span>
+                      {autoScheduleStrategy === 'WEEKEND_HEAVY' && <Check className="w-3.5 h-3.5 text-amber-400" />}
+                    </div>
+                    <p className="text-[10px] opacity-75 mt-1">
+                      Bổ sung +50% nhân sự vào T7 & CN để đón tiếp khách VIP và phục vụ lái thử dồn dập.
+                    </p>
+                  </button>
+                </div>
+              </div>
+
+              {/* Max Shifts Cap */}
+              <div>
+                <label className="block text-[11px] font-mono text-slate-400 mb-1 font-semibold">
+                  Định Mức Ca Trực Tối Đa / Nhân Viên / Tuần:
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min={4}
+                    max={6}
+                    value={autoScheduleMaxShifts}
+                    onChange={(e) => setAutoScheduleMaxShifts(Number(e.target.value))}
+                    className="flex-1 accent-blue-600 cursor-pointer"
+                  />
+                  <span className="font-mono font-bold text-xs px-3 py-1 rounded bg-blue-500/20 text-[#89CEFF] border border-blue-500/30">
+                    {autoScheduleMaxShifts} Ca / Tuần ({autoScheduleMaxShifts * 7} Giờ)
+                  </span>
+                </div>
+              </div>
+
+              {/* Target week info */}
+              <div className="p-2.5 rounded-lg bg-surface-highlight/20 border border-surface-highlight/30 text-[11px] font-mono text-slate-400 flex items-center justify-between">
+                <span>Tuần áp dụng:</span>
+                <strong className="text-white">
+                  Tuần {currentWeekNumber} ({weekDays[0]?.dateStr} - {weekDays[6]?.dateStr})
+                </strong>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-surface-highlight/30">
+              <button
+                type="button"
+                onClick={() => setShowAutoScheduleModal(false)}
+                className={cn(
+                  'px-4 py-2.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer',
+                  isDarkMode
+                    ? 'border-[#3E4850] text-slate-300 hover:bg-[#0B1326]'
+                    : 'border-slate-300 text-slate-700 hover:bg-slate-100'
+                )}
+              >
+                Hủy Bỏ
+              </button>
+
+              <button
+                type="button"
+                onClick={handleRunAutoSchedule}
+                disabled={isExecutingAutoSchedule}
+                className="px-5 py-2.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-colors cursor-pointer flex items-center gap-2"
+              >
+                {isExecutingAutoSchedule ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>Đang Xếp Ca...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 text-amber-300" />
+                    <span>Thực Thi Thuật Toán Xếp Ca</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== MODAL: ASSIGN / EDIT SHIFT ==================== */}
       {showAssignModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div
@@ -1326,7 +1501,7 @@ export const StaffSchedulePage: React.FC = () => {
               <div className="flex items-center gap-2">
                 <CalendarDays className="w-5 h-5 text-blue-500" />
                 <h3 className="text-base font-bold">
-                  Phân Công Ca Trực - {WEEK_DAYS[modalTargetDay].label} ({WEEK_DAYS[modalTargetDay].dateStr})
+                  Phân Công Ca Trực - {weekDays[modalTargetDay]?.label} ({weekDays[modalTargetDay]?.dateStr})
                 </h3>
               </div>
               <button
@@ -1355,7 +1530,7 @@ export const StaffSchedulePage: React.FC = () => {
                       : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-blue-500'
                   )}
                 >
-                  {STAFF_LIST.map((staff) => (
+                  {staffList.map((staff) => (
                     <option key={staff.id} value={staff.id}>
                       {staff.name} ({staff.id}) - {staff.roleLabel} [{staff.showroomName.split('(')[0]}]
                     </option>
@@ -1370,7 +1545,7 @@ export const StaffSchedulePage: React.FC = () => {
                 </label>
                 <select
                   value={selectedShowroomForAssign}
-                  onChange={(e) => setSelectedShowroomForAssign(e.target.value)}
+                  onChange={(e) => setSelectedShowroomForAssign(Number(e.target.value))}
                   className={cn(
                     'w-full px-3 py-2.5 text-xs border rounded-lg focus:outline-none transition-colors cursor-pointer',
                     isDarkMode
@@ -1378,11 +1553,13 @@ export const StaffSchedulePage: React.FC = () => {
                       : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-blue-500'
                   )}
                 >
-                  {SHOWROOMS.filter((sr) => sr.id !== 'ALL').map((sr) => (
-                    <option key={sr.id} value={sr.id}>
-                      {sr.name}
-                    </option>
-                  ))}
+                  {showrooms
+                    .filter((sr) => sr.numericId > 0)
+                    .map((sr) => (
+                      <option key={sr.id} value={sr.numericId}>
+                        {sr.name}
+                      </option>
+                    ))}
                 </select>
               </div>
 
@@ -1463,7 +1640,9 @@ export const StaffSchedulePage: React.FC = () => {
                   onClick={() => setShowAssignModal(false)}
                   className={cn(
                     'px-4 py-2.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer',
-                    isDarkMode ? 'border-[#3E4850] text-slate-300 hover:bg-[#0B1326]' : 'border-slate-300 text-slate-700 hover:bg-slate-100'
+                    isDarkMode
+                      ? 'border-[#3E4850] text-slate-300 hover:bg-[#0B1326]'
+                      : 'border-slate-300 text-slate-700 hover:bg-slate-100'
                   )}
                 >
                   Hủy Bỏ
@@ -1479,7 +1658,8 @@ export const StaffSchedulePage: React.FC = () => {
           </div>
         </div>
       )}
-      {/* MODAL: STAFF SHIFT & SCHEDULE DETAIL */}
+
+      {/* ==================== MODAL: STAFF SHIFT & SCHEDULE DETAIL ==================== */}
       {selectedShiftDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div
@@ -1496,9 +1676,7 @@ export const StaffSchedulePage: React.FC = () => {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-base font-bold">
-                      {selectedShiftDetail.staffName}
-                    </h3>
+                    <h3 className="text-base font-bold">{selectedShiftDetail.staffName}</h3>
                     <span className="px-2 py-0.5 rounded font-mono text-[11px] font-bold bg-blue-500/20 text-[#89CEFF] border border-blue-500/40">
                       {selectedShiftDetail.staffCode}
                     </span>
@@ -1562,7 +1740,9 @@ export const StaffSchedulePage: React.FC = () => {
                   <span className="text-slate-400 text-[11px] block">Ngày làm việc:</span>
                   <div className="font-bold flex items-center gap-1.5 mt-0.5">
                     <CalendarDays className="w-3.5 h-3.5 text-blue-400" />
-                    <span>{WEEK_DAYS[selectedShiftDetail.dayOfWeek].label}, {selectedShiftDetail.dateString}</span>
+                    <span>
+                      {DAY_LABELS[selectedShiftDetail.dayOfWeek]}, {selectedShiftDetail.dateString}
+                    </span>
                   </div>
                 </div>
 
@@ -1585,11 +1765,15 @@ export const StaffSchedulePage: React.FC = () => {
               </div>
 
               <div className="pt-2 border-t border-surface-highlight/30">
-                <span className="text-slate-400 text-[11px] block mb-1 font-semibold">Nhiệm vụ phân công cụ thể:</span>
+                <span className="text-slate-400 text-[11px] block mb-1 font-semibold">
+                  Nhiệm vụ phân công cụ thể:
+                </span>
                 <div
                   className={cn(
                     'p-3 rounded-lg border text-xs leading-relaxed font-medium',
-                    isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/50 text-slate-200' : 'bg-white border-slate-200 text-slate-800'
+                    isDarkMode
+                      ? 'bg-[#131B2E] border-[#3E4850]/50 text-slate-200'
+                      : 'bg-white border-slate-200 text-slate-800'
                   )}
                 >
                   {selectedShiftDetail.specificTask}
@@ -1628,7 +1812,7 @@ export const StaffSchedulePage: React.FC = () => {
                     >
                       <div className="flex items-center gap-2.5">
                         <span className="w-16 font-mono font-bold text-slate-300 text-[11px]">
-                          {WEEK_DAYS[s.dayOfWeek].label}
+                          {DAY_LABELS[s.dayOfWeek]}
                         </span>
                         <span
                           className={cn(
@@ -1684,7 +1868,7 @@ export const StaffSchedulePage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSelectedShiftDetail(null)}
-                className="px-5 py-2 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-colors cursor-pointer"
+                className="px-5 py-2.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-colors cursor-pointer"
               >
                 Đóng
               </button>
@@ -1692,7 +1876,6 @@ export const StaffSchedulePage: React.FC = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };

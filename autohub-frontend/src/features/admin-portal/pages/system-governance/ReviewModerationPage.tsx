@@ -10,10 +10,12 @@ import {
   Check,
   Filter,
   Trash2,
+  Sparkles,
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
 import { cn } from '@/lib/utils';
-import { adminReviewService } from '../../services/admin-review.service';
+import { adminReviewService, type ReviewAiModerationDto } from '../../services/admin-review.service';
+import { AdminPagination } from '../../components/AdminPagination';
 import type { AdminReview, ReviewStatus } from '@/types/admin-review.types';
 
 export const ReviewModerationPage: React.FC = () => {
@@ -24,24 +26,56 @@ export const ReviewModerationPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'ALL' | ReviewStatus | 'FLAGGED'>('ALL');
   const [actionInProgressId, setActionInProgressId] = useState<number | null>(null);
   const [actionSuccessMessage, setActionSuccessMessage] = useState<string | null>(null);
+  const [isAiScanning, setIsAiScanning] = useState<boolean>(false);
+  const [aiScanMap, setAiScanMap] = useState<Record<number, ReviewAiModerationDto>>({});
 
-  const fetchReviews = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await adminReviewService.getReviews();
-      setReviews(data ?? []);
-    } catch (err) {
-      console.error('Failed to load reviews:', err);
-      setError('Không thể tải danh sách đánh giá từ máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const [page, setPage] = useState<number>(0);
+  const [pageSize, setPageSize] = useState<number>(10);
+  const [totalElements, setTotalElements] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
+
+  const fetchReviews = useCallback(
+    async (currentPage = page, currentSize = pageSize) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const queryStatus =
+          statusFilter !== 'ALL' && statusFilter !== 'FLAGGED' ? statusFilter : undefined;
+        const pagedData = await adminReviewService.getReviews({
+          status: queryStatus,
+          page: currentPage,
+          size: currentSize,
+        });
+        setReviews(pagedData.items ?? []);
+        setPage(pagedData.page ?? 0);
+        setPageSize(pagedData.size ?? 10);
+        setTotalElements(pagedData.totalElements ?? 0);
+        setTotalPages(pagedData.totalPages ?? 1);
+      } catch (err) {
+        console.error('Failed to load reviews:', err);
+        setError('Không thể tải danh sách đánh giá từ máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [page, pageSize, statusFilter]
+  );
 
   useEffect(() => {
-    fetchReviews();
-  }, [fetchReviews]);
+    setPage(0);
+    fetchReviews(0, pageSize);
+  }, [statusFilter]);
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchReviews(newPage, pageSize);
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(0);
+    fetchReviews(0, newSize);
+  };
 
   const handleUpdateStatus = async (review: AdminReview, newStatus: ReviewStatus) => {
     if (review.status === newStatus) {
@@ -111,6 +145,25 @@ export const ReviewModerationPage: React.FC = () => {
     }
   };
 
+  const handleAiScanPending = async () => {
+    try {
+      setIsAiScanning(true);
+      const scanResults = await adminReviewService.scanPendingReviews();
+      const map: Record<number, ReviewAiModerationDto> = {};
+      (scanResults ?? []).forEach((item) => {
+        map[item.reviewId] = item;
+      });
+      setAiScanMap(map);
+      setActionSuccessMessage(`AI đã quét và phân loại thành công ${(scanResults ?? []).length} đánh giá chờ duyệt.`);
+      setTimeout(() => setActionSuccessMessage(null), 4000);
+    } catch (err) {
+      console.error('Failed to run AI scan:', err);
+      alert('Quét AI đánh giá thất bại. Vui lòng kiểm tra lại dịch vụ Spring AI backend!');
+    } finally {
+      setIsAiScanning(false);
+    }
+  };
+
   const filteredReviews = (reviews ?? []).filter((r) => {
     if (statusFilter === 'ALL') return true;
     if (statusFilter === 'FLAGGED') return r.flaggedToxic === true;
@@ -139,10 +192,10 @@ export const ReviewModerationPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             type="button"
-            onClick={fetchReviews}
+            onClick={() => fetchReviews()}
             disabled={loading}
             title="Làm mới danh sách"
             className={cn(
@@ -153,6 +206,26 @@ export const ReviewModerationPage: React.FC = () => {
             )}
           >
             <RefreshCw className={cn('w-4 h-4', loading && 'animate-spin')} />
+          </button>
+
+          <button
+            type="button"
+            onClick={handleAiScanPending}
+            disabled={isAiScanning || pendingCount === 0}
+            className={cn(
+              'flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-white transition-colors cursor-pointer shadow-sm',
+              pendingCount > 0
+                ? 'bg-blue-600 hover:bg-blue-700'
+                : 'bg-slate-400 cursor-not-allowed opacity-60'
+            )}
+            title="Sử dụng Spring AI phân loại cảm xúc & phát hiện vi phạm tự động"
+          >
+            {isAiScanning ? (
+              <RefreshCw className="w-4 h-4 animate-spin text-white" />
+            ) : (
+              <Sparkles className="w-4 h-4 text-amber-300" />
+            )}
+            <span>{isAiScanning ? 'Đang phân tích...' : '✨ AI Quét Chờ Duyệt'}</span>
           </button>
 
           <button
@@ -296,7 +369,7 @@ export const ReviewModerationPage: React.FC = () => {
           </div>
           <button
             type="button"
-            onClick={fetchReviews}
+            onClick={() => fetchReviews()}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer inline-flex items-center gap-1.5"
           >
             <RefreshCw className="w-3.5 h-3.5" />
@@ -384,6 +457,46 @@ export const ReviewModerationPage: React.FC = () => {
                           <span>{r.moderationNote}</span>
                         </div>
                       )}
+                      {/* Spring AI In-context Moderation Result */}
+                      {aiScanMap[r.id] && (() => {
+                        const aiMod = aiScanMap[r.id];
+                        const isPositive = aiMod.classification === 'CLEAN_POSITIVE';
+                        const isToxic = aiMod.classification === 'TOXIC_SPAM';
+
+                        return (
+                          <div className={cn(
+                            'mt-1.5 p-2 rounded-lg border text-[11px] space-y-0.5 transition-all',
+                            isPositive
+                              ? isDarkMode
+                                ? 'bg-emerald-950/30 border-emerald-800/40 text-emerald-300'
+                                : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                              : isToxic
+                              ? isDarkMode
+                                ? 'bg-red-950/30 border-red-800/40 text-red-300'
+                                : 'bg-red-50 border-red-200 text-red-800'
+                              : isDarkMode
+                              ? 'bg-amber-950/30 border-amber-800/40 text-amber-300'
+                              : 'bg-amber-50 border-amber-200 text-amber-800'
+                          )}>
+                            <div className="flex items-center gap-1.5 font-bold">
+                              <Sparkles className="w-3 h-3 text-current flex-shrink-0" />
+                              <span>
+                                {isPositive
+                                  ? '✨ AI: Tích cực (Gợi ý duyệt)'
+                                  : isToxic
+                                  ? '🚫 AI: Độc hại / Spam (Gợi ý ẩn)'
+                                  : '⚠️ AI: Khiếu nại chất lượng'}
+                              </span>
+                              <span className="text-[10px] font-mono opacity-80">
+                                ({Math.round((aiMod.confidence ?? 0.9) * 100)}%)
+                              </span>
+                            </div>
+                            <div className="text-[10px] opacity-90 italic">
+                              "{aiMod.reason}"
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td className={cn('py-3 px-4 font-mono text-[11px] whitespace-nowrap', isDarkMode ? 'text-[#88929B]' : 'text-slate-400')}>
                       {r.submittedAt ? r.submittedAt.replace('T', ' ').substring(0, 16) : '---'}
@@ -454,6 +567,17 @@ export const ReviewModerationPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          <AdminPagination
+            currentPage={page}
+            pageSize={pageSize}
+            totalElements={totalElements}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+            isLoading={loading}
+          />
         </div>
       )}
     </div>
