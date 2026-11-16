@@ -14,6 +14,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import type { MockCar } from '@/features/customer/mocks/car.mock';
+import type { CarVariant } from '@/types/car.types';
 import { carService } from '@/features/customer/services/car.service';
 import { useCompareStore } from '@/store/useCompareStore';
 import { useStickySidebar } from '@/hooks/useStickySidebar';
@@ -128,7 +129,7 @@ export const CarListPage: React.FC = () => {
 
   const handleCompare = (car: MockCar) => {
     const realId = Number(car.id) || 1;
-    addVariantToCompare({
+    const newVariant: CarVariant = {
       id: realId,
       modelId: 1,
       variantName: car.name,
@@ -140,9 +141,22 @@ export const CarListPage: React.FC = () => {
       depositPrice: car.depositAmount,
       colors: car.availableColors.map((c, i) => ({ id: i + 1, colorName: c.name, colorCodeHex: c.hex })),
       images: [{ id: 1, imageUrl: car.image, viewType: 'THUMBNAIL', displayOrder: 1 }],
-    });
+    };
+
+    addVariantToCompare(newVariant);
+
+    // Ensure the clicked car is definitively included in the navigate URL and store
     const currentVariants = useCompareStore.getState().selectedVariants;
-    const ids = currentVariants.map((v) => v.id).join(',');
+    let nextVariants = currentVariants;
+    if (!nextVariants.some((v) => Number(v.id) === realId)) {
+      if (nextVariants.length >= 3) {
+        nextVariants = [...nextVariants.slice(0, 2), newVariant];
+      } else {
+        nextVariants = [...nextVariants, newVariant];
+      }
+      useCompareStore.getState().setVariantsToCompare(nextVariants);
+    }
+    const ids = nextVariants.map((v) => v.id).join(',');
     navigate(`/car-comparison?ids=${ids}`);
   };
 

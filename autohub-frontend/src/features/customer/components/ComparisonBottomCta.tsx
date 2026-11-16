@@ -18,7 +18,7 @@ export const ComparisonBottomCta: React.FC<ComparisonBottomCtaProps> = ({
           Vẫn Còn Phân Vân Giữa Các Phiên Bản?
         </h3>
         <p className="text-xs sm:text-sm text-text-secondary leading-relaxed">
-          Mỗi cấu hình AutoHub GT-e đều mang DNA thuần điện đỉnh cao. Hãy để chuyên viên kỹ thuật của chúng tôi đồng hành cùng bạn trên cung đường trải nghiệm thực tế.
+          Mỗi cấu hình xe tại AutoHub đều mang DNA công nghệ đỉnh cao. Hãy để chuyên viên kỹ thuật của chúng tôi đồng hành cùng bạn trên cung đường trải nghiệm thực tế.
         </p>
       </div>
 
@@ -46,7 +46,7 @@ export const ComparisonBottomCta: React.FC<ComparisonBottomCtaProps> = ({
           className="w-full sm:w-auto py-3 px-6 rounded-lg bg-accent-action hover:bg-accent-primary text-accent-contrast font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(14,165,233,0.35)] hover:shadow-[0_0_30px_rgba(137,206,255,0.5)] transition-all cursor-pointer"
         >
           <Calendar className="w-4 h-4 text-accent-contrast" />
-          <span>Đăng ký lái thử cả 3 bản xe</span>
+          <span>Đăng ký lái thử trải nghiệm xe</span>
         </button>
       </div>
     </div>

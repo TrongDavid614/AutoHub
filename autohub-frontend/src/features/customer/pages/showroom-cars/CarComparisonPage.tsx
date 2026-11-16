@@ -185,10 +185,40 @@ export const CarComparisonPage: React.FC = () => {
     return data?.trims.map((t) => Number(t.id)) || [];
   }, [data]);
 
+  const headerInfo = useMemo(() => {
+    if (!data?.trims || data.trims.length === 0) {
+      return {
+        title: 'Bàn Cân So Sánh Đối Đầu Xe Ô Tô AutoHub',
+        categoryLabel: 'DÒNG XE',
+      };
+    }
+    const modelNames = Array.from(new Set(data.trims.map((t) => t.modelName || t.name).filter(Boolean)));
+    const brandNames = Array.from(new Set(data.trims.map((t) => t.brandName).filter(Boolean)));
+
+    let title = 'Bàn Cân So Sánh Đối Đầu Đa Dòng Xe AutoHub';
+    if (modelNames.length === 1) {
+      const brand = brandNames[0] && brandNames[0] !== 'AutoHub' ? brandNames[0] + ' ' : '';
+      title = `Bàn Cân So Sánh Đối Đầu ${brand}${modelNames[0]}`;
+    } else if (brandNames.length === 1 && brandNames[0] !== 'AutoHub') {
+      title = `Bàn Cân So Sánh Đối Đầu Các Dòng Xe ${brandNames[0]}`;
+    } else {
+      const trimNames = data.trims.map((t) => t.name).join(' vs ');
+      title = `So Sánh Đối Đầu: ${trimNames}`;
+    }
+
+    return {
+      title,
+      categoryLabel: modelNames.length === 1 ? modelNames[0] : 'DÒNG XE',
+    };
+  }, [data]);
+
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-8 animate-fadeIn print:p-0 print:m-0 print:space-y-4">
       {/* 1. Top Meta & Breadcrumb Header */}
-      <ComparisonHeader />
+      <ComparisonHeader
+        title={headerInfo.title}
+        categoryLabel={headerInfo.categoryLabel}
+      />
 
       {/* Error notification banner if any */}
       {error && (

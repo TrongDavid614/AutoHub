@@ -45,7 +45,7 @@ CREATE TABLE dbo.showroom (
     tinh_thanh_id  BIGINT        NOT NULL,
     ten_showroom   NVARCHAR(150) NOT NULL,
     dia_chi        NVARCHAR(255) NOT NULL,
-    so_dien_thoai  VARCHAR(15)   NOT NULL,
+    so_dien_thoai  NVARCHAR(20)   NOT NULL,
     gio_mo_cua     TIME(0)       NOT NULL,
     gio_dong_cua   TIME(0)       NOT NULL,
     dang_hoat_dong BIT NOT NULL CONSTRAINT DF_sr_hd DEFAULT 1,
@@ -59,15 +59,15 @@ CREATE TABLE dbo.nguoi_dung (
     id                   BIGINT IDENTITY(1,1) NOT NULL,
     showroom_id          BIGINT        NULL,
     ho_ten               NVARCHAR(100) NOT NULL,
-    email                VARCHAR(100)  NOT NULL,
-    mat_khau_bam         VARCHAR(100)  NOT NULL,
+    email                NVARCHAR(100)  NOT NULL,
+    mat_khau_bam         NVARCHAR(100)  NOT NULL,
     so_dien_thoai        CHAR(10)      NOT NULL,
     anh_dai_dien         NVARCHAR(500) NULL,
     so_cccd              CHAR(12)      NULL,
     ngay_sinh            DATE          NULL,
     gioi_tinh            NVARCHAR(10)  NULL,
-    vai_tro              VARCHAR(30)   NOT NULL CONSTRAINT DF_nd_vai_tro DEFAULT 'ROLE_CUSTOMER',
-    trang_thai_tai_khoan VARCHAR(30)   NOT NULL CONSTRAINT DF_nd_trang_thai DEFAULT 'CHUA_KICH_HOAT',
+    vai_tro              NVARCHAR(50)   NOT NULL CONSTRAINT DF_nd_vai_tro DEFAULT 'ROLE_CUSTOMER',
+    trang_thai_tai_khoan NVARCHAR(50)   NOT NULL CONSTRAINT DF_nd_trang_thai DEFAULT 'CHUA_KICH_HOAT',
     ngay_tao             DATETIME2(0)  NOT NULL CONSTRAINT DF_nd_ngay_tao DEFAULT SYSDATETIME(),
     updated_at           DATETIME2(0)  NULL,
     is_deleted           BIT           NOT NULL CONSTRAINT DF_nd_xoa DEFAULT 0,
@@ -164,7 +164,7 @@ CREATE TABLE dbo.hinh_anh_xe (
     phien_ban_id    BIGINT        NOT NULL,
     mau_sac_id      BIGINT        NULL,
     duong_dan       NVARCHAR(500) NOT NULL,
-    loai_anh        VARCHAR(20)   NOT NULL,
+    loai_anh        NVARCHAR(30)   NOT NULL,
     goc_quay        INT           NULL,
     thu_tu_hien_thi INT           NOT NULL CONSTRAINT DF_ha_tt DEFAULT 0,
     CONSTRAINT PK_hinh_anh_xe PRIMARY KEY (id),
@@ -197,7 +197,7 @@ CREATE TABLE dbo.xe_dinh_danh (
     id           BIGINT IDENTITY(1,1) NOT NULL,
     ton_kho_id   BIGINT   NOT NULL,
     so_khung_vin CHAR(17) NOT NULL,
-    trang_thai   VARCHAR(20) NOT NULL CONSTRAINT DF_xdd_tt DEFAULT 'CO_SAN',
+    trang_thai   NVARCHAR(30) NOT NULL CONSTRAINT DF_xdd_tt DEFAULT 'CO_SAN',
     CONSTRAINT PK_xe_dinh_danh PRIMARY KEY (id),
     CONSTRAINT UQ_xdd_vin UNIQUE (so_khung_vin),
     CONSTRAINT FK_xe_dinh_danh_ton_kho FOREIGN KEY (ton_kho_id) REFERENCES dbo.ton_kho_xe(id),
@@ -210,11 +210,11 @@ CREATE TABLE dbo.xe_demo (
     id                      BIGINT IDENTITY(1,1) NOT NULL,
     showroom_id             BIGINT      NOT NULL,
     phien_ban_id            BIGINT      NOT NULL,
-    bien_so                 VARCHAR(15) NOT NULL,
+    bien_so                 NVARCHAR(20) NOT NULL,
     so_odo_hien_tai         INT         NOT NULL CONSTRAINT DF_xdm_odo DEFAULT 0,
     ngay_bao_duong_gan_nhat DATE        NULL,
     ngay_bao_duong_tiep_theo DATE       NULL,
-    trang_thai              VARCHAR(20) NOT NULL CONSTRAINT DF_xdm_tt DEFAULT 'SAN_SANG',
+    trang_thai   NVARCHAR(30) NOT NULL CONSTRAINT DF_xdm_tt DEFAULT 'SAN_SANG',
     dang_hoat_dong          BIT         NOT NULL CONSTRAINT DF_xdm_hd DEFAULT 1,
     CONSTRAINT PK_xe_demo PRIMARY KEY (id),
     CONSTRAINT UQ_xdm_bien_so UNIQUE (bien_so),
@@ -247,7 +247,7 @@ CREATE UNIQUE INDEX UX_bp_hieu_luc ON dbo.bieu_phi_lan_banh(tinh_thanh_id) WHERE
 CREATE TABLE dbo.chuong_trinh_khuyen_mai (
     id               BIGINT IDENTITY(1,1) NOT NULL,
     ten_chuong_trinh NVARCHAR(200) NOT NULL,
-    loai_uu_dai      VARCHAR(30)   NOT NULL,
+    loai_uu_dai      NVARCHAR(50)   NOT NULL,
     gia_tri          DECIMAL(18,2) NOT NULL,
     ngay_bat_dau     DATE          NOT NULL,
     ngay_ket_thuc    DATE          NOT NULL,
@@ -271,7 +271,7 @@ CREATE TABLE dbo.khuyen_mai_phien_ban (
 -- 16. voucher
 CREATE TABLE dbo.voucher (
     id             BIGINT IDENTITY(1,1) NOT NULL,
-    ma_voucher     VARCHAR(30)   NOT NULL,
+    ma_voucher     NVARCHAR(50)   NOT NULL,
     phan_tram_giam DECIMAL(5,2)  NOT NULL,
     giam_toi_da    DECIMAL(18,0) NOT NULL,
     ngay_het_han   DATE          NOT NULL,
@@ -290,11 +290,11 @@ CREATE TABLE dbo.yeu_cau_tu_van (
     nhan_vien_id        BIGINT        NULL,
     ho_ten              NVARCHAR(100) NOT NULL,
     so_dien_thoai       CHAR(10)      NOT NULL,
-    email               VARCHAR(100)  NOT NULL,
+    email                NVARCHAR(100)  NOT NULL,
     noi_dung_can_tu_van NVARCHAR(1000) NOT NULL,
     khung_gio_tiep_nhan NVARCHAR(100) NULL,
     ngay_gui            DATETIME2(0)  NOT NULL CONSTRAINT DF_yctv_ngay DEFAULT SYSDATETIME(),
-    trang_thai          VARCHAR(20)   NOT NULL CONSTRAINT DF_yctv_tt DEFAULT 'PENDING',
+    trang_thai   NVARCHAR(30)   NOT NULL CONSTRAINT DF_yctv_tt DEFAULT 'PENDING',
     ghi_chu_cskh        NVARCHAR(MAX) NULL,
     CONSTRAINT PK_yeu_cau_tu_van PRIMARY KEY (id),
     CONSTRAINT FK_yctv_nguoi_dung FOREIGN KEY (nguoi_dung_id) REFERENCES dbo.nguoi_dung(id),
@@ -311,7 +311,7 @@ CREATE TABLE dbo.nhat_ky_tu_van (
     id                  BIGINT IDENTITY(1,1) NOT NULL,
     yeu_cau_tu_van_id   BIGINT        NOT NULL,
     nhan_vien_id        BIGINT        NOT NULL,
-    loai_tuong_tac      VARCHAR(30)   NOT NULL,
+    loai_tuong_tac      NVARCHAR(50)   NOT NULL,
     noi_dung_trao_doi   NVARCHAR(MAX) NOT NULL,
     ngan_sach_du_kien   DECIMAL(18,2) NULL,
     ket_qua_cuoc_goi    NVARCHAR(100) NULL,
@@ -334,14 +334,14 @@ CREATE TABLE dbo.lich_hen_lai_thu (
     ho_ten_khach        NVARCHAR(100) NOT NULL,
     so_dien_thoai_khach CHAR(10)      NOT NULL,
     cam_ket_gplx        BIT           NOT NULL,
-    so_gplx_kiem_tra    VARCHAR(20)   NULL,
+    so_gplx_kiem_tra    NVARCHAR(30)   NULL,
     odo_bat_dau         INT           NULL,
     odo_ket_thuc        INT           NULL,
     thoi_gian_checkin   DATETIME2(0)  NULL,
     thoi_gian_checkout  DATETIME2(0)  NULL,
     chu_ky_khach_hang   NVARCHAR(500) NULL,
     ngay_tao            DATETIME2(0)  NOT NULL CONSTRAINT DF_lh_ngay DEFAULT SYSDATETIME(),
-    trang_thai          VARCHAR(20)   NOT NULL CONSTRAINT DF_lh_tt DEFAULT 'PENDING',
+    trang_thai   NVARCHAR(30)   NOT NULL CONSTRAINT DF_lh_tt DEFAULT 'PENDING',
     ghi_chu             NVARCHAR(500) NULL,
     da_gui_nhac_lich    BIT           NOT NULL CONSTRAINT DF_lh_nhac DEFAULT 0,
     thoi_gian_gui_nhac  DATETIME2(0)  NULL,
@@ -361,7 +361,7 @@ CREATE UNIQUE INDEX UX_lh_pending ON dbo.lich_hen_lai_thu(nguoi_dung_id) WHERE t
 -- 20. phieu_dat_coc
 CREATE TABLE dbo.phieu_dat_coc (
     id                   BIGINT IDENTITY(1,1) NOT NULL,
-    ma_phieu_coc         VARCHAR(30)   NOT NULL,
+    ma_phieu_coc         NVARCHAR(50)   NOT NULL,
     nguoi_dung_id        BIGINT        NOT NULL,
     ton_kho_id           BIGINT        NOT NULL,
     xe_dinh_danh_id      BIGINT        NULL,
@@ -371,7 +371,7 @@ CREATE TABLE dbo.phieu_dat_coc (
     han_thanh_toan       DATETIME2(0)  NOT NULL,
     thoi_gian_thanh_toan DATETIME2(0)  NULL,
     han_giu_xe           DATETIME2(0)  NULL,
-    trang_thai           VARCHAR(30)   NOT NULL CONSTRAINT DF_pdc_tt DEFAULT 'PENDING_PAYMENT',
+    trang_thai   NVARCHAR(50)   NOT NULL CONSTRAINT DF_pdc_tt DEFAULT 'PENDING_PAYMENT',
     thoi_gian_hoan_tat   DATETIME2(0)  NULL,
     CONSTRAINT PK_phieu_dat_coc PRIMARY KEY (id),
     CONSTRAINT UQ_pdc_ma UNIQUE (ma_phieu_coc),
@@ -393,7 +393,7 @@ CREATE TABLE dbo.bien_ban_ban_giao_xe (
     phieu_dat_coc_id       BIGINT        NOT NULL,
     xe_dinh_danh_id        BIGINT        NOT NULL,
     nhan_vien_ban_giao_id  BIGINT        NOT NULL,
-    ma_bien_ban            VARCHAR(50)   NOT NULL,
+    ma_bien_ban            NVARCHAR(50)   NOT NULL,
     ngay_ban_giao          DATETIME2(0)  NOT NULL CONSTRAINT DF_bbbg_ngay DEFAULT SYSDATETIME(),
     so_odo_ban_giao        INT           NOT NULL,
     ket_qua_pdi_json       NVARCHAR(MAX) NOT NULL,
@@ -414,18 +414,18 @@ CREATE TABLE dbo.yeu_cau_hoan_coc (
     phieu_dat_coc_id      BIGINT         NOT NULL,
     nhan_vien_doi_soat_id BIGINT         NULL,
     quan_tri_phe_duyet_id BIGINT         NULL,
-    loai_ly_do            VARCHAR(40)    NOT NULL,
+    loai_ly_do            NVARCHAR(100)    NOT NULL,
     ly_do                 NVARCHAR(1000) NOT NULL,
     minh_chung            NVARCHAR(500)  NULL,
     ngay_gui              DATETIME2(0)   NOT NULL CONSTRAINT DF_ychc_ngay DEFAULT SYSDATETIME(),
-    trang_thai            VARCHAR(20)    NOT NULL CONSTRAINT DF_ychc_tt DEFAULT 'PENDING',
+    trang_thai   NVARCHAR(30)    NOT NULL CONSTRAINT DF_ychc_tt DEFAULT 'PENDING',
     ly_do_tu_choi         NVARCHAR(500)  NULL,
     ngay_xu_ly            DATETIME2(0)   NULL,
     CONSTRAINT PK_yeu_cau_hoan_coc PRIMARY KEY (id),
     CONSTRAINT FK_ychc_phieu FOREIGN KEY (phieu_dat_coc_id)      REFERENCES dbo.phieu_dat_coc(id),
     CONSTRAINT FK_ychc_staff FOREIGN KEY (nhan_vien_doi_soat_id) REFERENCES dbo.nguoi_dung(id),
     CONSTRAINT FK_ychc_admin FOREIGN KEY (quan_tri_phe_duyet_id) REFERENCES dbo.nguoi_dung(id),
-    CONSTRAINT CK_ychc_loai CHECK (loai_ly_do IN ('NGAN_HANG_TU_CHOI_TIN_DUNG','NGOAI_LE_ADMIN')),
+    CONSTRAINT CK_ychc_loai CHECK (loai_ly_do IN ('NGAN_HANG_TU_CHOI_TIN_DUNG','NGOAI_LE_ADMIN', N'Ngân hàng từ chối tín dụng', N'Ngoại lệ Admin', N'Ngoại lệ Admin phê duyệt')),
     CONSTRAINT CK_ychc_tt   CHECK (trang_thai IN ('PENDING','VERIFIED','APPROVED','REFUNDED','REJECTED','CANCELLED')),
     CONSTRAINT CK_ychc_tu_choi CHECK (trang_thai <> 'REJECTED' OR ly_do_tu_choi IS NOT NULL)
 );
@@ -495,7 +495,7 @@ CREATE TABLE dbo.chi_tiet_gio_hang (
 -- 28. don_hang_phu_kien
 CREATE TABLE dbo.don_hang_phu_kien (
     id                     BIGINT IDENTITY(1,1) NOT NULL,
-    ma_don_hang            VARCHAR(30)   NOT NULL,
+    ma_don_hang            NVARCHAR(50)   NOT NULL,
     nguoi_dung_id          BIGINT        NOT NULL,
     voucher_id             BIGINT        NULL,
     ho_ten_nguoi_nhan      NVARCHAR(100) NOT NULL,
@@ -503,16 +503,16 @@ CREATE TABLE dbo.don_hang_phu_kien (
     dia_chi_giao_hang      NVARCHAR(500) NOT NULL,
     ghi_chu_khach_hang     NVARCHAR(500) NULL,
     ngay_dat               DATETIME2(0)  NOT NULL CONSTRAINT DF_dh_ngay DEFAULT SYSDATETIME(),
-    phuong_thuc_thanh_toan VARCHAR(10)   NOT NULL,
+    phuong_thuc_thanh_toan NVARCHAR(20)   NOT NULL,
     phi_van_chuyen         DECIMAL(18,0) NOT NULL CONSTRAINT DF_dh_pvc DEFAULT 0,
     so_tien_giam_voucher   DECIMAL(18,0) NOT NULL CONSTRAINT DF_dh_gv DEFAULT 0,
     don_vi_van_chuyen      NVARCHAR(100) NULL,
-    ma_van_don             VARCHAR(50)   NULL,
+    ma_van_don             NVARCHAR(50)   NULL,
     ngay_giao_hang         DATETIME2(0)  NULL,
     tong_tien              DECIMAL(18,0) NOT NULL,
     han_thanh_toan         DATETIME2(0)  NULL,
     thoi_gian_thanh_toan   DATETIME2(0)  NULL,
-    trang_thai             VARCHAR(30)   NOT NULL CONSTRAINT DF_dh_tt DEFAULT 'PENDING',
+    trang_thai   NVARCHAR(50)   NOT NULL CONSTRAINT DF_dh_tt DEFAULT 'PENDING',
     CONSTRAINT PK_don_hang PRIMARY KEY (id),
     CONSTRAINT UQ_dh_ma UNIQUE (ma_don_hang),
     CONSTRAINT FK_dh_nguoi_dung FOREIGN KEY (nguoi_dung_id) REFERENCES dbo.nguoi_dung(id),
@@ -548,19 +548,19 @@ CREATE TABLE dbo.yeu_cau_doi_tra (
     chi_tiet_don_hang_id BIGINT         NOT NULL,
     so_luong_doi_tra     INT            NOT NULL,
     ly_do                NVARCHAR(1000) NOT NULL,
-    phuong_an_mong_muon  VARCHAR(20)    NOT NULL,
+    phuong_an_mong_muon  NVARCHAR(50)    NOT NULL,
     minh_chung           NVARCHAR(1000) NULL,
-    phuong_an_giai_quyet VARCHAR(20)    NULL,
-    ma_van_don_moi       VARCHAR(50)    NULL,
+    phuong_an_giai_quyet NVARCHAR(50)    NULL,
+    ma_van_don_moi       NVARCHAR(50)    NULL,
     ngay_gui             DATETIME2(0)   NOT NULL CONSTRAINT DF_ycdt_ngay DEFAULT SYSDATETIME(),
-    trang_thai           VARCHAR(20)    NOT NULL CONSTRAINT DF_ycdt_tt DEFAULT 'PENDING',
+    trang_thai   NVARCHAR(30)    NOT NULL CONSTRAINT DF_ycdt_tt DEFAULT 'PENDING',
     ghi_chu_xu_ly        NVARCHAR(1000) NULL,
     CONSTRAINT PK_yeu_cau_doi_tra PRIMARY KEY (id),
     CONSTRAINT FK_ycdt_dh   FOREIGN KEY (don_hang_id)          REFERENCES dbo.don_hang_phu_kien(id),
     CONSTRAINT FK_ycdt_ctdh FOREIGN KEY (chi_tiet_don_hang_id) REFERENCES dbo.chi_tiet_don_hang(id),
     CONSTRAINT CK_ycdt_sl   CHECK (so_luong_doi_tra > 0),
-    CONSTRAINT CK_ycdt_mm   CHECK (phuong_an_mong_muon IN ('DOI_HANG','HOAN_TIEN')),
-    CONSTRAINT CK_ycdt_gq   CHECK (phuong_an_giai_quyet IS NULL OR phuong_an_giai_quyet IN ('DOI_HANG','HOAN_TIEN')),
+    CONSTRAINT CK_ycdt_mm   CHECK (phuong_an_mong_muon IN ('DOI_HANG','HOAN_TIEN', N'Đổi hàng mới', N'Hoàn tiền', N'Đổi sản phẩm khác')),
+    CONSTRAINT CK_ycdt_gq   CHECK (phuong_an_giai_quyet IS NULL OR phuong_an_giai_quyet IN ('DOI_HANG','HOAN_TIEN', N'Đổi hàng mới', N'Hoàn tiền', N'Đổi sản phẩm khác')),
     CONSTRAINT CK_ycdt_tt   CHECK (trang_thai IN ('PENDING','APPROVED','REJECTED','COMPLETED'))
 );
 
@@ -574,7 +574,7 @@ CREATE TABLE dbo.danh_gia (
     noi_dung             NVARCHAR(2000) NULL,
     hinh_anh_danh_gia    NVARCHAR(MAX)  NULL,
     ngay_danh_gia        DATETIME2(0)   NOT NULL CONSTRAINT DF_dg_ngay DEFAULT SYSDATETIME(),
-    trang_thai_duyet     VARCHAR(20)    NOT NULL CONSTRAINT DF_dg_tt DEFAULT 'PENDING',
+    trang_thai_duyet     NVARCHAR(30)    NOT NULL CONSTRAINT DF_dg_tt DEFAULT 'PENDING',
     CONSTRAINT PK_danh_gia PRIMARY KEY (id),
     CONSTRAINT UQ_dg_ctdh UNIQUE (chi_tiet_don_hang_id),
     CONSTRAINT FK_dg_nguoi_dung FOREIGN KEY (nguoi_dung_id)        REFERENCES dbo.nguoi_dung(id),
@@ -590,17 +590,17 @@ CREATE TABLE dbo.giao_dich_thanh_toan (
     id                   BIGINT IDENTITY(1,1) NOT NULL,
     phieu_dat_coc_id     BIGINT        NULL,
     don_hang_id          BIGINT        NULL,
-    ma_tham_chieu        VARCHAR(64)   NOT NULL,
-    ma_giao_dich_vnpay   VARCHAR(64)   NULL,
-    ma_giao_dich_sepay   VARCHAR(100)  NULL,
-    loai_giao_dich       VARCHAR(20)   NOT NULL CONSTRAINT DF_gd_loai DEFAULT 'THANH_TOAN',
-    phuong_thuc          VARCHAR(10)   NOT NULL CONSTRAINT DF_gd_pt DEFAULT 'VNPAY',
+    ma_tham_chieu        NVARCHAR(100)   NOT NULL,
+    ma_giao_dich_vnpay   NVARCHAR(100)   NULL,
+    ma_giao_dich_sepay   NVARCHAR(100)  NULL,
+    loai_giao_dich       NVARCHAR(30)   NOT NULL CONSTRAINT DF_gd_loai DEFAULT 'THANH_TOAN',
+    phuong_thuc          NVARCHAR(20)   NOT NULL CONSTRAINT DF_gd_pt DEFAULT 'VNPAY',
     so_tien              DECIMAL(18,0) NOT NULL,
     thoi_gian_khoi_tao   DATETIME2(0)  NOT NULL CONSTRAINT DF_gd_tgkt DEFAULT SYSDATETIME(),
     thoi_gian_thanh_toan DATETIME2(0)  NULL,
-    ma_ket_qua           VARCHAR(50)   NULL,
+    ma_ket_qua           NVARCHAR(50)   NULL,
     du_lieu_webhook      NVARCHAR(MAX) NULL,
-    trang_thai           VARCHAR(20)   NOT NULL CONSTRAINT DF_gd_tt DEFAULT 'PENDING',
+    trang_thai   NVARCHAR(30)   NOT NULL CONSTRAINT DF_gd_tt DEFAULT 'PENDING',
     CONSTRAINT PK_giao_dich PRIMARY KEY (id),
     CONSTRAINT UQ_gd_tham_chieu UNIQUE (ma_tham_chieu),
     CONSTRAINT FK_gd_phieu FOREIGN KEY (phieu_dat_coc_id) REFERENCES dbo.phieu_dat_coc(id),
@@ -620,9 +620,9 @@ GO
 CREATE TABLE dbo.nhat_ky_hanh_vi (
     id                 BIGINT IDENTITY(1,1) NOT NULL,
     nguoi_dung_id      BIGINT        NULL,
-    ma_phien           VARCHAR(100)  NULL,
-    loai_hanh_vi       VARCHAR(30)   NOT NULL,
-    loai_thuc_the      VARCHAR(20)   NULL,
+    ma_phien           NVARCHAR(100)  NULL,
+    loai_hanh_vi       NVARCHAR(50)   NOT NULL,
+    loai_thuc_the      NVARCHAR(50)   NULL,
     ma_thuc_the        BIGINT        NULL,
     thoi_gian_dung_xem INT           NOT NULL CONSTRAINT DF_nkhv_time DEFAULT 0,
     du_lieu_bo_sung    NVARCHAR(MAX) NULL,
@@ -639,13 +639,13 @@ CREATE TABLE dbo.lich_truc_nhan_vien (
     nhan_vien_id BIGINT        NOT NULL,
     showroom_id  BIGINT        NOT NULL,
     ngay_truc    DATE          NOT NULL,
-    ca_truc      VARCHAR(20)   NOT NULL,
+    ca_truc      NVARCHAR(50)   NOT NULL,
     ghi_chu      NVARCHAR(255) NULL,
     ngay_tao     DATETIME2(0)  NOT NULL CONSTRAINT DF_lt_ngay DEFAULT SYSDATETIME(),
     CONSTRAINT PK_lich_truc PRIMARY KEY (id),
     CONSTRAINT FK_lt_staff FOREIGN KEY (nhan_vien_id) REFERENCES dbo.nguoi_dung(id),
     CONSTRAINT FK_lt_showroom FOREIGN KEY (showroom_id) REFERENCES dbo.showroom(id),
-    CONSTRAINT CK_lt_ca CHECK (ca_truc IN ('CA_SANG','CA_CHIEU','CA_TOI','CA_HANH_CHINH')),
+    CONSTRAINT CK_lt_ca CHECK (ca_truc IN ('CA_SANG','CA_CHIEU','CA_TOI','CA_HANH_CHINH', N'Ca sáng', N'Ca chiều', N'Ca tối', N'Ca hành chính')),
     CONSTRAINT UQ_lt_nv_ngay_ca UNIQUE (nhan_vien_id, ngay_truc, ca_truc)
 );
 GO
@@ -653,14 +653,14 @@ GO
 -- 35. phieu_dieu_chuyen_kho (Inter-Showroom Vehicle Transfer Docket)
 CREATE TABLE dbo.phieu_dieu_chuyen_kho (
     id               BIGINT IDENTITY(1,1) NOT NULL,
-    ma_phieu_chuyen  VARCHAR(50)   NOT NULL,
+    ma_phieu_chuyen  NVARCHAR(50)   NOT NULL,
     showroom_xuat_id BIGINT        NOT NULL,
     showroom_nhap_id BIGINT        NOT NULL,
     xe_dinh_danh_id  BIGINT        NOT NULL,
     nguoi_tao_id     BIGINT        NOT NULL,
     ngay_tao         DATETIME2(0)  NOT NULL CONSTRAINT DF_pdck_ngay DEFAULT SYSDATETIME(),
     ngay_hoan_tat    DATETIME2(0)  NULL,
-    trang_thai       VARCHAR(30)   NOT NULL CONSTRAINT DF_pdck_tt DEFAULT 'DANG_VAN_CHUYEN',
+    trang_thai   NVARCHAR(50)   NOT NULL CONSTRAINT DF_pdck_tt DEFAULT 'DANG_VAN_CHUYEN',
     ghi_chu          NVARCHAR(500) NULL,
     CONSTRAINT PK_phieu_dieu_chuyen PRIMARY KEY (id),
     CONSTRAINT UQ_pdck_ma UNIQUE (ma_phieu_chuyen),
@@ -676,12 +676,12 @@ GO
 -- 36. bien_ban_ban_giao_ca (Shift Handover Docket)
 CREATE TABLE dbo.bien_ban_ban_giao_ca (
     id                    BIGINT IDENTITY(1,1) NOT NULL,
-    ma_ban_giao           VARCHAR(50)   NOT NULL,
+    ma_ban_giao           NVARCHAR(50)   NOT NULL,
     showroom_id           BIGINT        NOT NULL,
     nguoi_ban_giao_id     BIGINT        NOT NULL,
     nguoi_nhan_ca_id      BIGINT        NOT NULL,
     thoi_gian_ban_giao    DATETIME2(0)  NOT NULL CONSTRAINT DF_bbgc_tg DEFAULT SYSDATETIME(),
-    ca_ban_giao           VARCHAR(20)   NOT NULL,
+    ca_ban_giao           NVARCHAR(50)   NOT NULL,
     tien_mat_dau_ca       DECIMAL(18,0) NOT NULL CONSTRAINT DF_bbgc_tmdc DEFAULT 0,
     tien_mat_cuoi_ca      DECIMAL(18,0) NOT NULL CONSTRAINT DF_bbgc_tmcc DEFAULT 0,
     so_hop_dong_phat_sinh INT           NOT NULL CONSTRAINT DF_bbgc_shd DEFAULT 0,
@@ -693,10 +693,48 @@ CREATE TABLE dbo.bien_ban_ban_giao_ca (
     CONSTRAINT FK_bbgc_showroom FOREIGN KEY (showroom_id) REFERENCES dbo.showroom(id),
     CONSTRAINT FK_bbgc_giao FOREIGN KEY (nguoi_ban_giao_id) REFERENCES dbo.nguoi_dung(id),
     CONSTRAINT FK_bbgc_nhan FOREIGN KEY (nguoi_nhan_ca_id) REFERENCES dbo.nguoi_dung(id),
-    CONSTRAINT CK_bbgc_ca CHECK (ca_ban_giao IN ('CA_SANG','CA_CHIEU','CA_TOI','CA_HANH_CHINH')),
+    CONSTRAINT CK_bbgc_ca CHECK (ca_ban_giao IN ('CA_SANG','CA_CHIEU','CA_TOI','CA_HANH_CHINH', N'Ca sáng', N'Ca chiều', N'Ca tối', N'Ca hành chính')),
     CONSTRAINT CK_bbgc_staff CHECK (nguoi_ban_giao_id <> nguoi_nhan_ca_id)
 );
 GO
+
+-- 37. goi_vay_ngan_hang (Bank Loan Packages & Interest Rates - F22)
+CREATE TABLE dbo.goi_vay_ngan_hang (
+    id                           BIGINT IDENTITY(1,1) NOT NULL,
+    ten_ngan_hang                NVARCHAR(100)        NOT NULL,
+    ma_ngan_hang                 NVARCHAR(30)         NULL,
+    logo_url                     NVARCHAR(255)        NULL,
+    lai_suat_nam_dau             FLOAT                NULL,
+    lai_suat_tha_noi             FLOAT                NULL,
+    ky_han_vay_toi_da_nam        INT                  NULL,
+    han_muc_vay_toi_da_phan_tram INT                  NULL,
+    ghi_chu                      NVARCHAR(255)        NULL,
+    dang_hoat_dong               BIT                  NOT NULL CONSTRAINT DF_gvnh_hd DEFAULT 1,
+    CONSTRAINT PK_goi_vay_ngan_hang PRIMARY KEY (id)
+);
+GO
+
+-- 38. phuong_thuc_van_chuyen (Shipping Methods & Fulfillment)
+CREATE TABLE dbo.phuong_thuc_van_chuyen (
+    id                 BIGINT IDENTITY(1,1) NOT NULL,
+    ma_phuong_thuc     NVARCHAR(50)         NOT NULL,
+    ten_phuong_thuc    NVARCHAR(150)        NOT NULL,
+    mo_ta              NVARCHAR(255)        NULL,
+    sub_mo_ta          NVARCHAR(255)        NULL,
+    tag                NVARCHAR(50)         NULL,
+    thoi_gian_du_kien  NVARCHAR(100)        NOT NULL,
+    chi_phi            DECIMAL(18,0)        NOT NULL CONSTRAINT DF_ptvc_cp DEFAULT 0,
+    dieu_kien_mien_phi DECIMAL(18,0)        NULL,
+    thu_tu             INT                  NOT NULL CONSTRAINT DF_ptvc_tt DEFAULT 1,
+    dang_hoat_dong     BIT                  NOT NULL CONSTRAINT DF_ptvc_hd DEFAULT 1,
+    created_at         DATETIME2(0)         NOT NULL CONSTRAINT DF_ptvc_cr DEFAULT SYSDATETIME(),
+    updated_at         DATETIME2(0)         NULL,
+    is_deleted         BIT                  NOT NULL CONSTRAINT DF_ptvc_del DEFAULT 0,
+    CONSTRAINT PK_phuong_thuc_van_chuyen PRIMARY KEY (id),
+    CONSTRAINT UQ_ptvc_ma UNIQUE (ma_phuong_thuc)
+);
+GO
+
 
 -- ====================================================================================================
 -- PHẦN 2: NẠP DỮ LIỆU MẪU MOCKUP FRONTEND VÀO DATABASE (SEED DATA)
@@ -1062,6 +1100,23 @@ INSERT INTO dbo.bien_ban_ban_giao_ca (ma_ban_giao, showroom_id, nguoi_ban_giao_i
 GO
 
 PRINT N'====================================================================================================';
-PRINT N'>>> ĐÃ TẠO MỚI TOÀN BỘ CƠ SỞ DỮ LIỆU AutoHubDB VÀ NẠP ĐẦY ĐỦ DỮ LIỆU 36/36 BẢNG THÀNH CÔNG! <<<';
+
+-- 29. GÓI VAY NGÂN HÀNG & LÃI SUẤT TRẢ GÓP (Khớp AdminRegistrationFeeController)
+INSERT INTO dbo.goi_vay_ngan_hang (ten_ngan_hang, ma_ngan_hang, logo_url, lai_suat_nam_dau, lai_suat_tha_noi, ky_han_vay_toi_da_nam, han_muc_vay_toi_da_phan_tram, ghi_chu, dang_hoat_dong) VALUES
+(N'Vietcombank', N'VCB', N'https://autohub.vn/banks/vcb.png', 6.99, 10.5, 8, 80, N'Ưu đãi lãi suất cố định 12 tháng đầu, miễn phí phạt trả nợ trước hạn từ năm thứ 5', 1),
+(N'Techcombank', N'TCB', N'https://autohub.vn/banks/tcb.png', 7.49, 11.2, 8, 85, N'Hỗ trợ duyệt hồ sơ siêu tốc trong 4 giờ làm việc qua hạn mức liên kết AutoHub VIP', 1),
+(N'VPBank', N'VPB', N'https://autohub.vn/banks/vpb.png', 7.99, 11.8, 7, 80, N'Tài trợ đến 80% giá trị xe lăn bánh, thủ tục thẩm định linh hoạt không chứng minh phức tạp', 1),
+(N'Shinhan Bank', N'SHB', N'https://autohub.vn/banks/shinhan.png', 6.80, 10.2, 8, 75, N'Lãi suất ưu đãi hấp dẫn dành riêng cho ô tô điện thân thiện môi trường', 1),
+(N'BIDV', N'BIDV', N'https://autohub.vn/banks/bidv.png', 7.10, 10.8, 8, 80, N'Gói tín dụng xanh đồng hành cùng chương trình chuyển đổi Net Zero 2026', 1);
+GO
+
+-- 30. PHƯƠNG THỨC VẬN CHUYỂN PHỤ KIỆN (Khớp CustomerShippingController)
+INSERT INTO dbo.phuong_thuc_van_chuyen (ma_phuong_thuc, ten_phuong_thuc, tag, thoi_gian_du_kien, chi_phi, dieu_kien_mien_phi, sub_mo_ta, thu_tu, dang_hoat_dong) VALUES
+(N'STANDARD', N'Giao hàng tiêu chuẩn AutoHub Logistics', N'BẢO HIỂM HÀNG HÓA 100%', N'1 - 2 ngày làm việc', 0, NULL, N'Bàn giao niêm phong thùng chuyên dụng, kiểm tra hàng trước khi nhận', 1, 1),
+(N'EXPRESS_TECHNICIAN', N'Hỏa tốc & Kỹ thuật viên hỗ trợ lắp đặt tại chỗ', N'VIP ON-SITE TECH', N'Trong ngày (2 - 4h)', 150000, 50000000, N'Bao gồm khảo sát đường dây điện, kích hoạt sạc thông minh và kiểm tra an toàn tải điện', 2, 1),
+(N'SHOWROOM_PICKUP', N'Nhận trực tiếp tại Hệ thống Showroom AutoHub', N'TRẢI NGHIỆM SHOWROOM', N'Sẵn sàng trong 2 giờ', 0, NULL, N'Hỗ trợ kỹ thuật viên hướng dẫn lắp đặt trực tiếp và thử nghiệm thiết bị tại Showroom', 3, 1);
+GO
+
+PRINT N'>>> ĐÃ TẠO MỚI TOÀN BỘ CƠ SỞ DỮ LIỆU AutoHubDB VÀ NẠP ĐẦY ĐỦ DỮ LIỆU 38/38 BẢNG THÀNH CÔNG! <<<';
 PRINT N'====================================================================================================';
 GO

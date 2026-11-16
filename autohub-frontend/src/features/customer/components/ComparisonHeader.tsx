@@ -2,7 +2,17 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, ShieldCheck } from 'lucide-react';
 
-export const ComparisonHeader: React.FC = () => {
+export interface ComparisonHeaderProps {
+  title?: string;
+  subtitle?: string;
+  categoryLabel?: string;
+}
+
+export const ComparisonHeader: React.FC<ComparisonHeaderProps> = ({
+  title = 'Bàn Cân So Sánh Đối Đầu AutoHub GT-e Series',
+  subtitle = 'Phân tích chi tiết từng thông số hiệu năng 800V, kích thước khung gầm và hệ thống công nghệ an toàn LiDAR giữa các biến thể đỉnh cao của chuẩn mực di chuyển thông minh.',
+  categoryLabel = 'DÒNG XE',
+}) => {
   return (
     <div className="space-y-4 pb-2 border-b border-surface-highlight/40">
       {/* Breadcrumb Bar */}
@@ -18,7 +28,7 @@ export const ComparisonHeader: React.FC = () => {
           to="/cars"
           className="text-text-secondary hover:text-accent-primary transition-colors font-medium uppercase tracking-wider"
         >
-          DÒNG XE GT-E
+          {categoryLabel}
         </Link>
         <ChevronRight className="w-3.5 h-3.5 text-border-subtle" />
         <span className="text-accent-primary font-bold uppercase tracking-wider">
@@ -39,12 +49,11 @@ export const ComparisonHeader: React.FC = () => {
         </div>
 
         <h1 className="text-xl md:text-2xl font-bold text-text-primary tracking-tight leading-tight">
-          Bàn Cân So Sánh Đối Đầu AutoHub
-          <br className="hidden sm:inline" /> GT-e Series
+          {title}
         </h1>
 
         <p className="text-sm text-text-secondary max-w-3xl leading-relaxed mt-0.5">
-          Phân tích chi tiết từng thông số hiệu năng 800V, kích thước khung gầm và hệ thống công nghệ an toàn LiDAR giữa 3 biến thể đỉnh cao của chuẩn mực di chuyển thuần điện.
+          {subtitle}
         </p>
       </div>
     </div>

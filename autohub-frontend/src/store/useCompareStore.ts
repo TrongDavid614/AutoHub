@@ -19,11 +19,15 @@ export const useCompareStore = create<CompareStore>()(
 
       addVariantToCompare: (variant: CarVariant) => {
         const { selectedVariants } = get();
-        if (selectedVariants.some((v) => v.id === variant.id)) {
-          return false;
+        // If already in list, do not duplicate
+        if (selectedVariants.some((v) => Number(v.id) === Number(variant.id))) {
+          return true;
         }
+        // If already reached max capacity, replace the last car so user action always succeeds
         if (selectedVariants.length >= MAX_COMPARE_CARS) {
-          return false;
+          const trimmed = selectedVariants.slice(0, MAX_COMPARE_CARS - 1);
+          set({ selectedVariants: [...trimmed, variant] });
+          return true;
         }
         set({ selectedVariants: [...selectedVariants, variant] });
         return true;
@@ -31,7 +35,7 @@ export const useCompareStore = create<CompareStore>()(
 
       removeVariantFromCompare: (variantId: number) => {
         set((state) => ({
-          selectedVariants: state.selectedVariants.filter((v) => v.id !== variantId),
+          selectedVariants: state.selectedVariants.filter((v) => Number(v.id) !== Number(variantId)),
         }));
       },
 
@@ -42,7 +46,7 @@ export const useCompareStore = create<CompareStore>()(
       clearCompareList: () => set({ selectedVariants: [] }),
 
       isInCompareList: (variantId: number) => {
-        return get().selectedVariants.some((v) => v.id === variantId);
+        return get().selectedVariants.some((v) => Number(v.id) === Number(variantId));
       },
     }),
     {

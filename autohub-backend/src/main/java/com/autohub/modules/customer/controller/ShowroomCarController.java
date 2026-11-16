@@ -47,7 +47,12 @@ public class ShowroomCarController {
     public ResponseEntity<ApiResponse<CarComparisonResponseDto>> getCarComparison(
             @RequestParam(value = "ids", required = false) List<Long> ids
     ) {
-        // 1. Resolve selected car IDs
+        // 1. Fetch all active cars in DB
+        List<PhienBanXe> allActiveCars = phienBanXeRepository.findAll().stream()
+                .filter(c -> !c.isDeleted() && c.isDangHoatDong())
+                .toList();
+
+        // 2. Resolve selected car IDs from request param
         List<Long> targetIds = new ArrayList<>();
         if (ids != null && !ids.isEmpty()) {
             for (Long id : ids) {
@@ -58,28 +63,27 @@ public class ShowroomCarController {
             }
         }
 
-        // If no IDs provided or empty, default to top 3 active cars
-        if (targetIds.isEmpty()) {
-            List<Long> defaultCandidateIds = List.of(1L, 2L, 3L);
-            for (Long defId : defaultCandidateIds) {
-                if (phienBanXeRepository.existsById(defId)) {
-                    targetIds.add(defId);
-                }
-            }
-            if (targetIds.isEmpty()) {
-                phienBanXeRepository.findAll().stream()
-                        .filter(c -> !c.isDeleted() && c.isDangHoatDong())
-                        .limit(3)
-                        .forEach(c -> targetIds.add(c.getId()));
-            }
-        }
-
-        // 2. Fetch cars in order
+        // 3. Match requested IDs with actual cars from DB
         List<PhienBanXe> selectedCars = new ArrayList<>();
         for (Long id : targetIds) {
-            phienBanXeRepository.findById(id)
-                    .filter(c -> !c.isDeleted())
+            allActiveCars.stream()
+                    .filter(c -> c.getId().equals(id))
+                    .findFirst()
                     .ifPresent(selectedCars::add);
+        }
+
+        // 4. Fallback & Auto-supplementation:
+        // If no requested cars match or targetIds was empty, take top 3 active cars from DB
+        if (selectedCars.isEmpty()) {
+            selectedCars.addAll(allActiveCars.stream().limit(3).toList());
+        } else if (selectedCars.size() < 3) {
+            // Auto-supplement with other active cars from DB so the user always has a meaningful 2-to-3 car comparison
+            List<Long> existingIds = selectedCars.stream().map(PhienBanXe::getId).toList();
+            List<PhienBanXe> extraCars = allActiveCars.stream()
+                    .filter(c -> !existingIds.contains(c.getId()))
+                    .limit(3 - selectedCars.size())
+                    .toList();
+            selectedCars.addAll(extraCars);
         }
 
         if (selectedCars.isEmpty()) {
