@@ -104,6 +104,80 @@ public class EmailService {
         return sendHtmlEmail(toEmail, subject, htmlContent, devLog);
     }
 
+    /**
+     * Tự động gửi email thông báo hết hạn giữ suất cọc 72 giờ (UC34)
+     */
+    public boolean sendDepositExpirationEmail(String toEmail, String recipientName, String depositCode,
+                                             String carModel, LocalDateTime expirationTime) {
+        String safeName = (recipientName != null && !recipientName.isBlank()) ? recipientName : "Quý khách";
+        String timeStr = expirationTime != null ? expirationTime.format(DATE_TIME_FORMATTER) : "72 giờ";
+        String safeCar = (carModel != null && !carModel.isBlank()) ? carModel : "Ô tô điện AutoHub";
+        String safeCode = (depositCode != null && !depositCode.isBlank()) ? depositCode : "";
+
+        String subject = "[AutoHub] Thông Báo Hết Hạn Giữ Suất Xe Phiếu Cọc #" + safeCode;
+        String htmlContent = "<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #E2E8F0; border-radius: 12px; background-color: #ffffff;\">"
+                + "<div style=\"text-align: center; margin-bottom: 24px; border-bottom: 2px solid #EF4444; padding-bottom: 16px;\">"
+                + "<h2 style=\"color: #0F172A; margin: 0;\">🚗 AutoHub Vietnam</h2>"
+                + "<p style=\"color: #EF4444; font-size: 14px; font-weight: 600; margin: 4px 0 0 0;\">THÔNG BÁO HẾT HẠN GIỮ SUẤT XE ƯU TIÊN</p>"
+                + "</div>"
+                + "<div style=\"padding: 20px; background-color: #FEF2F2; border-radius: 8px; border: 1px solid #FEE2E2;\">"
+                + "<p style=\"color: #334155; font-size: 15px; margin-top: 0;\">Kính gửi <strong>" + safeName + "</strong>,</p>"
+                + "<p style=\"color: #475569; font-size: 14px; line-height: 1.6;\">Hệ thống xin thông báo: Phiếu đặt cọc xe <strong>#" + safeCode + "</strong> của quý khách đã vượt quá thời hạn giữ suất ưu tiên <strong>72 giờ</strong> (hết hạn lúc " + timeStr + ") mà chưa hoàn tất ký hợp đồng mua bán.</p>"
+                + "<div style=\"background-color: #ffffff; padding: 16px; border-radius: 8px; border-left: 4px solid #EF4444; margin: 16px 0;\">"
+                + "<p style=\"margin: 4px 0; color: #1E293B;\">🚘 <strong>Phiên bản đặt trước:</strong> " + safeCar + "</p>"
+                + "<p style=\"margin: 4px 0; color: #1E293B;\">📋 <strong>Mã phiếu cọc:</strong> #" + safeCode + "</p>"
+                + "<p style=\"margin: 4px 0; color: #1E293B;\">🔄 <strong>Trạng thái:</strong> <span style=\"color: #EF4444; font-weight: 700;\">EXPIRED (Đã thu hồi về kho mở)</span></p>"
+                + "</div>"
+                + "<p style=\"color: #475569; font-size: 13px; line-height: 1.5;\">Theo quy chế giao dịch trực tuyến (BR01/BR05), số khung VIN và suất xe ưu tiên đã được tự động hoàn trả về kho khả dụng toàn hệ thống. Quý khách có thể gửi yêu cầu hoàn tiền cọc hoặc liên hệ tổng đài để được tư vấn chọn xe mới.</p>"
+                + "</div>"
+                + "<div style=\"margin-top: 24px; text-align: center; color: #94A3B8; font-size: 11px;\">"
+                + "<p style=\"margin: 0;\">Hotline hỗ trợ khách hàng: <strong>1900 8888</strong> | Email: crm@autohub.vn</p>"
+                + "<p style=\"margin: 4px 0 0 0;\">&copy; 2026 AutoHub Vietnam. All rights reserved.</p>"
+                + "</div>"
+                + "</div>";
+
+        String devLog = "[DEV DEPOSIT EXPIRED] Gửi thông báo hết hạn cọc 72h cho [" + toEmail + "] - Khách: " + safeName
+                + " - Mã cọc: #" + safeCode + " - Xe: " + safeCar;
+
+        return sendHtmlEmail(toEmail, subject, htmlContent, devLog);
+    }
+
+    /**
+     * Tự động gửi email xin lỗi khi lịch lái thử bị hủy tự động do chưa duyệt trước 12h (UC35)
+     */
+    public boolean sendTestDriveApologyCancellationEmail(String toEmail, String recipientName, String carModel,
+                                                        String showroomName, LocalDateTime appointmentTime) {
+        String safeName = (recipientName != null && !recipientName.isBlank()) ? recipientName : "Quý khách";
+        String timeStr = appointmentTime != null ? appointmentTime.format(DATE_TIME_FORMATTER) : "giờ hẹn";
+        String safeCar = (carModel != null && !carModel.isBlank()) ? carModel : "Ô tô điện AutoHub";
+        String safeShowroom = (showroomName != null && !showroomName.isBlank()) ? showroomName : "Showroom AutoHub";
+
+        String subject = "[AutoHub] Thông Báo & Lời Xin Lỗi Về Lịch Lái Thử #" + timeStr;
+        String htmlContent = "<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #E2E8F0; border-radius: 12px; background-color: #ffffff;\">"
+                + "<div style=\"text-align: center; margin-bottom: 24px; border-bottom: 2px solid #F59E0B; padding-bottom: 16px;\">"
+                + "<h2 style=\"color: #0F172A; margin: 0;\">🚗 AutoHub Vietnam</h2>"
+                + "<p style=\"color: #F59E0B; font-size: 14px; font-weight: 600; margin: 4px 0 0 0;\">THÔNG BÁO TỰ ĐỘNG HỦY LỊCH HẸN TRẢI NGHIỆM</p>"
+                + "</div>"
+                + "<div style=\"padding: 20px; background-color: #FFFBEB; border-radius: 8px; border: 1px solid #FEF3C7;\">"
+                + "<p style=\"color: #334155; font-size: 15px; margin-top: 0;\">Kính gửi <strong>" + safeName + "</strong>,</p>"
+                + "<p style=\"color: #475569; font-size: 14px; line-height: 1.6;\">Hệ thống AutoHub xin chân thành cáo lỗi cùng quý khách. Lịch hẹn trải nghiệm lái thử xe <strong>" + safeCar + "</strong> lúc <strong>" + timeStr + "</strong> tại <strong>" + safeShowroom + "</strong> chưa được tư vấn viên xác nhận kịp thời trước 12 giờ hẹn quy định.</p>"
+                + "<p style=\"color: #475569; font-size: 14px; line-height: 1.6;\">Để đảm bảo chất lượng phục vụ và sự chuẩn bị xe lái thử chu đáo nhất, hệ thống đã tự động hủy ca hẹn này nhằm giải phóng khung giờ lịch biểu.</p>"
+                + "<div style=\"text-align: center; margin: 24px 0;\">"
+                + "<a href=\"http://localhost:5173/customer/test-drive\" style=\"display: inline-block; background-color: #2563EB; color: #ffffff; text-decoration: none; font-size: 14px; font-weight: 600; padding: 12px 24px; border-radius: 8px;\">📅 Chọn Lại Lịch Hẹn Thuận Tiện Mới</a>"
+                + "</div>"
+                + "</div>"
+                + "<div style=\"margin-top: 24px; text-align: center; color: #94A3B8; font-size: 11px;\">"
+                + "<p style=\"margin: 0;\">Tổng đài hỗ trợ đặt lịch ưu tiên: <strong>1900 8888</strong></p>"
+                + "<p style=\"margin: 4px 0 0 0;\">&copy; 2026 AutoHub Vietnam. Rất mong quý khách thông cảm cho sự bất tiện này!</p>"
+                + "</div>"
+                + "</div>";
+
+        String devLog = "[DEV TEST-DRIVE CANCELLED] Gửi email xin lỗi hủy lịch hẹn trước 12h cho [" + toEmail + "] - Khách: " + safeName
+                + " - Xe: " + safeCar + " - Showroom: " + safeShowroom + " - Hẹn lúc: " + timeStr;
+
+        return sendHtmlEmail(toEmail, subject, htmlContent, devLog);
+    }
+
     private boolean sendHtmlEmail(String toEmail, String subject, String htmlContent, String devFallbackLog) {
         if (mailSender != null && senderEmail != null && !senderEmail.isBlank()) {
             try {

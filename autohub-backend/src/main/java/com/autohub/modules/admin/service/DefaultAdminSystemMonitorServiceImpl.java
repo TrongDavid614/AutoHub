@@ -327,9 +327,8 @@ public class DefaultAdminSystemMonitorServiceImpl implements AdminSystemMonitorS
 
         if ("AutoCancel72hDepositDaemon".equalsIgnoreCase(jobName)) {
             var res = automationScheduler.scanAndCancelExpiredOrdersAndDeposits();
-            depositExpirationScheduler.scanAndExpireOverdueDeposits();
-            resultMessage = String.format("Đã quét và hủy tự động thành công: %d phiếu cọc 15p, %d phiếu cọc 72h, %d đơn phụ kiện quá hạn. Đã hoàn trả tồn kho xe về CO_SAN.",
-                    res.getExpiredDeposits15m(), res.getExpiredDeposits72h(), res.getCancelledAccessoryOrders());
+            resultMessage = String.format("Đã quét và hủy tự động thành công: %d phiếu cọc quá hạn, %d đơn phụ kiện quá hạn. Đã hoàn trả tồn kho xe về CO_SAN.",
+                    res.getExpiredDeposits72h(), res.getCancelledAccessoryOrders());
         } else if ("AutoCancelUnconfirmedTestDrivesDaemon".equalsIgnoreCase(jobName)) {
             int count = automationScheduler.scanAndCancelUnconfirmedTestDrives();
             resultMessage = String.format("Đã quét và hủy tự động %d lịch lái thử chưa được duyệt trước 12 giờ hẹn. Xe demo đã hoàn trả trạng thái sẵn sàng.", count);

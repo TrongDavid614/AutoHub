@@ -7,16 +7,11 @@ import com.autohub.core.accessory.entity.PhuKien;
 import com.autohub.core.accessory.repository.ChiTietDonHangRepository;
 import com.autohub.core.accessory.repository.DonHangPhuKienRepository;
 import com.autohub.core.accessory.repository.PhuKienRepository;
-import com.autohub.core.car.entity.XeDinhDanh;
-import com.autohub.core.car.repository.XeDinhDanhRepository;
-import com.autohub.core.deposit.entity.PhieuDatCoc;
-import com.autohub.core.deposit.repository.PhieuDatCocRepository;
+import com.autohub.core.deposit.scheduler.DepositExpirationScheduler;
 import com.autohub.core.engagement.entity.LichHenLaiThu;
 import com.autohub.core.engagement.repository.LichHenLaiThuRepository;
 import com.autohub.core.enums.*;
-import com.autohub.core.showroom.entity.TonKhoXe;
 import com.autohub.core.showroom.entity.XeDemo;
-import com.autohub.core.showroom.repository.TonKhoXeRepository;
 import com.autohub.core.showroom.repository.XeDemoRepository;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,9 +31,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SystemAutomationScheduler {
 
-    private final PhieuDatCocRepository phieuDatCocRepository;
-    private final TonKhoXeRepository tonKhoXeRepository;
-    private final XeDinhDanhRepository xeDinhDanhRepository;
+    private final DepositExpirationScheduler depositExpirationScheduler;
     private final DonHangPhuKienRepository donHangPhuKienRepository;
     private final ChiTietDonHangRepository chiTietDonHangRepository;
     private final PhuKienRepository phuKienRepository;
@@ -65,33 +58,12 @@ public class SystemAutomationScheduler {
     @Transactional
     public AutomationSweepResult scanAndCancelExpiredOrdersAndDeposits() {
         LocalDateTime now = LocalDateTime.now();
-        int deposits15m = 0;
-        int deposits72h = 0;
         int orders15m = 0;
 
-        // 1. Quét phiếu cọc xe PENDING_PAYMENT quá hạn thanh toán 15 phút
-        List<PhieuDatCoc> pendingPaymentDeposits = phieuDatCocRepository
-                .findByTrangThaiAndHanThanhToanBefore(TrangThaiPhieuCoc.PENDING_PAYMENT, now);
-        for (PhieuDatCoc dep : pendingPaymentDeposits) {
-            dep.setTrangThai(TrangThaiPhieuCoc.EXPIRED);
-            releaseCarStock(dep);
-            phieuDatCocRepository.save(dep);
-            deposits15m++;
-            log.info("[UC34] Tự động hủy suất cọc quá hạn thanh toán 15 phút: #{}", dep.getMaPhieuCoc());
-        }
+        // 1. Quét và giải phóng các phiếu đặt cọc quá hạn 15m và 72h (DepositExpirationScheduler)
+        int expiredDeposits = depositExpirationScheduler.scanAndExpireOverdueDeposits();
 
-        // 2. Quét phiếu cọc xe PAID quá hạn giữ xe 72 giờ
-        List<PhieuDatCoc> paidHoldingDeposits = phieuDatCocRepository
-                .findByTrangThaiAndHanGiuXeBefore(TrangThaiPhieuCoc.PAID, now);
-        for (PhieuDatCoc dep : paidHoldingDeposits) {
-            dep.setTrangThai(TrangThaiPhieuCoc.EXPIRED);
-            releaseCarStock(dep);
-            phieuDatCocRepository.save(dep);
-            deposits72h++;
-            log.info("[UC34] Tự động thu hồi suất cọc quá hạn giữ xe 72 giờ: #{}", dep.getMaPhieuCoc());
-        }
-
-        // 3. Quét đơn hàng phụ kiện PENDING_PAYMENT quá hạn thanh toán 15 phút
+        // 2. Quét đơn hàng phụ kiện PENDING_PAYMENT quá hạn thanh toán 15 phút
         List<DonHangPhuKien> pendingPaymentOrders = donHangPhuKienRepository
                 .findByTrangThaiAndHanThanhToanBefore(TrangThaiDonHang.PENDING_PAYMENT, now);
         for (DonHangPhuKien order : pendingPaymentOrders) {
@@ -117,8 +89,8 @@ public class SystemAutomationScheduler {
         }
 
         return AutomationSweepResult.builder()
-                .expiredDeposits15m(deposits15m)
-                .expiredDeposits72h(deposits72h)
+                .expiredDeposits15m(expiredDeposits)
+                .expiredDeposits72h(expiredDeposits)
                 .cancelledAccessoryOrders(orders15m)
                 .build();
     }
@@ -148,6 +120,19 @@ public class SystemAutomationScheduler {
                 xeDemoRepository.save(demo);
             }
 
+            // Gửi email xin lỗi khách hàng và hướng dẫn đặt lại lịch hẹn khác (UC35)
+            try {
+                String toEmail = (testDrive.getNguoiDung() != null) ? testDrive.getNguoiDung().getEmail() : null;
+                if (toEmail != null && !toEmail.isBlank()) {
+                    String customerName = testDrive.getHoTenKhach() != null ? testDrive.getHoTenKhach() : "Quý khách";
+                    String carModel = (testDrive.getPhienBanXe() != null) ? testDrive.getPhienBanXe().getTenPhienBan() : "Ô tô điện AutoHub";
+                    String showroomName = (testDrive.getShowroom() != null) ? testDrive.getShowroom().getTenShowroom() : "Showroom AutoHub";
+                    emailService.sendTestDriveApologyCancellationEmail(toEmail, customerName, carModel, showroomName, testDrive.getThoiGianHen());
+                }
+            } catch (Exception ex) {
+                log.warn("[UC35] Lỗi gửi email xin lỗi hủy lịch hẹn #{}: {}", testDrive.getId(), ex.getMessage());
+            }
+
             lichHenLaiThuRepository.save(testDrive);
             cancelledCount++;
             log.info("[UC35] Tự động hủy lịch lái thử #{} của khách {} do chưa duyệt trước 12h",
@@ -174,10 +159,7 @@ public class SystemAutomationScheduler {
 
         int sentCount = 0;
         for (LichHenLaiThu appointment : upcomingAppointments) {
-            String recipientEmail = null;
-            if (appointment.getNguoiDung() != null && appointment.getNguoiDung().getEmail() != null) {
-                recipientEmail = appointment.getNguoiDung().getEmail();
-            }
+            String recipientEmail = (appointment.getNguoiDung() != null) ? appointment.getNguoiDung().getEmail() : null;
 
             if (recipientEmail != null && !recipientEmail.isBlank()) {
                 String customerName = appointment.getHoTenKhach() != null ? appointment.getHoTenKhach() :
@@ -215,20 +197,5 @@ public class SystemAutomationScheduler {
         }
 
         return sentCount;
-    }
-
-    /**
-     * Giải phóng số lượng đang giữ chỗ trong kho xe và chuyển trạng thái xe VIN (nếu có)
-     */
-    private void releaseCarStock(PhieuDatCoc dep) {
-        if (dep.getTonKhoXe() != null) {
-            tonKhoXeRepository.releaseStockHold(dep.getTonKhoXe().getId());
-        }
-
-        if (dep.getXeDinhDanh() != null) {
-            XeDinhDanh vinCar = dep.getXeDinhDanh();
-            vinCar.setTrangThai(TrangThaiXeVIN.CO_SAN);
-            xeDinhDanhRepository.save(vinCar);
-        }
     }
 }
