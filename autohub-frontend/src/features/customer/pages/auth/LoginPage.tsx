@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, X, ArrowRight, ArrowUpRight, Check, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, X, ArrowRight, ArrowUpRight, Check, AlertCircle, ShieldCheck } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { authService } from '@/features/customer/services/auth.service';
 
@@ -11,6 +11,8 @@ export const LoginPage: React.FC = () => {
 
   const login = useAuthStore((s) => s.login);
 
+  const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+
   // Form states
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,6 +22,82 @@ export const LoginPage: React.FC = () => {
   // Submission & Validation states
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [socialNotice, setSocialNotice] = useState<string | null>(null);
+
+  // Lắng nghe mã callback OAuth2 từ Google (khi Google chuyển hướng về kèm query param ?code=...)
+  useEffect(() => {
+    const code = searchParams.get('code');
+    if (!code) return;
+
+    const exchangeGoogleCode = async () => {
+      try {
+        setIsLoading(true);
+        setSocialNotice('Đang kết nối xác thực tài khoản Google với hệ thống AutoHub...');
+
+        const currentOrigin = window.location.origin;
+        const res = await authService.loginGoogle({
+          code,
+          redirectUri: `${currentOrigin}/auth/login`,
+        });
+
+        login(res.accessToken, res.user);
+        setIsLoading(false);
+        setSocialNotice(null);
+
+        // Chuyển hướng tới trang đích hoặc dựa vào phân quyền role
+        if (redirectUrl && redirectUrl !== '/') {
+          navigate(redirectUrl);
+        } else if (res.user.role === 'ROLE_ADMIN') {
+          navigate('/admin/dashboard');
+        } else if (res.user.role === 'ROLE_STAFF') {
+          navigate('/staff/consultations');
+        } else {
+          navigate('/');
+        }
+      } catch (err: unknown) {
+        setIsLoading(false);
+        setSocialNotice(null);
+        const errRes = (err as { response?: { data?: { message?: string } } })?.response?.data;
+        setErrorMessage(
+          errRes?.message || 'Đăng nhập bằng tài khoản Google thất bại. Vui lòng thử lại.'
+        );
+      }
+    };
+
+    exchangeGoogleCode();
+  }, [searchParams, redirectUrl, login, navigate]);
+
+  const handleGoogleRedirect = () => {
+    const rootUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
+    const redirectUri = `${window.location.origin}/auth/login`;
+
+    const options = {
+      redirect_uri: redirectUri,
+      client_id: GOOGLE_CLIENT_ID,
+      access_type: 'offline',
+      response_type: 'code',
+      prompt: 'select_account',
+      scope: [
+        'https://www.googleapis.com/auth/userinfo.profile',
+        'https://www.googleapis.com/auth/userinfo.email',
+      ].join(' '),
+    };
+
+    const qs = new URLSearchParams(options);
+    window.location.href = `${rootUrl}?${qs.toString()}`;
+  };
+
+  const handleSocialLogin = (provider: 'Google' | 'Facebook' | 'Apple') => {
+    if (provider === 'Google') {
+      handleGoogleRedirect();
+      return;
+    }
+
+    setSocialNotice(`Cổng đăng nhập an toàn ${provider} OAuth2 đang trong lộ trình tích hợp tiếp theo.`);
+    setTimeout(() => {
+      setSocialNotice(null);
+    }, 3500);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,25 +138,9 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const handleGoogleLogin = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      login(`mock_google_oauth_${Date.now()}`, {
-        id: 99,
-        email: 'google.user@autohub.vn',
-        fullName: 'Nguyễn Thành Google',
-        phoneNumber: '0988776655',
-        role: 'ROLE_CUSTOMER',
-        isActive: true,
-        createdAt: new Date().toISOString(),
-      });
-      setIsLoading(false);
-      navigate(redirectUrl);
-    }, 600);
-  };
 
   return (
-    <div className="relative min-h-[920px] h-screen w-full flex items-center justify-center p-4 bg-[#0B1326] overflow-hidden select-none">
+    <div className="relative min-h-screen w-full flex items-center justify-center py-10 px-4 bg-[#0B1326] overflow-y-auto select-none">
       {/* 1. Immersive Automotive Studio Ambient Stage (Layer matching Figma Frame 20:14260) */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         {/* Vehicle backdrop with atmospheric darkening */}
@@ -253,43 +315,82 @@ export const LoginPage: React.FC = () => {
             )}
           </button>
 
-          {/* Visual Segment Divider */}
-          <div className="flex items-center gap-3 py-1">
+          {/* Visual Divider: HOẶC ĐĂNG NHẬP VỚI */}
+          <div className="flex items-center gap-3 pt-3">
             <div className="h-[1px] flex-1 bg-[#2D3449]" />
-            <span className="font-mono text-[10px] text-[#88929B] tracking-[1.6px] uppercase">
-              HOẶC TIẾP TỤC VỚI
+            <span className="font-mono text-[10px] text-[#88929B] tracking-[1.6px] uppercase select-none">
+              HOẶC ĐĂNG NHẬP VỚI
             </span>
             <div className="h-[1px] flex-1 bg-[#2D3449]" />
           </div>
 
-          {/* Social Login Buttons Row (Google SSO) */}
-          <button
-            type="button"
-            onClick={handleGoogleLogin}
-            disabled={isLoading}
-            className="w-full h-10 rounded bg-[#131B2E] border border-[#2D3449] hover:border-[#7BD0FF]/50 hover:bg-[#1A243D] text-[#DAE2FD] text-[13px] flex items-center justify-center gap-2.5 transition-all duration-200 cursor-pointer"
-          >
-            {/* SVG Google chuẩn xác từ Figma */}
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M8 3.33317C9.06666 3.33317 10 3.73317 10.7333 4.39984L12.8 2.33317C11.5333 1.19984 9.86666 0.666504 8 0.666504C5 0.666504 2.46666 2.39984 1.26666 4.8665L3.73333 6.79984C4.33333 4.93317 6 3.33317 8 3.33317V3.33317"
-                fill="#EA4335"
-              />
-              <path
-                d="M15.6667 8.19984C15.6667 7.6665 15.6 7.13317 15.5333 6.6665H8V9.6665H12.3333C12.1333 10.6665 11.6 11.5332 10.7333 12.1332L13.2 14.0665C14.6667 12.7332 15.6667 10.6665 15.6667 8.19984V8.19984"
-                fill="#4285F4"
-              />
-              <path
-                d="M3.73333 9.86686C3.6 9.4002 3.46667 8.86686 3.46667 8.0002C3.46667 7.13353 3.6 6.6002 3.73333 6.13353L1.26667 4.2002C0.466667 5.8002 0 6.86686 0 8.0002C0 9.13353 0.466667 10.2002 1.26667 11.8002L3.73333 9.86686V9.86686"
-                fill="#FBBC05"
-              />
-              <path
-                d="M8 15.3334C10.1333 15.3334 12 14.6001 13.3333 13.3334L10.8667 11.4001C10.1333 11.8667 9.2 12.2001 8 12.2001C6 12.2001 4.33333 10.6001 3.73333 8.7334L1.26666 10.6667C2.46666 13.6001 5 15.3334 8 15.3334V15.3334"
-                fill="#34A853"
-              />
-            </svg>
-            <span>Google</span>
-          </button>
+          {/* 3 Circular Social Login Options: Google, Facebook, Apple */}
+          <div className="flex items-center justify-center gap-4 pt-1">
+            {/* 1. Google Circle Button */}
+            <button
+              type="button"
+              onClick={() => handleSocialLogin('Google')}
+              disabled={isLoading}
+              title="Đăng nhập với Google"
+              aria-label="Đăng nhập với Google"
+              className="w-11 h-11 rounded-full bg-[#060E20] border border-[#2D3449] hover:border-[#4285F4] hover:bg-[#131B2E] text-[#DAE2FD] flex items-center justify-center transition-all duration-200 cursor-pointer shadow-md hover:shadow-[0_0_16px_rgba(66,133,244,0.35)] hover:scale-110 active:scale-95 disabled:opacity-50"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                />
+              </svg>
+            </button>
+
+            {/* 2. Facebook Circle Button */}
+            <button
+              type="button"
+              onClick={() => handleSocialLogin('Facebook')}
+              disabled={isLoading}
+              title="Đăng nhập với Facebook"
+              aria-label="Đăng nhập với Facebook"
+              className="w-11 h-11 rounded-full bg-[#060E20] border border-[#2D3449] hover:border-[#1877F2] hover:bg-[#131B2E] text-[#1877F2] flex items-center justify-center transition-all duration-200 cursor-pointer shadow-md hover:shadow-[0_0_16px_rgba(24,119,242,0.35)] hover:scale-110 active:scale-95 disabled:opacity-50"
+            >
+              <svg className="w-5 h-5 fill-[#1877F2]" viewBox="0 0 24 24">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+              </svg>
+            </button>
+
+            {/* 3. Apple Circle Button */}
+            <button
+              type="button"
+              onClick={() => handleSocialLogin('Apple')}
+              disabled={isLoading}
+              title="Đăng nhập với Apple"
+              aria-label="Đăng nhập với Apple"
+              className="w-11 h-11 rounded-full bg-[#060E20] border border-[#2D3449] hover:border-white hover:bg-[#131B2E] text-white flex items-center justify-center transition-all duration-200 cursor-pointer shadow-md hover:shadow-[0_0_16px_rgba(255,255,255,0.30)] hover:scale-110 active:scale-95 disabled:opacity-50"
+            >
+              <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24">
+                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.76 1.05-1.81.93-2.87-.9.04-2 .6-2.65 1.36-.57.66-.99 1.73-.86 2.76 1.01.08 2.01-.52 2.58-1.25z" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Social Notice / Notification */}
+          {socialNotice && (
+            <div className="p-2.5 rounded bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs flex items-center gap-2 animate-in fade-in duration-200">
+              <ShieldCheck className="w-4 h-4 shrink-0 text-sky-400" />
+              <span>{socialNotice}</span>
+            </div>
+          )}
         </form>
 
         {/* Modal Footer Section */}

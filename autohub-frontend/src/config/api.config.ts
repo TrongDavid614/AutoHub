@@ -11,6 +11,7 @@ export const API_CONFIG = {
       FORGOT_PASSWORD: '/auth/forgot-password',
       VERIFY_OTP: '/auth/verify-otp',
       RESET_PASSWORD: '/auth/reset-password',
+      GOOGLE: '/auth/google',
     },
     CARS: {
       BASE: '/cars',

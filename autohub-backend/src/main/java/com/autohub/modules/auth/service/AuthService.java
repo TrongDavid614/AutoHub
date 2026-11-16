@@ -13,6 +13,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -23,9 +26,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -38,6 +48,14 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final EmailService emailService;
+
+    @Value("${google.client-id:}")
+    private String googleClientId;
+
+    @Value("${google.client-secret:}")
+    private String googleClientSecret;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -309,6 +327,142 @@ public class AuthService {
                 .isActive(active)
                 .avatarUrl(user.getAnhDaiDien())
                 .createdAt(user.getNgayTao() != null ? user.getNgayTao().toString() : null)
+                .build();
+    }
+
+    @Transactional
+    public LoginResponse loginWithGoogle(GoogleLoginRequest request) {
+        String email = null;
+        String name = null;
+        String picture = null;
+
+        HttpClient httpClient = HttpClient.newHttpClient();
+
+        try {
+            // Case 1: Code provided (Authorization Code Flow)
+            if (request.getCode() != null && !request.getCode().isBlank()) {
+                String redirectUri = request.getRedirectUri() != null && !request.getRedirectUri().isBlank()
+                        ? request.getRedirectUri()
+                        : "http://localhost:5173/auth/login";
+
+                String formBody = "code=" + URLEncoder.encode(request.getCode(), StandardCharsets.UTF_8)
+                        + "&client_id=" + URLEncoder.encode(googleClientId, StandardCharsets.UTF_8)
+                        + "&client_secret=" + URLEncoder.encode(googleClientSecret, StandardCharsets.UTF_8)
+                        + "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8)
+                        + "&grant_type=authorization_code";
+
+                HttpRequest tokenReq = HttpRequest.newBuilder()
+                        .uri(URI.create("https://oauth2.googleapis.com/token"))
+                        .header("Content-Type", "application/x-www-form-urlencoded")
+                        .POST(HttpRequest.BodyPublishers.ofString(formBody))
+                        .build();
+
+                HttpResponse<String> tokenRes = httpClient.send(tokenReq, HttpResponse.BodyHandlers.ofString());
+                if (tokenRes.statusCode() != 200) {
+                    log.error("[AuthService] Google token exchange thất bại (Status {}): {}", tokenRes.statusCode(), tokenRes.body());
+                    throw new AppException("Không thể đổi mã xác thực với máy chủ Google. Vui lòng thử lại.", HttpStatus.BAD_REQUEST);
+                }
+
+                JsonNode tokenNode = objectMapper.readTree(tokenRes.body());
+                String accessToken = tokenNode.has("access_token") ? tokenNode.get("access_token").asText() : null;
+
+                if (accessToken == null) {
+                    throw new AppException("Không nhận được Access Token từ Google", HttpStatus.BAD_REQUEST);
+                }
+
+                HttpRequest userReq = HttpRequest.newBuilder()
+                        .uri(URI.create("https://www.googleapis.com/oauth2/v3/userinfo"))
+                        .header("Authorization", "Bearer " + accessToken)
+                        .GET()
+                        .build();
+
+                HttpResponse<String> userRes = httpClient.send(userReq, HttpResponse.BodyHandlers.ofString());
+                if (userRes.statusCode() != 200) {
+                    log.error("[AuthService] Lấy thông tin user Google thất bại: {}", userRes.body());
+                    throw new AppException("Không thể lấy thông tin người dùng từ Google", HttpStatus.BAD_REQUEST);
+                }
+
+                JsonNode userNode = objectMapper.readTree(userRes.body());
+                email = userNode.has("email") ? userNode.get("email").asText() : null;
+                name = userNode.has("name") ? userNode.get("name").asText() : email;
+                picture = userNode.has("picture") ? userNode.get("picture").asText() : null;
+            }
+            // Case 2: ID Token provided directly (Google Identity Services / One-Tap)
+            else if (request.getIdToken() != null && !request.getIdToken().isBlank()) {
+                HttpRequest verifyReq = HttpRequest.newBuilder()
+                        .uri(URI.create("https://oauth2.googleapis.com/tokeninfo?id_token=" + URLEncoder.encode(request.getIdToken(), StandardCharsets.UTF_8)))
+                        .GET()
+                        .build();
+
+                HttpResponse<String> verifyRes = httpClient.send(verifyReq, HttpResponse.BodyHandlers.ofString());
+                if (verifyRes.statusCode() != 200) {
+                    log.error("[AuthService] Xác thực ID token Google thất bại: {}", verifyRes.body());
+                    throw new AppException("ID Token Google không hợp lệ hoặc đã hết hạn", HttpStatus.BAD_REQUEST);
+                }
+
+                JsonNode tokenInfoNode = objectMapper.readTree(verifyRes.body());
+                email = tokenInfoNode.has("email") ? tokenInfoNode.get("email").asText() : null;
+                name = tokenInfoNode.has("name") ? tokenInfoNode.get("name").asText() : email;
+                picture = tokenInfoNode.has("picture") ? tokenInfoNode.get("picture").asText() : null;
+            } else {
+                throw new AppException("Yêu cầu đăng nhập Google cần mã xác thực (code) hoặc ID Token", HttpStatus.BAD_REQUEST);
+            }
+        } catch (AppException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("[AuthService] Lỗi kết nối máy chủ Google OAuth: ", e);
+            throw new AppException("Lỗi kết nối tới máy chủ Google: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        if (email == null || email.isBlank()) {
+            throw new AppException("Tài khoản Google không cung cấp địa chỉ email hợp lệ", HttpStatus.BAD_REQUEST);
+        }
+
+        email = email.trim().toLowerCase();
+
+        // Tìm người dùng trong DB theo email
+        Optional<NguoiDung> existingUserOpt = nguoiDungRepository.findByEmail(email);
+        NguoiDung user;
+
+        if (existingUserOpt.isPresent()) {
+            user = existingUserOpt.get();
+            if (user.isDeleted()) {
+                throw new AppException("Tài khoản này đã bị xóa khỏi hệ thống", HttpStatus.FORBIDDEN);
+            }
+            if (user.getTrangThaiTaiKhoan() == TrangThaiTaiKhoan.BI_KHOA) {
+                throw new AppException("Tài khoản của bạn đã bị khóa bảo mật. Vui lòng liên hệ quản trị viên.", HttpStatus.FORBIDDEN);
+            }
+
+            // Cập nhật ảnh đại diện nếu có
+            if ((user.getAnhDaiDien() == null || user.getAnhDaiDien().isBlank()) && picture != null) {
+                user.setAnhDaiDien(picture);
+                nguoiDungRepository.save(user);
+            }
+            log.info("[AuthService] Người dùng Google hiện hữu đăng nhập thành công: {}", email);
+        } else {
+            // Tự động khởi tạo tài khoản mới cho khách hàng Google
+            user = NguoiDung.builder()
+                    .email(email)
+                    .hoTen(name != null && !name.isBlank() ? name : "Khách Hàng Google")
+                    .matKhauBam(passwordEncoder.encode(UUID.randomUUID().toString()))
+                    .anhDaiDien(picture)
+                    .vaiTro(VaiTroNguoiDung.ROLE_CUSTOMER)
+                    .trangThaiTaiKhoan(TrangThaiTaiKhoan.HOAT_DONG)
+                    .ngayTao(LocalDateTime.now())
+                    .isDeleted(false)
+                    .build();
+
+            user = nguoiDungRepository.save(user);
+            log.info("[AuthService] Đã tạo mới tài khoản thành viên từ Google thành công: {} (ID: {})", email, user.getId());
+        }
+
+        String roleStr = user.getVaiTro() != null ? user.getVaiTro().name() : "ROLE_CUSTOMER";
+        String token = jwtTokenProvider.generateToken(user.getId(), user.getEmail(), user.getHoTen(), roleStr);
+
+        return LoginResponse.builder()
+                .accessToken(token)
+                .tokenType("Bearer")
+                .user(mapToUserInfoDto(user))
                 .build();
     }
 }

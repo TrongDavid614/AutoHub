@@ -1,5 +1,6 @@
 package com.autohub.modules.admin.service;
 
+import com.autohub.core.deposit.scheduler.DepositExpirationScheduler;
 import com.autohub.modules.admin.dto.*;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 public class DefaultAdminSystemMonitorServiceImpl implements AdminSystemMonitorService {
 
     private final SystemAutomationScheduler automationScheduler;
+    private final DepositExpirationScheduler depositExpirationScheduler;
 
     @Value("${openrouter.api.key:}")
     private String openRouterApiKey;
@@ -325,7 +327,8 @@ public class DefaultAdminSystemMonitorServiceImpl implements AdminSystemMonitorS
 
         if ("AutoCancel72hDepositDaemon".equalsIgnoreCase(jobName)) {
             var res = automationScheduler.scanAndCancelExpiredOrdersAndDeposits();
-            resultMessage = String.format("Đã quét và hủy tự động thành công: %d phiếu cọc 15p, %d phiếu cọc 72h, %d đơn phụ kiện quá hạn. Đã hoàn trả tồn kho.",
+            depositExpirationScheduler.scanAndExpireOverdueDeposits();
+            resultMessage = String.format("Đã quét và hủy tự động thành công: %d phiếu cọc 15p, %d phiếu cọc 72h, %d đơn phụ kiện quá hạn. Đã hoàn trả tồn kho xe về CO_SAN.",
                     res.getExpiredDeposits15m(), res.getExpiredDeposits72h(), res.getCancelledAccessoryOrders());
         } else if ("AutoCancelUnconfirmedTestDrivesDaemon".equalsIgnoreCase(jobName)) {
             int count = automationScheduler.scanAndCancelUnconfirmedTestDrives();
