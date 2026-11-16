@@ -30,6 +30,7 @@ export * from './components/AiConsultantWidget';
 export * from './pages/auth/LoginPage';
 export * from './pages/auth/RegisterPage';
 export * from './pages/auth/RegisterSuccessPage';
+export * from './pages/auth/ForgotPasswordPage';
 export * from './pages/auth/AdminStaffLoginPage';
 export * from './pages/auth/AdminLoginPage';
 
