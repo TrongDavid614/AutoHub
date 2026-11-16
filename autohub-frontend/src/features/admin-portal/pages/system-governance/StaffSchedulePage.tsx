@@ -269,22 +269,28 @@ export const StaffSchedulePage: React.FC = () => {
     async function loadMeta() {
       try {
         const [srList, stList] = await Promise.allSettled([
-          adminShowroomService.getShowrooms(),
+          adminShowroomService.getShowrooms({ size: 100 }),
           adminStaffScheduleService.getStaffOptions(),
         ]);
 
         if (!isMounted) return;
 
-        if (srList.status === 'fulfilled' && srList.value.length > 0) {
-          const mapped = [
-            { id: 'ALL', numericId: 0, name: 'Toàn Hệ Thống Showroom' },
-            ...srList.value.map((s) => ({
-              id: `SR-${s.id}`,
-              numericId: s.id,
-              name: s.name,
-            })),
-          ];
-          setShowrooms(mapped);
+        if (srList.status === 'fulfilled') {
+          const showroomItems = srList.value.items || srList.value.content || [];
+          if (showroomItems.length > 0) {
+            const mapped = [
+              { id: 'ALL', numericId: 0, name: 'Toàn Hệ Thống Showroom' },
+              ...showroomItems.map((s) => ({
+                id: `SR-${s.id}`,
+                numericId: s.id,
+                name: s.name,
+              })),
+            ];
+            setShowrooms(mapped);
+            if (showroomItems[0]?.id) {
+              setSelectedShowroomForAssign(showroomItems[0].id);
+            }
+          }
         }
 
         if (stList.status === 'fulfilled' && stList.value.length > 0) {
