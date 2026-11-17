@@ -5,6 +5,7 @@ import com.autohub.core.enums.TrangThaiDonHang;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,6 +16,8 @@ public interface DonHangPhuKienRepository extends JpaRepository<DonHangPhuKien, 
     List<DonHangPhuKien> findByNguoiDungIdOrderByNgayDatDesc(Long nguoiDungId);
     List<DonHangPhuKien> findAllByOrderByNgayDatDesc();
     List<DonHangPhuKien> findByTrangThai(TrangThaiDonHang trangThai);
+    List<DonHangPhuKien> findByTrangThaiAndHanThanhToanBefore(TrangThaiDonHang trangThai, LocalDateTime time);
+    List<DonHangPhuKien> findByTrangThaiInAndHanThanhToanBefore(List<TrangThaiDonHang> trangThais, LocalDateTime time);
     long countByTrangThai(TrangThaiDonHang trangThai);
     long countByTrangThaiIn(List<TrangThaiDonHang> trangThais);
 }

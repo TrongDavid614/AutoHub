@@ -1,5 +1,6 @@
 package com.autohub.core.deposit.scheduler;
 
+import com.autohub.common.service.EmailService;
 import com.autohub.core.car.entity.XeDinhDanh;
 import com.autohub.core.car.repository.XeDinhDanhRepository;
 import com.autohub.core.deposit.entity.PhieuDatCoc;
@@ -25,6 +26,7 @@ public class DepositExpirationScheduler {
     private final PhieuDatCocRepository depositRepository;
     private final XeDinhDanhRepository xeDinhDanhRepository;
     private final TonKhoXeRepository tonKhoXeRepository;
+    private final EmailService emailService;
 
     /**
      * Tự động quét và giải phóng các phiếu đặt cọc giữ xe đã hết hạn 72 giờ (BR01 / UC22).
@@ -76,6 +78,20 @@ public class DepositExpirationScheduler {
                 log.info("[DepositExpirationScheduler] Đã hoàn lại tồn kho Showroom ID {}: Khả dụng +1, Giữ chỗ -1", tk.getId());
             }
 
+            // 3. Gửi email thông báo hết hạn giữ suất cọc 72h cho khách hàng (UC34 step 8)
+            try {
+                String toEmail = (dep.getNguoiDung() != null) ? dep.getNguoiDung().getEmail() : null;
+                if (toEmail != null && !toEmail.isBlank()) {
+                    String customerName = (dep.getNguoiDung() != null && dep.getNguoiDung().getHoTen() != null)
+                            ? dep.getNguoiDung().getHoTen() : "Quý khách";
+                    String carModel = (dep.getTonKhoXe() != null && dep.getTonKhoXe().getPhienBanXe() != null)
+                            ? dep.getTonKhoXe().getPhienBanXe().getTenPhienBan() : "Ô tô điện AutoHub";
+                    emailService.sendDepositExpirationEmail(toEmail, customerName, dep.getMaPhieuCoc(), carModel, dep.getHanGiuXe());
+                }
+            } catch (Exception ex) {
+                log.warn("[DepositExpirationScheduler] Không thể gửi email thông báo hết hạn cọc #{}: {}", dep.getMaPhieuCoc(), ex.getMessage());
+            }
+
             depositRepository.save(dep);
             expiredCount++;
         }
@@ -88,6 +104,18 @@ public class DepositExpirationScheduler {
                 vin.setTrangThai(TrangThaiXeVIN.CO_SAN);
                 xeDinhDanhRepository.save(vin);
             }
+
+            if (dep.getTonKhoXe() != null) {
+                TonKhoXe tk = dep.getTonKhoXe();
+                int currentAvail = tk.getSoLuongKhaDung() != null ? tk.getSoLuongKhaDung() : 0;
+                int currentHolding = tk.getSoLuongDangGiuCho() != null ? tk.getSoLuongDangGiuCho() : 0;
+                tk.setSoLuongKhaDung(currentAvail + 1);
+                if (currentHolding > 0) {
+                    tk.setSoLuongDangGiuCho(currentHolding - 1);
+                }
+                tonKhoXeRepository.save(tk);
+            }
+
             depositRepository.save(dep);
             expiredCount++;
             log.info("[DepositExpirationScheduler] Phiếu cọc chờ thanh toán #{} đã hết hạn 15 phút.", dep.getMaPhieuCoc());

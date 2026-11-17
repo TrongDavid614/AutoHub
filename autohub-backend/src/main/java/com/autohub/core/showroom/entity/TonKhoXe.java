@@ -38,6 +38,6 @@ public class TonKhoXe extends BaseEntity {
     private Integer soLuongDangGiuCho = 0; // Đang giữ tạm 15p hoặc giữ cọc 72h
 
     @Version
-    @Column(name = "row_version")
+    @Column(name = "row_version", insertable = false, updatable = false)
     private byte[] rowVersion;
 }

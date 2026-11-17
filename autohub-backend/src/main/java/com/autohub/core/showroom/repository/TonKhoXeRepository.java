@@ -27,5 +27,9 @@ public interface TonKhoXeRepository extends JpaRepository<TonKhoXe, Long> {
     @Query("SELECT COALESCE(SUM(t.soLuongDangGiuCho), 0) FROM TonKhoXe t")
     Integer sumTotalReservedAllShowrooms();
 
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE TonKhoXe t SET t.soLuongDangGiuCho = CASE WHEN t.soLuongDangGiuCho > 0 THEN t.soLuongDangGiuCho - 1 ELSE 0 END, t.soLuongKhaDung = t.soLuongKhaDung + 1 WHERE t.id = :id")
+    int releaseStockHold(@Param("id") Long id);
+
     long countByShowroomId(Long showroomId);
 }

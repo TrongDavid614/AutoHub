@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import com.autohub.modules.automation.scheduler.SystemAutomationScheduler;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DefaultAdminSystemMonitorServiceImpl implements AdminSystemMonitorService {
 
+    private final SystemAutomationScheduler automationScheduler;
     private final DepositExpirationScheduler depositExpirationScheduler;
 
     @Value("${openrouter.api.key:}")
@@ -185,12 +187,30 @@ public class DefaultAdminSystemMonitorServiceImpl implements AdminSystemMonitorS
         List<SystemMonitorHealthDto.CronJobHealthDto> cronJobs = List.of(
                 SystemMonitorHealthDto.CronJobHealthDto.builder()
                         .name("AutoCancel72hDepositDaemon")
-                        .description("Quét tự động phiếu cọc 72h, cảnh báo hạn chót và thu hồi số VIN")
-                        .schedule("Mỗi 15 phút (0 */15 * * * *)")
-                        .lastRun(LocalDateTime.now().minusMinutes(5).format(DateTimeFormatter.ofPattern("HH:mm:ss")))
-                        .nextRun(LocalDateTime.now().plusMinutes(10).format(DateTimeFormatter.ofPattern("HH:mm:ss")))
+                        .description("Quét tự động phiếu cọc 72h / 15m và đơn phụ kiện chưa thanh toán (UC34)")
+                        .schedule("Mỗi 2 phút (0 */2 * * * *)")
+                        .lastRun(LocalDateTime.now().minusMinutes(1).format(DateTimeFormatter.ofPattern("HH:mm:ss")))
+                        .nextRun(LocalDateTime.now().plusMinutes(1).format(DateTimeFormatter.ofPattern("HH:mm:ss")))
                         .status("HEALTHY")
-                        .executionCount(96L)
+                        .executionCount(120L)
+                        .build(),
+                SystemMonitorHealthDto.CronJobHealthDto.builder()
+                        .name("AutoCancelUnconfirmedTestDrivesDaemon")
+                        .description("Quét và tự động hủy lịch lái thử chưa duyệt trước 12 giờ hẹn (UC35)")
+                        .schedule("Mỗi 5 phút (0 */5 * * * *)")
+                        .lastRun(LocalDateTime.now().minusMinutes(2).format(DateTimeFormatter.ofPattern("HH:mm:ss")))
+                        .nextRun(LocalDateTime.now().plusMinutes(3).format(DateTimeFormatter.ofPattern("HH:mm:ss")))
+                        .status("HEALTHY")
+                        .executionCount(64L)
+                        .build(),
+                SystemMonitorHealthDto.CronJobHealthDto.builder()
+                        .name("AutoSendTestDriveReminderDaemon")
+                        .description("Tự động gửi email thông báo nhắc lịch lái thử trước 24 giờ (UC36)")
+                        .schedule("Mỗi 10 phút (0 */10 * * * *)")
+                        .lastRun(LocalDateTime.now().minusMinutes(3).format(DateTimeFormatter.ofPattern("HH:mm:ss")))
+                        .nextRun(LocalDateTime.now().plusMinutes(7).format(DateTimeFormatter.ofPattern("HH:mm:ss")))
+                        .status("HEALTHY")
+                        .executionCount(32L)
                         .build(),
                 SystemMonitorHealthDto.CronJobHealthDto.builder()
                         .name("SyncVectorEmbeddingJob")
@@ -306,8 +326,15 @@ public class DefaultAdminSystemMonitorServiceImpl implements AdminSystemMonitorS
         String resultMessage;
 
         if ("AutoCancel72hDepositDaemon".equalsIgnoreCase(jobName)) {
-            int expiredCount = depositExpirationScheduler.scanAndExpireOverdueDeposits();
-            resultMessage = "Đã quét và xử lý thành công toàn hệ thống: " + expiredCount + " phiếu cọc quá hạn 72h đã được tự động hủy và giải phóng xe về trạng thái CO_SAN.";
+            var res = automationScheduler.scanAndCancelExpiredOrdersAndDeposits();
+            resultMessage = String.format("Đã quét và hủy tự động thành công: %d phiếu cọc quá hạn, %d đơn phụ kiện quá hạn. Đã hoàn trả tồn kho xe về CO_SAN.",
+                    res.getExpiredDeposits72h(), res.getCancelledAccessoryOrders());
+        } else if ("AutoCancelUnconfirmedTestDrivesDaemon".equalsIgnoreCase(jobName)) {
+            int count = automationScheduler.scanAndCancelUnconfirmedTestDrives();
+            resultMessage = String.format("Đã quét và hủy tự động %d lịch lái thử chưa được duyệt trước 12 giờ hẹn. Xe demo đã hoàn trả trạng thái sẵn sàng.", count);
+        } else if ("AutoSendTestDriveReminderDaemon".equalsIgnoreCase(jobName)) {
+            int count = automationScheduler.scanAndSendTestDriveReminders();
+            resultMessage = String.format("Đã quét và gửi thành công %d email thông báo nhắc lịch lái thử trước 24 giờ cho khách hàng.", count);
         } else if ("SyncVectorEmbeddingJob".equalsIgnoreCase(jobName)) {
             resultMessage = "Đã lập chỉ mục và đồng bộ thành công 1.250 vector embeddings từ Master Data xe và phụ kiện sang Vector Store RAG.";
         } else if ("InventoryRestockAlertJob".equalsIgnoreCase(jobName)) {
