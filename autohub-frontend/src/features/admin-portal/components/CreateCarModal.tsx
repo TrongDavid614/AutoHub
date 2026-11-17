@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Car, Plus, Sparkles, AlertCircle } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
 import type { CreateCarMasterPayload } from '@/types/car.types';
@@ -17,6 +18,15 @@ export const CreateCarModal: React.FC<CreateCarModalProps> = ({
   isSubmitting,
 }) => {
   const { isDarkMode } = useAdminTheme();
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   const [brandName, setBrandName] = useState('VinFast');
   const [modelName, setModelName] = useState('');
@@ -85,8 +95,15 @@ export const CreateCarModal: React.FC<CreateCarModalProps> = ({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in"
+    >
       <div
         className={`w-full max-w-2xl rounded-2xl border shadow-2xl overflow-hidden transition-all ${
           isDarkMode
@@ -418,6 +435,7 @@ export const CreateCarModal: React.FC<CreateCarModalProps> = ({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Search, Check, Plus, RefreshCw, Car as CarIcon } from 'lucide-react';
 import { carService } from '../services/car.service';
 import type { MockCar } from '../mocks/car.mock';
@@ -69,10 +70,26 @@ export const SelectCarCompareModal: React.FC<SelectCarCompareModalProps> = ({
     });
   }, [cars, search, selectedCategory]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn"
+    >
       <div className="bg-[#131B2E] border border-[#3E4850] rounded-xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="p-5 border-b border-[#3E4850]/60 flex items-center justify-between bg-[#0F172A]/80">
@@ -205,6 +222,7 @@ export const SelectCarCompareModal: React.FC<SelectCarCompareModalProps> = ({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { AlertCircle } from 'lucide-react';
 import type { AccessoryOrder } from '@/types/order.types';
 
@@ -15,10 +16,26 @@ export const OrderCancelModal: React.FC<OrderCancelModalProps> = ({
   onClose,
   onConfirmCancel,
 }) => {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen || !order) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas-deep/80 backdrop-blur-md animate-fadeIn">
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas-deep/80 backdrop-blur-md animate-fadeIn"
+    >
       <div className="w-full max-w-md rounded-xl bg-surface-container border border-surface-highlight p-6 shadow-2xl relative">
         <div className="flex items-center gap-3 text-rose-400 pb-3 border-b border-surface-highlight">
           <AlertCircle className="w-6 h-6 shrink-0" />
@@ -51,6 +68,7 @@ export const OrderCancelModal: React.FC<OrderCancelModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

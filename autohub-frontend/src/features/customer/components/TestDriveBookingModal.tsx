@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { X, ShieldCheck, Check, Sparkles, AlertCircle } from 'lucide-react';
 import { VehicleDemoCard } from './VehicleDemoCard';
@@ -145,8 +146,26 @@ export const TestDriveBookingModal: React.FC<TestDriveBookingModalProps> = ({
     }, 1500);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-canvas-deep/80 backdrop-blur-md overflow-y-auto animate-fadeIn">
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-canvas-deep/80 backdrop-blur-md overflow-y-auto animate-fadeIn"
+    >
       {/* MODAL DIALOG CONTAINER */}
       <div className="w-full max-w-4xl my-auto rounded-xl bg-surface-container/95 border border-surface-highlight shadow-[0_24px_60px_-12px_rgba(0,0,0,0.85),0_0_32px_-6px_rgba(14,165,233,0.18)] relative overflow-hidden">
         {/* Top Specular Ambient Line */}
@@ -288,6 +307,7 @@ export const TestDriveBookingModal: React.FC<TestDriveBookingModalProps> = ({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Check, Layers } from 'lucide-react';
 import type { CarModelInfo } from '@/features/customer/mocks/accessory.mock';
 import { accessoryService } from '@/features/customer/services/accessory.service';
@@ -26,10 +27,26 @@ export const ChangeCarModelModal: React.FC<ChangeCarModelModalProps> = ({
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#060E20]/80 backdrop-blur-sm animate-fade-in">
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#060E20]/80 backdrop-blur-sm animate-fade-in"
+    >
       <div className="w-full max-w-xl rounded-[2px] bg-[#131B2E] border border-[#2D3449] p-6 shadow-2xl space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-[#2D3449]">
@@ -145,6 +162,7 @@ export const ChangeCarModelModal: React.FC<ChangeCarModelModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

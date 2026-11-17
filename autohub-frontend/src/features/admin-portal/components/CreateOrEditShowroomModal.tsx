@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Building2, MapPin, Phone, Clock, Globe } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
 import { cn } from '@/lib/utils';
@@ -58,6 +59,15 @@ export const CreateOrEditShowroomModal: React.FC<CreateOrEditShowroomModalProps>
     setErrorMsg(null);
   }, [editingShowroom, provinces, isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -94,8 +104,15 @@ export const CreateOrEditShowroomModal: React.FC<CreateOrEditShowroomModalProps>
     await onSave(payload);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in"
+    >
       <div
         className={cn(
           'w-full max-w-xl rounded-2xl border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-colors',
@@ -320,6 +337,7 @@ export const CreateOrEditShowroomModal: React.FC<CreateOrEditShowroomModalProps>
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

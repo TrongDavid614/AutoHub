@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import {
   ShieldAlert,
   CheckCircle,
@@ -149,6 +150,15 @@ export const RefundApprovalPage: React.FC = () => {
   const pendingCount = (dockets ?? []).filter(
     (d) => d.status === 'VERIFIED' || d.status === 'PENDING'
   ).length;
+
+  useEffect(() => {
+    if (!rejectItem) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setRejectItem(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [rejectItem]);
 
   return (
     <div className={`space-y-6 antialiased transition-colors ${isDarkMode ? 'text-[#DAE2FD]' : 'text-slate-800'}`}>
@@ -498,8 +508,16 @@ export const RefundApprovalPage: React.FC = () => {
       />
 
       {/* Modal Từ Chối Hoàn Cọc */}
-      {rejectItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+      {rejectItem &&
+        createPortal(
+          <div
+            role="dialog"
+            aria-modal="true"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setRejectItem(null);
+            }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in"
+          >
           <div className={`w-full max-w-md rounded-xl border p-6 transition-colors shadow-2xl ${
             isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/50 text-white' : 'bg-white border-slate-200 text-slate-900'
           }`}>
@@ -558,8 +576,9 @@ export const RefundApprovalPage: React.FC = () => {
               </div>
             </form>
           </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

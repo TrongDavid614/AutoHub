@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   Clock,
@@ -69,6 +70,15 @@ export const VNPayQRModal: React.FC<VNPayQRModalProps> = ({
     return () => clearInterval(timer);
   }, [isOpen, refreshCount, isPaidSuccess]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   // Xử lý tạo lại mã QR mới
@@ -112,8 +122,15 @@ export const VNPayQRModal: React.FC<VNPayQRModalProps> = ({
   const progressPercentage = (countdown / 60) * 100;
   const isUrgent = countdown <= 15;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#060E20]/90 backdrop-blur-md animate-fade-in overflow-y-auto">
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#060E20]/90 backdrop-blur-md animate-fade-in overflow-y-auto"
+    >
       <div className="w-full max-w-xl rounded-2xl bg-[#0F172A] border border-[#0EA5E9]/40 p-5 sm:p-7 shadow-[0_0_50px_rgba(14,165,233,0.2)] text-left relative overflow-hidden my-auto">
         {/* Top Glow Accent Bar */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#0EA5E9] via-[#89CEFF] to-[#0EA5E9]" />
@@ -379,6 +396,7 @@ export const VNPayQRModal: React.FC<VNPayQRModalProps> = ({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

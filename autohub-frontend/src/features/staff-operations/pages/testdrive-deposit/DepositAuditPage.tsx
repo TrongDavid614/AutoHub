@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Clock,
   Search,
@@ -38,6 +39,22 @@ export const DepositAuditPage: React.FC = () => {
     setToast({ type, message });
     setTimeout(() => setToast(null), 3500);
   };
+
+  // Tương tác đóng hộp thoại qua phím Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (selectedDepositForVin) setSelectedDepositForVin(null);
+        if (confirmSignModal) setConfirmSignModal(null);
+      }
+    };
+    if (selectedDepositForVin || confirmSignModal) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedDepositForVin, confirmSignModal]);
 
   const handleOpenAssignVin = async (deposit: StaffDepositRecord) => {
     setSelectedDepositForVin(deposit);
@@ -296,161 +313,200 @@ export const DepositAuditPage: React.FC = () => {
       )}
 
       {/* Modal Gán VIN */}
-      {selectedDepositForVin && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+      {selectedDepositForVin &&
+        createPortal(
           <div
-            className={cn(
-              'w-full max-w-lg p-6 rounded-2xl border space-y-4 shadow-2xl',
-              isDarkMode ? 'bg-[#0B1326] border-[#3E4850]' : 'bg-white border-slate-200'
-            )}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-vin-title"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setSelectedDepositForVin(null);
+            }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
           >
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#3E4850]/40">
-              <div>
-                <span className="text-[10px] uppercase font-mono text-blue-500 font-bold block">Thao Tác Gán Số Khung</span>
-                <h3 className={cn('text-base font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
-                  Gán Số Khung VIN Cho {selectedDepositForVin.depositCode}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedDepositForVin(null)}
-                className="p-1.5 rounded-lg border cursor-pointer border-slate-200 dark:border-[#3E4850]/50"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
             <div
               className={cn(
-                'p-4 rounded-xl border space-y-2 text-xs',
-                isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40' : 'bg-slate-50 border-slate-200'
+                'w-full max-w-lg max-h-[90vh] flex flex-col p-6 rounded-2xl border space-y-4 shadow-2xl animate-in zoom-in-95 duration-150 overflow-hidden',
+                isDarkMode ? 'bg-[#0B1326] border-[#3E4850] text-[#DAE2FD]' : 'bg-white border-slate-200 text-slate-800'
               )}
             >
-              <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#3E4850]/40 shrink-0">
                 <div>
-                  <span className={cn('text-[10px] uppercase font-mono block', isDarkMode ? 'text-[#88929B]' : 'text-slate-400')}>Khách hàng</span>
-                  <strong className={isDarkMode ? 'text-white' : 'text-slate-900'}>{selectedDepositForVin.customerName}</strong>
-                  <div className="text-[11px] font-mono">CCCD: {selectedDepositForVin.identityCardNumber}</div>
+                  <span className="text-[10px] uppercase font-mono text-blue-500 font-bold block">Thao Tác Gán Số Khung</span>
+                  <h3 id="modal-vin-title" className={cn('text-base font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
+                    Gán Số Khung VIN Cho {selectedDepositForVin.depositCode}
+                  </h3>
                 </div>
-                <div>
-                  <span className={cn('text-[10px] uppercase font-mono block', isDarkMode ? 'text-[#88929B]' : 'text-slate-400')}>Tiền cọc</span>
-                  <span className="font-mono font-bold text-emerald-500 text-sm">
-                    {formatCurrencyVND(selectedDepositForVin.depositAmount)}
-                  </span>
-                </div>
-              </div>
-              <div className="pt-2 border-t border-slate-200 dark:border-[#3E4850]/40">
-                <span className={cn('text-[10px] uppercase font-mono block', isDarkMode ? 'text-[#88929B]' : 'text-slate-400')}>Mẫu xe đặt cọc</span>
-                <div className="font-bold">{selectedDepositForVin.carModel} • {selectedDepositForVin.variant}</div>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className={cn('text-xs font-bold uppercase tracking-wider font-mono', isDarkMode ? 'text-white' : 'text-slate-900')}>
-                  Xe Khả Dụng Trong Kho Khớp Cấu Hình:
-                </span>
-                <span className="text-[10px] font-mono text-emerald-500 font-bold">{availableVins.length} Xe Có Sẵn</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDepositForVin(null)}
+                  className="p-1.5 rounded-lg border cursor-pointer border-slate-200 dark:border-[#3E4850]/50 hover:bg-slate-100 dark:hover:bg-[#131B2E] transition-colors"
+                  aria-label="Đóng hộp thoại"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
-              <div className="space-y-2.5 max-h-60 overflow-y-auto">
-                {availableVins.length === 0 ? (
-                  <div
-                    className={cn(
-                      'p-6 text-center rounded-xl border text-xs font-mono',
-                      isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-500'
-                    )}
-                  >
-                    Hiện không còn số khung VIN nào ở trạng thái CO_SAN phù hợp với phiên bản xe cọc.
-                  </div>
-                ) : (
-                  availableVins.map((item) => (
-                    <div
-                      key={item.vin}
-                      className={cn(
-                        'p-3.5 rounded-xl border space-y-2 transition-all flex flex-col justify-between',
-                        isDarkMode
-                          ? 'bg-[#131B2E] border-[#3E4850]/50 hover:border-blue-500'
-                          : 'bg-white border-slate-200 hover:border-blue-400 shadow-xs'
-                      )}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-mono font-bold text-xs text-blue-600 dark:text-[#89CEFF]">
-                          VIN: {item.vin}
-                        </span>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40 font-bold">
-                          CÓ SẴN
-                        </span>
-                      </div>
-
-                      <div className="text-xs space-y-0.5">
-                        <div className="font-semibold">{item.model}</div>
-                        <div className={cn('text-[11px]', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-                          Màu: {item.color} • {item.location}
-                        </div>
-                      </div>
-
-                      <div className="pt-2 flex justify-end">
-                        <button
-                          type="button"
-                          disabled={isAssigning}
-                          onClick={() => handleAssignVinSubmit(item.vin)}
-                          className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer shadow-sm disabled:opacity-50"
-                        >
-                          {isAssigning ? 'Đang gán...' : 'Khóa VIN Này Cho Khách'}
-                        </button>
-                      </div>
+              <div className="overflow-y-auto space-y-4 pr-1">
+                <div
+                  className={cn(
+                    'p-4 rounded-xl border space-y-2 text-xs',
+                    isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40' : 'bg-slate-50 border-slate-200'
+                  )}
+                >
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <span className={cn('text-[10px] uppercase font-mono block', isDarkMode ? 'text-[#88929B]' : 'text-slate-400')}>Khách hàng</span>
+                      <strong className={isDarkMode ? 'text-white' : 'text-slate-900'}>{selectedDepositForVin.customerName}</strong>
+                      <div className="text-[11px] font-mono">CCCD: {selectedDepositForVin.identityCardNumber}</div>
                     </div>
-                  ))
-                )}
+                    <div>
+                      <span className={cn('text-[10px] uppercase font-mono block', isDarkMode ? 'text-[#88929B]' : 'text-slate-400')}>Tiền cọc</span>
+                      <span className="font-mono font-bold text-emerald-500 text-sm">
+                        {formatCurrencyVND(selectedDepositForVin.depositAmount)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-slate-200 dark:border-[#3E4850]/40">
+                    <span className={cn('text-[10px] uppercase font-mono block', isDarkMode ? 'text-[#88929B]' : 'text-slate-400')}>Mẫu xe đặt cọc</span>
+                    <div className="font-bold">{selectedDepositForVin.carModel} • {selectedDepositForVin.variant}</div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className={cn('text-xs font-bold uppercase tracking-wider font-mono', isDarkMode ? 'text-white' : 'text-slate-900')}>
+                      Xe Khả Dụng Trong Kho Khớp Cấu Hình:
+                    </span>
+                    <span className="text-[10px] font-mono text-emerald-500 font-bold">{availableVins.length} Xe Có Sẵn</span>
+                  </div>
+
+                  <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+                    {availableVins.length === 0 ? (
+                      <div
+                        className={cn(
+                          'p-6 text-center rounded-xl border text-xs font-mono',
+                          isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-500'
+                        )}
+                      >
+                        Hiện không còn số khung VIN nào ở trạng thái CO_SAN phù hợp với phiên bản xe cọc.
+                      </div>
+                    ) : (
+                      availableVins.map((item) => (
+                        <div
+                          key={item.vin}
+                          className={cn(
+                            'p-3.5 rounded-xl border space-y-2 transition-all flex flex-col justify-between',
+                            isDarkMode
+                              ? 'bg-[#131B2E] border-[#3E4850]/50 hover:border-blue-500'
+                              : 'bg-white border-slate-200 hover:border-blue-400 shadow-xs'
+                          )}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-mono font-bold text-xs text-blue-600 dark:text-[#89CEFF]">
+                              VIN: {item.vin}
+                            </span>
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40 font-bold">
+                              CÓ SẴN
+                            </span>
+                          </div>
+
+                          <div className="text-xs space-y-0.5">
+                            <div className="font-semibold">{item.model}</div>
+                            <div className={cn('text-[11px]', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
+                              Màu: {item.color} • {item.location}
+                            </div>
+                          </div>
+
+                          <div className="pt-2 flex justify-end">
+                            <button
+                              type="button"
+                              disabled={isAssigning}
+                              onClick={() => handleAssignVinSubmit(item.vin)}
+                              className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+                            >
+                              {isAssigning ? 'Đang gán...' : 'Khóa VIN Này Cho Khách'}
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-200 dark:border-[#3E4850]/40 flex justify-end shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setSelectedDepositForVin(null)}
+                  className={cn(
+                    'px-4 py-2 rounded-lg text-xs font-semibold border transition-colors cursor-pointer',
+                    isDarkMode
+                      ? 'bg-[#131B2E] border-[#3E4850] text-[#DAE2FD] hover:bg-[#171F33]'
+                      : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+                  )}
+                >
+                  Đóng
+                </button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
 
       {/* Confirm Sign Contract Modal */}
-      {confirmSignModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+      {confirmSignModal &&
+        createPortal(
           <div
-            className={cn(
-              'w-full max-w-md rounded-2xl border p-6 shadow-2xl space-y-4',
-              isDarkMode ? 'bg-[#171F33] border-[#3E4850]/60 text-[#DAE2FD]' : 'bg-white border-slate-200 text-slate-800'
-            )}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-contract-title"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setConfirmSignModal(null);
+            }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
           >
-            <div className="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-slate-700">
-              <h3 className="font-bold text-sm">Xác Nhận Ký Hợp Đồng Mua Bán</h3>
-              <button
-                type="button"
-                onClick={() => setConfirmSignModal(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-200 cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
+            <div
+              className={cn(
+                'w-full max-w-md rounded-2xl border p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150',
+                isDarkMode ? 'bg-[#171F33] border-[#3E4850]/60 text-[#DAE2FD]' : 'bg-white border-slate-200 text-slate-800'
+              )}
+            >
+              <div className="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-slate-700">
+                <h3 id="modal-contract-title" className="font-bold text-sm">Xác Nhận Ký Hợp Đồng Mua Bán</h3>
+                <button
+                  type="button"
+                  onClick={() => setConfirmSignModal(null)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-200 cursor-pointer"
+                  aria-label="Đóng hộp thoại"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <p className="text-xs text-slate-400">
+                Xác nhận khách hàng <strong className="text-white">{confirmSignModal.customerName}</strong> đã đến Showroom hoàn tất ký Hợp Đồng Mua Bán xe vật lý? Trạng thái phiếu cọc sẽ được chuyển sang <strong className="text-emerald-400">COMPLETED</strong> và số VIN sẽ chuyển sang <strong className="text-emerald-400">ĐÃ BÁN</strong>.
+              </p>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmSignModal(null)}
+                  className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="button"
+                  disabled={isSigning}
+                  onClick={() => executeSignContract(confirmSignModal.depositId)}
+                  className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer shadow-sm disabled:opacity-50"
+                >
+                  {isSigning ? 'Đang cập nhật...' : 'Xác Nhận Ký HĐMB'}
+                </button>
+              </div>
             </div>
-            <p className="text-xs text-slate-400">
-              Xác nhận khách hàng <strong className="text-white">{confirmSignModal.customerName}</strong> đã đến Showroom hoàn tất ký Hợp Đồng Mua Bán xe vật lý? Trạng thái phiếu cọc sẽ được chuyển sang <strong className="text-emerald-400">COMPLETED</strong> và số VIN sẽ chuyển sang <strong className="text-emerald-400">ĐÃ BÁN</strong>.
-            </p>
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setConfirmSignModal(null)}
-                className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer"
-              >
-                Hủy bỏ
-              </button>
-              <button
-                type="button"
-                disabled={isSigning}
-                onClick={() => executeSignContract(confirmSignModal.depositId)}
-                className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer shadow-sm disabled:opacity-50"
-              >
-                {isSigning ? 'Đang cập nhật...' : 'Xác Nhận Ký HĐMB'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
 
       {/* Toast Notification */}
       {toast && (

@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { FileCheck2, X, Download } from 'lucide-react';
 import type { CarDepositItem } from '@/features/customer/types/car-deposit.types';
 
@@ -11,10 +12,26 @@ export const CarDepositReceiptModal: React.FC<CarDepositReceiptModalProps> = ({
   receipt,
   onClose,
 }) => {
+  useEffect(() => {
+    if (!receipt) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [receipt, onClose]);
+
   if (!receipt) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas-deep/80 backdrop-blur-md animate-fadeIn">
+  return createPortal(
+    <div
+      role="dialog"
+      aria-modal="true"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas-deep/80 backdrop-blur-md animate-fadeIn"
+    >
       <div className="w-full max-w-xl rounded-xl bg-surface-container border border-surface-highlight p-6 shadow-2xl relative">
         <div className="flex items-center justify-between pb-3 border-b border-surface-highlight">
           <div className="flex items-center gap-2">
@@ -90,6 +107,7 @@ export const CarDepositReceiptModal: React.FC<CarDepositReceiptModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
