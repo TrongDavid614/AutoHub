@@ -62,6 +62,9 @@ public class AdminAnalyticsController {
         long totalLogs = logs.size();
         long calculatorCount = logs.stream()
                 .filter(l -> {
+                    if (l.getLoaiHanhVi() == LoaiHanhViTracking.CALCULATE_ESTIMATOR) {
+                        return true;
+                    }
                     if (l.getDuLieuBoSung() != null) {
                         String extra = l.getDuLieuBoSung().toLowerCase();
                         if (extra.contains("calculator") || extra.contains("estimator")

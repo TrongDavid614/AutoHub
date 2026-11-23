@@ -20,7 +20,7 @@ public class TrackingEventRequest {
     @NotNull(message = "Loại hành vi không được để trống")
     private LoaiHanhViTracking loaiHanhVi;
 
-    @Size(max = 20, message = "Loại thực thể không được vượt quá 20 ký tự")
+    @Size(max = 50, message = "Loại thực thể không được vượt quá 50 ký tự")
     private String loaiThucThe;
 
     private Long maThucThe;

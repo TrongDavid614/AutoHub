@@ -9,6 +9,7 @@ import {
   Maximize2,
   Wind,
 } from 'lucide-react';
+import { trackUserEvent } from '@/lib/tracker';
 import type { MockCar } from '../../mocks/car.mock';
 
 interface CarStudioVisualizerProps {
@@ -126,7 +127,20 @@ export const CarStudioVisualizer: React.FC<CarStudioVisualizerProps> = ({
                 <button
                   key={tab.id}
                   type="button"
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    trackUserEvent({
+                      loaiHanhVi: 'INTERACT_360',
+                      loaiThucThe: 'CAR',
+                      maThucThe: car?.id ? Number(car.id) || undefined : undefined,
+                      duLieuBoSung: {
+                        tabId: tab.id,
+                        tabLabel: tab.label,
+                        carName,
+                        activeTrim,
+                      },
+                    });
+                  }}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all cursor-pointer ${
                     isActive
                       ? 'bg-accent-action text-accent-contrast shadow-[0_0_12px_rgba(14,165,233,0.4)]'
@@ -193,7 +207,20 @@ export const CarStudioVisualizer: React.FC<CarStudioVisualizerProps> = ({
             <button
               key={item.id}
               type="button"
-              onClick={() => setActivePerspective(index)}
+              onClick={() => {
+                setActivePerspective(index);
+                trackUserEvent({
+                  loaiHanhVi: 'GALLERY_SLIDE',
+                  loaiThucThe: 'CAR',
+                  maThucThe: car?.id ? Number(car.id) || undefined : undefined,
+                  duLieuBoSung: {
+                    perspectiveIndex: index,
+                    perspectiveLabel: item.label,
+                    carName,
+                    activeTrim,
+                  },
+                });
+              }}
               className={`group relative rounded-[4px] p-2 text-left bg-surface-elevated/70 border transition-all cursor-pointer overflow-hidden ${
                 isSelected
                   ? 'border-accent-primary bg-surface-container shadow-[0_0_15px_rgba(137,206,255,0.2)]'

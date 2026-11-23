@@ -20,4 +20,6 @@ public class AiChatRequest {
     private Long contextCarId;
 
     private String contextCarName;
+
+    private String sessionId;
 }

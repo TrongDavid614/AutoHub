@@ -8,6 +8,7 @@ import { CustomerInfoForm } from '@/features/customer/components/CustomerInfoFor
 import { useAuthStore } from '@/store/useAuthStore';
 import { engagementService } from '@/features/customer/services/engagement.service';
 import { carService } from '@/features/customer/services/car.service';
+import { usePageTracking } from '@/hooks/usePageTracking';
 import type { MockCar } from '@/features/customer/mocks/car.mock';
 
 export const TestDriveCanvasPage: React.FC = () => {
@@ -61,6 +62,17 @@ export const TestDriveCanvasPage: React.FC = () => {
   const selectedCar = useMemo(() => {
     return cars.find((c) => String(c.id) === String(selectedCarId)) || cars[0];
   }, [cars, selectedCarId]);
+
+  const { trackAction } = usePageTracking({
+    loaiThucThe: 'TEST_DRIVE',
+    maThucThe: selectedCar ? Number(selectedCar.id) : undefined,
+    viewAction: 'INITIATE_TEST_DRIVE',
+    metadata: {
+      carId: selectedCarId,
+      carName: selectedCar?.name,
+      location: selectedLocation,
+    },
+  });
 
   // 2. Tải danh sách khung giờ đã kín lịch (trùng lịch) theo ngày và mẫu xe
   useEffect(() => {
@@ -128,6 +140,14 @@ export const TestDriveCanvasPage: React.FC = () => {
 
     setIsSubmitting(false);
     setIsSuccess(true);
+    trackAction('INITIATE_TEST_DRIVE', {
+      status: 'BOOKED_SUCCESS',
+      carId: selectedCar ? selectedCar.id : selectedCarId,
+      carName: selectedCar?.name,
+      location: selectedLocation,
+      date: selectedDate,
+      slot: selectedSlot,
+    });
     setTimeout(() => {
       navigate('/customer/test-drives');
     }, 1500);

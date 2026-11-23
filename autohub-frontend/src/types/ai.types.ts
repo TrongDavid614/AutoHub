@@ -94,4 +94,5 @@ export interface AiChatPayload {
   consultationId?: number;
   contextCarId?: number;
   contextCarName?: string;
+  sessionId?: string;
 }

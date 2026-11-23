@@ -4,11 +4,28 @@ import { useAiConsultant } from '@/features/customer/hooks/useAiConsultant';
 import { AiHeader } from '@/features/customer/components/AiHeader';
 import { AiMessageItem } from '@/features/customer/components/AiMessageItem';
 import { AiChatInput } from '@/features/customer/components/AiChatInput';
+import { usePageTracking } from '@/hooks/usePageTracking';
 
 export const AiConsultantPage: React.FC = () => {
   const { messages, isLoading, isSending, error, sendMessage, refetch } = useAiConsultant();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isInitialMount = useRef(true);
+
+  const { trackAction } = usePageTracking({
+    loaiThucThe: 'AI_CONSULTANT',
+    metadata: {
+      initialMessageCount: messages.length,
+    },
+  });
+
+  const handleSendMessage = (text: string, carId?: number, carName?: string) => {
+    trackAction('AI_CONSULTANT_QUERY', {
+      queryLength: text.length,
+      carId,
+      carName,
+    });
+    void sendMessage(text, carId, carName);
+  };
 
   // Chỉ cuộn xuống khi người dùng gửi tin nhắn hoặc nhận phản hồi mới (tránh nhảy trang khi vừa vào)
   useEffect(() => {
@@ -73,7 +90,7 @@ export const AiConsultantPage: React.FC = () => {
               <AiMessageItem
                 key={msg.id}
                 message={msg}
-                onSelectPrompt={(prompt, carId, carName) => void sendMessage(prompt, carId, carName)}
+                onSelectPrompt={(prompt, carId, carName) => void handleSendMessage(prompt, carId, carName)}
                 isSending={isSending}
               />
             ))}
@@ -92,7 +109,7 @@ export const AiConsultantPage: React.FC = () => {
 
         {/* Bottom Chat Input Bar */}
         <div className="sticky bottom-4 pt-2">
-          <AiChatInput onSend={(text) => void sendMessage(text)} isSending={isSending} />
+          <AiChatInput onSend={(text) => void handleSendMessage(text)} isSending={isSending} />
         </div>
       </div>
     </div>

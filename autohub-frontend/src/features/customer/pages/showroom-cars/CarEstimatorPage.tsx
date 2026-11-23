@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { EstimatorHeader } from '@/features/customer/components/EstimatorHeader';
 import { ModelRibbon } from '@/features/customer/components/ModelRibbon';
 import { TrimSelector } from '@/features/customer/components/TrimSelector';
@@ -7,6 +7,7 @@ import { PromoSelector } from '@/features/customer/components/PromoSelector';
 import { CostBreakdownLedger } from '@/features/customer/components/CostBreakdownLedger';
 import { useCarEstimator } from '@/features/customer/hooks/useCarEstimator';
 import { CarDepositModal } from '@/features/customer';
+import { usePageTracking } from '@/hooks/usePageTracking';
 
 export const CarEstimatorPage: React.FC = () => {
   const {
@@ -30,6 +31,43 @@ export const CarEstimatorPage: React.FC = () => {
   } = useCarEstimator();
 
   const ledgerRef = useRef<HTMLDivElement>(null);
+  const isFirstRender = useRef<boolean>(true);
+
+  const { trackAction } = usePageTracking({
+    loaiThucThe: 'ESTIMATOR',
+    maThucThe: Number(selectedTrimId) || undefined,
+    metadata: {
+      trimName: selectedTrim?.name,
+      cityName: selectedCity?.name,
+      totalRolloutCost: breakdown?.totalRolloutCost,
+    },
+    autoTrackView: true,
+  });
+
+  // Telemetry: Ghi nhận sự kiện khi khách tùy chỉnh thông số dự toán lăn bánh / trả góp
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    trackAction('CALCULATE_ESTIMATOR', {
+      selectedTrimId,
+      trimName: selectedTrim?.name,
+      selectedCityId,
+      cityName: selectedCity?.name,
+      totalRolloutCost: breakdown?.totalRolloutCost,
+      isTaxSupportChecked,
+      isCashDiscountChecked,
+      isRescuePackageChecked,
+    });
+  }, [
+    selectedTrimId,
+    selectedCityId,
+    isTaxSupportChecked,
+    isCashDiscountChecked,
+    isRescuePackageChecked,
+    trackAction,
+  ]);
 
   const handleTriggerCalculate = () => {
     if (ledgerRef.current) {

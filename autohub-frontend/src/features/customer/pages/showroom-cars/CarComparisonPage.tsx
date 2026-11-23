@@ -13,6 +13,7 @@ import { TestDriveBookingModal } from '@/features/customer/components/TestDriveB
 import { carService } from '@/features/customer/services/car.service';
 import { COMPARISON_TRIMS, COMPARISON_SPEC_GROUPS } from '@/features/customer/mocks/comparison.data';
 import { useCompareStore } from '@/store/useCompareStore';
+import { usePageTracking } from '@/hooks/usePageTracking';
 import type {
   CarComparisonData,
   VehicleComparisonTrim,
@@ -56,6 +57,16 @@ export const CarComparisonPage: React.FC = () => {
     }
     return [1, 2, 3];
   }, [searchParams]);
+
+  usePageTracking({
+    loaiThucThe: 'COMPARISON',
+    viewAction: 'COMPARE_CARS',
+    metadata: {
+      targetIds,
+      compareCount: targetIds.length,
+    },
+    enabled: targetIds.length > 0,
+  });
 
   // Fetch comparison data from backend
   const fetchComparison = useCallback(async (idsToFetch: number[]) => {
