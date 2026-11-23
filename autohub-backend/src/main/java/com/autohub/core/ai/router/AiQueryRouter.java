@@ -20,46 +20,53 @@ public class AiQueryRouter {
     }
 
     private static final String ROUTER_SYSTEM_PROMPT = """
-        <role>
-        Bạn là Bộ định tuyến Ý định (Semantic Intent Router) của nền tảng xe điện AutoHub.
-        Nhiệm vụ: Phân tích câu hỏi người dùng, phân loại đúng 1 AiIntent và trích xuất tham số ra JSON chuẩn theo schema AiRouteDecision.
-        </role>
+            <role>
+            Bạn là Bộ định tuyến Ý định (Semantic Intent Router) của nền tảng xe điện AutoHub.
+            Nhiệm vụ: Phân tích câu hỏi người dùng, phân loại đúng 1 AiIntent và trích xuất tham số ra JSON chuẩn theo schema AiRouteDecision.
+            </role>
 
-        <priority_rules>
-        Nếu câu hỏi chứa nhiều từ khóa, ưu tiên phân loại theo thứ tự từ trên xuống dưới:
-        1. ROLLOUT_FEE_CALCULATION: Hỏi chi phí lăn bánh, thuế trước bạ, phí biển số, tổng tiền ra biển tại tỉnh/thành.
-           - Trích xuất `province` và BẮT BUỘC chuẩn hóa tên tỉnh: "SG", "Sài Gòn", "TPHCM", "TP.HCM" -> "Hồ Chí Minh"; "HN" -> "Hà Nội"; "ĐN" -> "Đà Nẵng". Nếu không nhắc tới tỉnh nào, mặc định "Hà Nội".
-           - Trích xuất tên xe vào `carKeyword` nếu có.
-        2. INVENTORY_SHOWROOM_CHECK: Hỏi tồn kho, xe có sẵn giao ngay, xe lái thử, địa chỉ/tình trạng xe tại showroom.
-           - Trích xuất tên xe vào `carKeyword` và tên showroom/quận vào `location` (nếu có).
-        3. DEPOSIT_POLICY_72H: Hỏi quy chế đặt cọc giữ xe 72h, hoàn tiền 100%, chính sách bảo chứng cọc.
-        4. BATTERY_WARRANTY_POLICY: Hỏi về pin xe điện, bảo hành pin, công nghệ sạc 800V SiC, tuổi thọ pin, chai pin, thuê/đổi pin.
-        5. ACCESSORY_COMPATIBILITY: Tìm phụ kiện, bộ sạc tại nhà (Wallbox), trạm sạc, thảm sàn, camera hành trình, dán phim cách nhiệt.
-        6. CAR_CONSULTATION: Hỏi thông tin dòng xe, so sánh xe, thông số kỹ thuật, giá niêm yết, tìm xe theo ngân sách, số chỗ ngồi, hoặc xếp hạng xe.
-           - `sortOrder` = "PRICE_DESC" nếu có: "đắt nhất", "mắc nhất", "cao nhất", "sang nhất", "vip nhất".
-           - `sortOrder` = "PRICE_ASC" nếu có: "rẻ nhất", "thấp nhất", "kinh tế nhất", "tiết kiệm nhất", "giá rẻ".
-           - `sortOrder` = "ACCELERATION_ASC" nếu có: "nhanh nhất", "tăng tốc tốt nhất", "mạnh nhất".
-           - Mặc định `sortOrder` = "DEFAULT".
-        7. GENERAL_GREETING: CHỈ KHI câu hỏi thuần túy là lời chào ("chào", "hello", "hi", "xin chào", "shop ơi") và KHÔNG chứa bất kỳ từ khóa nào về xe, giá, pin, phụ kiện hay chính sách.
-        8. GENERAL_CONVERSATION: Các câu hỏi ngoài lề, trò chuyện phiếm, hỏi về danh tính AI hoặc các câu hỏi can thiệp hệ thống ("xóa csdl", "hack", "bạn là ai").
-        </priority_rules>
+            <priority_rules>
+            Nếu câu hỏi chứa nhiều từ khóa, ưu tiên phân loại theo thứ tự từ trên xuống dưới:
+            1. BOOK_TEST_DRIVE: Người dùng muốn đăng ký lái thử, trải nghiệm xe, hoặc cung cấp thông tin liên hệ (số điện thoại, họ tên, showroom, ngày giờ) để đặt lịch hẹn lái thử xe.
+            2. ROLLOUT_FEE_CALCULATION: Hỏi chi phí lăn bánh, thuế trước bạ, phí biển số, tổng tiền ra biển tại tỉnh/thành.
+               - Trích xuất `province` và BẮT BUỘC chuẩn hóa tên tỉnh: "SG", "Sài Gòn", "TPHCM", "TP.HCM" -> "Hồ Chí Minh"; "HN" -> "Hà Nội"; "ĐN" -> "Đà Nẵng". Nếu không nhắc tới tỉnh nào, mặc định "Hà Nội".
+               - Trích xuất tên xe vào `carKeyword` nếu có.
+            3. INVENTORY_SHOWROOM_CHECK: Hỏi tồn kho, xe có sẵn giao ngay, xe lái thử, địa chỉ/tình trạng xe tại showroom.
+               - Trích xuất tên xe vào `carKeyword` và tên showroom/quận vào `location` (nếu có).
+            4. DEPOSIT_POLICY_72H: Hỏi quy chế đặt cọc giữ xe 72h, hoàn tiền 100%, yêu cầu đặt cọc xe HOẶC kiểm tra chuyển khoản/thanh toán tiền cọc SePay ("tôi đã chuyển khoản", "kiểm tra thanh toán", "đã nhận được tiền cọc chưa", "kiểm tra sepay").
+            5. BATTERY_WARRANTY_POLICY: Hỏi về pin xe điện, bảo hành pin, công nghệ sạc 800V SiC, tuổi thọ pin, chai pin, thuê/đổi pin.
+            6. ACCESSORY_COMPATIBILITY: Tìm phụ kiện, bộ sạc tại nhà (Wallbox), trạm sạc, thảm sàn, camera hành trình, dán phim cách nhiệt.
+            7. CAR_CONSULTATION: Hỏi thông tin dòng xe, so sánh xe, thông số kỹ thuật, giá niêm yết, tìm xe theo ngân sách, số chỗ ngồi, hoặc xếp hạng xe.
+               - `sortOrder` = "PRICE_DESC" nếu có: "đắt nhất", "mắc nhất", "cao nhất", "sang nhất", "vip nhất".
+               - `sortOrder` = "PRICE_ASC" nếu có: "rẻ nhất", "thấp nhất", "kinh tế nhất", "tiết kiệm nhất", "giá rẻ".
+               - `sortOrder` = "ACCELERATION_ASC" nếu có: "nhanh nhất", "tăng tốc tốt nhất", "mạnh nhất".
+               - Mặc định `sortOrder` = "DEFAULT".
+            8. GENERAL_GREETING: CHỈ KHI câu hỏi thuần túy là lời chào ("chào", "hello", "hi", "xin chào", "shop ơi") và KHÔNG chứa bất kỳ từ khóa nào về xe, giá, pin, phụ kiện hay chính sách.
+            9. GENERAL_CONVERSATION: Các câu hỏi ngoài lề, trò chuyện phiếm, hỏi về danh tính AI hoặc các câu hỏi can thiệp hệ thống ("xóa csdl", "hack", "bạn là ai").
+            </priority_rules>
 
-        <examples>
-        User: "Chào shop, cho mình hỏi xe nào rẻ nhất bên mình vậy?"
-        Output: {"intent": "CAR_CONSULTATION", "sortOrder": "PRICE_ASC", "province": null, "carKeyword": null}
+            <examples>
+            User: "Tôi muốn đăng ký lái thử xe"
+            Output: {"intent": "BOOK_TEST_DRIVE", "sortOrder": "DEFAULT", "province": null, "carKeyword": null}
 
-        User: "Tính giúp mình giá lăn bánh VF 8 ở Sài Gòn"
-        Output: {"intent": "ROLLOUT_FEE_CALCULATION", "sortOrder": "DEFAULT", "province": "Hồ Chí Minh", "carKeyword": "VF 8"}
+            User: "Trần Đức Nam, 0988888888, Hà nội, vào ngày mai"
+            Output: {"intent": "BOOK_TEST_DRIVE", "sortOrder": "DEFAULT", "province": "Hà Nội", "carKeyword": null}
 
-        User: "Showroom Quận 7 còn sẵn xe giao ngay không?"
-        Output: {"intent": "INVENTORY_SHOWROOM_CHECK", "sortOrder": "DEFAULT", "province": null, "carKeyword": null}
+            User: "Chào shop, cho mình hỏi xe nào rẻ nhất bên mình vậy?"
+            Output: {"intent": "CAR_CONSULTATION", "sortOrder": "PRICE_ASC", "province": null, "carKeyword": null}
 
-        User: "Xin chào"
-        Output: {"intent": "GENERAL_GREETING", "sortOrder": "DEFAULT", "province": null, "carKeyword": null}
-        </examples>
+            User: "Tính giúp mình giá lăn bánh VF 8 ở Sài Gòn"
+            Output: {"intent": "ROLLOUT_FEE_CALCULATION", "sortOrder": "DEFAULT", "province": "Hồ Chí Minh", "carKeyword": "VF 8"}
 
-        BẮT BUỘC chỉ trả về JSON hợp lệ khớp với schema AiRouteDecision, không giải thích thêm.
-        """;
+            User: "Showroom Quận 7 còn sẵn xe giao ngay không?"
+            Output: {"intent": "INVENTORY_SHOWROOM_CHECK", "sortOrder": "DEFAULT", "province": null, "carKeyword": null}
+
+            User: "Xin chào"
+            Output: {"intent": "GENERAL_GREETING", "sortOrder": "DEFAULT", "province": null, "carKeyword": null}
+            </examples>
+
+            BẮT BUỘC chỉ trả về JSON hợp lệ khớp với schema AiRouteDecision, không giải thích thêm.
+            """;
 
     public AiRouteDecision routeUserPrompt(String userPrompt) {
         String prompt = userPrompt != null ? userPrompt.trim() : "";
@@ -98,8 +105,7 @@ public class AiQueryRouter {
             return new AiRouteDecision(
                     AiIntent.GENERAL_CONVERSATION,
                     null, null, null, null, null,
-                    null, prompt, "DEFAULT", 0.99
-            );
+                    null, prompt, "DEFAULT", 0.99);
         }
 
         // 2. Kiểm tra Pin & Chính Sách Bảo Hành Pin Xe Điện 800V
@@ -109,15 +115,15 @@ public class AiQueryRouter {
             return new AiRouteDecision(
                     AiIntent.BATTERY_WARRANTY_POLICY,
                     null, "ELECTRIC", null, null, null,
-                    null, prompt, "DEFAULT", 0.98
-            );
+                    null, prompt, "DEFAULT", 0.98);
         }
 
         // 3. Kiểm tra Lăn Bánh / Thuế Trước Bạ
         if (pLower.contains("lăn bánh") || pLower.contains("thuế") || pLower.contains("chi phí") ||
                 pLower.contains("trước bạ") || pLower.contains("ra biển") || pLower.contains("tổng tiền")) {
             String province = "Hà Nội";
-            if (pLower.contains("hồ chí minh") || pLower.contains("tp.hcm") || pLower.contains("sài gòn") || pLower.contains("hcm")) {
+            if (pLower.contains("hồ chí minh") || pLower.contains("tp.hcm") || pLower.contains("sài gòn")
+                    || pLower.contains("hcm")) {
                 province = "Hồ Chí Minh";
             } else if (pLower.contains("đà nẵng")) {
                 province = "Đà Nẵng";
@@ -130,19 +136,45 @@ public class AiQueryRouter {
             return new AiRouteDecision(
                     AiIntent.ROLLOUT_FEE_CALCULATION,
                     targetCar, null, null, null, null,
-                    province, prompt, "DEFAULT", 0.95
-            );
+                    province, prompt, "DEFAULT", 0.95);
         }
 
-        // 4. Kiểm tra Tồn Kho / Showroom / Lái Thử
+        // 4.0. Kiểm tra Thanh toán / Chuyển khoản SePay / Đối soát cọc xe (Ưu tiên cao nhất cho thanh toán)
+        if (pLower.contains("đã chuyển khoản") || pLower.contains("chuyển khoản") || pLower.contains("đã ck")
+                || pLower.contains("vừa ck") || pLower.contains("vừa chuyển khoản") || pLower.contains("kiểm tra thanh toán")
+                || pLower.contains("thanh toán cọc") || pLower.contains("kiểm tra cọc") || pLower.contains("kiểm tra tiền cọc")
+                || pLower.contains("kiểm tra sepay") || pLower.contains("sepay") || pLower.contains("đã nhận được tiền")
+                || pLower.contains("đã nhận được cọc") || pLower.contains("xác nhận thanh toán")
+                || pLower.contains("check thanh toán") || pLower.contains("thanh toán thành công chưa")) {
+            return new AiRouteDecision(
+                    AiIntent.DEPOSIT_POLICY_72H,
+                    extractVehicleName(pLower), null, null, null, null,
+                    null, prompt, "DEFAULT", 0.99);
+        }
+
+        // 4.1. Kiểm tra Ý định Đăng Ký Lái Thử Xe (Ưu tiên cao)
+        // Nhận diện khi câu hỏi có từ khóa lái thử HOẶC khách hàng cung cấp số điện
+        // thoại (10 chữ số)
+        String digitsOnly = pLower.replaceAll("[^0-9]", "");
+        boolean hasPhone = pLower.matches(".*(0[35789][0-9]{8}|0[0-9]{9}).*")
+                || digitsOnly.matches(".*0[35789][0-9]{8}.*")
+                || digitsOnly.matches(".*0[0-9]{9}.*");
+        if (pLower.contains("lái thử") || pLower.contains("chạy thử") || pLower.contains("test drive") || hasPhone) {
+            String targetCar = extractVehicleName(pLower);
+            return new AiRouteDecision(
+                    AiIntent.BOOK_TEST_DRIVE,
+                    targetCar, null, null, null, null,
+                    null, prompt, "DEFAULT", 0.98);
+        }
+
+        // 4.2. Kiểm tra Tồn Kho / Xe có sẵn tại Showroom
         if (pLower.contains("tồn kho") || pLower.contains("có sẵn") || pLower.contains("giao ngay") ||
-                pLower.contains("kho") || pLower.contains("showroom") || pLower.contains("lái thử")) {
+                (pLower.contains("kho") && !pLower.contains("khoản")) || pLower.contains("showroom")) {
             String targetCar = extractVehicleName(pLower);
             return new AiRouteDecision(
                     AiIntent.INVENTORY_SHOWROOM_CHECK,
                     targetCar, null, null, null, null,
-                    null, prompt, "DEFAULT", 0.95
-            );
+                    null, prompt, "DEFAULT", 0.95);
         }
 
         // 5. Kiểm tra Phụ Kiện / Trạm Sạc / Thảm / Camera
@@ -151,8 +183,7 @@ public class AiQueryRouter {
             return new AiRouteDecision(
                     AiIntent.ACCESSORY_COMPATIBILITY,
                     null, null, null, null, null,
-                    null, prompt, "DEFAULT", 0.95
-            );
+                    null, prompt, "DEFAULT", 0.95);
         }
 
         // 6. Kiểm tra Chính Sách Cọc 72h / Hoàn Tiền
@@ -160,9 +191,8 @@ public class AiQueryRouter {
                 pLower.contains("hoàn cọc") || pLower.contains("giữ chỗ") || pLower.contains("đặt cọc")) {
             return new AiRouteDecision(
                     AiIntent.DEPOSIT_POLICY_72H,
-                    null, null, null, null, null,
-                    null, prompt, "DEFAULT", 0.95
-            );
+                    extractVehicleName(pLower), null, null, null, null, // 👈 Đổi null thành extractVehicleName(pLower)
+                    null, prompt, "DEFAULT", 0.95);
         }
 
         // 7. Kiểm tra Giá Cao Nhất / Đắt Nhất
@@ -173,8 +203,7 @@ public class AiQueryRouter {
             return new AiRouteDecision(
                     AiIntent.CAR_CONSULTATION,
                     null, null, null, null, null,
-                    null, prompt, "PRICE_DESC", 0.98
-            );
+                    null, prompt, "PRICE_DESC", 0.98);
         }
 
         // 8. Kiểm tra Giá Thấp Nhất / Rẻ Nhất
@@ -186,8 +215,7 @@ public class AiQueryRouter {
             return new AiRouteDecision(
                     AiIntent.CAR_CONSULTATION,
                     null, null, null, null, null,
-                    null, prompt, "PRICE_ASC", 0.98
-            );
+                    null, prompt, "PRICE_ASC", 0.98);
         }
 
         // 9. Kiểm tra Tăng Tốc Nhanh Nhất
@@ -195,8 +223,7 @@ public class AiQueryRouter {
             return new AiRouteDecision(
                     AiIntent.CAR_CONSULTATION,
                     null, null, null, null, null,
-                    null, prompt, "ACCELERATION_ASC", 0.95
-            );
+                    null, prompt, "ACCELERATION_ASC", 0.95);
         }
 
         // 10. Kiểm tra Bảng Giá / Tìm Xe / Tra Cứu Danh Mục Xe
@@ -209,30 +236,46 @@ public class AiQueryRouter {
             return new AiRouteDecision(
                     AiIntent.CAR_CONSULTATION,
                     extractVehicleName(pLower), null, null, null, null,
-                    null, prompt, "DEFAULT", 0.95
-            );
+                    null, prompt, "DEFAULT", 0.95);
         }
 
-        // 11. Chào Hỏi Thuần Túy (CẤM gán Greeting nếu có từ khóa về xe, giá, cọc, mua)
+        // 11. Chào Hỏi Thuần Túy & Trò Chuyện Ngoài Lề
         boolean hasCarOrIntentKeywords = pLower.contains("xe") || pLower.contains("giá") || pLower.contains("tiền") ||
                 pLower.contains("bảng") || pLower.contains("tìm") || pLower.contains("rẻ") || pLower.contains("đắt") ||
-                pLower.contains("mua") || pLower.contains("cọc") || pLower.contains("lăn bánh") || pLower.contains("pin");
+                pLower.contains("mua") || pLower.contains("cọc") || pLower.contains("lăn bánh")
+                || pLower.contains("pin") ||
+                pLower.contains("sedan") || pLower.contains("suv") || pLower.contains("showroom")
+                || pLower.contains("lái thử") ||
+                pLower.contains("phụ kiện");
 
-        boolean isGreeting = !hasCarOrIntentKeywords && (
-                pLower.equals("chào") || pLower.equals("xin chào") || pLower.equals("hello") || pLower.equals("hi") ||
-                pLower.equals("hey") || pLower.equals("alo") || pLower.startsWith("chào bạn") || pLower.startsWith("xin chào bạn")
-        );
+        // Lời chào mở đầu thuần túy ("hi", "hello", "chào", "xin chào"...)
+        boolean isGreeting = !hasCarOrIntentKeywords && (pLower.equals("chào") || pLower.equals("xin chào")
+                || pLower.equals("hello") || pLower.equals("hi") ||
+                pLower.equals("hey") || pLower.equals("alo") || pLower.startsWith("chào")
+                || pLower.startsWith("xin chào"));
         if (isGreeting) {
             return new AiRouteDecision(
                     AiIntent.GENERAL_GREETING,
                     null, null, null, null, null,
-                    null, prompt, "DEFAULT", 0.90
-            );
+                    null, prompt, "DEFAULT", 0.90);
+        }
+
+        // Câu hỏi trò chuyện thường nhật ngoài lề không liên quan đến ô tô
+        if (!hasCarOrIntentKeywords) {
+            return new AiRouteDecision(
+                    AiIntent.GENERAL_CONVERSATION,
+                    null, null, null, null, null,
+                    null, prompt, "DEFAULT", 0.90);
         }
 
         // 11. Mặc định: Tư vấn xe với các thông số trích xuất
         String fuel = (pLower.contains("điện") || pLower.contains("ev") || pLower.contains("pin")) ? "ELECTRIC" : null;
-        Integer seats = pLower.contains("7 chỗ") ? 7 : (pLower.contains("5 chỗ") ? 5 : null);
+        Integer seats = null;
+        if (pLower.contains("7 chỗ") || pLower.contains("bảy chỗ")) {
+            seats = 7;
+        } else if (pLower.contains("5 chỗ") || pLower.contains("năm chỗ")) {
+            seats = 5;
+        }
         String body = pLower.contains("suv") ? "SUV" : (pLower.contains("sedan") ? "SEDAN" : null);
 
         BigDecimal budget = null;
@@ -247,22 +290,32 @@ public class AiQueryRouter {
         return new AiRouteDecision(
                 AiIntent.CAR_CONSULTATION,
                 null, fuel, body, seats, budget,
-                null, prompt, "DEFAULT", 0.85
-        );
+                null, prompt, "DEFAULT", 0.85);
     }
 
     private String extractVehicleName(String pLower) {
-        if (pLower.contains("vf8") || pLower.contains("vf 8")) return "VinFast VF8";
-        if (pLower.contains("vf9") || pLower.contains("vf 9")) return "VinFast VF9";
-        if (pLower.contains("santafe") || pLower.contains("santa fe")) return "Hyundai SantaFe";
-        if (pLower.contains("everest")) return "Ford Everest";
-        if (pLower.contains("track")) return "AutoHub GT-e Track Edition";
-        if (pLower.contains("grand touring")) return "AutoHub GT-e Grand Touring";
-        if (pLower.contains("standard")) return "AutoHub GT-e Standard";
-        if (pLower.contains("sport tourer")) return "AutoHub GT-e Sport Tourer";
-        if (pLower.contains("cross touring") || pLower.contains("suv-e")) return "AutoHub SUV-e Cross Touring";
-        if (pLower.contains("executive")) return "AutoHub GT-e Executive";
-        if (pLower.contains("touring")) return "AutoHub GT-e Grand Touring";
+        if (pLower.contains("vf8") || pLower.contains("vf 8"))
+            return "VinFast VF8";
+        if (pLower.contains("vf9") || pLower.contains("vf 9"))
+            return "VinFast VF9";
+        if (pLower.contains("santafe") || pLower.contains("santa fe"))
+            return "Hyundai SantaFe";
+        if (pLower.contains("everest"))
+            return "Ford Everest";
+        if (pLower.contains("track"))
+            return "AutoHub GT-e Track Edition";
+        if (pLower.contains("grand touring"))
+            return "AutoHub GT-e Grand Touring";
+        if (pLower.contains("standard"))
+            return "AutoHub GT-e Standard";
+        if (pLower.contains("sport tourer"))
+            return "AutoHub GT-e Sport Tourer";
+        if (pLower.contains("cross touring") || pLower.contains("suv-e"))
+            return "AutoHub SUV-e Cross Touring";
+        if (pLower.contains("executive"))
+            return "AutoHub GT-e Executive";
+        if (pLower.contains("touring"))
+            return "AutoHub GT-e Grand Touring";
         return null;
     }
 }

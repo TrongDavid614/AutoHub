@@ -156,7 +156,12 @@ public class CustomerDepositController {
         }
 
         String maPhieu = "DEP-" + (System.currentTimeMillis() % 1000000);
-        BigDecimal amount = (req.getSoTienCoc() != null) ? req.getSoTienCoc() : BigDecimal.valueOf(20000000);
+        BigDecimal rawAmount = (req.getSoTienCoc() != null) ? req.getSoTienCoc() : BigDecimal.valueOf(20000000);
+        // Thuật toán giảm giá 1/1000: nhân giá với 0.001 để thanh toán thử nghiệm
+        BigDecimal amount = rawAmount.multiply(new BigDecimal("0.001")).setScale(0, java.math.RoundingMode.HALF_UP);
+        if (amount.compareTo(BigDecimal.valueOf(10000)) < 0) {
+            amount = BigDecimal.valueOf(10000);
+        }
         LocalDateTime now = LocalDateTime.now();
 
         // Chuẩn hóa quy trình BR01: Vừa tạo ở trạng thái PENDING_PAYMENT (15 phút để quét QR/chuyển khoản)
@@ -247,7 +252,7 @@ public class CustomerDepositController {
         map.put("exteriorColor", extColor);
         map.put("colorHex", colorHex);
         map.put("carImageUrl", carImageUrl);
-        map.put("depositAmount", p.getSoTienCoc() != null ? p.getSoTienCoc() : BigDecimal.valueOf(20000000));
+        map.put("depositAmount", p.getSoTienCoc() != null ? p.getSoTienCoc() : BigDecimal.valueOf(20000));
         map.put("identityCardNumber", p.getSoCCCD() != null ? p.getSoCCCD() : "079204001234");
         map.put("customerName", p.getNguoiDung() != null ? p.getNguoiDung().getHoTen() : "Khách hàng AutoHub");
         map.put("customerPhone", p.getNguoiDung() != null ? p.getNguoiDung().getSoDienThoai() : "0912345678");
@@ -273,8 +278,10 @@ public class CustomerDepositController {
         String transferContent = "AH DEP " + cleanCode;
         String bankAcc = (sepayAccountNumber != null && !sepayAccountNumber.isBlank()) ? sepayAccountNumber : "5811676579";
         String bankBrand = (sepayBankBrandName != null && !sepayBankBrandName.isBlank()) ? sepayBankBrandName : "BIDV";
-        BigDecimal originalDeposit = p.getSoTienCoc() != null ? p.getSoTienCoc() : BigDecimal.valueOf(20000000);
-        long paymentAmount = sandboxMode ? PaymentSandboxHelper.calculateSandboxTestAmount(originalDeposit, true) : originalDeposit.longValue();
+        BigDecimal currentDeposit = p.getSoTienCoc() != null ? p.getSoTienCoc() : BigDecimal.valueOf(20000);
+        long paymentAmount = (sandboxMode && currentDeposit.compareTo(BigDecimal.valueOf(100000)) > 0)
+                ? PaymentSandboxHelper.calculateSandboxTestAmount(currentDeposit, true)
+                : currentDeposit.longValue();
         String amountStr = String.valueOf(paymentAmount);
 
         String qrUrl;

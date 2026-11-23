@@ -19,39 +19,66 @@ public class GeneralConversationExecutor implements AiIntentExecutor {
 
     @Override
     public AiExecutionResult execute(AiRouteDecision decision, String originalPrompt) {
-        log.info("[GeneralConversationExecutor] Xử lý câu hỏi trò chuyện / bảo mật / quyền hạn AI");
+        log.info("[GeneralConversationExecutor] Xử lý câu hỏi trò chuyện thông thường hoặc bảo mật");
 
-        String context = """
-            QUY ĐỊNH BẢO MẬT VÀ PHẠM VI HOẠT ĐỘNG CỦA TRỢ LÝ AI AUTOHUB:
-            1. Vai trò: Tôi là Trợ lý AI Chuyên gia Ô tô của Nền tảng AutoHub, được phát triển trên kiến trúc Spring AI kết hợp mô hình Google Gemini 3.5 Flash.
-            2. Quyền hạn bảo mật:
-               - Tôi CHỈ có quyền đọc (Read-only) các thông tin công khai về xe, thông số kỹ thuật, giá niêm yết, tồn kho và biểu phí lăn bánh.
-               - Tôi TUYỆT ĐỐI KHÔNG có quyền truy cập quản trị (Admin), không thể chỉnh sửa, ghi đè hoặc XÓA cơ sở dữ liệu hệ thống (SQL Server AutoHubDB).
-               - Toàn bộ cơ sở dữ liệu được bảo vệ nghiêm ngặt bằng tường lửa, hệ thống phân quyền Spring Security RBAC và cơ chế sao lưu định kỳ.
-            3. Nhiệm vụ phục vụ: Hỗ trợ khách hàng tìm kiếm xe, so sánh thông số, tính chi phí lăn bánh, kiểm tra tồn kho tại showroom và hướng dẫn đặt cọc giữ xe 72h trực tuyến.
-            """;
+        String pLower = originalPrompt != null ? originalPrompt.toLowerCase() : "";
 
-        String fallbackText = """
-            🛡️ **Thông báo an toàn & Bảo mật hệ thống AutoHub:**
-            
-            Tôi là **Trợ lý AI Tư vấn Chuyên môn của AutoHub**. Về mặt kỹ thuật và phân quyền bảo mật:
-            
-            • **Quyền hạn của AI:** Tôi chỉ được cấp quyền đọc (Read-only) để tra cứu thông số xe, bảng giá và tồn kho phục vụ quý khách.
-            • **Tuyệt đối không thể xóa hay can thiệp CSDL:** Hệ thống cơ sở dữ liệu AutoHubDB được bảo mật đa tầng bởi Spring Security RBAC và các chính sách an toàn nghiêm ngặt của doanh nghiệp. Tôi hoàn toàn không có quyền hạn hay khả năng thực hiện bất kỳ thao tác xóa hoặc thay đổi dữ liệu nào.
-            
-            Tôi luôn sẵn sàng đồng hành hỗ trợ quý khách tìm hiểu các dòng xe cao cấp, tính chi phí lăn bánh hoặc kiểm tra xe có sẵn giao ngay. Quý khách đang quan tâm đến dòng xe nào hôm nay?
-            """;
+        // Kiểm tra xem có phải người dùng đang hỏi về bảo mật / phá hoại CSDL không
+        boolean isSecurityQuery = pLower.contains("xóa") || pLower.contains("csdl") ||
+                pLower.contains("database") || pLower.contains("hack") ||
+                pLower.contains("drop") || pLower.contains("can thiệp");
+
+        if (isSecurityQuery) {
+            String securityContext = """
+                    QUY ĐỊNH BẢO MẬT VÀ PHẠM VI HOẠT ĐỘNG CỦA TRỢ LÝ AI AUTOHUB:
+                    1. Vai trò: Tôi là Trợ lý AI Chuyên gia Ô tô của Nền tảng AutoHub.
+                    2. Quyền hạn bảo mật:
+                       - Tôi CHỈ có quyền đọc (Read-only) các thông tin công khai về xe, thông số kỹ thuật, giá niêm yết, tồn kho và biểu phí lăn bánh.
+                       - Tôi TUYỆT ĐỐI KHÔNG có quyền truy cập quản trị (Admin), không thể chỉnh sửa, ghi đè hoặc XÓA cơ sở dữ liệu hệ thống (SQL Server AutoHubDB).
+                       - Toàn bộ cơ sở dữ liệu được bảo vệ nghiêm ngặt bằng tường lửa và phân quyền Spring Security RBAC.
+                    """;
+
+            String securityText = """
+                    🛡️ **Thông báo an toàn & Bảo mật hệ thống AutoHub:**
+
+                    Tôi là **Trợ lý AI Tư vấn Chuyên môn của AutoHub**. Về mặt kỹ thuật và phân quyền bảo mật:
+                    • **Quyền hạn của AI:** Tôi chỉ được cấp quyền đọc (Read-only) để tra cứu thông số xe, bảng giá và tồn kho phục vụ quý khách.
+                    • **Tuyệt đối không thể xóa hay can thiệp CSDL:** Hệ thống CSDL AutoHubDB được bảo mật đa tầng bởi Spring Security RBAC. Tôi hoàn toàn không có khả năng thực hiện bất kỳ thao tác xóa hoặc thay đổi dữ liệu nào.
+
+                    Tôi luôn sẵn sàng đồng hành hỗ trợ quý khách tìm hiểu xe, tính chi phí lăn bánh hoặc lái thử. Quý khách đang quan tâm đến nội dung nào ạ?
+                    """
+                    .trim();
+
+            return AiExecutionResult.builder()
+                    .aiAnswerText(securityText)
+                    .retrievedContext(securityContext)
+                    .uiBlockType("NONE")
+                    .recommendedVehicle(null)
+                    .suggestedPrompts(List.of(
+                            "Tư vấn phiên bản AutoHub GT-e",
+                            "Kiểm tra xe có sẵn giao ngay",
+                            "Tính chi phí lăn bánh tại Hà Nội"))
+                    .build();
+        }
+
+        // Trường hợp trò chuyện thông thường (hỏi thăm, thời tiết, toán học, câu hỏi
+        // ngoài lề...)
+        String generalChatText = """
+                Dạ tôi là **Trợ lý AI của AutoHub**! Tôi luôn sẵn sàng lắng nghe và trò chuyện cùng bạn.
+
+                Nếu bạn cần giải đáp thông tin thường nhật hoặc có bất kỳ câu hỏi nào về các dòng xe ô tô, chi phí lăn bánh, phụ kiện hay đăng ký lái thử, tôi rất vui lòng được hỗ trợ bạn nhé!
+                """
+                .trim();
 
         return AiExecutionResult.builder()
-                .aiAnswerText(fallbackText.trim())
-                .retrievedContext(context)
+                .aiAnswerText(generalChatText)
+                .retrievedContext("Người dùng đang trò chuyện thông thường, không hỏi về xe cụ thể.")
                 .uiBlockType("NONE")
+                .recommendedVehicle(null)
                 .suggestedPrompts(List.of(
-                        "Tư vấn phiên bản AutoHub GT-e Track Edition",
-                        "Kiểm tra xe có sẵn giao ngay tại showroom",
-                        "Tính chi phí lăn bánh tại Hà Nội",
-                        "Chính sách bảo hành pin xe điện 800V SiC"
-                ))
+                        "Tư vấn các dòng xe điện cao cấp",
+                        "Tính chi phí lăn bánh tại Hà Nội & TP.HCM",
+                        "Chính sách cọc giữ xe 72h hoàn tiền 100%"))
                 .build();
     }
 }

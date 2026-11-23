@@ -13,12 +13,17 @@ import {
 } from 'lucide-react';
 import { formatCurrencyVND } from '@/lib/utils';
 import type { AiRecommendedVehicle } from '@/types/ai.types';
-
 export interface RecommendedCarCardProps {
   vehicle: AiRecommendedVehicle;
+  onSelectPrompt?: (prompt: string, contextCarId?: number, contextCarName?: string) => void;
+  isSending?: boolean;
 }
 
-export const RecommendedCarCard: React.FC<RecommendedCarCardProps> = ({ vehicle }) => {
+export const RecommendedCarCard: React.FC<RecommendedCarCardProps> = ({
+  vehicle,
+  onSelectPrompt,
+  isSending = false
+}) => {
   const navigate = useNavigate();
 
   return (
@@ -169,11 +174,18 @@ export const RecommendedCarCard: React.FC<RecommendedCarCardProps> = ({ vehicle 
             <ArrowRight className="w-4 h-4 text-[#00344D]" />
           </button>
 
-          {/* 3. Lái thử xe */}
+          {/* 3. Lái thử xe: Kích hoạt hội thoại đăng ký lái thử trực tiếp trong AI Chat */}
           <button
             type="button"
-            onClick={() => navigate('/test-drive')}
-            className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-[2px] bg-[#171F33] hover:bg-[#222A3D] text-[#89CEFF] border border-[#3E4850]/80 text-[13px] font-medium transition-colors"
+            onClick={() => {
+              if (onSelectPrompt) {
+                onSelectPrompt('Tôi muốn đăng ký lái thử xe', vehicle.variantId, vehicle.name);
+              } else {
+                navigate('/test-drive');
+              }
+            }}
+            disabled={isSending}
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-[2px] bg-[#171F33] hover:bg-[#222A3D] text-[#89CEFF] border border-[#3E4850]/80 text-[13px] font-medium transition-colors cursor-pointer disabled:opacity-50"
           >
             <Zap className="w-4 h-4 text-[#89CEFF]" />
             <span>Đăng ký lái thử</span>

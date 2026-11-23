@@ -19,7 +19,7 @@ import java.util.Locale;
 public class RolloutCostExecutor implements AiIntentExecutor {
 
     private final RegistrationFeeCalculatorTool registrationFeeCalculatorTool;
-    private static final Locale VI_LOCALE = Locale.of("vi", "VN");
+    private static final Locale VI_LOCALE = new Locale("vi", "VN");
 
     @Override
     public boolean supports(AiIntent intent) {
