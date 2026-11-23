@@ -47,7 +47,7 @@ public class CustomerAiService {
         AiChatMessageDto welcome = AiChatMessageDto.builder()
                 .id("init-msg-01")
                 .sender("AI")
-                .senderTitle("AutoHub AI Specialist (Google Gemini 3.5 & Spring AI)")
+                .senderTitle("AutoHub AI Specialist (Google Gemini 1.5 Flash & Spring AI)")
                 .timestamp(nowTime)
                 .content("Xin chào quý khách! Tôi là Trợ lý AI Chuyên gia Ô tô AutoHub được vận hành trên kiến trúc Router-Executor và truy vấn dữ liệu thời gian thực từ AutoHubDB. Tôi có thể hỗ trợ quý khách tra cứu thông số kỹ thuật, giá xe, kiểm tra tồn kho tại showroom, dự toán chi phí lăn bánh chính xác và gợi ý phụ kiện tương thích. Quý khách đang quan tâm đến dòng xe nào hôm nay?")
                 .uiBlockType(vehicleCard != null ? "CAR_CARD" : "NONE")

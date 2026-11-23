@@ -12,6 +12,8 @@ import java.util.Optional;
 @Repository
 public interface PhieuDatCocRepository extends JpaRepository<PhieuDatCoc, Long> {
     Optional<PhieuDatCoc> findByMaPhieuCoc(String maPhieuCoc);
+    Optional<PhieuDatCoc> findTopByOrderByNgayDatCocDesc();
+    Optional<PhieuDatCoc> findTopByNguoiDungIdOrderByNgayDatCocDesc(Long nguoiDungId);
     List<PhieuDatCoc> findByNguoiDungId(Long nguoiDungId);
     List<PhieuDatCoc> findByTrangThai(TrangThaiPhieuCoc trangThai);
     List<PhieuDatCoc> findByTrangThaiAndHanThanhToanBefore(TrangThaiPhieuCoc trangThai, LocalDateTime time);
