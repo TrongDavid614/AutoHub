@@ -22,6 +22,7 @@ import {
 import { accessoryService } from '@/features/customer/services/accessory.service';
 import type { Accessory } from '@/types/accessory.types';
 import { useCartStore } from '@/store/useCartStore';
+import { usePageTracking } from '@/hooks/usePageTracking';
 
 export const AccessoryDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -79,9 +80,26 @@ export const AccessoryDetailPage: React.FC = () => {
     void fetchAccessoryDetail();
   }, [fetchAccessoryDetail]);
 
+  const { trackAction } = usePageTracking({
+    loaiThucThe: 'ACCESSORY',
+    maThucThe: accessory ? accessory.id : undefined,
+    metadata: {
+      name: accessory?.name,
+      category: accessory?.categoryName,
+      price: accessory?.price,
+    },
+    enabled: Boolean(accessory),
+  });
+
   const handleAddToCart = () => {
     if (!accessory) return;
     void addToCart(accessory, quantity);
+    trackAction('ADD_TO_CART', {
+      accessoryId: accessory.id,
+      accessoryName: accessory.name,
+      quantity,
+      price: accessory.price,
+    });
     setIsAdded(true);
     setTimeout(() => {
       setIsAdded(false);
@@ -91,6 +109,12 @@ export const AccessoryDetailPage: React.FC = () => {
   const handleBuyNow = () => {
     if (!accessory) return;
     void addToCart(accessory, quantity);
+    trackAction('BEGIN_CHECKOUT', {
+      accessoryId: accessory.id,
+      accessoryName: accessory.name,
+      quantity,
+      price: accessory.price,
+    });
     navigate('/cart');
   };
 

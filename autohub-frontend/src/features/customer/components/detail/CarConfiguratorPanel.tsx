@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import type { TrimType } from '../../hooks/useCarDetail';
 import { EXTERIOR_COLORS } from '../../types/detail.types';
+import { trackUserEvent } from '@/lib/tracker';
 import type { MockCar } from '../../mocks/car.mock';
 
 interface CarConfiguratorPanelProps {
@@ -185,6 +186,17 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
                 key={trim.id}
                 onClick={() => {
                   onSelectTrim(trim.id);
+                  trackUserEvent({
+                    loaiHanhVi: 'CHANGE_TRIM',
+                    loaiThucThe: 'CAR',
+                    maThucThe: car?.id ? Number(car.id) || undefined : undefined,
+                    duLieuBoSung: {
+                      trimId: trim.id,
+                      trimName: trim.name,
+                      priceNum: trim.priceNum,
+                      carName: car?.name,
+                    },
+                  });
                   if (car?.variants && car.variants.some((v) => String(v.id) === String(trim.id)) && String(car.id) !== String(trim.id)) {
                     navigate(`/cars/${trim.id}`);
                   }
@@ -242,7 +254,20 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
               <button
                 key={color.id}
                 type="button"
-                onClick={() => onSelectColor(color.id)}
+                onClick={() => {
+                  onSelectColor(color.id);
+                  trackUserEvent({
+                    loaiHanhVi: 'CHANGE_COLOR',
+                    loaiThucThe: 'CAR',
+                    maThucThe: car?.id ? Number(car.id) || undefined : undefined,
+                    duLieuBoSung: {
+                      colorId: color.id,
+                      colorName: color.name,
+                      colorHex: color.hex,
+                      carName: car?.name,
+                    },
+                  });
+                }}
                 className={`group relative w-10 h-10 rounded-full p-0.5 transition-all cursor-pointer ${
                   isSelected
                     ? 'ring-2 ring-accent-primary ring-offset-2 ring-offset-canvas-deep scale-110 shadow-[0_0_15px_rgba(137,206,255,0.4)]'
@@ -306,6 +331,17 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
         <button
           type="button"
           onClick={() => {
+            trackUserEvent({
+              loaiHanhVi: 'INITIATE_DEPOSIT',
+              loaiThucThe: 'CAR',
+              maThucThe: car?.id ? Number(car.id) || undefined : undefined,
+              duLieuBoSung: {
+                carName: car?.name,
+                activeTrim,
+                activeColor,
+                depositAmount: 20000000,
+              },
+            });
             if (onOpenDeposit) {
               onOpenDeposit();
             } else {
@@ -325,7 +361,18 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
 
         <button
           type="button"
-          onClick={() => navigate(car?.id ? `/test-drive?carId=${car.id}` : '/test-drive')}
+          onClick={() => {
+            trackUserEvent({
+              loaiHanhVi: 'INITIATE_TEST_DRIVE',
+              loaiThucThe: 'CAR',
+              maThucThe: car?.id ? Number(car.id) || undefined : undefined,
+              duLieuBoSung: {
+                carName: car?.name,
+                activeTrim,
+              },
+            });
+            navigate(car?.id ? `/test-drive?carId=${car.id}` : '/test-drive');
+          }}
           className="w-full py-3.5 px-6 rounded-lg bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight hover:border-accent-primary/50 text-text-primary hover:text-accent-primary font-bold text-xs tracking-wider uppercase flex items-center justify-center gap-2 transition-all cursor-pointer"
         >
           <Calendar className="w-4 h-4 text-accent-primary" />

@@ -1,5 +1,6 @@
 import { axiosClient } from '@/lib/axios';
 import { API_CONFIG } from '@/config/api.config';
+import { getSessionId } from '@/lib/tracker';
 import type { ApiResponse } from '@/types/api.types';
 import type { AiChatMessage, AiChatPayload } from '@/types/ai.types';
 import { INITIAL_AI_CHAT_MESSAGES } from '../mocks/ai-consultant.mock';
@@ -60,6 +61,7 @@ export const aiConsultantService = {
       prompt: userPrompt,
       contextCarId,
       contextCarName,
+      sessionId: getSessionId(),
     };
 
     const response = await axiosClient.post<unknown, ApiResponse<AiChatMessage>>(

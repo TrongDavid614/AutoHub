@@ -24,10 +24,10 @@ public class NhatKyHanhVi extends BaseEntity {
     private String maPhien; // UUID Session của trình duyệt
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "loai_hanh_vi", nullable = false, length = 30)
+    @Column(name = "loai_hanh_vi", nullable = false, length = 50)
     private LoaiHanhViTracking loaiHanhVi;
 
-    @Column(name = "loai_thuc_the", length = 20)
+    @Column(name = "loai_thuc_the", length = 50)
     private String loaiThucThe; // CAR hoặc ACCESSORY
 
     @Column(name = "ma_thuc_the")
