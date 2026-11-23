@@ -101,6 +101,21 @@ const renderFormattedMessageContent = (content: string) => {
           return <div key={idx} className="h-1.5" />;
         }
 
+        // 2b. 👇 BỔ SUNG: Hiển thị hình ảnh Markdown (Mã QR VietQR chuyển khoản)
+        const imgMatch = trimmed.match(/^!\[(.*?)\]\((.*?)\)$/);
+        if (imgMatch) {
+          return (
+            <div key={idx} className="my-3 p-3 bg-white rounded-xl border border-cyan-500/40 inline-block shadow-xl">
+              <img
+                src={imgMatch[2]}
+                alt={imgMatch[1]}
+                className="w-52 h-52 sm:w-60 sm:h-60 object-contain mx-auto"
+              />
+              <p className="text-[12px] text-center text-slate-800 mt-2 font-mono font-semibold">{imgMatch[1]}</p>
+            </div>
+          );
+        }
+
         // 3. Tiêu đề Markdown: ###, ##, #
         const headingMatch = trimmed.match(/^(#{1,6})\s+(.+)$/);
         if (headingMatch) {

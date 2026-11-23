@@ -14,7 +14,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -81,15 +85,18 @@ public class SepayWebhookController {
             return ResponseEntity.ok(ApiResponse.ok("Phiếu cọc " + deposit.getMaPhieuCoc() + " đã được xác nhận thanh toán trước đó"));
         }
 
-        // 4. Đối soát số tiền thanh toán (transferAmount)
+        // 4. Đối soát số tiền thanh toán (transferAmount) - áp dụng thuật toán giảm giá 1/1000
         BigDecimal transferAmount = payload.getTransferAmount();
         BigDecimal requiredAmount = deposit.getSoTienCoc() != null ? deposit.getSoTienCoc() : BigDecimal.valueOf(20000000);
+        BigDecimal minAcceptableAmount = requiredAmount.compareTo(BigDecimal.valueOf(100000)) > 0
+                ? calculateScaledPaymentAmount(requiredAmount)
+                : requiredAmount;
 
-        if (transferAmount != null && transferAmount.compareTo(requiredAmount) < 0) {
-            log.warn("[SePay Webhook] Underpaid deposit {}: transferred={}, required={}",
-                    deposit.getMaPhieuCoc(), transferAmount, requiredAmount);
+        if (transferAmount != null && transferAmount.compareTo(minAcceptableAmount) < 0) {
+            log.warn("[SePay Webhook] Underpaid deposit {}: transferred={}, required={}, minAcceptable={}",
+                    deposit.getMaPhieuCoc(), transferAmount, requiredAmount, minAcceptableAmount);
             return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("Số tiền chuyển khoản (" + transferAmount + " đ) không đủ mức cọc tối thiểu (" + requiredAmount + " đ)"));
+                    .body(ApiResponse.error("Số tiền chuyển khoản (" + transferAmount + " đ) không đủ mức cọc tối thiểu (" + minAcceptableAmount + " đ)"));
         }
 
         // 5. Cập nhật trạng thái phiếu cọc sang PAID và kích hoạt thời hạn giữ xe 72 giờ
@@ -106,6 +113,99 @@ public class SepayWebhookController {
         return ResponseEntity.ok(ApiResponse.ok(
                 "Xác nhận thanh toán SePay thành công cho phiếu cọc " + deposit.getMaPhieuCoc() + ". Đã kích hoạt thời hạn giữ xe 72 giờ!"
         ));
+    }
+
+    /**
+     * Thuật toán tính toán số tiền thanh toán thử nghiệm (Scale 1/1000).
+     * Nhân giá trị gốc với 1/1000 (0.001) để giảm số tiền cọc lớn (hàng chục triệu)
+     * xuống mức tiền nhỏ (10.000đ - 20.000đ) phục vụ test thanh toán thực tế và kiểm tra tự động.
+     *
+     * @param originalAmount Giá trị tiền cọc / thanh toán gốc
+     * @return Số tiền sau khi nhân 1/1000 (tối thiểu 10.000đ cho giao dịch ngân hàng)
+     */
+    public static BigDecimal calculateScaledPaymentAmount(BigDecimal originalAmount) {
+        if (originalAmount == null) {
+            return BigDecimal.valueOf(10000);
+        }
+        // Nếu giá trị đã ở mức kiểm tra thử nghiệm (<= 100.000đ) thì giữ nguyên mức đó
+        if (originalAmount.compareTo(BigDecimal.valueOf(100000)) <= 0) {
+            return originalAmount.compareTo(BigDecimal.valueOf(10000)) < 0 ? BigDecimal.valueOf(10000) : originalAmount;
+        }
+        // Thuật toán: Nhân giá đó cho 1/1000 (0.001)
+        BigDecimal scaled = originalAmount.multiply(new BigDecimal("0.001")).setScale(0, RoundingMode.HALF_UP);
+        // Đảm bảo mức tối thiểu cho giao dịch chuyển khoản ngân hàng là 10.000 VND
+        return scaled.compareTo(BigDecimal.valueOf(10000)) < 0 ? BigDecimal.valueOf(10000) : scaled;
+    }
+
+    /**
+     * API thực hiện thanh toán thử nghiệm (Test / Simulate Payment)
+     * Tự động tính toán số tiền giảm giá 1/1000 và xác nhận thanh toán thành công
+     * để kiểm tra luồng thanh toán ngay lập tức.
+     *
+     * @param code Mã phiếu cọc (ví dụ: DEP-180726858, nếu null sẽ lấy phiếu cọc PENDING_PAYMENT mới nhất)
+     * @param amount Số tiền thanh toán truyền vào (tùy chọn)
+     * @return Kết quả đối soát và kích hoạt giữ xe 72 giờ
+     */
+    @RequestMapping(value = {"/test-pay", "/simulate-pay"}, method = {RequestMethod.GET, RequestMethod.POST})
+    @Transactional
+    public ResponseEntity<ApiResponse<Map<String, Object>>> testPayment(
+            @RequestParam(value = "code", required = false) String code,
+            @RequestParam(value = "amount", required = false) BigDecimal amount
+    ) {
+        log.info("[Payment Test] Yêu cầu kiểm tra thanh toán: code={}, amount={}", code, amount);
+
+        PhieuDatCoc deposit = null;
+        if (code != null && !code.isBlank()) {
+            deposit = findDepositByCode(code.trim()).orElse(null);
+            if (deposit == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.error("Không tìm thấy phiếu đặt cọc với mã: " + code));
+            }
+        } else {
+            // Lấy phiếu đặt cọc mới nhất đang chờ thanh toán
+            List<PhieuDatCoc> allDeposits = depositRepository.findAll();
+            deposit = allDeposits.stream()
+                    .filter(d -> TrangThaiPhieuCoc.PENDING_PAYMENT.equals(d.getTrangThai()))
+                    .reduce((first, second) -> second)
+                    .orElse(null);
+
+            if (deposit == null && !allDeposits.isEmpty()) {
+                deposit = allDeposits.get(allDeposits.size() - 1);
+            }
+
+            if (deposit == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.error("Hệ thống chưa có phiếu đặt cọc nào để thanh toán thử nghiệm."));
+            }
+        }
+
+        BigDecimal originalAmount = deposit.getSoTienCoc() != null ? deposit.getSoTienCoc() : BigDecimal.valueOf(20000000);
+        // Áp dụng thuật toán nhân giá cho 1/1000
+        BigDecimal finalPaidAmount = (amount != null && amount.compareTo(BigDecimal.ZERO) > 0)
+                ? amount
+                : calculateScaledPaymentAmount(originalAmount);
+
+        // Cập nhật trạng thái phiếu cọc sang PAID và kích hoạt 72h
+        LocalDateTime now = LocalDateTime.now();
+        deposit.setTrangThai(TrangThaiPhieuCoc.PAID);
+        deposit.setThoiGianThanhToan(now);
+        deposit.setHanGiuXe(now.plusHours(72));
+        deposit.setSoTienCoc(finalPaidAmount);
+        depositRepository.save(deposit);
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("maPhieuCoc", deposit.getMaPhieuCoc());
+        result.put("giaGoc", originalAmount);
+        result.put("thuatToanGiamGia", "GiaGoc * 1/1000 (x0.001)");
+        result.put("soTienThanhToan", finalPaidAmount);
+        result.put("trangThai", deposit.getTrangThai().name());
+        result.put("thoiGianThanhToan", deposit.getThoiGianThanhToan().toString());
+        result.put("hanGiuXe72h", deposit.getHanGiuXe().toString());
+        result.put("thongBao", "Thanh toán thành công! Đã áp dụng thuật toán giảm 1/1000 và kích hoạt giữ chỗ xe 72 giờ.");
+
+        log.info("[Payment Test] Đã thanh toán thành công phiếu cọc: {}, số tiền: {} đ", deposit.getMaPhieuCoc(), finalPaidAmount);
+
+        return ResponseEntity.ok(ApiResponse.ok(result, "Thanh toán thử nghiệm thành công! Phiếu cọc đã chuyển sang trạng thái PAID."));
     }
 
     private boolean isAuthorized(String header) {
