@@ -45,6 +45,7 @@ sepay:
   api-token: your_sepay_api_token_here
   account-number: "5811676579"
   bank-brand-name: "BIDV"
+  sandbox-mode: ${SEPAY_SANDBOX_MODE:true}
 
 openrouter:
   api:

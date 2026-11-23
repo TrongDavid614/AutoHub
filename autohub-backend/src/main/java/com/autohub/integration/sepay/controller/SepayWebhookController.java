@@ -1,8 +1,12 @@
 package com.autohub.integration.sepay.controller;
 
 import com.autohub.common.dto.ApiResponse;
+import com.autohub.common.util.PaymentSandboxHelper;
+import com.autohub.core.accessory.entity.DonHangPhuKien;
+import com.autohub.core.accessory.repository.DonHangPhuKienRepository;
 import com.autohub.core.deposit.entity.PhieuDatCoc;
 import com.autohub.core.deposit.repository.PhieuDatCocRepository;
+import com.autohub.core.enums.TrangThaiDonHang;
 import com.autohub.core.enums.TrangThaiPhieuCoc;
 import com.autohub.integration.sepay.dto.SepayWebhookRequest;
 import lombok.RequiredArgsConstructor;
@@ -26,12 +30,17 @@ import java.util.regex.Pattern;
 public class SepayWebhookController {
 
     private final PhieuDatCocRepository depositRepository;
+    private final DonHangPhuKienRepository donHangRepository;
 
     @Value("${sepay.api-token:autohub_sepay_secret_2026_998877}")
     private String sepayApiToken;
 
+    @Value("${sepay.sandbox-mode:true}")
+    private boolean sandboxMode;
+
     private static final Pattern AH_DEP_PATTERN = Pattern.compile("(?i)AH\\s*DEP\\s*([A-Za-z0-9\\-_]+)");
     private static final Pattern DEP_CODE_PATTERN = Pattern.compile("(?i)(DEP-[A-Za-z0-9\\-_]+)");
+    private static final Pattern AH_ACC_PATTERN = Pattern.compile("(?i)(AH[-_\\s]*ACC[-_\\s]*[A-Za-z0-9\\-_]+)");
 
     @PostMapping("/sepay-webhook")
     @Transactional
@@ -56,16 +65,54 @@ public class SepayWebhookController {
                     .body(ApiResponse.error("Nội dung chuyển khoản rỗng"));
         }
 
-        // 2. Bóc tách mã phiếu cọc từ trường content (ví dụ: AH DEP DEP-8812, AH DEP 8812, DEP-8812)
+        BigDecimal transferAmount = payload.getTransferAmount();
+
+        // 2. Kiểm tra nếu là thanh toán đơn hàng phụ kiện (AH-ACC-...)
+        String extractedOrderCode = extractOrderCode(content);
+        if (extractedOrderCode != null) {
+            Optional<DonHangPhuKien> orderOpt = findOrderByCode(extractedOrderCode);
+            if (orderOpt.isPresent()) {
+                DonHangPhuKien order = orderOpt.get();
+                if (TrangThaiDonHang.PAID.equals(order.getTrangThai()) || TrangThaiDonHang.PROCESSING.equals(order.getTrangThai())) {
+                    log.info("[SePay Webhook] Order {} already PAID previously", order.getMaDonHang());
+                    return ResponseEntity.ok(ApiResponse.ok("Đơn hàng " + order.getMaDonHang() + " đã được xác nhận thanh toán trước đó"));
+                }
+
+                BigDecimal originalAmount = order.getTongTien() != null ? order.getTongTien() : BigDecimal.ZERO;
+                long testAmount = PaymentSandboxHelper.calculateSandboxTestAmount(originalAmount, false);
+                BigDecimal minRequired = sandboxMode ? BigDecimal.valueOf(testAmount) : originalAmount;
+
+                // Cho phép nếu chuyển đủ số tiền test (>= testAmount) HOẶC chuyển đủ số tiền gốc (>= originalAmount)
+                if (transferAmount != null && transferAmount.compareTo(minRequired) < 0 && transferAmount.compareTo(originalAmount) < 0) {
+                    log.warn("[SePay Webhook] Underpaid order {}: transferred={}, minRequired={}",
+                            order.getMaDonHang(), transferAmount, minRequired);
+                    return ResponseEntity.badRequest()
+                            .body(ApiResponse.error("Số tiền chuyển khoản (" + transferAmount + " đ) không đủ mức tối thiểu (" + minRequired + " đ)"));
+                }
+
+                order.setTrangThai(TrangThaiDonHang.PAID);
+                order.setThoiGianThanhToan(LocalDateTime.now());
+                donHangRepository.save(order);
+
+                log.info("[SePay Webhook] Successfully marked order {} as PAID (amount: {} VND, sandbox: {})",
+                        order.getMaDonHang(), transferAmount, sandboxMode);
+
+                return ResponseEntity.ok(ApiResponse.ok(
+                        "Xác nhận thanh toán SePay thành công cho đơn hàng phụ kiện " + order.getMaDonHang() + "!"
+                ));
+            }
+        }
+
+        // 3. Nếu không phải đơn phụ kiện, bóc tách mã phiếu cọc từ trường content (AH DEP DEP-8812, DEP-8812)
         String extractedCode = extractDepositCode(content);
         if (extractedCode == null) {
-            log.warn("[SePay Webhook] Cannot parse deposit code from content: {}", content);
-            return ResponseEntity.ok(ApiResponse.ok("Không tìm thấy mã phiếu cọc trong nội dung chuyển khoản. Đã lưu log đối soát"));
+            log.warn("[SePay Webhook] Cannot parse deposit/order code from content: {}", content);
+            return ResponseEntity.ok(ApiResponse.ok("Không tìm thấy mã phiếu cọc hoặc đơn hàng trong nội dung chuyển khoản. Đã lưu log đối soát"));
         }
 
         log.info("[SePay Webhook] Extracted deposit code: {}", extractedCode);
 
-        // 3. Tìm phiếu cọc trong Database
+        // 4. Tìm phiếu cọc trong Database
         Optional<PhieuDatCoc> depositOpt = findDepositByCode(extractedCode);
         if (depositOpt.isEmpty()) {
             log.warn("[SePay Webhook] Deposit ticket not found for code: {}", extractedCode);
@@ -81,18 +128,20 @@ public class SepayWebhookController {
             return ResponseEntity.ok(ApiResponse.ok("Phiếu cọc " + deposit.getMaPhieuCoc() + " đã được xác nhận thanh toán trước đó"));
         }
 
-        // 4. Đối soát số tiền thanh toán (transferAmount)
-        BigDecimal transferAmount = payload.getTransferAmount();
-        BigDecimal requiredAmount = deposit.getSoTienCoc() != null ? deposit.getSoTienCoc() : BigDecimal.valueOf(20000000);
+        // 5. Đối soát số tiền thanh toán (transferAmount)
+        BigDecimal originalAmount = deposit.getSoTienCoc() != null ? deposit.getSoTienCoc() : BigDecimal.valueOf(20000000);
+        long testAmount = PaymentSandboxHelper.calculateSandboxTestAmount(originalAmount, true);
+        BigDecimal minRequired = sandboxMode ? BigDecimal.valueOf(testAmount) : originalAmount;
 
-        if (transferAmount != null && transferAmount.compareTo(requiredAmount) < 0) {
-            log.warn("[SePay Webhook] Underpaid deposit {}: transferred={}, required={}",
-                    deposit.getMaPhieuCoc(), transferAmount, requiredAmount);
+        // Chấp nhận nếu người dùng chuyển tiền test (>= testAmount) HOẶC chuyển tiền thật (>= originalAmount)
+        if (transferAmount != null && transferAmount.compareTo(minRequired) < 0 && transferAmount.compareTo(originalAmount) < 0) {
+            log.warn("[SePay Webhook] Underpaid deposit {}: transferred={}, minRequired={}",
+                    deposit.getMaPhieuCoc(), transferAmount, minRequired);
             return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("Số tiền chuyển khoản (" + transferAmount + " đ) không đủ mức cọc tối thiểu (" + requiredAmount + " đ)"));
+                    .body(ApiResponse.error("Số tiền chuyển khoản (" + transferAmount + " đ) không đủ mức cọc tối thiểu (" + minRequired + " đ)"));
         }
 
-        // 5. Cập nhật trạng thái phiếu cọc sang PAID và kích hoạt thời hạn giữ xe 72 giờ
+        // 6. Cập nhật trạng thái phiếu cọc sang PAID và kích hoạt thời hạn giữ xe 72 giờ
         LocalDateTime now = LocalDateTime.now();
         deposit.setTrangThai(TrangThaiPhieuCoc.PAID);
         deposit.setThoiGianThanhToan(now);
@@ -100,8 +149,8 @@ public class SepayWebhookController {
 
         depositRepository.save(deposit);
 
-        log.info("[SePay Webhook] Successfully activated 72H car reservation for deposit: {}, amount: {} VND",
-                deposit.getMaPhieuCoc(), transferAmount);
+        log.info("[SePay Webhook] Successfully activated 72H car reservation for deposit: {}, amount: {} VND (sandbox: {})",
+                deposit.getMaPhieuCoc(), transferAmount, sandboxMode);
 
         return ResponseEntity.ok(ApiResponse.ok(
                 "Xác nhận thanh toán SePay thành công cho phiếu cọc " + deposit.getMaPhieuCoc() + ". Đã kích hoạt thời hạn giữ xe 72 giờ!"
@@ -119,6 +168,29 @@ public class SepayWebhookController {
             token = token.substring(7).trim();
         }
         return sepayApiToken != null && sepayApiToken.trim().equals(token);
+    }
+
+    private String extractOrderCode(String content) {
+        Matcher m = AH_ACC_PATTERN.matcher(content);
+        if (m.find()) {
+            return m.group(1).trim().replaceAll("\\s+", "-");
+        }
+        return null;
+    }
+
+    private Optional<DonHangPhuKien> findOrderByCode(String code) {
+        Optional<DonHangPhuKien> opt = donHangRepository.findByMaDonHang(code);
+        if (opt.isPresent()) return opt;
+
+        opt = donHangRepository.findByMaDonHang("#" + code);
+        if (opt.isPresent()) return opt;
+
+        if (code.startsWith("#")) {
+            opt = donHangRepository.findByMaDonHang(code.substring(1));
+            if (opt.isPresent()) return opt;
+        }
+
+        return Optional.empty();
     }
 
     private String extractDepositCode(String content) {

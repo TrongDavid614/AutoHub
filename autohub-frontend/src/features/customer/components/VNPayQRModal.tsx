@@ -11,7 +11,9 @@ import {
   CheckCircle2,
   Lock,
   Building2,
+  Sparkles,
 } from 'lucide-react';
+import { calculateTestPaymentAmount } from '@/lib/utils';
 
 export interface VNPayQRModalProps {
   isOpen: boolean;
@@ -115,7 +117,8 @@ export const VNPayQRModal: React.FC<VNPayQRModalProps> = ({
   };
 
   // URL VietQR tiêu chuẩn ngân hàng MB Bank
-  const qrImageUrl = `https://img.vietqr.io/image/970422-0988888888-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(
+  const testPaymentAmount = calculateTestPaymentAmount(amount, false);
+  const qrImageUrl = `https://img.vietqr.io/image/970422-0988888888-compact2.png?amount=${testPaymentAmount}&addInfo=${encodeURIComponent(
     transferContent
   )}&accountName=AUTOHUB%20VIETNAM`;
 
@@ -279,19 +282,20 @@ export const VNPayQRModal: React.FC<VNPayQRModalProps> = ({
                 {/* Số tiền */}
                 <div className="p-2.5 rounded-lg bg-[#1E293B] border border-[#334155] flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] font-mono text-[#94A3B8] block">SỐ TIỀN THANH TOÁN</span>
+                    <span className="text-[10px] font-mono text-[#94A3B8] block">SỐ TIỀN PHÁP LÝ</span>
                     <span className="text-base font-black font-mono text-[#38BDF8]">
                       {amount.toLocaleString('vi-VN')} đ
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => copyToClipboard(amount.toString(), 'amount')}
-                    className="p-1.5 rounded hover:bg-[#334155] text-[#94A3B8] hover:text-[#F8FAFC] transition-colors"
-                    title="Sao chép số tiền"
-                  >
-                    {copiedField === 'amount' ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                  </button>
+                  <div className="text-right">
+                    <span className="text-[10px] font-mono text-accent-primary flex items-center justify-end gap-1">
+                      <Sparkles className="w-3 h-3 text-accent-primary" />
+                      <span>MÃ QR TEST</span>
+                    </span>
+                    <span className="text-xs font-bold font-mono text-accent-primary">
+                      {testPaymentAmount.toLocaleString('vi-VN')} đ
+                    </span>
+                  </div>
                 </div>
 
                 {/* Ngân hàng */}

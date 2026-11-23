@@ -21,6 +21,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
+import { calculateTestPaymentAmount } from '@/lib/utils';
 import { depositService } from '@/features/customer/services/deposit.service';
 import type { CarDepositItem } from '@/features/customer/types/car-deposit.types';
 
@@ -191,7 +192,8 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
   const bankAccount = currentDeposit?.bankAccountNumber || '5811676579';
   const bankBrand = currentDeposit?.bankBrandName || 'BIDV';
   const bankAccountName = currentDeposit?.bankAccountName || 'CONG TY CO PHAN AUTOHUB VIETNAM';
-  const qrImageUrl = currentDeposit?.qrImageUrl || `https://img.vietqr.io/image/bidv-5811676579-compact2.png?amount=${depositAmount}&addInfo=${encodeURIComponent(
+  const testAmount = currentDeposit?.testPaymentAmount || calculateTestPaymentAmount(depositAmount, true);
+  const qrImageUrl = currentDeposit?.qrImageUrl || `https://img.vietqr.io/image/bidv-5811676579-compact2.png?amount=${testAmount}&addInfo=${encodeURIComponent(
     transferContent
   )}&accountName=CONG%20TY%20CO%20PHAN%20AUTOHUB%20VIETNAM`;
 
@@ -323,7 +325,13 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
                   alt="Mã QR thanh toán cọc xe AutoHub"
                   className="w-44 h-44 mx-auto object-contain rounded-lg shadow-md bg-white p-1"
                 />
-                <span className="text-[10px] text-text-muted block">Quét mã bằng App Ngân Hàng bất kỳ</span>
+                <div className="space-y-1">
+                  <span className="text-[10px] text-text-muted block">Quét mã bằng App Ngân Hàng bất kỳ</span>
+                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-accent-action/15 border border-accent-primary/30 text-[10px] font-mono text-accent-primary font-bold">
+                    <Sparkles className="w-3 h-3 text-accent-primary shrink-0" />
+                    <span>Mã test: {testAmount.toLocaleString('vi-VN')} ₫</span>
+                  </div>
+                </div>
               </div>
 
               {/* Thông tin chuyển khoản */}
@@ -363,8 +371,12 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
 
                 <div className="p-2.5 rounded-lg bg-surface-elevated border border-surface-highlight flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] text-text-muted font-mono block">SỐ TIỀN CỌC</span>
+                    <span className="text-[10px] text-text-muted font-mono block">SỐ TIỀN CỌC PHÁP LÝ</span>
                     <span className="font-mono font-black text-sm text-emerald-400">{depositAmount.toLocaleString('vi-VN')} VNĐ</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] text-accent-primary font-mono block">TIỀN QUÉT MÃ TEST</span>
+                    <span className="font-mono font-bold text-xs text-accent-primary">{testAmount.toLocaleString('vi-VN')} VNĐ</span>
                   </div>
                 </div>
               </div>
