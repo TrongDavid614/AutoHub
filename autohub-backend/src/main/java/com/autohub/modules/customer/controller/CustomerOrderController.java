@@ -1,6 +1,7 @@
 package com.autohub.modules.customer.controller;
 
 import com.autohub.common.dto.ApiResponse;
+import com.autohub.common.util.PaymentSandboxHelper;
 import com.autohub.core.accessory.entity.ChiTietDonHang;
 import com.autohub.core.accessory.entity.ChiTietGioHang;
 import com.autohub.core.accessory.entity.DanhGia;
@@ -60,6 +61,9 @@ public class CustomerOrderController {
 
     @Value("${sepay.bank-brand-name:BIDV}")
     private String sepayBankBrandName;
+
+    @Value("${sepay.sandbox-mode:true}")
+    private boolean sandboxMode;
 
     private NguoiDung resolveCurrentUser(Long requestedCustomerId) {
         try {
@@ -475,13 +479,17 @@ public class CustomerOrderController {
         if (isOnlinePayment) {
             String accNum = sepayAccountNumber != null ? sepayAccountNumber : "5811676579";
             String bankBrand = sepayBankBrandName != null ? sepayBankBrandName : "BIDV";
+            long paymentAmount = sandboxMode ? PaymentSandboxHelper.calculateSandboxTestAmount(grandTotal, false) : grandTotal.longValue();
+
             Map<String, Object> sepayInfo = new HashMap<>();
             sepayInfo.put("accountNumber", accNum);
             sepayInfo.put("bankBrandName", bankBrand);
             sepayInfo.put("accountName", "CONG TY TNHH AUTOHUB VIET NAM");
-            sepayInfo.put("transferAmount", grandTotal);
+            sepayInfo.put("transferAmount", paymentAmount);
+            sepayInfo.put("originalAmount", grandTotal);
+            sepayInfo.put("isSandboxMode", sandboxMode);
             sepayInfo.put("transferContent", savedOrder.getMaDonHang());
-            sepayInfo.put("qrUrl", "https://qr.sepay.vn/img?acc=" + accNum + "&bank=" + bankBrand + "&amount=" + grandTotal.longValue() + "&des=" + savedOrder.getMaDonHang());
+            sepayInfo.put("qrUrl", "https://qr.sepay.vn/img?acc=" + accNum + "&bank=" + bankBrand + "&amount=" + paymentAmount + "&des=" + savedOrder.getMaDonHang());
             responseData.put("sepay", sepayInfo);
         }
 

@@ -1,4 +1,5 @@
 import { axiosClient } from '@/lib/axios';
+import { calculateTestPaymentAmount } from '@/lib/utils';
 import type { ApiResponse } from '@/types/api.types';
 import type { CarDepositItem, CarDepositStatus, DepositStatusResponse } from '../types/car-deposit.types';
 
@@ -48,6 +49,8 @@ interface RawDepositDto {
   bankBrandName?: string;
   bankAccountName?: string;
   isPaid?: boolean;
+  testPaymentAmount?: number;
+  isSandboxMode?: boolean;
 }
 
 function mapDtoToDepositItem(dto: RawDepositDto): CarDepositItem {
@@ -55,8 +58,9 @@ function mapDtoToDepositItem(dto: RawDepositDto): CarDepositItem {
   const cleanCode = depositCode.replace('#', '');
   const transferContent = dto.transferContent || `AH DEP ${cleanCode}`;
   const amount = Number(dto.depositAmount) || 20000000;
+  const testPaymentAmount = dto.testPaymentAmount || calculateTestPaymentAmount(amount, true);
   const bankAcc = dto.bankAccountNumber || '5811676579';
-  const qrUrl = dto.qrImageUrl || `https://img.vietqr.io/image/bidv-${bankAcc}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(transferContent)}&accountName=CONG%20TY%20CO%20PHAN%20AUTOHUB%20VIETNAM`;
+  const qrUrl = dto.qrImageUrl || `https://img.vietqr.io/image/bidv-${bankAcc}-compact2.png?amount=${testPaymentAmount}&addInfo=${encodeURIComponent(transferContent)}&accountName=CONG%20TY%20CO%20PHAN%20AUTOHUB%20VIETNAM`;
 
   return {
     id: dto.id,
@@ -67,6 +71,8 @@ function mapDtoToDepositItem(dto: RawDepositDto): CarDepositItem {
     colorHex: dto.colorHex || '#89CEFF',
     carImageUrl: dto.carImageUrl || 'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=1200',
     depositAmount: amount,
+    testPaymentAmount,
+    isSandboxMode: dto.isSandboxMode ?? true,
     identityCardNumber: dto.identityCardNumber || '079204001234',
     customerName: dto.customerName || 'Khách hàng AutoHub',
     customerPhone: dto.customerPhone || '0912345678',

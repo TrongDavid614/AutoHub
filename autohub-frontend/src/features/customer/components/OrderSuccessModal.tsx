@@ -83,9 +83,15 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                   <span className="font-mono text-[#DAE2FD] font-bold">{sepayData.accountNumber}</span>
                 </div>
                 <div className="flex justify-between text-[#88929B]">
-                  <span>Số tiền:</span>
+                  <span>Tổng tiền đơn hàng:</span>
+                  <span className="font-mono text-[#DAE2FD] font-bold">
+                    {totalPayable.toLocaleString('vi-VN')} đ
+                  </span>
+                </div>
+                <div className="flex justify-between text-[#88929B]">
+                  <span>Số tiền quét mã test:</span>
                   <span className="font-mono text-[#89CEFF] font-bold">
-                    {sepayData.transferAmount.toLocaleString('vi-VN')} đ
+                    {sepayData.transferAmount.toLocaleString('vi-VN')} đ (Sandbox)
                   </span>
                 </div>
                 <div className="pt-1">

@@ -1,6 +1,7 @@
 package com.autohub.modules.customer.controller;
 
 import com.autohub.common.dto.ApiResponse;
+import com.autohub.common.util.PaymentSandboxHelper;
 import com.autohub.core.car.entity.HinhAnhXe;
 import com.autohub.core.car.entity.PhienBanXe;
 import com.autohub.core.car.repository.HinhAnhXeRepository;
@@ -47,6 +48,9 @@ public class CustomerDepositController {
 
     @Value("${sepay.bank-brand-name:BIDV}")
     private String sepayBankBrandName;
+
+    @Value("${sepay.sandbox-mode:true}")
+    private boolean sandboxMode;
 
     @Getter
     @Setter
@@ -269,7 +273,9 @@ public class CustomerDepositController {
         String transferContent = "AH DEP " + cleanCode;
         String bankAcc = (sepayAccountNumber != null && !sepayAccountNumber.isBlank()) ? sepayAccountNumber : "5811676579";
         String bankBrand = (sepayBankBrandName != null && !sepayBankBrandName.isBlank()) ? sepayBankBrandName : "BIDV";
-        String amountStr = (p.getSoTienCoc() != null) ? p.getSoTienCoc().toBigInteger().toString() : "20000000";
+        BigDecimal originalDeposit = p.getSoTienCoc() != null ? p.getSoTienCoc() : BigDecimal.valueOf(20000000);
+        long paymentAmount = sandboxMode ? PaymentSandboxHelper.calculateSandboxTestAmount(originalDeposit, true) : originalDeposit.longValue();
+        String amountStr = String.valueOf(paymentAmount);
 
         String qrUrl;
         try {
@@ -284,6 +290,8 @@ public class CustomerDepositController {
         map.put("bankBrandName", bankBrand);
         map.put("bankAccountName", "CONG TY CO PHAN AUTOHUB VIETNAM");
         map.put("qrImageUrl", qrUrl);
+        map.put("testPaymentAmount", paymentAmount);
+        map.put("isSandboxMode", sandboxMode);
         map.put("isPaid", TrangThaiPhieuCoc.PAID.equals(p.getTrangThai()));
 
         return map;

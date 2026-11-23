@@ -14,7 +14,9 @@ import {
   CheckCircle2,
   RotateCw,
   X,
+  Sparkles,
 } from 'lucide-react';
+import { calculateTestPaymentAmount } from '@/lib/utils';
 import type { CarDepositStatus, CarDepositItem } from '@/features/customer/types/car-deposit.types';
 import { CarDepositFilterTabs } from '@/features/customer/components/CarDepositFilterTabs';
 import { CarDepositRowCard } from '@/features/customer/components/CarDepositRowCard';
@@ -309,11 +311,12 @@ export const CarDepositPage: React.FC = () => {
   // =========================================================================
   if (isDirectCheckout) {
     const depositAmount = targetCar?.depositAmount || 20000000;
+    const testDepositAmount = activeDeposit?.testPaymentAmount || calculateTestPaymentAmount(depositAmount, true);
     const cleanDepositCode = activeDeposit?.depositCode?.replace('#', '') || 'DEP-8812';
     const activeTransferContent = activeDeposit?.transferContent || `AH DEP ${cleanDepositCode}`;
     const activeQrUrl =
       activeDeposit?.qrImageUrl ||
-      `https://img.vietqr.io/image/bidv-5811676579-compact2.png?amount=${depositAmount}&addInfo=${encodeURIComponent(
+      `https://img.vietqr.io/image/bidv-5811676579-compact2.png?amount=${testDepositAmount}&addInfo=${encodeURIComponent(
         activeTransferContent
       )}&accountName=CONG%20TY%20CO%20PHAN%20AUTOHUB%20VIETNAM`;
 
@@ -631,19 +634,17 @@ export const CarDepositPage: React.FC = () => {
 
                 <div className="p-3.5 rounded bg-canvas-deep/80 border border-surface-highlight flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] font-mono text-text-muted uppercase block">SỐ TIỀN CỌC CHÍNH XÁC</span>
+                    <span className="text-[10px] font-mono text-text-muted uppercase block">SỐ TIỀN CỌC PHÁP LÝ</span>
                     <span className="font-mono font-black text-lg text-emerald-400">
                       {depositAmount.toLocaleString('vi-VN')} VNĐ
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleCopy(depositAmount.toString(), 'amount')}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[2px] bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight text-[11px] text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
-                  >
-                    {copiedField === 'amount' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedField === 'amount' ? 'Đã chép' : 'Sao chép số tiền'}</span>
-                  </button>
+                  <div className="text-right">
+                    <span className="text-[10px] font-mono text-accent-primary uppercase block">MÃ QR TEST THỰC TẾ</span>
+                    <span className="font-mono font-bold text-sm text-accent-primary">
+                      {testDepositAmount.toLocaleString('vi-VN')} VNĐ
+                    </span>
+                  </div>
                 </div>
 
                 <div className="p-3.5 rounded bg-accent-action/10 border border-accent-primary/40 flex items-center justify-between">
@@ -915,19 +916,32 @@ export const CarDepositPage: React.FC = () => {
             </div>
 
             <div className="p-4 rounded-lg bg-canvas-deep border border-surface-highlight text-center space-y-3">
-              <img
-                src={
-                  qrModalDeposit.qrImageUrl ||
-                  `https://img.vietqr.io/image/bidv-5811676579-compact2.png?amount=${qrModalDeposit.depositAmount}&addInfo=${encodeURIComponent(
-                    qrModalDeposit.transferContent || `AH DEP ${qrModalDeposit.depositCode.replace('#', '')}`
-                  )}&accountName=CONG%20TY%20CO%20PHAN%20AUTOHUB%20VIETNAM`
-                }
-                alt="SePay VietQR BIDV"
-                className="w-52 h-52 mx-auto rounded-lg bg-white p-2 shadow-lg"
-              />
-              <div className="text-[11px] text-text-muted">
-                Quét mã bằng bất kỳ App Ngân Hàng hoặc Chuyển khoản BIDV 24/7
-              </div>
+              {(() => {
+                const modalTestAmount = qrModalDeposit.testPaymentAmount || calculateTestPaymentAmount(qrModalDeposit.depositAmount, true);
+                return (
+                  <>
+                    <img
+                      src={
+                        qrModalDeposit.qrImageUrl ||
+                        `https://img.vietqr.io/image/bidv-5811676579-compact2.png?amount=${modalTestAmount}&addInfo=${encodeURIComponent(
+                          qrModalDeposit.transferContent || `AH DEP ${qrModalDeposit.depositCode.replace('#', '')}`
+                        )}&accountName=CONG%20TY%20CO%20PHAN%20AUTOHUB%20VIETNAM`
+                      }
+                      alt="SePay VietQR BIDV"
+                      className="w-52 h-52 mx-auto rounded-lg bg-white p-2 shadow-lg"
+                    />
+                    <div className="space-y-1">
+                      <div className="text-[11px] text-text-muted">
+                        Quét mã bằng bất kỳ App Ngân Hàng hoặc Chuyển khoản BIDV 24/7
+                      </div>
+                      <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-accent-action/15 border border-accent-primary/30 text-[10px] font-mono text-accent-primary font-bold">
+                        <Sparkles className="w-3 h-3 text-accent-primary shrink-0" />
+                        <span>Mã test: {modalTestAmount.toLocaleString('vi-VN')} ₫</span>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
 
             <div className="space-y-2 text-xs">
@@ -935,11 +949,19 @@ export const CarDepositPage: React.FC = () => {
                 <span className="text-text-muted">Ngân hàng:</span>
                 <span className="font-bold text-text-primary">BIDV (5811676579)</span>
               </div>
-              <div className="p-2.5 rounded bg-surface-elevated border border-surface-highlight flex justify-between">
-                <span className="text-text-muted">Số tiền cọc:</span>
-                <span className="font-mono font-bold text-emerald-400">
-                  {qrModalDeposit.depositAmount.toLocaleString('vi-VN')} VNĐ
-                </span>
+              <div className="p-2.5 rounded bg-surface-elevated border border-surface-highlight flex justify-between items-center">
+                <div>
+                  <span className="text-[10px] text-text-muted font-mono block">SỐ TIỀN CỌC PHÁP LÝ</span>
+                  <span className="font-mono font-bold text-emerald-400">
+                    {qrModalDeposit.depositAmount.toLocaleString('vi-VN')} VNĐ
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] text-accent-primary font-mono block">MÃ QR TEST</span>
+                  <span className="font-mono font-bold text-accent-primary">
+                    {(qrModalDeposit.testPaymentAmount || calculateTestPaymentAmount(qrModalDeposit.depositAmount, true)).toLocaleString('vi-VN')} VNĐ
+                  </span>
+                </div>
               </div>
               <div className="p-2.5 rounded bg-accent-action/15 border border-accent-primary/40 flex justify-between items-center">
                 <div className="truncate pr-2">

@@ -36,6 +36,8 @@ export interface CarDepositItem {
   bankBrandName?: string;
   bankAccountName?: string;
   isPaid?: boolean;
+  testPaymentAmount?: number;
+  isSandboxMode?: boolean;
 }
 
 export interface DepositStatusResponse {

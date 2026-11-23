@@ -22,3 +22,21 @@ export function formatDate(dateInput: string | Date): string {
     minute: '2-digit',
   }).format(date);
 }
+
+/**
+ * Quy đổi số tiền thanh toán khi quét mã QR trong chế độ Sandbox Test Mode:
+ * - Cọc xe: 20.000.000 ₫ -> 4.000 ₫ ; 10.000.000 ₫ -> 2.000 ₫ (chia 5000, làm tròn chẵn nghìn [2.000 - 10.000])
+ * - Phụ kiện: scale theo bậc 500.000 ₫ để nằm trong khoảng [2.000 ₫ - 10.000 ₫]
+ */
+export function calculateTestPaymentAmount(originalAmount: number, isDeposit = true): number {
+  if (!originalAmount || originalAmount <= 0) return 2000;
+  if (isDeposit) {
+    const reduced = Math.round(originalAmount / 5000);
+    const rounded = Math.round(reduced / 1000) * 1000;
+    return Math.min(10000, Math.max(2000, rounded));
+  } else {
+    const step = Math.floor(originalAmount / 500000) * 1000;
+    const result = 2000 + step;
+    return Math.min(10000, Math.max(2000, result));
+  }
+}
