@@ -167,7 +167,7 @@ export const OrderFulfillmentPage: React.FC = () => {
             Xử Lý & Đóng Gói Đơn Hàng Phụ Kiện (Fulfillment)
           </h1>
           <p className={cn('text-sm mt-0.5', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-            Dữ liệu trực tiếp từ SQL Server: Nhặt hàng theo vị trí kệ kho Showroom, in phiếu xuất kho và bàn giao bưu tá vận chuyển.
+            Nhặt hàng theo vị trí kệ kho Showroom, in phiếu xuất kho và bàn giao bưu tá vận chuyển.
           </p>
         </div>
 
@@ -258,7 +258,11 @@ export const OrderFulfillmentPage: React.FC = () => {
         </div>
       ) : filteredOrders.length === 0 ? (
         <div className={cn('p-12 text-center rounded-xl border text-sm font-mono', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 text-slate-400' : 'bg-white border-slate-200 text-slate-500')}>
-          Không có đơn hàng nào ở trạng thái này.
+          {activeTab === 'NEED_PACK'
+            ? 'Không có đơn hàng ở trạng thái cần nhặt hàng.'
+            : activeTab === 'PACKING'
+            ? 'Không có đơn hàng ở trạng thái đang đóng gói.'
+            : 'Không có đơn hàng ở trạng thái đã bàn giao.'}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -346,8 +350,14 @@ export const OrderFulfillmentPage: React.FC = () => {
 
       {/* Modal bàn giao bưu tá */}
       {selectedOrderForHandover && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className={cn('w-full max-w-md p-6 rounded-2xl border space-y-4 shadow-2xl', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]' : 'bg-white border-slate-200')}>
+        <div
+          onClick={() => setSelectedOrderForHandover(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className={cn('w-full max-w-md p-6 rounded-2xl border space-y-4 shadow-2xl', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]' : 'bg-white border-slate-200')}
+          >
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#3E4850]/40">
               <h3 className={cn('text-base font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
                 Bàn Giao Đơn Hàng {selectedOrderForHandover.orderCode}

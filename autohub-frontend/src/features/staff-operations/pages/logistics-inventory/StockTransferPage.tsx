@@ -51,7 +51,7 @@ export const StockTransferPage: React.FC = () => {
       setTransfers(transferData || []);
     } catch (err) {
       console.error('Lỗi tải tồn kho & phiếu điều chuyển phụ kiện:', err);
-      setError('Không thể tải dữ liệu tồn kho và phiếu chuyển kho từ SQL Server.');
+      setError('Không thể tải dữ liệu tồn kho và phiếu chuyển kho. Vui lòng thử lại.');
     } finally {
       setIsLoading(false);
     }
@@ -184,7 +184,7 @@ export const StockTransferPage: React.FC = () => {
             Tra Cứu Tồn Kho Thực Tế & Điều Chuyển Chi Nhánh
           </h1>
           <p className={cn('text-sm mt-0.5', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-            Dữ liệu trực tiếp từ SQL Server: Kiểm tra vị trí ngăn kệ tại chỗ, tồn kho liên chi nhánh và đồng bộ phiếu chuyển kho.
+            Kiểm tra vị trí ngăn kệ tại chỗ, tồn kho liên chi nhánh và đồng bộ phiếu chuyển kho.
           </p>
         </div>
 
@@ -290,13 +290,13 @@ export const StockTransferPage: React.FC = () => {
           {isLoading ? (
             <span className="flex items-center gap-1.5 text-cyan-500 font-medium">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              Đang đồng bộ dữ liệu từ Database SQL Server...
+              Đang đồng bộ dữ liệu tồn kho...
             </span>
           ) : (
             <span className={cn('font-medium flex items-center gap-1.5', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
               {!searchQuery.trim()
-                ? `Hiển thị ${filteredStocks.length} phụ kiện trong kho dữ liệu SQL Server`
+                ? `Hiển thị ${filteredStocks.length} phụ kiện trong kho hệ thống`
                 : `Tìm thấy ${filteredStocks.length} phụ kiện khớp với từ khóa "${searchQuery}"`}
             </span>
           )}
@@ -341,9 +341,9 @@ export const StockTransferPage: React.FC = () => {
                     <th className="py-3.5 px-4">Mã SKU</th>
                     <th className="py-3.5 px-4">Tên Phụ Kiện & Danh Mục</th>
                     <th className="py-3.5 px-4">Vị Trí Kệ</th>
-                    <th className="py-3.5 px-4 text-center">Tồn Tại Chỗ</th>
+                    <th className="py-3.5 px-4 text-center whitespace-nowrap">Tồn Tại Chỗ</th>
                     <th className="py-3.5 px-4">Tồn Tại Các Showroom Khác</th>
-                    <th className="py-3.5 px-4 text-right">Thao Tác</th>
+                    <th className="py-3.5 px-4 text-left whitespace-nowrap">Thao Tác</th>
                   </tr>
                 </thead>
                 <tbody
@@ -400,11 +400,11 @@ export const StockTransferPage: React.FC = () => {
                               {stock.shelfLocation}
                             </span>
                           </td>
-                          <td className="py-4 px-4 text-center">
+                          <td className="py-4 px-4 text-center whitespace-nowrap">
                             {stock.localStock > 0 ? (
                               <span
                                 className={cn(
-                                  'inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold font-mono border',
+                                  'inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold font-mono whitespace-nowrap border',
                                   isDarkMode
                                     ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/30'
                                     : 'bg-emerald-50 text-emerald-700 border-emerald-200'
@@ -415,7 +415,7 @@ export const StockTransferPage: React.FC = () => {
                             ) : (
                               <span
                                 className={cn(
-                                  'inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold font-mono border',
+                                  'inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold font-mono whitespace-nowrap border',
                                   isDarkMode
                                     ? 'bg-rose-950/40 text-rose-400 border-rose-500/30'
                                     : 'bg-rose-50 text-rose-700 border-rose-200'
@@ -449,14 +449,14 @@ export const StockTransferPage: React.FC = () => {
                               ))}
                             </div>
                           </td>
-                          <td className="py-4 px-4 text-right">
+                          <td className="py-4 px-4 text-left whitespace-nowrap">
                             <button
                               type="button"
                               onClick={() => handleOpenTransfer(stock)}
                               disabled={otherShowroomsTotal === 0}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-cyan-600 text-white hover:bg-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition-colors cursor-pointer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold whitespace-nowrap rounded-xl bg-cyan-600 text-white hover:bg-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition-colors cursor-pointer"
                             >
-                              <ArrowRightLeft className="w-3.5 h-3.5" />
+                              <ArrowRightLeft className="w-3.5 h-3.5 shrink-0" />
                               <span>Yêu cầu chuyển kho</span>
                             </button>
                           </td>
@@ -582,8 +582,12 @@ export const StockTransferPage: React.FC = () => {
 
       {/* MODAL: Transfer Request Modal */}
       {selectedStockForTransfer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div
+          onClick={() => setSelectedStockForTransfer(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+        >
           <div
+            onClick={(e) => e.stopPropagation()}
             className={cn(
               'rounded-2xl max-w-lg w-full p-6 shadow-2xl border transition-colors',
               isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 text-[#DAE2FD]' : 'bg-white border-slate-200 text-slate-900'
@@ -702,7 +706,7 @@ export const StockTransferPage: React.FC = () => {
               >
                 <Building2 className="w-4 h-4 flex-shrink-0 mt-0.5 text-cyan-500" />
                 <span>
-                  Phiếu điều chuyển sẽ được lưu vào SQL Server, trừ tồn khả dụng tại <strong>{fromBranch || 'chi nhánh nguồn'}</strong> và chờ xác nhận nhập kho tại <strong>{currentShowroomName}</strong>.
+                  Phiếu điều chuyển sẽ được ghi nhận vào hệ thống, trừ tồn khả dụng tại <strong>{fromBranch || 'chi nhánh nguồn'}</strong> và chờ xác nhận nhập kho tại <strong>{currentShowroomName}</strong>.
                 </span>
               </div>
             </div>

@@ -364,7 +364,7 @@ const StaffLayoutContent: React.FC = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Tìm khách, mã cọc, số VIN... (Ctrl+K)"
+                placeholder="Tìm khách, mã cọc, số VIN..."
                 className={cn(
                   'w-full pl-9 pr-14 py-1.5 text-xs rounded-xl transition-all duration-200 outline-none',
                   isDarkMode
@@ -372,7 +372,7 @@ const StaffLayoutContent: React.FC = () => {
                     : 'bg-slate-100 border border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-500'
                 )}
               />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 -mt-[0.5px]">
                 <kbd
                   className={cn(
                     'px-1.5 py-0.5 text-[9px] font-mono font-semibold rounded border select-none',
@@ -381,7 +381,7 @@ const StaffLayoutContent: React.FC = () => {
                       : 'bg-white text-slate-500 border-slate-200 shadow-2xs'
                   )}
                 >
-                  Ctrl K
+                  <span className="inline-block -translate-y-[1px]">Ctrl K</span>
                 </kbd>
               </div>
             </div>

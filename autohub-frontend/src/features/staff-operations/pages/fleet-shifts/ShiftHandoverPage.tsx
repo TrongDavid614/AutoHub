@@ -100,7 +100,7 @@ export const ShiftHandoverPage: React.FC = () => {
       }
     } catch (err) {
       console.error('Lỗi tải dữ liệu hồ sơ & bàn giao ca từ SQL Server:', err);
-      setError('Không thể tải dữ liệu hồ sơ nhân sự và biên bản bàn giao ca từ SQL Server.');
+      setError('Không thể tải dữ liệu hồ sơ nhân sự và biên bản bàn giao ca. Vui lòng thử lại.');
     } finally {
       setIsLoading(false);
     }
@@ -228,7 +228,7 @@ export const ShiftHandoverPage: React.FC = () => {
             Hồ Sơ Nhân Sự & Biên Bản Bàn Giao Ca Vận Hành
           </h1>
           <p className={cn('text-sm mt-0.5', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-            Dữ liệu trực tiếp từ SQL Server: Quản lý hồ sơ công tác, lịch trực showroom và biên bản bàn giao ca.
+            Quản lý hồ sơ công tác, lịch trực showroom và lập biên bản bàn giao ca.
           </p>
         </div>
 
@@ -262,7 +262,7 @@ export const ShiftHandoverPage: React.FC = () => {
       {isLoading ? (
         <div className="flex flex-col items-center justify-center p-16 space-y-3">
           <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
-          <p className="text-xs font-mono text-slate-400">Đang tải hồ sơ nhân sự và nhật ký bàn giao ca từ SQL Server...</p>
+          <p className="text-xs font-mono text-slate-400">Đang tải hồ sơ nhân sự và nhật ký bàn giao ca...</p>
         </div>
       ) : error ? (
         <div className={cn('p-10 text-center rounded-2xl border space-y-3', isDarkMode ? 'bg-[#0B1326] border-red-900/50 text-red-300' : 'bg-red-50 border-red-200 text-red-700')}>
@@ -686,9 +686,9 @@ export const ShiftHandoverPage: React.FC = () => {
                     <th className="py-3 px-4">Ca Trực & Ngày</th>
                     <th className="py-3 px-4">Người Bàn Giao</th>
                     <th className="py-3 px-4">Người Tiếp Nhận</th>
-                    <th className="py-3 px-4 text-center">Khách Tồn</th>
+                    <th className="py-3 px-4 text-center whitespace-nowrap">Khách Tồn</th>
                     <th className="py-3 px-4 text-center">Chìa Khóa Demo</th>
-                    <th className="py-3 px-4 text-center">Đơn Kiện</th>
+                    <th className="py-3 px-4 text-center whitespace-nowrap">Đơn Kiện</th>
                     <th className="py-3 px-4 text-right">Chi Tiết</th>
                   </tr>
                 </thead>
@@ -769,8 +769,12 @@ export const ShiftHandoverPage: React.FC = () => {
 
       {/* DETAIL MODAL */}
       {selectedRecordForDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div
+          onClick={() => setSelectedRecordForDetail(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+        >
           <div
+            onClick={(e) => e.stopPropagation()}
             className={cn(
               'rounded-2xl max-w-lg w-full p-6 shadow-2xl border transition-colors',
               isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 text-[#DAE2FD]' : 'bg-white border-slate-200 text-slate-900'
@@ -835,8 +839,12 @@ export const ShiftHandoverPage: React.FC = () => {
 
       {/* PASSWORD MODAL */}
       {showPasswordModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div
+          onClick={() => setShowPasswordModal(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+        >
           <div
+            onClick={(e) => e.stopPropagation()}
             className={cn(
               'rounded-2xl max-w-sm w-full p-6 shadow-2xl border transition-colors',
               isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 text-[#DAE2FD]' : 'bg-white border-slate-200 text-slate-900'

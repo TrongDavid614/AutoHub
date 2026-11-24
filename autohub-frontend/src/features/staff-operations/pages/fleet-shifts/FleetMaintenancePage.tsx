@@ -168,7 +168,7 @@ export const FleetMaintenancePage: React.FC = () => {
             Quản Lý Đội Xe Lái Thử & Xe Trưng Bày Showroom (UC41)
           </h1>
           <p className={cn('text-sm mt-0.5', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-            Dữ liệu trực tiếp từ SQL Server: Theo dõi chỉ số ODO thực tế, lịch bảo dưỡng kỹ thuật và trạng thái sẵn sàng xuất xe.
+            Theo dõi chỉ số ODO thực tế, lịch bảo dưỡng kỹ thuật và trạng thái sẵn sàng xuất xe.
           </p>
         </div>
 
@@ -242,7 +242,13 @@ export const FleetMaintenancePage: React.FC = () => {
         </div>
       ) : filteredFleet.length === 0 ? (
         <div className={cn('p-12 text-center rounded-xl border text-sm font-mono', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 text-slate-400' : 'bg-white border-slate-200 text-slate-500')}>
-          Không tìm thấy xe Demo nào phù hợp trong cơ sở dữ liệu.
+          {statusFilter === 'SAN_SANG'
+            ? 'Không tìm thấy xe Demo trạng thái sẵn sàng.'
+            : statusFilter === 'DANG_CHAY_THU'
+            ? 'Không tìm thấy xe Demo trạng thái đang chạy thử.'
+            : statusFilter === 'BAO_DUONG'
+            ? 'Không tìm thấy xe Demo trạng thái bảo dưỡng.'
+            : 'Không tìm thấy xe Demo nào phù hợp.'}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -347,8 +353,14 @@ export const FleetMaintenancePage: React.FC = () => {
 
       {/* Modal cập nhật ODO */}
       {selectedCarForOdo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className={cn('w-full max-w-sm p-6 rounded-2xl border space-y-4 shadow-2xl', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]' : 'bg-white border-slate-200')}>
+        <div
+          onClick={() => setSelectedCarForOdo(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className={cn('w-full max-w-sm p-6 rounded-2xl border space-y-4 shadow-2xl', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]' : 'bg-white border-slate-200')}
+          >
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#3E4850]/40">
               <h3 className={cn('text-base font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
                 Cập Nhật ODO Xe {selectedCarForOdo.licensePlate}
@@ -385,8 +397,14 @@ export const FleetMaintenancePage: React.FC = () => {
 
       {/* Modal bảo dưỡng */}
       {selectedCarForMaintenance && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className={cn('w-full max-w-md p-6 rounded-2xl border space-y-4 shadow-2xl', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]' : 'bg-white border-slate-200')}>
+        <div
+          onClick={() => setSelectedCarForMaintenance(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className={cn('w-full max-w-md p-6 rounded-2xl border space-y-4 shadow-2xl', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]' : 'bg-white border-slate-200')}
+          >
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#3E4850]/40">
               <h3 className={cn('text-base font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
                 Lập Phiếu Bảo Dưỡng Cho {selectedCarForMaintenance.licensePlate}
@@ -432,8 +450,14 @@ export const FleetMaintenancePage: React.FC = () => {
 
       {/* Modal lịch sử bảo dưỡng */}
       {selectedCarForHistory && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className={cn('w-full max-w-lg p-6 rounded-2xl border space-y-4 shadow-2xl', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]' : 'bg-white border-slate-200')}>
+        <div
+          onClick={() => setSelectedCarForHistory(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className={cn('w-full max-w-lg p-6 rounded-2xl border space-y-4 shadow-2xl', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]' : 'bg-white border-slate-200')}
+          >
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#3E4850]/40">
               <h3 className={cn('text-base font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
                 Lịch Sử Bảo Dưỡng Xe {selectedCarForHistory.licensePlate}
