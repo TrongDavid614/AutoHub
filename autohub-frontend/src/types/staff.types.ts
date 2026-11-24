@@ -204,6 +204,9 @@ export interface StaffReturnItem {
   customerName: string;
   customerPhone: string;
   accessoryName: string;
+  quantity?: number;
+  desiredResolution?: string;
+  newTrackingNumber?: string;
   reason: string;
   requestedAt: string;
   evidenceImages: string[];
@@ -213,21 +216,61 @@ export interface StaffReturnItem {
 }
 
 export interface CrossBranchStock {
+  accessoryId?: number;
   sku: string;
   name: string;
   category: string;
   shelfLocation: string;
+  currentShowroomId?: number;
+  currentShowroomName?: string;
   localStock: number;
   branches: {
+    showroomId?: number;
     branchName: string;
     stock: number;
   }[];
+}
+
+export interface StockTransferTicket {
+  id: string;
+  transferCode: string;
+  accessoryId: number;
+  sku: string;
+  accessoryName: string;
+  fromShowroomId: number;
+  fromShowroomName: string;
+  toShowroomId: number;
+  toShowroomName: string;
+  quantity: number;
+  status: 'DANG_VAN_CHUYEN' | 'DA_TIEP_NHAN' | 'DA_HUY' | string;
+  reason: string;
+  createdBy: string;
+  confirmedBy?: string | null;
+  createdAt: string;
+  completedAt?: string | null;
+}
+
+export interface DemoMaintenanceRecord {
+  id: string;
+  ticketCode: string;
+  demoCarId: string;
+  licensePlate: string;
+  carModel: string;
+  maintenanceItem: string;
+  odoAtMaintenance: number;
+  startDate: string;
+  expectedReturnDate: string;
+  actualReturnDate?: string | null;
+  status: 'DA_LEN_LICH' | 'DANG_BAO_DUONG' | 'HOAN_TAT' | 'DA_HUY' | string;
+  notes?: string | null;
+  createdBy: string;
 }
 
 export interface DemoFleetCar {
   id: string;
   licensePlate: string;
   carModel: string;
+  showroomName?: string;
   variant?: string;
   color?: string;
   currentOdoKm?: number;
@@ -237,12 +280,15 @@ export interface DemoFleetCar {
   lastMaintenanceDate?: string;
   nextMaintenanceDate?: string;
   status: 'SAN_SANG' | 'DANG_CHAY_THU' | 'BAO_DUONG';
-  maintenanceReason?: string;
-  expectedReturnDate?: string;
+  maintenanceReason?: string | null;
+  expectedReturnDate?: string | null;
+  maintenanceHistory?: DemoMaintenanceRecord[];
 }
 
 export interface ShiftHandoverRecord {
   id: string;
+  handoverCode?: string;
+  shiftCode?: string;
   shiftType: string;
   date: string;
   handedOverBy: string;
@@ -252,6 +298,33 @@ export interface ShiftHandoverRecord {
   packedOrdersHandedOver: number;
   notes: string;
   createdAt?: string;
+}
+
+export interface StaffProfile {
+  id: number;
+  staffCode: string;
+  fullName: string;
+  role: string;
+  roleLabel: string;
+  showroomId?: number | null;
+  showroomName: string;
+  email: string;
+  phone: string;
+  accountStatus: string;
+}
+
+export interface StaffColleague {
+  id: number;
+  staffCode: string;
+  fullName: string;
+  roleLabel: string;
+  showroomName: string;
+}
+
+export interface StaffScheduleItem {
+  staffCode: string;
+  shift: string;
+  assignedShowroom: string;
 }
 
 export interface StaffAiReplySuggestionDto {

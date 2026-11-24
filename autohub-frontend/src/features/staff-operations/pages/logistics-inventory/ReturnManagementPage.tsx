@@ -21,6 +21,7 @@ export const ReturnManagementPage: React.FC = () => {
 
   // Inspection drawer state
   const [inspectionNote, setInspectionNote] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const showToast = (type: 'success' | 'error', message: string) => {
@@ -78,27 +79,44 @@ export const ReturnManagementPage: React.FC = () => {
     });
   }, [returnItems, activeTab, searchQuery]);
 
+  const handleOpenInspection = (item: StaffReturnItem) => {
+    setSelectedItem(item);
+    setInspectionNote(item.inspectionNotes || '');
+  };
+
   const handleResolve = async (id: string, resolution: 'REPLACE_NEW' | 'REFUND_MONEY' | 'REJECT') => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       await staffService.resolveReturnItem(id, resolution, inspectionNote);
-      setReturnItems((prev) =>
-        prev.map((item) =>
-          item.id === id
-            ? {
-                ...item,
-                status: 'RESOLVED' as const,
-                resolution,
-                inspectionNotes: inspectionNote || 'Đã kiểm tra kỹ thuật tại kho.',
-              }
-            : item
-        )
-      );
       setSelectedItem(null);
       setInspectionNote('');
-      showToast('success', 'Đã lưu kết quả giám định và phương án xử lý đổi trả vào database!');
+      await fetchReturns();
+      showToast('success', 'Đã lưu kết quả giám định và phương án xử lý đổi trả thành công!');
     } catch (err) {
       console.error('Lỗi xử lý đổi trả:', err);
-      showToast('error', 'Không thể xử lý yêu cầu đổi trả. Vui lòng thử lại!');
+      const msg = err instanceof Error ? err.message : 'Không thể xử lý yêu cầu đổi trả. Vui lòng thử lại!';
+      showToast('error', msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleComplete = async (id: string) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await staffService.completeReturnItem(id, inspectionNote);
+      setSelectedItem(null);
+      setInspectionNote('');
+      await fetchReturns();
+      showToast('success', 'Đã xác nhận hoàn tất đổi trả thành công!');
+    } catch (err) {
+      console.error('Lỗi hoàn tất đổi trả:', err);
+      const msg = err instanceof Error ? err.message : 'Không thể hoàn tất yêu cầu đổi trả.';
+      showToast('error', msg);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -121,7 +139,7 @@ export const ReturnManagementPage: React.FC = () => {
             Kiểm Định & Xử Lý Đổi Trả Phụ Kiện (RMA - UC24)
           </h1>
           <p className={cn('text-sm mt-0.5', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-            Dữ liệu trực tiếp từ SQL Server: Tiếp nhận kiện hàng hoàn trả, đối soát tem bảo hành niêm phong và xuất kho đổi mới.
+            Tiếp nhận kiện hàng hoàn trả, đối soát tem bảo hành niêm phong và xuất kho đổi mới.
           </p>
         </div>
 
@@ -195,7 +213,13 @@ export const ReturnManagementPage: React.FC = () => {
         </div>
       ) : filteredItems.length === 0 ? (
         <div className={cn('p-12 text-center rounded-xl border text-sm font-mono', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 text-slate-400' : 'bg-white border-slate-200 text-slate-500')}>
-          Không tìm thấy yêu cầu đổi trả nào trong cơ sở dữ liệu.
+          {activeTab === 'RETURN_REQUESTED'
+            ? 'Chưa có yêu cầu đổi trả trạng thái chờ giám định'
+            : activeTab === 'APPROVED'
+            ? 'Chưa có yêu cầu đổi trả trạng thái đã tiếp nhận kho'
+            : activeTab === 'COMPLETED'
+            ? 'Chưa có yêu cầu đổi trả trạng thái đã đổi mới / hoàn tất'
+            : 'Chưa có yêu cầu đổi trả nào phù hợp'}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -248,10 +272,11 @@ export const ReturnManagementPage: React.FC = () => {
 
                 <button
                   type="button"
-                  onClick={() => setSelectedItem(item)}
-                  className="px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                  disabled={item.status === 'COMPLETED' || item.status === 'REJECTED'}
+                  onClick={() => handleOpenInspection(item)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white cursor-pointer"
                 >
-                  Giám Định & Xử Lý
+                  {item.status === 'APPROVED' ? 'Hoàn Tất Đổi Trả' : 'Giám Định & Xử Lý'}
                 </button>
               </div>
             </div>
@@ -261,8 +286,14 @@ export const ReturnManagementPage: React.FC = () => {
 
       {/* Modal giám định kỹ thuật */}
       {selectedItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className={cn('w-full max-w-lg p-6 rounded-2xl border space-y-4 shadow-2xl', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]' : 'bg-white border-slate-200')}>
+        <div
+          onClick={() => setSelectedItem(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className={cn('w-full max-w-lg p-6 rounded-2xl border space-y-4 shadow-2xl', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]' : 'bg-white border-slate-200')}
+          >
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#3E4850]/40">
               <h3 className={cn('text-base font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
                 Biên Bản Giám Định Kỹ Thuật {selectedItem.rmaCode}
@@ -291,20 +322,35 @@ export const ReturnManagementPage: React.FC = () => {
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => handleResolve(selectedItem.id, 'REJECT')}
-                  className="px-3.5 py-1.5 rounded-lg text-xs font-bold border border-red-300 text-red-600 hover:bg-red-50 cursor-pointer"
-                >
-                  Từ Chối Đổi Trả
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleResolve(selectedItem.id, 'REPLACE_NEW')}
-                  className="px-4 py-2 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-                >
-                  Duyệt Đổi Hàng Mới
-                </button>
+                {selectedItem.status === 'APPROVED' ? (
+                  <button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => handleComplete(selectedItem.id)}
+                    className="px-4 py-2 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white cursor-pointer"
+                  >
+                    {isSubmitting ? 'Đang xử lý...' : 'Xác Nhận Hoàn Tất Đổi Trả'}
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      disabled={isSubmitting}
+                      onClick={() => handleResolve(selectedItem.id, 'REJECT')}
+                      className="px-3.5 py-1.5 rounded-lg text-xs font-bold border border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-50 cursor-pointer"
+                    >
+                      Từ Chối Đổi Trả
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isSubmitting}
+                      onClick={() => handleResolve(selectedItem.id, 'REPLACE_NEW')}
+                      className="px-4 py-2 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white cursor-pointer"
+                    >
+                      {isSubmitting ? 'Đang lưu...' : 'Duyệt Đổi Hàng Mới'}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
