@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BranchStockDto {
+    private Long showroomId;
     private String branchName;
     private Integer stock;
 }

@@ -11,4 +11,6 @@ import java.util.Optional;
 public interface BienBanBanGiaoCaRepository extends JpaRepository<BienBanBanGiaoCa, Long> {
     Optional<BienBanBanGiaoCa> findByMaBanGiao(String maBanGiao);
     List<BienBanBanGiaoCa> findByShowroomId(Long showroomId);
+    List<BienBanBanGiaoCa> findAllByOrderByThoiGianBanGiaoDesc();
+    List<BienBanBanGiaoCa> findByShowroomIdOrderByThoiGianBanGiaoDesc(Long showroomId);
 }

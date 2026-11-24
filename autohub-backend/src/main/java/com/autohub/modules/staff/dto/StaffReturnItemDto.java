@@ -18,6 +18,9 @@ public class StaffReturnItemDto {
     private String customerName;
     private String customerPhone;
     private String accessoryName;
+    private Integer quantity;
+    private String desiredResolution;
+    private String newTrackingNumber;
     private String reason;
     private String requestedAt;
     private List<String> evidenceImages;
