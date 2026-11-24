@@ -65,7 +65,12 @@ export const API_CONFIG = {
       FLEET: '/staff/fleet',
       WORKSPACE: '/staff/workspace',
       STOCKS: '/staff/stocks',
+      STOCK_TRANSFERS: '/staff/stocks/transfers',
       SCHEDULES: '/staff/schedules',
+      PROFILE: '/staff/profile',
+      PROFILE_PASSWORD: '/staff/profile/password',
+      HANDOVERS: '/staff/handovers',
+      HANDOVER_COLLEAGUES: '/staff/handovers/colleagues',
     },
     TRACKING: {
       COLLECT: '/tracking/collect',

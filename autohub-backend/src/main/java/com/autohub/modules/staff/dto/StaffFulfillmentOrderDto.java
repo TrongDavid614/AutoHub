@@ -17,6 +17,7 @@ public class StaffFulfillmentOrderDto {
     private String customerName;
     private String customerPhone;
     private String shippingAddress;
+    private String paymentMethod;
     private String orderDate;
     private Double totalAmount;
     private String status;

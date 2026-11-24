@@ -23,11 +23,13 @@ export const OrderFulfillmentPage: React.FC = () => {
   // Handover modal form state
   const [courier, setCourier] = useState('Giao Hàng Nhanh (GHN Express)');
   const [trackingNumber, setTrackingNumber] = useState('');
-  const [successToast, setSuccessToast] = useState<string | null>(null);
+  const [submittingOrderId, setSubmittingOrderId] = useState<string | null>(null);
+  const [isSubmittingHandover, setIsSubmittingHandover] = useState(false);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  const showToast = (msg: string) => {
-    setSuccessToast(msg);
-    setTimeout(() => setSuccessToast(null), 3500);
+  const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
+    setToast({ type, message: msg });
+    setTimeout(() => setToast(null), 3500);
   };
 
   const fetchOrders = useCallback(async () => {
@@ -92,43 +94,42 @@ export const OrderFulfillmentPage: React.FC = () => {
   }, [orders]);
 
   const handleStartPacking = async (orderId: string) => {
+    if (submittingOrderId) return;
+    setSubmittingOrderId(orderId);
     try {
       await staffService.packOrder(orderId);
-      setOrders((prev) =>
-        prev.map((o) => (o.id === orderId ? { ...o, status: 'PACKING' as const } : o))
-      );
+      await fetchOrders();
       showToast(`Đơn hàng #${orderId} đã chuyển sang trạng thái: Đang nhặt hàng đóng gói`);
     } catch (err) {
       console.error('Lỗi bắt đầu đóng gói:', err);
+      const msg = err instanceof Error ? err.message : 'Không thể cập nhật trạng thái đóng gói.';
+      showToast(msg, 'error');
+    } finally {
+      setSubmittingOrderId(null);
     }
   };
 
   const handleConfirmHandover = async () => {
-    if (!selectedOrderForHandover) return;
+    if (!selectedOrderForHandover || isSubmittingHandover) return;
     if (!trackingNumber.trim()) {
-      showToast('Vui lòng nhập hoặc quét mã vận đơn (Waybill barcode)');
+      showToast('Vui lòng nhập hoặc quét mã vận đơn (Waybill barcode)', 'error');
       return;
     }
 
+    setIsSubmittingHandover(true);
     try {
       await staffService.handoverOrder(selectedOrderForHandover.id, courier, trackingNumber.trim());
-      setOrders((prev) =>
-        prev.map((o) =>
-          o.id === selectedOrderForHandover.id
-            ? {
-                ...o,
-                status: 'SHIPPED' as const,
-                courier,
-                trackingNumber: trackingNumber.trim(),
-              }
-            : o
-        )
-      );
-      showToast(`Đã xuất kho bàn giao đơn hàng ${selectedOrderForHandover.orderCode} cho ${courier}`);
+      const orderCode = selectedOrderForHandover.orderCode;
       setSelectedOrderForHandover(null);
       setTrackingNumber('');
+      await fetchOrders();
+      showToast(`Đã xuất kho bàn giao đơn hàng ${orderCode} cho ${courier}`);
     } catch (err) {
       console.error('Lỗi bàn giao bưu tá:', err);
+      const msg = err instanceof Error ? err.message : 'Không thể bàn giao đơn hàng cho đơn vị vận chuyển.';
+      showToast(msg, 'error');
+    } finally {
+      setIsSubmittingHandover(false);
     }
   };
 
@@ -140,10 +141,15 @@ export const OrderFulfillmentPage: React.FC = () => {
       )}
     >
       {/* Toast Notification */}
-      {successToast && (
-        <div className="fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-3 rounded-xl bg-emerald-600 text-white shadow-xl text-xs font-semibold animate-in fade-in slide-in-from-top-4">
+      {toast && (
+        <div
+          className={cn(
+            'fixed top-5 right-5 z-50 flex items-center gap-2 px-4 py-3 rounded-xl text-white shadow-xl text-xs font-semibold animate-in fade-in slide-in-from-top-4',
+            toast.type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+          )}
+        >
           <CheckCircle2 className="w-4 h-4 shrink-0" />
-          <span>{successToast}</span>
+          <span>{toast.message}</span>
         </div>
       )}
 
@@ -161,7 +167,7 @@ export const OrderFulfillmentPage: React.FC = () => {
             Xử Lý & Đóng Gói Đơn Hàng Phụ Kiện (Fulfillment)
           </h1>
           <p className={cn('text-sm mt-0.5', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-            Dữ liệu trực tiếp từ SQL Server: Nhặt hàng theo vị trí kệ kho Showroom, in phiếu xuất kho và bàn giao bưu tá vận chuyển.
+            Nhặt hàng theo vị trí kệ kho Showroom, in phiếu xuất kho và bàn giao bưu tá vận chuyển.
           </p>
         </div>
 
@@ -252,7 +258,11 @@ export const OrderFulfillmentPage: React.FC = () => {
         </div>
       ) : filteredOrders.length === 0 ? (
         <div className={cn('p-12 text-center rounded-xl border text-sm font-mono', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40 text-slate-400' : 'bg-white border-slate-200 text-slate-500')}>
-          Không có đơn hàng nào ở trạng thái này.
+          {activeTab === 'NEED_PACK'
+            ? 'Không có đơn hàng ở trạng thái cần nhặt hàng.'
+            : activeTab === 'PACKING'
+            ? 'Không có đơn hàng ở trạng thái đang đóng gói.'
+            : 'Không có đơn hàng ở trạng thái đã bàn giao.'}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -309,10 +319,11 @@ export const OrderFulfillmentPage: React.FC = () => {
                   {order.status === 'NEED_PACK' && (
                     <button
                       type="button"
+                      disabled={submittingOrderId === order.id}
                       onClick={() => handleStartPacking(order.id)}
-                      className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer transition-colors"
+                      className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white cursor-pointer transition-colors"
                     >
-                      Nhặt Hàng Đóng Gói
+                      {submittingOrderId === order.id ? 'Đang xử lý...' : 'Nhặt Hàng Đóng Gói'}
                     </button>
                   )}
                   {order.status === 'PACKING' && (
@@ -326,8 +337,8 @@ export const OrderFulfillmentPage: React.FC = () => {
                   )}
                   {order.status === 'SHIPPED' && (
                     <div className="text-[11px] font-mono text-slate-400 text-right">
-                      <div>Đã giao bưu tá: <span className="font-bold text-emerald-500">{order.courier || 'GHN'}</span></div>
-                      <div>Vận đơn: <span className="font-bold text-blue-500">{order.trackingNumber || 'VNP-9952'}</span></div>
+                      <div>Đã giao bưu tá: <span className="font-bold text-emerald-500">{order.courier || '-'}</span></div>
+                      <div>Vận đơn: <span className="font-bold text-blue-500">{order.trackingNumber || '-'}</span></div>
                     </div>
                   )}
                 </div>
@@ -339,8 +350,14 @@ export const OrderFulfillmentPage: React.FC = () => {
 
       {/* Modal bàn giao bưu tá */}
       {selectedOrderForHandover && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className={cn('w-full max-w-md p-6 rounded-2xl border space-y-4 shadow-2xl', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]' : 'bg-white border-slate-200')}>
+        <div
+          onClick={() => setSelectedOrderForHandover(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className={cn('w-full max-w-md p-6 rounded-2xl border space-y-4 shadow-2xl', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]' : 'bg-white border-slate-200')}
+          >
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#3E4850]/40">
               <h3 className={cn('text-base font-bold', isDarkMode ? 'text-white' : 'text-slate-900')}>
                 Bàn Giao Đơn Hàng {selectedOrderForHandover.orderCode}
@@ -379,10 +396,11 @@ export const OrderFulfillmentPage: React.FC = () => {
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
+                  disabled={isSubmittingHandover}
                   onClick={handleConfirmHandover}
-                  className="px-4 py-2 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+                  className="px-4 py-2 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white cursor-pointer"
                 >
-                  Xác Nhận Xuất Kho Bàn Giao
+                  {isSubmittingHandover ? 'Đang bàn giao...' : 'Xác Nhận Xuất Kho Bàn Giao'}
                 </button>
               </div>
             </div>

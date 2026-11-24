@@ -1,0 +1,18 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: autohub-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Sapassword@123"
+      MSSQL_PID: "Express"
+    ports:
+      - "1433:1433"
+    volumes:
+      - autohub_sqlserver_data:/var/opt/mssql
+      - ./autohub_erd.sql:/tmp/autohub_erd.sql:ro
+      - ./autohub_staff_integration_migration.sql:/tmp/autohub_staff_integration_migration.sql:ro
+    restart: unless-stopped
+
+volumes:
+  autohub_sqlserver_data:

@@ -7,12 +7,18 @@ import type {
   CrossBranchStock,
   DemoCarOption,
   DemoFleetCar,
+  DemoMaintenanceRecord,
+  ShiftHandoverRecord,
+  StaffColleague,
   StaffDepositRecord,
   StaffFulfillmentOrder,
+  StaffProfile,
   StaffRefundDocket,
   StaffReturnItem,
+  StaffScheduleItem,
   StaffTestDriveBooking,
   StaffAiReplySuggestionDto,
+  StockTransferTicket,
   WorkspaceMetricsResponse,
 } from '@/types/staff.types';
 
@@ -168,10 +174,30 @@ export const staffService = {
     return apiRes.data || [];
   },
 
-  async resolveReturnItem(id: string, resolution: string, inspectionNotes?: string): Promise<string> {
+  async resolveReturnItem(
+    id: string,
+    resolution: string,
+    inspectionNotes?: string,
+    newTrackingNumber?: string
+  ): Promise<string> {
     const res = await axiosClient.post<ApiResponse<string>>(`${ENDPOINTS.RETURNS}/${id}/resolve`, {
       resolution,
       inspectionNotes,
+      newTrackingNumber,
+    });
+    const apiRes = res as unknown as ApiResponse<string>;
+    return apiRes.data;
+  },
+
+  async completeReturnItem(
+    id: string,
+    inspectionNotes?: string,
+    newTrackingNumber?: string
+  ): Promise<string> {
+    const res = await axiosClient.post<ApiResponse<string>>(`${ENDPOINTS.RETURNS}/${id}/complete`, {
+      resolution: 'COMPLETE',
+      inspectionNotes,
+      newTrackingNumber,
     });
     const apiRes = res as unknown as ApiResponse<string>;
     return apiRes.data;
@@ -181,6 +207,12 @@ export const staffService = {
   async getDemoFleet(): Promise<DemoFleetCar[]> {
     const res = await axiosClient.get<ApiResponse<DemoFleetCar[]>>(ENDPOINTS.FLEET);
     const apiRes = res as unknown as ApiResponse<DemoFleetCar[]>;
+    return apiRes.data || [];
+  },
+
+  async getDemoMaintenanceHistory(): Promise<DemoMaintenanceRecord[]> {
+    const res = await axiosClient.get<ApiResponse<DemoMaintenanceRecord[]>>(`${ENDPOINTS.FLEET}/maintenance-history`);
+    const apiRes = res as unknown as ApiResponse<DemoMaintenanceRecord[]>;
     return apiRes.data || [];
   },
 
@@ -199,6 +231,12 @@ export const staffService = {
     return apiRes.data;
   },
 
+  async completeDemoMaintenance(id: string): Promise<string> {
+    const res = await axiosClient.post<ApiResponse<string>>(`${ENDPOINTS.FLEET}/${id}/complete-maintenance`, {});
+    const apiRes = res as unknown as ApiResponse<string>;
+    return apiRes.data;
+  },
+
   // 8. Workspace Metrics & Chỉ số Mini-Chart
   async getWorkspaceMetrics(): Promise<WorkspaceMetricsResponse> {
     const res = await axiosClient.get<ApiResponse<WorkspaceMetricsResponse>>(ENDPOINTS.WORKSPACE);
@@ -211,5 +249,90 @@ export const staffService = {
     const res = await axiosClient.get<ApiResponse<CrossBranchStock[]>>(ENDPOINTS.STOCKS);
     const apiRes = res as unknown as ApiResponse<CrossBranchStock[]>;
     return apiRes.data || [];
+  },
+
+  async getStockTransfers(): Promise<StockTransferTicket[]> {
+    const res = await axiosClient.get<ApiResponse<StockTransferTicket[]>>(ENDPOINTS.STOCK_TRANSFERS);
+    const apiRes = res as unknown as ApiResponse<StockTransferTicket[]>;
+    return apiRes.data || [];
+  },
+
+  async createStockTransfer(payload: {
+    accessoryId?: number;
+    sku: string;
+    fromShowroomId?: number;
+    fromBranchName?: string;
+    quantity: number;
+    reason?: string;
+  }): Promise<StockTransferTicket> {
+    const res = await axiosClient.post<ApiResponse<StockTransferTicket>>(ENDPOINTS.STOCK_TRANSFERS, payload);
+    const apiRes = res as unknown as ApiResponse<StockTransferTicket>;
+    return apiRes.data;
+  },
+
+  async confirmStockTransfer(id: string): Promise<StockTransferTicket> {
+    const res = await axiosClient.post<ApiResponse<StockTransferTicket>>(
+      `${ENDPOINTS.STOCK_TRANSFERS}/${id}/confirm`,
+      {}
+    );
+    const apiRes = res as unknown as ApiResponse<StockTransferTicket>;
+    return apiRes.data;
+  },
+
+  async cancelStockTransfer(id: string): Promise<StockTransferTicket> {
+    const res = await axiosClient.post<ApiResponse<StockTransferTicket>>(
+      `${ENDPOINTS.STOCK_TRANSFERS}/${id}/cancel`,
+      {}
+    );
+    const apiRes = res as unknown as ApiResponse<StockTransferTicket>;
+    return apiRes.data;
+  },
+
+  // 10. Hồ sơ nhân sự, lịch trực & Biên bản bàn giao ca
+  async getStaffProfile(): Promise<StaffProfile> {
+    const res = await axiosClient.get<ApiResponse<StaffProfile>>(ENDPOINTS.PROFILE);
+    const apiRes = res as unknown as ApiResponse<StaffProfile>;
+    return apiRes.data;
+  },
+
+  async changeStaffPassword(currentPassword: string, newPassword: string): Promise<string> {
+    const res = await axiosClient.put<ApiResponse<string>>(ENDPOINTS.PROFILE_PASSWORD, {
+      currentPassword,
+      newPassword,
+    });
+    const apiRes = res as unknown as ApiResponse<string>;
+    return apiRes.data;
+  },
+
+  async getStaffColleagues(): Promise<StaffColleague[]> {
+    const res = await axiosClient.get<ApiResponse<StaffColleague[]>>(ENDPOINTS.HANDOVER_COLLEAGUES);
+    const apiRes = res as unknown as ApiResponse<StaffColleague[]>;
+    return apiRes.data || [];
+  },
+
+  async getStaffSchedules(): Promise<StaffScheduleItem[]> {
+    const res = await axiosClient.get<ApiResponse<StaffScheduleItem[]>>(ENDPOINTS.SCHEDULES);
+    const apiRes = res as unknown as ApiResponse<StaffScheduleItem[]>;
+    return apiRes.data || [];
+  },
+
+  async getShiftHandovers(): Promise<ShiftHandoverRecord[]> {
+    const res = await axiosClient.get<ApiResponse<ShiftHandoverRecord[]>>(ENDPOINTS.HANDOVERS);
+    const apiRes = res as unknown as ApiResponse<ShiftHandoverRecord[]>;
+    return apiRes.data || [];
+  },
+
+  async createShiftHandover(payload: {
+    shiftType: string;
+    shiftCode?: string;
+    receiverId: number;
+    pendingLeadsCount: number;
+    demoKeysVerified: boolean;
+    packedOrdersHandedOver: number;
+    notes: string;
+  }): Promise<ShiftHandoverRecord> {
+    const res = await axiosClient.post<ApiResponse<ShiftHandoverRecord>>(ENDPOINTS.HANDOVERS, payload);
+    const apiRes = res as unknown as ApiResponse<ShiftHandoverRecord>;
+    return apiRes.data;
   },
 };

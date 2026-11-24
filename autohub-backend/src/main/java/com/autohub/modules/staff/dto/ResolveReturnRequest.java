@@ -15,5 +15,7 @@ public class ResolveReturnRequest {
     private String resolution;
 
     private String inspectionNotes;
+
+    private String newTrackingNumber;
 }
 
