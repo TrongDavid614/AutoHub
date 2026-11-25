@@ -10,35 +10,35 @@ export const SuccessActionMatrix: React.FC = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1 pb-2">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1 pb-2">
       {/* Button 1: Download PDF */}
       <button
         type="button"
         onClick={handlePrint}
-        className="h-[52px] px-6 rounded-[2px] bg-[#222A3D] hover:bg-[#2D3850] text-[#DAE2FD] text-[13px] font-semibold tracking-[0.65px] uppercase flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)] active:scale-[0.99]"
+        className="h-12 px-5 rounded-lg bg-[var(--surface)] hover:bg-[var(--surface-subtle)] border border-[var(--line)] text-[var(--text)] text-sm font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
       >
-        <Download className="w-4 h-4 text-[#89CEFF]" />
-        <span>TẢI HÓA BIÊN LAI (PDF)</span>
+        <Download className="w-4 h-4 text-[var(--accent)]" />
+        <span>Tải biên lai (PDF)</span>
       </button>
 
       {/* Button 2: Continue Shopping */}
       <button
         type="button"
         onClick={() => navigate('/accessories')}
-        className="h-[52px] px-6 rounded-[2px] bg-[#131B2E] hover:bg-[#1A253D] border border-[#2D3449]/80 text-[#DAE2FD] text-[13px] font-semibold tracking-[0.65px] uppercase flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-sm active:scale-[0.99]"
+        className="h-12 px-5 rounded-lg bg-[var(--surface)] hover:bg-[var(--surface-subtle)] border border-[var(--line)] text-[var(--text)] text-sm font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
       >
-        <ShoppingBag className="w-4 h-4 text-[#7BD0FF]" />
-        <span>TIẾP TỤC MUA PHỤ KIỆN</span>
+        <ShoppingBag className="w-4 h-4 text-[var(--text-2)]" />
+        <span>Tiếp tục mua phụ kiện</span>
       </button>
 
-      {/* Button 3: Hub Tracking CTA (Primary Glow) */}
+      {/* Button 3: Hub Tracking Primary CTA */}
       <button
         type="button"
         onClick={() => navigate('/customer/orders')}
-        className="h-[52px] px-8 rounded-[2px] bg-[#0EA5E9] hover:bg-[#38BDF8] text-[#00344D] text-[13px] font-bold tracking-[0.65px] uppercase flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-[0_10px_15px_-3px_rgba(137,206,255,0.30),0_4px_6px_-4px_rgba(137,206,255,0.30)] active:scale-[0.99]"
+        className="h-12 px-6 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-sm font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
       >
-        <span>THEO DÕI TẠI HUB KHÁCH HÀNG</span>
-        <ArrowRight className="w-4 h-4 text-[#00344D]" />
+        <span>Theo dõi tại Hub khách hàng</span>
+        <ArrowRight className="w-4 h-4" />
       </button>
     </div>
   );

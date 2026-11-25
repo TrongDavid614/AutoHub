@@ -80,7 +80,7 @@ export const UserRbacPage: React.FC = () => {
     >
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 animate-bounce-in max-w-md">
+        <div className="fixed bottom-6 right-6 z-50 max-w-md">
           <div className="p-3.5 rounded-xl bg-emerald-600 text-white shadow-xl flex items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 shrink-0" />
@@ -247,7 +247,7 @@ export const UserRbacPage: React.FC = () => {
       {isLoading && (
         <div
           className={cn(
-            'rounded-xl border overflow-hidden p-6 space-y-4 animate-pulse',
+            'rounded-xl border overflow-hidden p-6 space-y-4',
             isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40' : 'bg-white border-slate-200'
           )}
         >
@@ -517,7 +517,7 @@ export const UserRbacPage: React.FC = () => {
 
       {/* Confirm Lock / Unlock Dialog */}
       {lockingUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <div
             className={cn(
               'w-full max-w-sm rounded-xl border p-5 space-y-4 shadow-2xl transition-all',

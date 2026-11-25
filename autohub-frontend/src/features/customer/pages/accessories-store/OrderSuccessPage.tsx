@@ -18,30 +18,23 @@ export const OrderSuccessPage: React.FC = () => {
     .padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
 
   return (
-    <div className="relative w-full bg-[#060E20] text-[#DAE2FD] min-h-screen py-8 px-4 md:px-6 overflow-hidden">
-      {/* Subtle Ambient Glow Orbs behind main content matching Figma Frame 20:13615 */}
-      <div className="pointer-events-none absolute left-1/4 top-20 w-[500px] h-[500px] rounded-full bg-[#0EA5E9]/10 blur-[120px]" />
-      <div className="pointer-events-none absolute right-1/4 top-96 w-[450px] h-[450px] rounded-full bg-[#89CEFF]/8 blur-[100px]" />
-      <div className="pointer-events-none absolute left-1/3 bottom-40 w-[600px] h-[600px] rounded-full bg-[#0EA5E9]/5 blur-[140px]" />
-
-      {/* Centered Content Wrapper (Max-width 960px) */}
-      <div className="max-w-[960px] mx-auto space-y-8 relative z-10">
-        {/* Nút quay trở lại danh sách đơn hàng phụ kiện */}
-        <div className="flex items-center justify-between pb-2 border-b border-[#2D3449]/40">
+    <div className="w-full bg-[var(--bg)] text-[var(--text)] min-h-screen py-8 px-4 md:px-6">
+      <div className="max-w-[960px] mx-auto space-y-6">
+        <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
           <Link
             to="/customer/orders"
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-[4px] bg-[#171F33] hover:bg-[#222A3D] border border-[#2D3449] hover:border-[#89CEFF]/60 text-xs font-semibold text-[#89CEFF] transition-all cursor-pointer shadow-sm group"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-[var(--surface)] hover:bg-[var(--surface-subtle)] border border-[var(--line-strong)] text-xs font-medium text-[var(--text)] transition-colors"
           >
-            <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-            <span>Quay lại danh sách đơn hàng phụ kiện</span>
+            <ArrowLeft className="w-4 h-4" />
+            <span>Quay lại danh sách đơn hàng</span>
           </Link>
 
           <Link
             to="/customer/orders"
-            className="hidden sm:inline-flex items-center gap-1.5 text-xs text-[#88929B] hover:text-[#DAE2FD] transition-colors"
+            className="hidden sm:inline-flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text)] transition-colors"
           >
-            <Package className="w-3.5 h-3.5 text-[#89CEFF]" />
-            <span>Hub Quản Lý Đơn Hàng</span>
+            <Package className="w-3.5 h-3.5 text-[var(--accent)]" />
+            <span>Quản lý đơn hàng</span>
           </Link>
         </div>
 

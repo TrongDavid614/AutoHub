@@ -56,7 +56,7 @@ export const CarDepositRefundModal: React.FC<CarDepositRefundModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas-deep/80 backdrop-blur-md animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45"
     >
       <div className="w-full max-w-lg rounded-xl bg-surface-container border border-surface-highlight p-6 shadow-2xl relative">
         <div className="flex items-center justify-between pb-3 border-b border-surface-highlight">
@@ -75,7 +75,7 @@ export const CarDepositRefundModal: React.FC<CarDepositRefundModalProps> = ({
 
         {isSubmitted ? (
           <div className="py-8 text-center space-y-2">
-            <Check className="w-12 h-12 text-emerald-400 mx-auto animate-bounce" />
+            <Check className="w-12 h-12 text-emerald-600 mx-auto" />
             <h4 className="text-sm font-bold text-text-primary">Đã gửi hồ sơ xin hoàn tiền cọc!</h4>
             <p className="text-xs text-text-muted">
               Hồ sơ sẽ đi qua các bước: Staff đối soát chứng từ ngân hàng (VERIFIED) và Admin phê duyệt giải ngân (APPROVED) theo quy định BR05.

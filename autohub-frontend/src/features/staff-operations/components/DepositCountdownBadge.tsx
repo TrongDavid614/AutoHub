@@ -62,10 +62,10 @@ export const DepositCountdownBadge: React.FC<DepositCountdownBadgeProps> = ({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold border transition-colors',
+        'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium tabular-nums border transition-colors',
         isUrgent
-          ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/40 animate-pulse'
-          : 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800/40',
+          ? 'bg-amber-50 text-amber-800 border-amber-200'
+          : 'bg-blue-50 text-blue-700 border-blue-200',
         className
       )}
     >

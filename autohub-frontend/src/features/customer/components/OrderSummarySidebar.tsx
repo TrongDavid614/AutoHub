@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, ShieldCheck, Check, ArrowRight, Lock, Sparkles, Loader2 } from 'lucide-react';
+import { Phone, ShieldCheck, Check, ArrowRight, Lock, Loader2 } from 'lucide-react';
 import type { AvailableVoucher } from '@/types/cart.types';
 
 export interface OrderSummarySidebarProps {
@@ -50,22 +50,19 @@ export const OrderSummarySidebar: React.FC<OrderSummarySidebarProps> = ({
   return (
     <aside className="w-full lg:w-96 flex-shrink-0 space-y-4 sticky top-24">
       {/* Main Card */}
-      <div className="relative rounded-[4px] bg-[#171F33] border border-[#2D3449] p-6 shadow-2xl overflow-hidden space-y-6">
-        {/* Ambient Gradient Glow */}
-        <div className="pointer-events-none absolute -right-12 -top-12 w-48 h-48 rounded-full bg-[#0EA5E9]/10 blur-[40px]" />
-
+      <div className="rounded-xl bg-[var(--surface)] border border-[var(--line)] p-6 space-y-5">
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-[#2D3449] relative z-10">
-          <h3 className="text-xl font-bold text-[#DAE2FD]">Tóm tắt đơn hàng</h3>
-          <span className="px-2.5 py-1 rounded-[2px] bg-[#0EA5E9]/10 text-[#89CEFF] font-mono text-[11px] font-bold tracking-wider uppercase border border-[#0EA5E9]/20">
-            {orderId ? `ORDER #${orderId}` : 'GIỎ HÀNG'}
+        <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
+          <h3 className="text-lg font-bold text-[var(--text)]">Tóm tắt đơn hàng</h3>
+          <span className="px-2.5 py-0.5 rounded-md bg-[var(--accent-soft)] text-[var(--accent)] text-xs font-semibold tabular-nums">
+            {orderId ? `Đơn #${orderId}` : 'Giỏ hàng'}
           </span>
         </div>
 
         {/* Voucher Promotion Field */}
-        <div className="space-y-2.5 relative z-10">
-          <label className="text-[10px] font-mono font-bold tracking-[1.5px] text-[#88929B] uppercase block">
-            MÃ ƯU ĐÃI VIP / ĐẶC QUYỀN CHỦ XE
+        <div className="space-y-2.5">
+          <label className="text-xs font-semibold text-[var(--text-2)] block">
+            Mã ưu đãi VIP / Đặc quyền chủ xe
           </label>
           <div className="flex items-center gap-2">
             <input
@@ -79,30 +76,30 @@ export const OrderSummarySidebar: React.FC<OrderSummarySidebarProps> = ({
               }}
               placeholder="Nhập mã voucher (VD: AUTOHUBGT500)..."
               disabled={isVoucherApplied || isCheckingVoucher}
-              className="flex-1 px-3 py-2 bg-[#060E20] border border-[#2D3449] rounded-[2px] text-xs font-mono font-bold text-[#DAE2FD] placeholder-[#88929B] focus:outline-none focus:border-[#89CEFF] uppercase disabled:opacity-75"
+              className="flex-1 px-3 py-2 bg-[var(--surface-subtle)] border border-[var(--line)] rounded-lg text-xs font-medium text-[var(--text)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] uppercase disabled:opacity-60"
             />
             {isVoucherApplied ? (
               <button
                 type="button"
                 onClick={onRemoveVoucher}
-                className="px-3 py-2 rounded-[2px] bg-[#222A3D] hover:bg-rose-950 text-rose-300 font-mono text-[10px] font-bold tracking-wider transition-colors cursor-pointer shrink-0"
+                className="px-3 py-2 rounded-lg bg-[var(--surface-subtle)] hover:bg-red-50 text-red-700 border border-[var(--line)] text-xs font-medium transition-colors cursor-pointer shrink-0"
               >
-                GỠ BỎ
+                Gỡ bỏ
               </button>
             ) : (
               <button
                 type="button"
                 onClick={onApplyVoucher}
                 disabled={isCheckingVoucher || !voucherCode.trim()}
-                className="px-3 py-2 rounded-[2px] bg-[#0EA5E9] hover:bg-[#89CEFF] text-[#003751] font-mono text-[10px] font-bold tracking-wider transition-colors cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                className="px-3.5 py-2 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-xs font-semibold transition-colors cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
               >
                 {isCheckingVoucher ? (
                   <>
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                    <span>KIỂM TRA...</span>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Kiểm tra...</span>
                   </>
                 ) : (
-                  <span>ÁP DỤNG</span>
+                  <span>Áp dụng</span>
                 )}
               </button>
             )}
@@ -111,9 +108,8 @@ export const OrderSummarySidebar: React.FC<OrderSummarySidebarProps> = ({
           {/* Quick Available Vouchers Chips */}
           {!isVoucherApplied && (availableVouchers ?? []).length > 0 && (
             <div className="space-y-1.5 pt-1">
-              <span className="text-[10px] text-[#88929B] flex items-center gap-1 font-mono">
-                <Sparkles className="w-3 h-3 text-[#89CEFF]" />
-                MÃ KHẢ DỤNG HÔM NAY:
+              <span className="text-xs text-[var(--text-muted)] block">
+                Mã khả dụng hôm nay:
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {(availableVouchers ?? []).slice(0, 3).map((v) => (
@@ -123,7 +119,7 @@ export const OrderSummarySidebar: React.FC<OrderSummarySidebarProps> = ({
                     onClick={() => {
                       onVoucherCodeChange(v.code);
                     }}
-                    className="px-2 py-0.5 rounded-[2px] bg-[#060E20] border border-[#2D3449] hover:border-[#89CEFF] text-[10px] font-mono font-bold text-[#89CEFF] transition-colors cursor-pointer"
+                    className="px-2.5 py-1 rounded-md bg-[var(--surface-subtle)] border border-[var(--line)] hover:border-[var(--accent)] text-xs font-mono font-medium text-[var(--accent)] transition-colors cursor-pointer"
                     title={v.description}
                   >
                     {v.code}
@@ -135,69 +131,69 @@ export const OrderSummarySidebar: React.FC<OrderSummarySidebarProps> = ({
 
           {/* Applied Status */}
           {isVoucherApplied && (
-            <div className="flex items-center gap-1.5 text-xs text-[#34D399] bg-[#34D399]/10 border border-[#34D399]/30 p-2 rounded-[2px]">
-              <Check className="w-3.5 h-3.5 stroke-[3] shrink-0" />
+            <div className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 p-2.5 rounded-lg">
+              <Check className="w-3.5 h-3.5 stroke-[2.5] shrink-0" />
               <span>
                 {voucherSuccess || `Đã áp dụng mã ${voucherCode}: Giảm -${formatPrice(discountAmount)} đ`}
               </span>
             </div>
           )}
 
-          {voucherError && <p className="text-xs text-rose-400 font-medium">{voucherError}</p>}
+          {voucherError && <p className="text-xs text-red-700 font-medium">{voucherError}</p>}
         </div>
 
         {/* Detailed Cost Ledger */}
-        <div className="space-y-3 pt-3 border-t border-[#2D3449] text-xs relative z-10">
-          <div className="flex items-center justify-between text-[#BEC8D2]">
+        <div className="space-y-2.5 pt-3 border-t border-[var(--line)] text-xs">
+          <div className="flex items-center justify-between text-[var(--text-2)]">
             <span>Tạm tính ({itemCount} phụ kiện)</span>
-            <span className="font-mono text-[#DAE2FD]">{formatPrice(rawSubtotal)} đ</span>
+            <span className="font-medium tabular-nums text-[var(--text)]">{formatPrice(rawSubtotal)} đ</span>
           </div>
 
-          <div className="flex items-center justify-between text-[#BEC8D2]">
+          <div className="flex items-center justify-between text-[var(--text-2)]">
             <span>Phí vận chuyển bọc chống sốc</span>
-            <span className="font-mono text-[#89CEFF]">
-              {shippingFee === 0 ? 'Miễn phí (0đ)' : `${formatPrice(shippingFee)} đ`}
+            <span className="font-medium tabular-nums text-emerald-700">
+              {shippingFee === 0 ? 'Miễn phí (0 đ)' : `${formatPrice(shippingFee)} đ`}
             </span>
           </div>
 
-          <div className="flex items-center justify-between text-[#BEC8D2]">
+          <div className="flex items-center justify-between text-[var(--text-2)]">
             <span>Kỹ thuật viên khảo sát & gắn máy</span>
-            <span className="font-mono text-[#89CEFF]">
-              {installationFee === 0 ? 'Miễn phí (0đ)' : `${formatPrice(installationFee)} đ`}
+            <span className="font-medium tabular-nums text-emerald-700">
+              {installationFee === 0 ? 'Miễn phí (0 đ)' : `${formatPrice(installationFee)} đ`}
             </span>
           </div>
 
           {isVoucherApplied && discountAmount > 0 && (
-            <div className="flex items-center justify-between text-[#34D399]">
+            <div className="flex items-center justify-between text-emerald-700">
               <span>Ưu đãi Voucher ({voucherCode})</span>
-              <span className="font-mono">-{formatPrice(discountAmount)} đ</span>
+              <span className="font-medium tabular-nums">-{formatPrice(discountAmount)} đ</span>
             </div>
           )}
 
           {/* Division Line & Total */}
-          <div className="pt-4 mt-2 border-t border-[#2D3449] space-y-1">
-            <div className="flex items-baseline justify-between">
+          <div className="pt-4 mt-2 border-t border-[var(--line)] space-y-1">
+            <div className="flex items-baseline justify-between gap-2">
               <div>
-                <div className="text-sm font-semibold text-[#DAE2FD]">Tổng thanh toán</div>
-                <div className="text-[9px] font-mono text-[#88929B] uppercase">
-                  ĐÃ BAO GỒM VAT 10% & HÓA ĐƠN GTGT
+                <div className="text-sm font-semibold text-[var(--text)]">Tổng thanh toán</div>
+                <div className="text-xs text-[var(--text-muted)]">
+                  Đã bao gồm VAT 10% & hóa đơn GTGT
                 </div>
               </div>
               <div className="text-right">
-                <span className="font-mono text-2xl font-bold text-[#DAE2FD]">
+                <span className="text-2xl font-bold tabular-nums text-[var(--accent)]">
                   {formatPrice(totalPayable)}
                 </span>
-                <span className="font-mono text-sm font-bold text-[#89CEFF] ml-1">đ</span>
+                <span className="text-sm font-bold text-[var(--accent)] ml-1">đ</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Primary Checkout CTA Button */}
-        <div className="pt-2 relative z-10 space-y-2">
+        <div className="pt-1 space-y-2.5">
           {!isAuthenticated && (
-            <div className="p-2.5 rounded bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-300 flex items-center gap-2">
-              <Lock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-center gap-2">
+              <Lock className="w-3.5 h-3.5 text-amber-700 shrink-0" />
               <span>Cần đăng nhập tài khoản để tiến hành đặt hàng & giao nhận.</span>
             </div>
           )}
@@ -206,37 +202,37 @@ export const OrderSummarySidebar: React.FC<OrderSummarySidebarProps> = ({
             type="button"
             onClick={onCheckout}
             disabled={isSubmitting || itemCount === 0}
-            className={`w-full py-3.5 px-4 rounded-[2px] font-bold text-xs tracking-wider uppercase flex items-center justify-center gap-2 transition-all shadow-xl active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+            className={`w-full py-3 px-4 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
               !isAuthenticated
-                ? 'bg-amber-500 hover:bg-amber-400 text-neutral-950'
-                : 'bg-[#0EA5E9] hover:bg-[#89CEFF] text-[#003751]'
+                ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                : 'bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white'
             }`}
           >
             {isSubmitting ? (
               <span className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>ĐANG XỬ LÝ ĐƠN HÀNG...</span>
+                <span>Đang xử lý đơn hàng...</span>
               </span>
             ) : !isAuthenticated ? (
               <>
                 <Lock className="w-4 h-4" />
-                <span>ĐĂNG NHẬP ĐỂ ĐẶT HÀNG</span>
+                <span>Đăng nhập để đặt hàng</span>
               </>
             ) : (
               <>
-                <span>XÁC NHẬN ĐẶT HÀNG</span>
+                <span>Xác nhận đặt hàng</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
           </button>
         </div>
 
-        {/* VIP Concierge Hotline Box */}
-        <div className="pt-3 border-t border-[#2D3449] flex items-center justify-between text-xs relative z-10">
-          <span className="text-[#88929B]">Cần tư vấn hạ tầng điện?</span>
+        {/* Concierge Hotline Box */}
+        <div className="pt-3 border-t border-[var(--line)] flex items-center justify-between text-xs">
+          <span className="text-[var(--text-muted)]">Cần tư vấn hạ tầng điện?</span>
           <a
             href="tel:18008899"
-            className="flex items-center gap-1.5 font-mono text-xs font-bold text-[#89CEFF] hover:underline"
+            className="flex items-center gap-1.5 text-xs font-semibold tabular-nums text-[var(--accent)] hover:underline"
           >
             <Phone className="w-3.5 h-3.5" />
             <span>1800 8899 (Miễn phí)</span>
@@ -245,10 +241,10 @@ export const OrderSummarySidebar: React.FC<OrderSummarySidebarProps> = ({
       </div>
 
       {/* Assurance Box */}
-      <div className="rounded-[4px] bg-[#131B2E] border border-[#2D3449] p-4 flex items-start gap-3">
-        <ShieldCheck className="w-5 h-5 text-[#89CEFF] flex-shrink-0 mt-0.5" />
-        <div className="space-y-1 text-xs text-[#88929B] leading-relaxed">
-          <h4 className="font-bold text-[#DAE2FD] text-xs">
+      <div className="rounded-xl bg-[var(--surface)] border border-[var(--line)] p-4 flex items-start gap-3">
+        <ShieldCheck className="w-5 h-5 text-[var(--accent)] flex-shrink-0 mt-0.5" />
+        <div className="space-y-1 text-xs text-[var(--text-2)] leading-relaxed">
+          <h4 className="font-semibold text-[var(--text)] text-xs">
             Bảo chứng đồng bộ hệ sinh thái AutoHub
           </h4>
           <p>

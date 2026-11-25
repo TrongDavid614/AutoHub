@@ -49,7 +49,7 @@ export const TabsList: React.FC<TabsListProps> = ({ className, children }) => {
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-1 p-1 bg-slate-950/80 border border-slate-800 rounded-lg text-slate-400',
+        'inline-flex items-center gap-1 p-1 bg-[var(--surface-subtle)] border border-[var(--line)] rounded-lg text-[var(--text-secondary)]',
         className
       )}
     >
@@ -82,10 +82,10 @@ export const TabsTrigger: React.FC<TabsTriggerProps> = ({
       disabled={disabled}
       onClick={() => ctx.onValueChange(value)}
       className={cn(
-        'px-3.5 py-1.5 rounded-md text-xs font-semibold transition-all duration-150 flex items-center gap-2 cursor-pointer',
+        'px-3.5 py-1.5 rounded-md text-xs font-medium transition-colors duration-150 flex items-center gap-2 cursor-pointer',
         isActive
-          ? 'bg-slate-800 text-white shadow-sm font-bold'
-          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900',
+          ? 'bg-[var(--surface)] text-[var(--text)] shadow-xs font-semibold'
+          : 'text-[var(--text-secondary)] hover:text-[var(--text)]',
         disabled && 'opacity-40 cursor-not-allowed',
         className
       )}

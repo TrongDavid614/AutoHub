@@ -16,13 +16,11 @@ import {
   RotateCcw,
   Building2,
 } from 'lucide-react';
-import { useAdminTheme } from '@/context/AdminThemeContext';
 import { staffService } from '@/features/staff-operations/services/staff.service';
 import type { WorkspaceMetricsResponse } from '@/types/staff.types';
 import { cn, formatCurrencyVND } from '@/lib/utils';
 
 export const StaffWorkspacePage: React.FC = () => {
-  const { isDarkMode } = useAdminTheme();
   const [metrics, setMetrics] = useState<WorkspaceMetricsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -157,85 +155,56 @@ export const StaffWorkspacePage: React.FC = () => {
   };
 
   return (
-    <div
-      className={cn(
-        'space-y-6 antialiased transition-colors duration-300',
-        isDarkMode ? 'text-[#DAE2FD]' : 'text-slate-800'
-      )}
-    >
-      {/* 1. Header & Shift Greeting */}
-      <div
-        className={cn(
-          'flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-xl border transition-colors',
-          isDarkMode
-            ? 'bg-[#0B1326] border-[#3E4850]/40 shadow-lg'
-            : 'bg-white border-slate-200 shadow-sm'
-        )}
-      >
+    <div className="space-y-6 antialiased text-[var(--text)]">
+      {/* 1. Header & Shift Info */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-lg bg-[var(--surface)] border border-[var(--line)]">
         <div>
-          <h1 className={cn('text-xl font-bold mt-1', isDarkMode ? 'text-white' : 'text-slate-900')}>
-            Bàn Làm Việc Vận Hành Showroom
+          <h1 className="text-xl font-bold text-[var(--text)]">
+            Bàn làm việc vận hành Showroom
           </h1>
-          <p className={cn('text-xs mt-0.5', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-            Dữ liệu trực tiếp từ SQL Server: Theo dõi Lead CRM, mật độ lái thử và thời hạn giữ chỗ cọc 72 giờ.
+          <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+            Theo dõi khách hàng cần tư vấn, lịch hẹn lái thử và thời hạn giữ chỗ cọc 72 giờ.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <button
             type="button"
             onClick={fetchMetrics}
             disabled={isLoading}
-            className={cn(
-              'px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5 cursor-pointer transition-colors disabled:opacity-60',
-              isDarkMode
-                ? 'bg-[#131B2E] border-[#3E4850]/50 hover:bg-[#1C2640] text-slate-200'
-                : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-700'
-            )}
+            className="px-3 py-1.5 rounded-lg border border-[var(--line-strong)] bg-[var(--surface)] hover:bg-[var(--surface-subtle)] text-xs font-medium text-[var(--text)] flex items-center gap-1.5 cursor-pointer transition-colors disabled:opacity-60"
           >
             <RefreshCw className={cn('w-3.5 h-3.5', isLoading && 'animate-spin')} />
             Làm mới
           </button>
-          <span
-            className={cn(
-              'px-3 py-1.5 rounded-lg border text-xs font-mono font-bold flex items-center gap-2',
-              isDarkMode
-                ? 'bg-emerald-950/70 border-emerald-800/40 text-emerald-300'
-                : 'bg-emerald-50 border-emerald-200 text-emerald-700'
-            )}
-          >
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Ca Sáng: 08:00 - 15:00</span>
+          <span className="px-3 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-medium tabular-nums flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-600" />
+            <span>Ca làm việc: 08:00 - 15:00</span>
           </span>
         </div>
       </div>
 
       {/* Loading State */}
       {isLoading && !metrics ? (
-        <div className="flex flex-col items-center justify-center p-16 space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-          <p className="text-xs font-mono text-slate-400">Đang đồng bộ số liệu vận hành từ SQL Server...</p>
+        <div className="flex flex-col items-center justify-center p-16 space-y-3 bg-[var(--surface)] border border-[var(--line)] rounded-lg">
+          <Loader2 className="w-7 h-7 animate-spin text-[var(--accent)]" />
+          <p className="text-xs text-[var(--text-secondary)]">Đang tải dữ liệu vận hành...</p>
         </div>
       ) : error && !metrics ? (
-        <div
-          className={cn(
-            'p-10 rounded-xl border text-center space-y-3',
-            isDarkMode ? 'bg-[#0B1326] border-red-900/50 text-red-300' : 'bg-red-50 border-red-200 text-red-700'
-          )}
-        >
-          <AlertCircle className="w-8 h-8 mx-auto text-red-500" />
+        <div className="p-10 rounded-lg border border-red-200 bg-red-50 text-red-800 text-center space-y-3">
+          <AlertCircle className="w-8 h-8 mx-auto text-red-600" />
           <p className="text-sm font-semibold">{error}</p>
           <button
             type="button"
             onClick={fetchMetrics}
-            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold cursor-pointer"
+            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-medium cursor-pointer"
           >
             Thử lại
           </button>
         </div>
       ) : (
         <>
-          {/* 2. Hàng 4 Thẻ chỉ số ca trực */}
+          {/* 2. KPI Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {kpis.map((kpi, idx) => {
               const icons = [Users, Calendar, Clock, Package];
@@ -244,84 +213,55 @@ export const StaffWorkspacePage: React.FC = () => {
               return (
                 <div
                   key={kpi.id}
-                  className={cn(
-                    'p-4 rounded-xl border space-y-2 transition-colors',
-                    isDarkMode
-                      ? 'bg-[#0B1326] border-[#3E4850]/40 shadow-sm'
-                      : 'bg-white border-slate-200 shadow-xs'
-                  )}
+                  className="p-4 rounded-lg bg-[var(--surface)] border border-[var(--line)] space-y-2"
                 >
                   <div className="flex items-center justify-between">
-                    <span className={cn('text-xs font-medium', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
+                    <span className="text-xs font-medium text-[var(--text-secondary)]">
                       {kpi.title}
                     </span>
-                    <div
-                      className={cn(
-                        'w-7 h-7 rounded-lg flex items-center justify-center',
-                        isDarkMode ? 'bg-[#171F33] text-[#89CEFF]' : 'bg-sky-50 text-blue-600'
-                      )}
-                    >
-                      <Icon className="w-4 h-4" />
-                    </div>
+                    <Icon className="w-4 h-4 text-[var(--text-muted)]" />
                   </div>
 
-                  <div className={cn('text-2xl font-bold font-mono', isDarkMode ? 'text-white' : 'text-slate-900')}>
+                  <div className="text-2xl font-bold text-[var(--text)] tabular-nums">
                     {kpi.value}
                   </div>
 
-                  <div className="flex items-center justify-between pt-1">
-                    <span className={cn('text-[11px] truncate', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
+                  <div className="flex items-center justify-between pt-1 gap-2">
+                    <span className="text-xs text-[var(--text-secondary)] truncate">
                       {kpi.subtitle}
                     </span>
-                    <span
-                      className={cn(
-                        'text-[10px] font-mono px-1.5 py-0.5 rounded font-bold uppercase',
-                        kpi.badgeType === 'danger' &&
-                          (isDarkMode
-                            ? 'bg-red-950/70 text-red-300 border border-red-800/40'
-                            : 'bg-red-50 text-red-700 border border-red-200'),
-                        kpi.badgeType === 'warning' &&
-                          (isDarkMode
-                            ? 'bg-amber-950/60 text-amber-300 border border-amber-800/40'
-                            : 'bg-amber-50 text-amber-700 border border-amber-200'),
-                        kpi.badgeType === 'success' &&
-                          (isDarkMode
-                            ? 'bg-emerald-950/70 text-emerald-300 border border-emerald-800/40'
-                            : 'bg-emerald-50 text-emerald-700 border border-emerald-200'),
-                        kpi.badgeType === 'info' &&
-                          (isDarkMode
-                            ? 'bg-blue-950/60 text-blue-300 border border-blue-800/40'
-                            : 'bg-blue-50 text-blue-700 border border-blue-200')
-                      )}
-                    >
-                      {kpi.badgeText}
-                    </span>
+                    {kpi.badgeText && (
+                      <span
+                        className={cn(
+                          'text-[11px] px-2 py-0.5 rounded-full font-medium border shrink-0',
+                          kpi.badgeType === 'danger' && 'bg-red-50 text-red-700 border-red-200',
+                          kpi.badgeType === 'warning' && 'bg-amber-50 text-amber-800 border-amber-200',
+                          kpi.badgeType === 'success' && 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                          kpi.badgeType === 'info' && 'bg-blue-50 text-blue-700 border-blue-200'
+                        )}
+                      >
+                        {kpi.badgeText}
+                      </span>
+                    )}
                   </div>
                 </div>
               );
             })}
           </div>
 
-          {/* 3. KHỐI MINI-CHART TRỰC QUAN ĐIỀU PHỐI (2 Cột Song Song) */}
+          {/* 3. Operational Charts (2 Columns) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Chart 1: Mật độ ca lái thử theo khung giờ */}
-            <div
-              className={cn(
-                'p-4 rounded-xl border space-y-3 transition-colors',
-                isDarkMode
-                  ? 'bg-[#0B1326] border-[#3E4850]/40 shadow-sm'
-                  : 'bg-white border-slate-200 shadow-xs'
-              )}
-            >
-              <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-[#3E4850]/40">
+            {/* Chart 1: Hourly Test Drives */}
+            <div className="p-5 rounded-lg bg-[var(--surface)] border border-[var(--line)] space-y-3">
+              <div className="flex items-center justify-between pb-2.5 border-b border-[var(--line)]">
                 <div className="flex items-center gap-2">
-                  <Car className="w-4 h-4 text-blue-500" />
-                  <span className={cn('text-xs font-bold font-mono uppercase tracking-wider', isDarkMode ? 'text-white' : 'text-slate-900')}>
-                    Mật Độ Lái Thử Theo Khung Giờ
+                  <Car className="w-4 h-4 text-[var(--accent)]" />
+                  <span className="text-sm font-semibold text-[var(--text)]">
+                    Mật độ lái thử theo khung giờ
                   </span>
                 </div>
-                <span className="font-mono text-[11px] font-bold text-blue-500">
-                  {metrics?.totalTestDrivesCount || 0} Lượt Trong DB
+                <span className="text-xs font-medium text-[var(--accent)] tabular-nums">
+                  {metrics?.totalTestDrivesCount || 0} lượt
                 </span>
               </div>
 
@@ -330,34 +270,32 @@ export const StaffWorkspacePage: React.FC = () => {
                   const safeMax = Math.max(1, item.max);
                   const heightPercent = item.count === 0 ? 6 : Math.round((item.count / safeMax) * 100);
                   return (
-                    <div key={item.slot} className="flex flex-col items-center gap-1.5 h-full justify-end group">
+                    <div key={item.slot} className="flex flex-col items-center gap-1.5 h-full justify-end">
                       <span
                         className={cn(
-                          'text-[10px] font-mono font-bold transition-opacity',
-                          item.highlight ? 'text-blue-500 font-extrabold' : 'text-slate-400',
-                          item.count === 0 ? 'opacity-30' : 'opacity-100'
+                          'text-xs font-semibold tabular-nums',
+                          item.highlight ? 'text-[var(--accent)]' : 'text-[var(--text-secondary)]',
+                          item.count === 0 && 'opacity-30'
                         )}
                       >
                         {item.count}
                       </span>
                       <div
                         className={cn(
-                          'w-full rounded-t-md transition-all duration-300 relative',
+                          'w-full rounded-t transition-colors relative',
                           item.count === 0
-                            ? isDarkMode ? 'bg-[#171F33]/40' : 'bg-slate-100'
+                            ? 'bg-[var(--surface-subtle)]'
                             : item.highlight
-                            ? 'bg-blue-600 shadow-[0_0_12px_rgba(37,99,235,0.35)]'
-                            : isDarkMode ? 'bg-blue-500/40 hover:bg-blue-500/60' : 'bg-blue-400 hover:bg-blue-500'
+                              ? 'bg-[var(--accent)]'
+                              : 'bg-blue-300 hover:bg-blue-400'
                         )}
                         style={{ height: `${heightPercent}%` }}
                         title={`${item.slot}: ${item.label}`}
                       />
                       <span
                         className={cn(
-                          'text-[10px] font-mono whitespace-nowrap',
-                          item.highlight
-                            ? isDarkMode ? 'text-white font-bold' : 'text-slate-900 font-bold'
-                            : isDarkMode ? 'text-[#88929B]' : 'text-slate-500'
+                          'text-[11px] whitespace-nowrap tabular-nums',
+                          item.highlight ? 'text-[var(--text)] font-semibold' : 'text-[var(--text-muted)]'
                         )}
                       >
                         {item.slot}
@@ -368,59 +306,44 @@ export const StaffWorkspacePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Chart 2: Phân bổ trạng thái phiếu cọc 72h */}
-            <div
-              className={cn(
-                'p-4 rounded-xl border space-y-3 transition-colors',
-                isDarkMode
-                  ? 'bg-[#0B1326] border-[#3E4850]/40 shadow-sm'
-                  : 'bg-white border-slate-200 shadow-xs'
-              )}
-            >
-              <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-[#3E4850]/40">
+            {/* Chart 2: Deposit Status Breakdown */}
+            <div className="p-5 rounded-lg bg-[var(--surface)] border border-[var(--line)] space-y-3">
+              <div className="flex items-center justify-between pb-2.5 border-b border-[var(--line)]">
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-emerald-500" />
-                  <span className={cn('text-xs font-bold font-mono uppercase tracking-wider', isDarkMode ? 'text-white' : 'text-slate-900')}>
-                    Phân Bổ Phiếu Cọc 72H
+                  <TrendingUp className="w-4 h-4 text-emerald-600" />
+                  <span className="text-sm font-semibold text-[var(--text)]">
+                    Phân bổ phiếu cọc 72h
                   </span>
                 </div>
-                <span className="font-mono text-[11px] font-bold text-emerald-500">
-                  {metrics?.totalDepositsCount || 0} Phiếu Trong DB
+                <span className="text-xs font-medium text-emerald-700 tabular-nums">
+                  {metrics?.totalDepositsCount || 0} phiếu
                 </span>
               </div>
 
               <div className="space-y-3 pt-2">
-                <div className="space-y-1.5">
-                  <div className="w-full h-3.5 rounded-full overflow-hidden flex gap-1 p-0.5 bg-black/20 border border-slate-200/30 dark:border-[#3E4850]/40">
-                    {depositBreakdown.map((seg) => (
-                      <div
-                        key={seg.label}
-                        className={cn('h-full rounded-full transition-all duration-300', seg.color)}
-                        style={{ width: `${seg.percent}%` }}
-                        title={`${seg.label}: ${seg.count} phiếu (${seg.percent}%)`}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 pt-1 font-mono text-xs">
+                <div className="w-full h-3 rounded-full overflow-hidden flex gap-0.5 bg-[var(--surface-subtle)] border border-[var(--line)]">
                   {depositBreakdown.map((seg) => (
                     <div
                       key={seg.label}
-                      className={cn(
-                        'p-2 rounded-lg border flex flex-col justify-between gap-1',
-                        isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40' : 'bg-slate-50 border-slate-200'
-                      )}
-                    >
+                      className={cn('h-full transition-all duration-300', seg.color)}
+                      style={{ width: `${seg.percent}%` }}
+                      title={`${seg.label}: ${seg.count} phiếu (${seg.percent}%)`}
+                    />
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-3 gap-3 pt-1 divide-x divide-[var(--line)] text-xs">
+                  {depositBreakdown.map((seg) => (
+                    <div key={seg.label} className="pl-3 first:pl-0 flex flex-col justify-between gap-1">
                       <div className="flex items-center gap-1.5">
                         <span className={cn('w-2 h-2 rounded-full', seg.color)} />
-                        <span className={cn('text-[10px] truncate', isDarkMode ? 'text-slate-300' : 'text-slate-600')}>
+                        <span className="text-[11px] text-[var(--text-secondary)] truncate">
                           {seg.label}
                         </span>
                       </div>
-                      <div className="flex items-baseline justify-between mt-0.5">
-                        <span className={cn('text-sm font-bold', seg.text)}>{seg.count}</span>
-                        <span className="text-[10px] text-slate-400">{seg.percent}%</span>
+                      <div className="flex items-baseline justify-between tabular-nums">
+                        <span className="text-sm font-bold text-[var(--text)]">{seg.count}</span>
+                        <span className="text-[11px] text-[var(--text-muted)]">{seg.percent}%</span>
                       </div>
                     </div>
                   ))}
@@ -429,40 +352,31 @@ export const StaffWorkspacePage: React.FC = () => {
             </div>
           </div>
 
-          {/* 4. Main Operational Grid: Today's Timeline with Filter & Pagination */}
-          <div
-            className={cn(
-              'p-5 rounded-xl border space-y-4 transition-colors',
-              isDarkMode
-                ? 'bg-[#0B1326] border-[#3E4850]/40 shadow-lg'
-                : 'bg-white border-slate-200 shadow-sm'
-            )}
-          >
-            {/* Header with DB count & filtered count */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-[#3E4850]/40">
+          {/* 4. Test Drive Timeline */}
+          <div className="p-5 rounded-lg bg-[var(--surface)] border border-[var(--line)] space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[var(--line)]">
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-blue-500" />
-                <h2 className={cn('text-sm font-bold uppercase tracking-wider font-mono', isDarkMode ? 'text-white' : 'text-slate-900')}>
-                  Danh Sách Lịch Lái Thử Hiện Có
+                <Calendar className="w-4 h-4 text-[var(--accent)]" />
+                <h2 className="text-base font-semibold text-[var(--text)]">
+                  Lịch hẹn lái thử hiện có
                 </h2>
               </div>
-              <div className="flex items-center gap-2 text-[11px] font-mono">
+              <div className="flex items-center gap-2 text-xs tabular-nums">
                 {filteredTimeline.length !== todayTimeline.length && (
-                  <span className="text-amber-500 font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                    Lọc: {filteredTimeline.length} lịch
+                  <span className="text-amber-800 font-medium bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                    Đang lọc: {filteredTimeline.length}
                   </span>
                 )}
-                <span className="text-emerald-500 font-bold">
-                  {todayTimeline.length} Lịch Hẹn Trong DB
+                <span className="text-[var(--text-secondary)] font-medium">
+                  Tổng {todayTimeline.length} lịch hẹn
                 </span>
               </div>
             </div>
 
-            {/* Filter Control Bar */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1">
-              {/* 1. Search Box */}
+            {/* Filter Bar */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
               <div className="relative col-span-1 sm:col-span-2 lg:col-span-2">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <Search className="w-3.5 h-3.5 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="text"
                   value={testDriveSearch}
@@ -471,12 +385,7 @@ export const StaffWorkspacePage: React.FC = () => {
                     setTestDrivePage(1);
                   }}
                   placeholder="Tìm khách hàng, SĐT, mẫu xe, biển số, showroom..."
-                  className={cn(
-                    'w-full pl-8 pr-7 py-1.5 rounded-lg text-xs font-mono transition-colors border focus:outline-none focus:ring-1 focus:ring-blue-500',
-                    isDarkMode
-                      ? 'bg-[#131B2E] border-[#3E4850]/50 text-slate-200 placeholder-slate-500 focus:border-[#89CEFF]'
-                      : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-500'
-                  )}
+                  className="w-full pl-8 pr-7 py-2 rounded-lg text-xs bg-[var(--surface)] border border-[var(--line-strong)] text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] transition-colors"
                 />
                 {testDriveSearch && (
                   <button
@@ -485,84 +394,67 @@ export const StaffWorkspacePage: React.FC = () => {
                       setTestDriveSearch('');
                       setTestDrivePage(1);
                     }}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 text-xs cursor-pointer"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text)] text-xs cursor-pointer"
                   >
                     ×
                   </button>
                 )}
               </div>
 
-              {/* 2. Status Filter */}
-              <div className="relative">
-                <select
-                  value={testDriveStatus}
-                  onChange={(e) => {
-                    setTestDriveStatus(e.target.value);
-                    setTestDrivePage(1);
-                  }}
-                  className={cn(
-                    'w-full px-2.5 py-1.5 rounded-lg text-xs font-mono transition-colors border cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500',
-                    isDarkMode
-                      ? 'bg-[#131B2E] border-[#3E4850]/50 text-slate-200 focus:border-[#89CEFF]'
-                      : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-blue-500'
-                  )}
-                >
-                  <option value="ALL">Tất cả trạng thái</option>
-                  <option value="PENDING">Chờ xếp xe (PENDING)</option>
-                  <option value="CONFIRMED">Đã lên lịch (CONFIRMED)</option>
-                  <option value="COMPLETED">Hoàn tất (COMPLETED)</option>
-                  <option value="CANCELLED">Đã hủy (CANCELLED)</option>
-                </select>
-              </div>
+              <select
+                value={testDriveStatus}
+                onChange={(e) => {
+                  setTestDriveStatus(e.target.value);
+                  setTestDrivePage(1);
+                }}
+                className="w-full px-3 py-2 rounded-lg text-xs bg-[var(--surface)] border border-[var(--line-strong)] text-[var(--text)] cursor-pointer focus:outline-none focus:border-[var(--accent)]"
+              >
+                <option value="ALL">Tất cả trạng thái</option>
+                <option value="PENDING">Chờ xếp xe</option>
+                <option value="CONFIRMED">Đã lên lịch</option>
+                <option value="COMPLETED">Hoàn tất</option>
+                <option value="CANCELLED">Đã hủy</option>
+              </select>
 
-              {/* 3. Showroom Filter */}
-              <div className="relative">
-                <select
-                  value={testDriveShowroom}
-                  onChange={(e) => {
-                    setTestDriveShowroom(e.target.value);
-                    setTestDrivePage(1);
-                  }}
-                  className={cn(
-                    'w-full px-2.5 py-1.5 rounded-lg text-xs font-mono transition-colors border cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500',
-                    isDarkMode
-                      ? 'bg-[#131B2E] border-[#3E4850]/50 text-slate-200 focus:border-[#89CEFF]'
-                      : 'bg-slate-50 border-slate-200 text-slate-800 focus:border-blue-500'
-                  )}
-                >
-                  <option value="ALL">Tất cả chi nhánh</option>
-                  {uniqueShowrooms.map((sr) => (
-                    <option key={sr} value={sr}>
-                      {sr}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <select
+                value={testDriveShowroom}
+                onChange={(e) => {
+                  setTestDriveShowroom(e.target.value);
+                  setTestDrivePage(1);
+                }}
+                className="w-full px-3 py-2 rounded-lg text-xs bg-[var(--surface)] border border-[var(--line-strong)] text-[var(--text)] cursor-pointer focus:outline-none focus:border-[var(--accent)]"
+              >
+                <option value="ALL">Tất cả chi nhánh</option>
+                {uniqueShowrooms.map((sr) => (
+                  <option key={sr} value={sr}>
+                    {sr}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            {/* Active Filter Badges & Reset Button */}
             {(testDriveSearch || testDriveStatus !== 'ALL' || testDriveShowroom !== 'ALL') && (
-              <div className="flex flex-wrap items-center gap-2 pt-0.5 text-[11px] font-mono">
-                <span className="text-slate-400">Đang lọc:</span>
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <span className="text-[var(--text-muted)]">Đang lọc:</span>
                 {testDriveSearch && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/30">
+                  <span className="px-2 py-0.5 rounded bg-[var(--accent-soft)] text-[var(--accent)]">
                     &quot;{testDriveSearch}&quot;
                   </span>
                 )}
                 {testDriveStatus !== 'ALL' && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">
-                    Trạng thái: {testDriveStatus}
+                  <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
+                    {testDriveStatus}
                   </span>
                 )}
                 {testDriveShowroom !== 'ALL' && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/30">
+                  <span className="px-2 py-0.5 rounded bg-[var(--surface-subtle)] text-[var(--text)] border border-[var(--line)]">
                     {testDriveShowroom}
                   </span>
                 )}
                 <button
                   type="button"
                   onClick={handleResetTestDriveFilters}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-700/50 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-[var(--line)] hover:bg-[var(--surface-subtle)] text-[var(--text-secondary)] cursor-pointer"
                 >
                   <RotateCcw className="w-3 h-3" />
                   <span>Đặt lại</span>
@@ -572,29 +464,26 @@ export const StaffWorkspacePage: React.FC = () => {
 
             {/* List or Empty State */}
             {todayTimeline.length === 0 ? (
-              <div className="p-8 text-center text-xs font-mono text-slate-400">
+              <div className="p-8 text-center text-xs text-[var(--text-muted)]">
                 Chưa có lịch hẹn lái thử nào được ghi nhận trong hệ thống.
               </div>
             ) : filteredTimeline.length === 0 ? (
-              <div className="p-8 text-center space-y-2 border border-dashed rounded-lg border-slate-700/50">
-                <Search className="w-7 h-7 mx-auto text-slate-500 opacity-60" />
-                <p className={cn('text-xs font-semibold', isDarkMode ? 'text-slate-300' : 'text-slate-700')}>
-                  Không tìm thấy lịch lái thử nào phù hợp với bộ lọc
-                </p>
-                <p className="text-[11px] text-slate-500">
-                  Hãy thử thay đổi từ khóa tìm kiếm hoặc bấm &quot;Đặt lại&quot; để hiển thị toàn bộ {todayTimeline.length} lịch hẹn.
+              <div className="p-8 text-center space-y-2 border border-dashed rounded-lg border-[var(--line-strong)]">
+                <Search className="w-6 h-6 mx-auto text-[var(--text-muted)]" />
+                <p className="text-xs font-semibold text-[var(--text)]">
+                  Không tìm thấy lịch lái thử phù hợp với bộ lọc
                 </p>
                 <button
                   type="button"
                   onClick={handleResetTestDriveFilters}
-                  className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors cursor-pointer"
+                  className="mt-1 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white transition-colors cursor-pointer"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   <span>Đặt lại bộ lọc</span>
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="divide-y divide-[var(--line)] border border-[var(--line)] rounded-lg overflow-hidden">
                 {paginatedTimeline.map((slot) => {
                   const s = (slot.status || '').toUpperCase();
                   const isCompleted = s === 'COMPLETED';
@@ -604,46 +493,41 @@ export const StaffWorkspacePage: React.FC = () => {
                   return (
                     <div
                       key={slot.id}
-                      className={cn(
-                        'p-3.5 rounded-lg border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3',
-                        isDarkMode
-                          ? 'bg-[#131B2E] border-[#3E4850]/40 hover:border-[#89CEFF]/50'
-                          : 'bg-slate-50 border-slate-200 hover:border-blue-400'
-                      )}
+                      className="p-3.5 bg-[var(--surface)] hover:bg-[var(--surface-subtle)] transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                     >
                       <div className="space-y-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs font-mono font-bold text-blue-600 dark:text-[#89CEFF] px-2 py-0.5 rounded bg-blue-50 dark:bg-[#171F33] border border-blue-200 dark:border-[#3E4850]/60 shrink-0">
+                          <span className="text-xs font-semibold tabular-nums text-[var(--accent)] px-2 py-0.5 rounded bg-[var(--accent-soft)] shrink-0">
                             {slot.timeSlot}
                           </span>
-                          <span className={cn('text-xs font-bold truncate', isDarkMode ? 'text-white' : 'text-slate-900')}>
+                          <span className="text-sm font-semibold text-[var(--text)] truncate">
                             {slot.carModel}
                           </span>
                           <span
                             className={cn(
-                              'text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border shrink-0',
-                              isCompleted && 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-                              isConfirmed && 'bg-blue-500/15 text-[#89CEFF] border-blue-500/30',
-                              isCancelled && 'bg-rose-500/15 text-rose-400 border-rose-500/30',
-                              !isCompleted && !isConfirmed && !isCancelled && 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                              'text-[11px] font-medium px-2 py-0.5 rounded-full border shrink-0',
+                              isCompleted && 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                              isConfirmed && 'bg-blue-50 text-blue-700 border-blue-200',
+                              isCancelled && 'bg-red-50 text-red-700 border-red-200',
+                              !isCompleted && !isConfirmed && !isCancelled && 'bg-amber-50 text-amber-800 border-amber-200'
                             )}
                           >
                             {isCompleted ? 'Hoàn tất' : isConfirmed ? 'Đã lên lịch' : isCancelled ? 'Đã hủy' : 'Chờ xếp xe'}
                           </span>
                         </div>
-                        <div className={cn('text-xs flex flex-wrap items-center gap-2', isDarkMode ? 'text-[#88929B]' : 'text-slate-600')}>
+                        <div className="text-xs text-[var(--text-secondary)] flex flex-wrap items-center gap-2">
                           <span>
-                            Khách: <strong className={isDarkMode ? 'text-white' : 'text-slate-800'}>{slot.customerName}</strong>
+                            Khách: <strong className="text-[var(--text)]">{slot.customerName}</strong>
                             {slot.customerPhone ? ` (${slot.customerPhone})` : ''}
                           </span>
-                          <span>•</span>
+                          <span>·</span>
                           <span className="font-mono text-[11px]">Biển số: {slot.licensePlate}</span>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-                        <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-1 rounded border border-emerald-200 dark:border-emerald-800/40 font-bold flex items-center gap-1">
-                          <Building2 className="w-3 h-3 shrink-0" />
+                        <span className="text-xs text-[var(--text-secondary)] flex items-center gap-1">
+                          <Building2 className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0" />
                           <span>{slot.staffName}</span>
                         </span>
                       </div>
@@ -653,33 +537,25 @@ export const StaffWorkspacePage: React.FC = () => {
               </div>
             )}
 
-            {/* Pagination Controls Bar */}
+            {/* Pagination */}
             {filteredTimeline.length > 0 && (
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-[#3E4850]/40">
-                {/* Stats & Page Size */}
-                <div className="flex items-center gap-3 text-xs font-mono text-slate-400">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-[var(--line)]">
+                <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)] tabular-nums">
                   <span>
-                    Hiển thị <strong className={isDarkMode ? 'text-white' : 'text-slate-800'}>{(safePage - 1) * testDrivePageSize + 1}</strong> -{' '}
-                    <strong className={isDarkMode ? 'text-white' : 'text-slate-800'}>{Math.min(safePage * testDrivePageSize, filteredTimeline.length)}</strong> /{' '}
-                    <strong className="text-emerald-500">{filteredTimeline.length}</strong> lịch hẹn
+                    Hiển thị <strong className="text-[var(--text)]">{(safePage - 1) * testDrivePageSize + 1}</strong> -{' '}
+                    <strong className="text-[var(--text)]">{Math.min(safePage * testDrivePageSize, filteredTimeline.length)}</strong> /{' '}
+                    <strong className="text-[var(--text)]">{filteredTimeline.length}</strong> lịch hẹn
                   </span>
 
-                  <span className="hidden sm:inline">•</span>
-
-                  <div className="hidden sm:flex items-center gap-1.5">
-                    <span>Số thẻ/trang:</span>
+                  <div className="hidden sm:flex items-center gap-1.5 pl-3 border-l border-[var(--line)]">
+                    <span>Số dòng:</span>
                     <select
                       value={testDrivePageSize}
                       onChange={(e) => {
                         setTestDrivePageSize(Number(e.target.value));
                         setTestDrivePage(1);
                       }}
-                      className={cn(
-                        'px-2 py-0.5 rounded text-xs font-mono border cursor-pointer focus:outline-none',
-                        isDarkMode
-                          ? 'bg-[#131B2E] border-[#3E4850]/50 text-slate-200'
-                          : 'bg-slate-50 border-slate-200 text-slate-700'
-                      )}
+                      className="px-2 py-1 rounded text-xs border border-[var(--line-strong)] bg-[var(--surface)] text-[var(--text)] cursor-pointer focus:outline-none"
                     >
                       <option value={6}>6</option>
                       <option value={10}>10</option>
@@ -688,22 +564,16 @@ export const StaffWorkspacePage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Page Navigation Buttons */}
                 <div className="flex items-center gap-1 self-center sm:self-auto">
                   <button
                     type="button"
                     disabled={safePage <= 1}
                     onClick={() => setTestDrivePage((p) => Math.max(1, p - 1))}
-                    className={cn(
-                      'p-1.5 rounded-lg border text-xs font-medium flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed',
-                      isDarkMode
-                        ? 'bg-[#131B2E] border-[#3E4850]/50 hover:bg-[#1C2640] text-slate-200'
-                        : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-700'
-                    )}
+                    className="p-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-subtle)] text-[var(--text-secondary)] text-xs flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                     title="Trang trước"
                   >
                     <ChevronLeft className="w-4 h-4" />
-                    <span className="hidden md:inline text-xs">Trước</span>
+                    <span className="hidden md:inline">Trước</span>
                   </button>
 
                   <div className="flex items-center gap-1">
@@ -719,17 +589,15 @@ export const StaffWorkspacePage: React.FC = () => {
                         const showEllipsis = prev && p - prev > 1;
                         return (
                           <React.Fragment key={p}>
-                            {showEllipsis && <span className="px-1 text-slate-500 text-xs">...</span>}
+                            {showEllipsis && <span className="px-1 text-[var(--text-muted)] text-xs">...</span>}
                             <button
                               type="button"
                               onClick={() => setTestDrivePage(p)}
                               className={cn(
-                                'w-7 h-7 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer',
+                                'w-7 h-7 rounded-lg text-xs font-medium tabular-nums cursor-pointer transition-colors border',
                                 safePage === p
-                                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                                  : isDarkMode
-                                  ? 'bg-[#131B2E] border border-[#3E4850]/50 hover:bg-[#1C2640] text-slate-300'
-                                  : 'bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700'
+                                  ? 'bg-[var(--accent)] border-[var(--accent)] text-white'
+                                  : 'bg-[var(--surface)] border-[var(--line)] hover:bg-[var(--surface-subtle)] text-[var(--text-secondary)]'
                               )}
                             >
                               {p}
@@ -743,15 +611,10 @@ export const StaffWorkspacePage: React.FC = () => {
                     type="button"
                     disabled={safePage >= totalPages}
                     onClick={() => setTestDrivePage((p) => Math.min(totalPages, p + 1))}
-                    className={cn(
-                      'p-1.5 rounded-lg border text-xs font-medium flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed',
-                      isDarkMode
-                        ? 'bg-[#131B2E] border-[#3E4850]/50 hover:bg-[#1C2640] text-slate-200'
-                        : 'bg-slate-50 border-slate-200 hover:bg-slate-100 text-slate-700'
-                    )}
+                    className="p-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-subtle)] text-[var(--text-secondary)] text-xs flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                     title="Trang sau"
                   >
-                    <span className="hidden md:inline text-xs">Sau</span>
+                    <span className="hidden md:inline">Sau</span>
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -759,77 +622,63 @@ export const StaffWorkspacePage: React.FC = () => {
             )}
           </div>
 
-          {/* 5. Danh sách phiếu cọc thật từ DB (Cọc 72h) */}
-          <div
-            className={cn(
-              'p-5 rounded-xl border space-y-4 transition-colors',
-              isDarkMode
-                ? 'bg-[#0B1326] border-[#3E4850]/40 shadow-lg'
-                : 'bg-white border-slate-200 shadow-sm'
-            )}
-          >
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-[#3E4850]/40">
+          {/* 5. Deposit 72h & VIN Table */}
+          <div className="p-5 rounded-lg bg-[var(--surface)] border border-[var(--line)] space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
               <div className="flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-amber-500" />
-                <h2 className={cn('text-sm font-bold uppercase tracking-wider font-mono', isDarkMode ? 'text-white' : 'text-slate-900')}>
-                  Theo Dõi Phiếu Cọc 72H &amp; Trạng Thái Gán VIN
+                <ShieldAlert className="w-4 h-4 text-amber-600" />
+                <h2 className="text-base font-semibold text-[var(--text)]">
+                  Theo dõi phiếu cọc 72h &amp; trạng thái gán VIN
                 </h2>
               </div>
-              <span className="text-xs font-mono text-blue-500 font-bold">
-                {urgentDeposits.length} Phiếu Từ Database
+              <span className="text-xs text-[var(--text-secondary)] font-medium tabular-nums">
+                {urgentDeposits.length} phiếu
               </span>
             </div>
 
             {urgentDeposits.length === 0 ? (
-              <div className="p-8 text-center text-xs font-mono text-slate-400">
-                Hiện không có phiếu đặt cọc nào trong cơ sở dữ liệu.
+              <div className="p-8 text-center text-xs text-[var(--text-muted)]">
+                Hiện không có phiếu đặt cọc nào.
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead
-                    className={cn(
-                      'font-mono uppercase text-[11px] border-b',
-                      isDarkMode ? 'bg-[#131B2E] text-[#88929B] border-[#3E4850]/40' : 'bg-slate-50 text-slate-500 border-slate-200'
-                    )}
-                  >
+                  <thead className="bg-[var(--surface-subtle)] text-[var(--text-secondary)] border-b border-[var(--line)] font-semibold">
                     <tr>
-                      <th className="py-2.5 px-3">Mã Cọc</th>
-                      <th className="py-2.5 px-3">Khách Hàng &amp; SĐT</th>
-                      <th className="py-2.5 px-3">Dòng Xe</th>
-                      <th className="py-2.5 px-3 text-right">Tiền Cọc</th>
-                      <th className="py-2.5 px-3 text-center">Thời Hạn 72H</th>
-                      <th className="py-2.5 px-3 text-center">Trạng Thái VIN</th>
+                      <th className="py-2.5 px-3">Mã cọc</th>
+                      <th className="py-2.5 px-3">Khách hàng</th>
+                      <th className="py-2.5 px-3">Dòng xe</th>
+                      <th className="py-2.5 px-3 text-right">Tiền cọc</th>
+                      <th className="py-2.5 px-3 text-center">Thời hạn 72h</th>
+                      <th className="py-2.5 px-3 text-center">Số khung (VIN)</th>
                     </tr>
                   </thead>
-                  <tbody className={cn('divide-y font-sans', isDarkMode ? 'divide-[#3E4850]/30' : 'divide-slate-100')}>
+                  <tbody className="divide-y divide-[var(--line)]">
                     {urgentDeposits.map((dep) => (
-                      <tr
-                        key={dep.id}
-                        className={cn(
-                          'transition-colors',
-                          isDarkMode ? 'hover:bg-[#131B2E]/60' : 'hover:bg-slate-50'
-                        )}
-                      >
-                        <td className="py-3 px-3 font-mono font-bold text-blue-600 dark:text-[#89CEFF]">{dep.depositCode}</td>
-                        <td className="py-3 px-3">
-                          <div className={cn('font-semibold', isDarkMode ? 'text-white' : 'text-slate-900')}>{dep.customerName}</div>
-                          <div className={cn('text-[11px] font-mono', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>{dep.customerPhone}</div>
+                      <tr key={dep.id} className="hover:bg-[var(--surface-subtle)] transition-colors">
+                        <td className="py-3 px-3 font-mono font-semibold text-[var(--accent)]">
+                          {dep.depositCode}
                         </td>
                         <td className="py-3 px-3">
-                          <div className={cn('font-medium', isDarkMode ? 'text-white' : 'text-slate-800')}>{dep.carModel}</div>
-                          <div className={cn('text-[10px]', isDarkMode ? 'text-[#88929B]' : 'text-slate-400')}>{dep.variant}</div>
+                          <div className="font-medium text-[var(--text)]">{dep.customerName}</div>
+                          <div className="text-[11px] text-[var(--text-secondary)] tabular-nums">
+                            {dep.customerPhone}
+                          </div>
                         </td>
-                        <td className="py-3 px-3 text-right font-mono font-bold text-emerald-600 dark:text-[#10B981]">
+                        <td className="py-3 px-3">
+                          <div className="font-medium text-[var(--text)]">{dep.carModel}</div>
+                          <div className="text-[11px] text-[var(--text-muted)]">{dep.variant}</div>
+                        </td>
+                        <td className="py-3 px-3 text-right font-semibold text-emerald-700 tabular-nums">
                           {formatCurrencyVND(dep.depositAmount)}
                         </td>
                         <td className="py-3 px-3 text-center">
                           <span
                             className={cn(
-                              'inline-flex items-center gap-1 font-mono text-[11px] font-bold px-2 py-0.5 rounded border',
+                              'inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full border tabular-nums',
                               dep.remainingSeconds > 0
-                                ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/40'
-                                : 'bg-slate-100 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                                ? 'bg-amber-50 text-amber-800 border-amber-200'
+                                : 'bg-[var(--surface-subtle)] text-[var(--text-muted)] border-[var(--line)]'
                             )}
                           >
                             <Clock className="w-3 h-3" />
@@ -840,14 +689,14 @@ export const StaffWorkspacePage: React.FC = () => {
                             </span>
                           </span>
                         </td>
-                        <td className="py-3 px-3 text-center font-mono">
+                        <td className="py-3 px-3 text-center">
                           {dep.assignedVin ? (
-                            <span className="text-[11px] px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40 font-bold">
+                            <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
                               {dep.assignedVin}
                             </span>
                           ) : (
-                            <span className="text-[11px] px-2 py-0.5 rounded bg-red-50 dark:bg-red-950/60 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800/40 font-bold">
-                              Chưa Gán VIN
+                            <span className="text-[11px] px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 font-medium">
+                              Chưa gán VIN
                             </span>
                           )}
                         </td>

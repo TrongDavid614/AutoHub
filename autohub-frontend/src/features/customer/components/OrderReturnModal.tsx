@@ -48,18 +48,18 @@ export const OrderReturnModal: React.FC<OrderReturnModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas-deep/80 backdrop-blur-md animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45"
     >
-      <div className="w-full max-w-lg rounded-xl bg-surface-container border border-surface-highlight p-6 shadow-2xl relative">
-        <div className="flex items-center justify-between pb-3 border-b border-surface-highlight">
+      <div className="w-full max-w-lg rounded-xl bg-[var(--surface)] border border-[var(--line)] p-6 shadow-xl relative">
+        <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
           <div className="flex items-center gap-2">
-            <RefreshCcw className="w-5 h-5 text-orange-400" />
-            <h3 className="text-base font-bold text-text-primary">Yêu cầu đổi trả phụ kiện</h3>
+            <RefreshCcw className="w-5 h-5 text-orange-600" />
+            <h3 className="text-base font-bold text-[var(--text)]">Yêu cầu đổi trả phụ kiện</h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-7 h-7 rounded bg-surface-elevated text-text-secondary hover:text-text-primary flex items-center justify-center cursor-pointer transition-colors"
+            className="w-7 h-7 rounded bg-[var(--surface-subtle)] text-[var(--text-muted)] hover:text-[var(--text)] flex items-center justify-center cursor-pointer transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -67,7 +67,7 @@ export const OrderReturnModal: React.FC<OrderReturnModalProps> = ({
 
         {returnSubmitted ? (
           <div className="py-8 text-center space-y-2">
-            <Check className="w-12 h-12 text-emerald-400 mx-auto animate-bounce" />
+            <Check className="w-12 h-12 text-emerald-600 mx-auto" />
             <h4 className="text-sm font-bold text-text-primary">Đã tiếp nhận yêu cầu đổi trả!</h4>
             <p className="text-xs text-text-muted">
               Hồ sơ đổi trả đã được chuyển sang bộ phận kho vận & kinh doanh (Staff) thẩm định theo quy chế.

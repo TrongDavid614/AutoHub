@@ -15,8 +15,8 @@ export const ModelRibbon: React.FC = () => {
       </div>
 
       {/* Ribbon Card */}
-      <div className="flex items-center gap-4 p-4 rounded bg-surface-elevated border border-surface-highlight/70">
-        <div className="w-12 h-12 rounded-lg bg-accent-action/20 border border-accent-primary/40 flex items-center justify-center text-accent-primary font-mono font-black text-lg tracking-wider shrink-0 shadow-[0_0_15px_rgba(14,165,233,0.25)]">
+      <div className="flex items-center gap-4 p-4 rounded-lg bg-surface-elevated border border-surface-highlight/70">
+        <div className="w-12 h-12 rounded-lg bg-[var(--accent-soft)] border border-[var(--accent)]/25 flex items-center justify-center text-[var(--accent)] font-bold text-lg tracking-tight shrink-0">
           GT
         </div>
 
@@ -25,7 +25,7 @@ export const ModelRibbon: React.FC = () => {
             <h2 className="text-xl font-bold text-text-primary tracking-tight">
               AutoHub GT-e
             </h2>
-            <div className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <div className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
               <ShieldCheck className="w-3 h-3" />
               <span>PIN SIÊU DẪN</span>
             </div>

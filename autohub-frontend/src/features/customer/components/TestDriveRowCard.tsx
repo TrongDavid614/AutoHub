@@ -9,7 +9,6 @@ import {
   CreditCard,
   ShieldCheck,
   FileCheck2,
-  Sparkles,
 } from 'lucide-react';
 import type { TestDriveItem, TestDriveStatus } from '@/features/customer/types/test-drive.types';
 
@@ -30,37 +29,37 @@ export const TestDriveRowCard: React.FC<TestDriveRowCardProps> = ({
     switch (status) {
       case 'CONFIRMED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 font-mono text-[11px] font-bold uppercase tracking-wider">
-            <Check className="w-3.5 h-3.5 stroke-[3]" />
-            <span>ĐÃ XÁC NHẬN (CONFIRMED)</span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
+            <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span>Đã xác nhận</span>
           </span>
         );
       case 'PENDING':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-amber-500/15 border border-amber-500/40 text-amber-300 font-mono text-[11px] font-bold uppercase tracking-wider">
-            <Clock className="w-3.5 h-3.5 animate-spin" />
-            <span>CHỜ DUYỆT XE DEMO (PENDING)</span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold">
+            <Clock className="w-3.5 h-3.5" />
+            <span>Chờ duyệt xe Demo</span>
           </span>
         );
       case 'COMPLETED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-accent-action/15 border border-accent-action/40 text-accent-primary font-mono text-[11px] font-bold uppercase tracking-wider">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--accent-soft)] border border-[var(--accent)]/25 text-[var(--accent)] text-xs font-semibold">
             <FileCheck2 className="w-3.5 h-3.5" />
-            <span>ĐÃ HOÀN THÀNH (COMPLETED)</span>
+            <span>Đã hoàn thành</span>
           </span>
         );
       case 'CANCELLED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-rose-500/15 border border-rose-500/40 text-rose-300 font-mono text-[11px] font-bold uppercase tracking-wider">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
             <X className="w-3.5 h-3.5" />
-            <span>ĐÃ HỦY (CANCELLED)</span>
+            <span>Đã hủy</span>
           </span>
         );
       case 'EXPIRED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-slate-500/15 border border-slate-500/40 text-slate-300 font-mono text-[11px] font-bold uppercase tracking-wider">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold">
             <AlertCircle className="w-3.5 h-3.5" />
-            <span>HẾT HẠN DUYỆT (EXPIRED 12H)</span>
+            <span>Hết hạn duyệt</span>
           </span>
         );
     }
@@ -78,8 +77,8 @@ export const TestDriveRowCard: React.FC<TestDriveRowCardProps> = ({
             </span>
           </div>
           <span className="text-border-subtle">•</span>
-          <span className="px-2 py-0.5 rounded-[2px] bg-surface-interactive text-[10px] font-mono text-emerald-400 font-bold">
-            ✓ ĐÃ CAM KẾT GPLX
+          <span className="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-xs text-emerald-700 font-medium">
+            ✓ Đã cam kết GPLX
           </span>
         </div>
 
@@ -96,9 +95,8 @@ export const TestDriveRowCard: React.FC<TestDriveRowCardProps> = ({
             className="w-24 h-16 rounded-[4px] bg-canvas-deep border border-surface-highlight object-cover shrink-0"
           />
           <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[2px] bg-accent-action/15 text-accent-primary font-mono text-[10px] font-bold">
-              <Sparkles className="w-3 h-3" />
-              <span>XE LÁI THỬ SHOWROOM (DEMO CAR)</span>
+            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[var(--accent-soft)] text-[var(--accent)] text-xs font-medium">
+              <span>Xe lái thử Showroom</span>
             </div>
             <h3 className="text-base font-bold text-text-primary">{item.carModelName}</h3>
             <p className="text-xs text-text-secondary">{item.carVariant}</p>
@@ -122,9 +120,9 @@ export const TestDriveRowCard: React.FC<TestDriveRowCardProps> = ({
           </div>
 
           {item.demoCarPlate && (
-            <div className="flex items-center gap-2 pt-1 font-mono text-[11px] text-emerald-400">
+            <div className="flex items-center gap-2 pt-1 text-xs text-emerald-700 font-medium">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Biển số xe Demo: {item.demoCarPlate} • Cố vấn: {item.consultantName}</span>
+              <span>Biển số xe Demo: <span className="font-mono font-semibold">{item.demoCarPlate}</span> • Cố vấn: {item.consultantName}</span>
             </div>
           )}
         </div>
@@ -162,7 +160,7 @@ export const TestDriveRowCard: React.FC<TestDriveRowCardProps> = ({
             <button
               type="button"
               onClick={() => onCancelBooking(item.id)}
-              className="px-3 py-1.5 rounded-[2px] bg-surface-elevated hover:bg-rose-950/40 border border-surface-highlight hover:border-rose-500/50 text-rose-300 font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+              className="px-3 py-1.5 rounded-lg bg-[var(--surface)] hover:bg-red-50 border border-[var(--line)] hover:border-red-200 text-red-700 font-semibold flex items-center gap-1 cursor-pointer transition-colors"
             >
               <X className="w-3.5 h-3.5" />
               <span>Hủy lịch</span>

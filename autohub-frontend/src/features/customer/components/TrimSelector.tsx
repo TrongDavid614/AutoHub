@@ -36,7 +36,7 @@ export const TrimSelector: React.FC<TrimSelectorProps> = ({
               onClick={() => onSelectTrim(trim.id)}
               className={`text-left p-4 rounded border transition-all cursor-pointer relative flex flex-col justify-between gap-4 ${
                 isSelected
-                  ? 'bg-surface-elevated border-accent-primary ring-1 ring-accent-primary/60 shadow-[0_0_20px_rgba(14,165,233,0.2)]'
+                  ? 'bg-surface-elevated border-accent-primary ring-1 ring-accent-primary/25'
                   : 'bg-surface-elevated/70 border-surface-highlight hover:border-surface-interactive hover:bg-surface-elevated'
               }`}
             >

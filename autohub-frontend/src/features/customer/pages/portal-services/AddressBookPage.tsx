@@ -151,14 +151,14 @@ export const AddressBookPage: React.FC = () => {
 
       {/* Thông báo Toast / Error */}
       {toastMessage && (
-        <div className="p-3 rounded bg-emerald-500/15 border border-emerald-500/40 text-xs text-emerald-300 flex items-center gap-2 animate-fadeIn">
-          <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+        <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
+          <Check className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
       {errorMessage && (
-        <div className="p-3.5 rounded bg-rose-500/15 border border-rose-500/40 text-xs text-rose-300 flex items-center gap-2 animate-fadeIn shadow-lg">
-          <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+        <div className="p-3.5 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
           <span>{errorMessage}</span>
         </div>
       )}
@@ -167,7 +167,7 @@ export const AddressBookPage: React.FC = () => {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[1, 2].map((i) => (
-            <div key={i} className="p-5 rounded-[4px] bg-surface-elevated border border-surface-highlight animate-pulse h-40" />
+            <div key={i} className="p-5 rounded-lg bg-[var(--surface)] border border-[var(--line)] h-40" />
           ))}
         </div>
       ) : addresses.length === 0 ? (

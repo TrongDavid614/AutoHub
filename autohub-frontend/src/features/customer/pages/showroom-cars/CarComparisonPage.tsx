@@ -233,15 +233,15 @@ export const CarComparisonPage: React.FC = () => {
 
       {/* Error notification banner if any */}
       {error && (
-        <div className="no-print p-4 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-center justify-between text-xs">
+        <div className="no-print p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
+            <AlertCircle className="w-4 h-4 text-amber-700 shrink-0" />
             <span>Đang hiển thị dữ liệu dự phòng: {error}</span>
           </div>
           <button
             type="button"
             onClick={() => fetchComparison(targetIds)}
-            className="underline font-bold hover:text-white transition-colors cursor-pointer"
+            className="underline font-semibold hover:text-amber-950 transition-colors cursor-pointer"
           >
             Thử lại
           </button>

@@ -72,13 +72,13 @@ export const CarDetailPage: React.FC = () => {
   if (error || !car) {
     return (
       <div className="w-full max-w-2xl mx-auto px-4 py-16 text-center space-y-4">
-        <div className="p-6 rounded-lg bg-rose-950/20 border border-rose-500/30 text-rose-300 space-y-3">
+        <div className="p-6 rounded-xl bg-red-50 border border-red-200 text-red-700 space-y-3">
           <p className="font-semibold text-base">{error || 'Không tìm thấy xe yêu cầu'}</p>
           <div className="flex items-center justify-center gap-3 pt-2">
             <button
               type="button"
               onClick={fetchCarDetail}
-              className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded transition-colors cursor-pointer"
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold text-xs rounded-lg transition-colors cursor-pointer"
             >
               Thử lại
             </button>

@@ -56,17 +56,17 @@ export const CheckoutPage: React.FC = () => {
 
   if (!isAuthenticated) {
     return (
-      <div className="w-full bg-[#060E20] text-[#DAE2FD] min-h-screen flex items-center justify-center p-4">
+      <div className="w-full bg-[var(--bg)] text-[var(--text)] min-h-screen flex items-center justify-center p-4">
         <div className="text-center space-y-3">
-          <div className="w-10 h-10 border-2 border-[#89CEFF] border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-sm text-[#88929B]">Đang chuyển hướng tới trang Đăng nhập...</p>
+          <div className="w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-sm text-[var(--text-secondary)]">Đang chuyển hướng tới trang đăng nhập...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full bg-[#060E20] text-[#DAE2FD] min-h-screen py-8 px-4 md:px-8">
+    <div className="w-full bg-[var(--bg)] text-[var(--text)] min-h-screen py-8 px-4 md:px-8">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Main 2-Column Split Workspace (60% / 40%) */}
         <div className="flex flex-col lg:flex-row items-start gap-8">

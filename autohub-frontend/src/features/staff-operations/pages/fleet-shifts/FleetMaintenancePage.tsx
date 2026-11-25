@@ -245,10 +245,10 @@ export const FleetMaintenancePage: React.FC = () => {
           {statusFilter === 'SAN_SANG'
             ? 'Không tìm thấy xe Demo trạng thái sẵn sàng.'
             : statusFilter === 'DANG_CHAY_THU'
-            ? 'Không tìm thấy xe Demo trạng thái đang chạy thử.'
-            : statusFilter === 'BAO_DUONG'
-            ? 'Không tìm thấy xe Demo trạng thái bảo dưỡng.'
-            : 'Không tìm thấy xe Demo nào phù hợp.'}
+              ? 'Không tìm thấy xe Demo trạng thái đang chạy thử.'
+              : statusFilter === 'BAO_DUONG'
+                ? 'Không tìm thấy xe Demo trạng thái bảo dưỡng.'
+                : 'Không tìm thấy xe Demo nào phù hợp.'}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -355,7 +355,7 @@ export const FleetMaintenancePage: React.FC = () => {
       {selectedCarForOdo && (
         <div
           onClick={() => setSelectedCarForOdo(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
         >
           <div
             onClick={(e) => e.stopPropagation()}
@@ -399,7 +399,7 @@ export const FleetMaintenancePage: React.FC = () => {
       {selectedCarForMaintenance && (
         <div
           onClick={() => setSelectedCarForMaintenance(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
         >
           <div
             onClick={(e) => e.stopPropagation()}
@@ -452,7 +452,7 @@ export const FleetMaintenancePage: React.FC = () => {
       {selectedCarForHistory && (
         <div
           onClick={() => setSelectedCarForHistory(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
         >
           <div
             onClick={(e) => e.stopPropagation()}

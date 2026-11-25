@@ -1,7 +1,5 @@
 import React from 'react';
-import { Cpu, Database, ShieldCheck, Timer, CheckCircle2, Zap } from 'lucide-react';
-
-import { useAdminTheme } from '@/context/AdminThemeContext';
+import { Cpu, Database, ShieldCheck, Timer, CheckCircle2 } from 'lucide-react';
 import type { AiEngineStatus } from '@/types/admin-dashboard.types';
 import { MOCK_AI_ENGINE_STATUS } from '../mocks/dashboard.mock';
 
@@ -12,218 +10,126 @@ export interface AiEngineMonitorCardProps {
 export const AiEngineMonitorCard: React.FC<AiEngineMonitorCardProps> = ({
   status = MOCK_AI_ENGINE_STATUS,
 }) => {
-  const { isDarkMode } = useAdminTheme();
   const ai = status.openrouter || status.gemini || MOCK_AI_ENGINE_STATUS.openrouter!;
 
   return (
-    <div className={`rounded-xl border p-6 transition-colors ${
-      isDarkMode
-        ? 'bg-[#131B2E] border-[#3E4850]/50 shadow-xl'
-        : 'bg-white border-slate-200 shadow-sm'
-    } space-y-5`}>
+    <div className="rounded-lg bg-[var(--surface)] border border-[var(--line)] p-5 space-y-5">
       {/* Header */}
-      <div className={`flex items-center justify-between pb-3 border-b ${
-        isDarkMode ? 'border-[#3E4850]/40' : 'border-slate-100'
-      }`}>
-        <div>
-          <div className="flex items-center gap-2">
-            <Cpu className="w-4 h-4 text-blue-500" />
-            <h2 className={`text-base font-bold tracking-tight ${
-              isDarkMode ? 'text-white' : 'text-slate-900'
-            }`}>
-              Giám Sát Cụm AI & Hạ Tầng Tự Động Hóa
-            </h2>
-          </div>
+      <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
+        <div className="flex items-center gap-2">
+          <Cpu className="w-4 h-4 text-[var(--accent)]" />
+          <h2 className="text-base font-semibold text-[var(--text)]">
+            Trạng thái hệ thống & tác vụ nền
+          </h2>
         </div>
 
-        <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-mono font-bold border border-emerald-500/30 flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          HỆ THỐNG ỔN ĐỊNH
+        <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-medium flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+          Ổn định
         </span>
       </div>
 
-      {/* 3 Core Infrastructure Blocks */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Block 1: AI OpenRouter Cloud Engine */}
-        <div className={`p-4 rounded-xl border space-y-3 transition-colors ${
-          isDarkMode
-            ? 'bg-[#0B1326] border-[#3E4850]/40'
-            : 'bg-slate-50/80 border-slate-200'
-        }`}>
+      {/* 3 Service Sections separated by clean dividers (no nested cards) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x divide-[var(--line)]">
+        {/* AI Model */}
+        <div className="space-y-3 md:pr-4">
           <div className="flex items-center justify-between">
-            <span className={`text-xs font-semibold flex items-center gap-1.5 ${
-              isDarkMode ? 'text-white' : 'text-slate-900'
-            }`}>
-              <Zap className="w-3.5 h-3.5 text-blue-500" />
-              Google Gemini AI API
-            </span>
-            <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-mono font-bold">
-              GEMINI FLASH
-            </span>
+            <span className="text-xs font-semibold text-[var(--text)]">Trợ lý tư vấn AI</span>
+            <span className="text-[11px] font-medium text-[var(--text-secondary)]">Hoạt động</span>
           </div>
 
-          <div className="space-y-1.5 text-xs">
-            <div className={`text-[11px] font-mono truncate font-semibold ${
-              isDarkMode ? 'text-[#89CEFF]' : 'text-blue-600'
-            }`}>
-              {ai.model}
-            </div>
+          <div className="space-y-2 text-xs">
+            <div className="text-[var(--accent)] font-medium truncate">{ai.model}</div>
 
-            <div className="flex justify-between items-center text-[11px] font-mono pt-1">
-              <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}>Hạn mức Quota API:</span>
-              <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                {ai.quotaUsedPercent}% / 100%
+            <div className="flex justify-between items-center text-[var(--text-secondary)]">
+              <span>Hạn mức API đã dùng</span>
+              <span className="font-semibold text-[var(--text)] tabular-nums">
+                {ai.quotaUsedPercent}%
               </span>
             </div>
-            {/* Quota Progress */}
-            <div className={`w-full h-1.5 rounded-full overflow-hidden ${
-              isDarkMode ? 'bg-[#171F33]' : 'bg-slate-200'
-            }`}>
+            <div className="w-full h-1.5 rounded-full bg-[var(--surface-subtle)] overflow-hidden">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-blue-500 to-sky-400"
+                className="h-full rounded-full bg-[var(--accent)]"
                 style={{ width: `${ai.quotaUsedPercent}%` }}
               />
             </div>
 
-            <div className="flex justify-between items-center text-[11px] font-mono pt-1">
-              <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}>Thời gian phản hồi:</span>
-              <span className={`font-bold ${isDarkMode ? 'text-[#89CEFF]' : 'text-blue-600'}`}>
-                {ai.responseTimeMs} ms (Cửa sổ: {ai.contextWindow})
+            <div className="flex justify-between items-center text-[var(--text-secondary)] pt-0.5">
+              <span>Độ trễ phản hồi</span>
+              <span className="font-semibold text-[var(--text)] tabular-nums">
+                {ai.responseTimeMs} ms ({ai.contextWindow})
               </span>
             </div>
           </div>
         </div>
 
-        {/* Block 2: Spring AI SQL Tool RAG (Realtime AutoHubDB) */}
-        <div className={`p-4 rounded-xl border space-y-3 transition-colors ${
-          isDarkMode
-            ? 'bg-[#0B1326] border-[#3E4850]/40'
-            : 'bg-slate-50/80 border-slate-200'
-        }`}>
-          <div className="flex items-center justify-between">
-            <span className={`text-xs font-semibold flex items-center gap-1.5 ${
-              isDarkMode ? 'text-white' : 'text-slate-900'
-            }`}>
-              <Database className="w-3.5 h-3.5 text-purple-500" />
-              Spring AI SQL Tool RAG
-            </span>
-            <span className="px-2 py-0.5 rounded bg-purple-500/15 text-purple-600 dark:text-purple-400 text-[10px] font-mono font-bold">
-              AUTOHUB SQL RAG
-            </span>
+        {/* SQL Data Query Tool */}
+        <div className="space-y-2.5 pt-4 md:pt-0 md:px-4">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--text)]">
+            <Database className="w-3.5 h-3.5 text-[var(--accent)]" />
+            <span>Dữ liệu truy vấn thời gian thực</span>
           </div>
 
           <div className="space-y-1.5 text-xs">
-            <div className="flex justify-between items-center text-[11px] font-mono">
-              <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}>Trạng thái CSDL:</span>
-              <span className="text-emerald-500 font-bold">KẾT NỐI TỐT</span>
+            <div className="flex justify-between items-center text-[var(--text-secondary)]">
+              <span>Trạng thái CSDL</span>
+              <span className="text-emerald-700 font-medium">Đã kết nối</span>
             </div>
-
-            <div className="flex justify-between items-center text-[11px] font-mono">
-              <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}>Lượt tư vấn hôm nay:</span>
-              <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                {status.vectorDb.indexedEmbeddingsCount.toLocaleString()} Lượt
+            <div className="flex justify-between items-center text-[var(--text-secondary)]">
+              <span>Lượt tư vấn hôm nay</span>
+              <span className="font-semibold text-[var(--text)] tabular-nums">
+                {status.vectorDb.indexedEmbeddingsCount.toLocaleString('vi-VN')} lượt
               </span>
             </div>
-
-            <div className="flex justify-between items-center text-[11px] font-mono">
-              <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}>Độ trễ trung bình:</span>
-              <span className="text-emerald-500 font-bold">{status.vectorDb.queryLatencyMs} ms</span>
-            </div>
-
-            <div className={`text-[10px] pt-1 ${isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}`}>
-              4 Spring AI @Tool truy vấn thời gian thực từ AutoHubDB (dbo.phien_ban_xe, dbo.ton_kho_xe, dbo.bieu_phi_lan_banh, dbo.phu_kien)
+            <div className="flex justify-between items-center text-[var(--text-secondary)]">
+              <span>Thời gian truy vấn</span>
+              <span className="font-semibold text-[var(--text)] tabular-nums">
+                {status.vectorDb.queryLatencyMs} ms
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Block 3: Cổng thanh toán & Webhook */}
-        <div className={`p-4 rounded-xl border space-y-3 transition-colors ${
-          isDarkMode
-            ? 'bg-[#0B1326] border-[#3E4850]/40'
-            : 'bg-slate-50/80 border-slate-200'
-        }`}>
-          <div className="flex items-center justify-between">
-            <span className={`text-xs font-semibold flex items-center gap-1.5 ${
-              isDarkMode ? 'text-white' : 'text-slate-900'
-            }`}>
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-              Cổng Thanh Toán
-            </span>
-            <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-mono font-bold">
-              HMAC-SHA512
-            </span>
+        {/* Payment Gateway */}
+        <div className="space-y-2.5 pt-4 md:pt-0 md:pl-4">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--text)]">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Cổng thanh toán</span>
           </div>
 
           <div className="space-y-1.5 text-xs">
-            <div className={`text-[11px] font-mono truncate ${
-              isDarkMode ? 'text-[#BEC8D2]' : 'text-slate-600'
-            }`}>
-              {status.paymentGateway.name}
-            </div>
-
-            <div className="flex justify-between items-center text-[11px] font-mono pt-1">
-              <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}>Tỷ lệ Uptime:</span>
-              <span className="text-emerald-500 font-bold">{status.paymentGateway.uptimePercent}%</span>
-            </div>
-
-            <div className="flex justify-between items-center text-[11px] font-mono">
-              <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}>Xác thực IPN:</span>
-              <span className={`font-bold ${isDarkMode ? 'text-[#89CEFF]' : 'text-blue-600'}`}>
-                Chữ ký tự động
+            <div className="text-[var(--text)] font-medium truncate">{status.paymentGateway.name}</div>
+            <div className="flex justify-between items-center text-[var(--text-secondary)]">
+              <span>Tỷ lệ uptime</span>
+              <span className="text-emerald-700 font-semibold tabular-nums">
+                {status.paymentGateway.uptimePercent}%
               </span>
             </div>
-
-            <div className={`text-[10px] pt-1 ${isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}`}>
-              Đối soát biên lai tức thì và kích hoạt đồng hồ cọc 72h
-            </div>
+            <p className="text-[11px] text-[var(--text-muted)]">
+              Đối soát biên lai tự động và kích hoạt giữ xe 72 giờ.
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Cron Jobs Bottom Status Row */}
-      <div className={`p-3.5 rounded-xl border space-y-2 transition-colors ${
-        isDarkMode
-          ? 'bg-[#0B1326] border-[#3E4850]/40'
-          : 'bg-slate-50/80 border-slate-200'
-      }`}>
-        <div className={`flex items-center justify-between text-xs font-mono font-bold uppercase ${
-          isDarkMode ? 'text-[#88929B]' : 'text-slate-500'
-        }`}>
+      {/* Cron Jobs Row (plain table/row style, no nested cards) */}
+      <div className="pt-4 border-t border-[var(--line)] space-y-2.5">
+        <div className="flex items-center justify-between text-xs font-semibold text-[var(--text-secondary)]">
           <span className="flex items-center gap-1.5">
-            <Timer className="w-3.5 h-3.5 text-blue-500" />
-            Bộ Lập Lịch Tác Vụ Ngầm (Automated Cron Jobs)
+            <Timer className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+            Lịch chạy tác vụ nền ({status.cronJobs.length})
           </span>
-          <span className="text-emerald-500">3 Tác Vụ Đang Chạy</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 divide-y md:divide-y-0 md:divide-x divide-[var(--line)]">
           {status.cronJobs.map((job) => (
-            <div
-              key={job.name}
-              className={`p-2.5 rounded-lg border text-xs space-y-1 transition-colors ${
-                isDarkMode
-                  ? 'bg-[#131B2E] border-[#3E4850]/50'
-                  : 'bg-white border-slate-200 shadow-xs'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className={`font-semibold text-[11px] line-clamp-1 ${
-                  isDarkMode ? 'text-white' : 'text-slate-900'
-                }`}>
-                  {job.name}
-                </span>
-                <CheckCircle2 className="w-3 h-3 text-emerald-500 flex-shrink-0" />
+            <div key={job.name} className="pt-2 md:pt-0 md:px-3 first:md:pl-0 text-xs space-y-0.5">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-medium text-[var(--text)] line-clamp-1">{job.name}</span>
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
               </div>
-              <div className={`text-[10px] font-mono ${
-                isDarkMode ? 'text-[#89CEFF]' : 'text-blue-600 font-medium'
-              }`}>
-                {job.schedule}
-              </div>
-              <div className={`text-[10px] font-mono ${
-                isDarkMode ? 'text-[#88929B]' : 'text-slate-400'
-              }`}>
-                {job.lastRun}
-              </div>
+              <div className="text-[11px] text-[var(--accent)] tabular-nums">{job.schedule}</div>
+              <div className="text-[11px] text-[var(--text-muted)] tabular-nums">{job.lastRun}</div>
             </div>
           ))}
         </div>

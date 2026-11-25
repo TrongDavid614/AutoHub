@@ -366,7 +366,7 @@ export const SystemMonitorPage: React.FC = () => {
       {toastMessage && (
         <div
           className={cn(
-            'fixed top-20 right-8 z-50 flex items-center gap-3 px-4 py-3 text-white text-sm font-medium rounded-xl shadow-2xl border animate-fadeIn',
+            'fixed top-20 right-8 z-50 flex items-center gap-3 px-4 py-3 text-white text-sm font-medium rounded-xl shadow-2xl border',
             toastType === 'SUCCESS' ? 'bg-emerald-600 border-emerald-500' : 'bg-rose-600 border-rose-500'
           )}
         >
@@ -390,8 +390,8 @@ export const SystemMonitorPage: React.FC = () => {
       >
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-500 text-[10px] font-mono font-bold flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 text-[10px] font-mono font-bold flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
               TẤT CẢ PHÂN HỆ ĐANG HOẠT ĐỘNG
             </span>
             <span className="px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-400 text-[10px] font-mono font-bold">
@@ -410,7 +410,7 @@ export const SystemMonitorPage: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Auto Refresh Select */}
           <div className="flex items-center gap-1.5 text-xs font-mono">
-            <Radio className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
+            <Radio className="w-3.5 h-3.5 text-emerald-600" />
             <select
               value={autoRefreshInterval}
               onChange={(e) => setAutoRefreshInterval(Number(e.target.value))}
@@ -492,7 +492,7 @@ export const SystemMonitorPage: React.FC = () => {
             </span>
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] font-mono text-emerald-500 font-bold">ONLINE</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
             </div>
           </div>
           <div className="flex items-center gap-2.5">
@@ -532,7 +532,7 @@ export const SystemMonitorPage: React.FC = () => {
             </span>
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] font-mono text-emerald-500 font-bold">CONNECTED</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
             </div>
           </div>
           <div className="flex items-center gap-2.5">
@@ -572,7 +572,7 @@ export const SystemMonitorPage: React.FC = () => {
             </span>
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] font-mono text-emerald-500 font-bold">LIVE</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
             </div>
           </div>
           <div className="flex items-center gap-2.5">
@@ -612,7 +612,7 @@ export const SystemMonitorPage: React.FC = () => {
             </span>
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] font-mono text-blue-400 font-bold">HEALTHY</span>
-              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-blue-600" />
             </div>
           </div>
           <div className="flex items-center gap-2.5">
@@ -740,8 +740,8 @@ export const SystemMonitorPage: React.FC = () => {
               Ghi nhận mọi thao tác nhạy cảm, tra cứu AI Copilot, bàn giao cọc VIN và kết quả xác thực thanh toán.
             </p>
           </div>
-          <span className="text-xs font-mono text-emerald-500 flex items-center gap-1.5 self-start sm:self-center">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-xs font-mono text-emerald-600 flex items-center gap-1.5 self-start sm:self-center">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
             Cập nhật tự động ({filteredLogs.length} sự kiện)
           </span>
         </div>
@@ -925,7 +925,7 @@ export const SystemMonitorPage: React.FC = () => {
 
       {/* ==================== MODAL: AUDIT LOG DETAIL ==================== */}
       {selectedLog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <div
             className={cn(
               'w-full max-w-lg rounded-2xl border p-6 shadow-2xl space-y-4 relative text-xs',

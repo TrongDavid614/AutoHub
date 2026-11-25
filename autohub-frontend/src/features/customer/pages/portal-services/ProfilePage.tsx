@@ -1,5 +1,5 @@
 import React from 'react';
-import { User as UserIcon, Sparkles } from 'lucide-react';
+import { User as UserIcon, ShieldCheck } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { ProfileStatsCards } from '@/features/customer/components/ProfileStatsCards';
 import { ProfileInfoForm } from '@/features/customer/components/ProfileInfoForm';
@@ -21,9 +21,7 @@ export const ProfilePage: React.FC = () => {
               alt={user?.fullName || 'Avatar'}
               className="w-14 h-14 rounded-full object-cover border-2 border-accent-primary shadow-md"
             />
-            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-canvas-primary flex items-center justify-center">
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-            </div>
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-600 border-2 border-[var(--surface)]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -36,9 +34,9 @@ export const ProfilePage: React.FC = () => {
           </div>
         </div>
     
-        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-[4px] bg-accent-action/10 border border-accent-primary/30 text-accent-primary self-start sm:self-auto shadow-sm">
-          <Sparkles className="w-4 h-4 animate-spin text-accent-primary" />
-          <span className="text-xs font-mono font-bold tracking-wider">HẠNG THÀNH VIÊN: VIP TITANIUM</span>
+        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-[var(--accent-soft)] border border-[var(--accent)]/25 text-[var(--accent)] self-start sm:self-auto">
+          <ShieldCheck className="w-4 h-4" />
+          <span className="text-xs font-semibold">Hạng thành viên: VIP Titanium</span>
         </div>
       </div>
 

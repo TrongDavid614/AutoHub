@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { X, ShieldCheck, Check, Sparkles, AlertCircle } from 'lucide-react';
+import { X, ShieldCheck, Check, AlertCircle } from 'lucide-react';
 import { VehicleDemoCard } from './VehicleDemoCard';
 import { LocationSelector, type LocationType } from './LocationSelector';
 import { DateTimeSelector, getFirstValidBookingDateAndSlot } from './DateTimeSelector';
@@ -164,12 +164,12 @@ export const TestDriveBookingModal: React.FC<TestDriveBookingModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-canvas-deep/80 backdrop-blur-md overflow-y-auto animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/45 overflow-y-auto"
     >
       {/* MODAL DIALOG CONTAINER */}
-      <div className="w-full max-w-4xl my-auto rounded-xl bg-surface-container/95 border border-surface-highlight shadow-[0_24px_60px_-12px_rgba(0,0,0,0.85),0_0_32px_-6px_rgba(14,165,233,0.18)] relative overflow-hidden">
-        {/* Top Specular Ambient Line */}
-        <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-accent-primary to-transparent" />
+      <div className="w-full max-w-4xl my-auto rounded-xl bg-[var(--surface)] border border-[var(--line)] shadow-xl relative overflow-hidden">
+        {/* Top Cobalt Accent Line */}
+        <div className="h-1 w-full bg-[var(--accent)]" />
 
         {/* Modal Interior Container */}
         <div className="p-5 sm:p-7 space-y-5">
@@ -206,13 +206,13 @@ export const TestDriveBookingModal: React.FC<TestDriveBookingModalProps> = ({
 
           {isSuccess ? (
             <div className="py-14 text-center space-y-3">
-              <div className="w-14 h-14 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto">
-                <Check className="w-8 h-8 stroke-[3] animate-bounce" />
+              <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto">
+                <Check className="w-7 h-7 stroke-[2.5]" />
               </div>
-              <h3 className="text-lg font-bold text-text-primary">
+              <h3 className="text-lg font-bold text-[var(--text)]">
                 Đặt lịch lái thử xe Demo thành công!
               </h3>
-              <p className="text-xs text-text-muted max-w-md mx-auto">
+              <p className="text-xs text-[var(--text-muted)] max-w-md mx-auto">
                 Chuyên viên kỹ thuật AutoHub sẽ liên hệ qua SMS/Cuộc gọi để xác nhận lộ trình trước 24 giờ.
               </p>
             </div>
@@ -220,8 +220,8 @@ export const TestDriveBookingModal: React.FC<TestDriveBookingModalProps> = ({
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Error Message if any */}
               {errorMessage && (
-                <div className="p-3 rounded bg-rose-500/15 border border-rose-500/40 text-xs text-rose-300 flex items-center gap-2 animate-fadeIn">
-                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
                   <span>{errorMessage}</span>
                 </div>
               )}
@@ -278,7 +278,7 @@ export const TestDriveBookingModal: React.FC<TestDriveBookingModalProps> = ({
               {/* SECTION 7: MODAL FOOTER & ACTION BUTTONS */}
               <div className="pt-3 border-t border-surface-highlight flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-2 text-xs text-text-muted">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>Miễn phí trải nghiệm 100% • Bảo hiểm trách nhiệm lái thử toàn diện từ AutoHub.</span>
                 </div>
 
@@ -294,9 +294,9 @@ export const TestDriveBookingModal: React.FC<TestDriveBookingModalProps> = ({
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex-1 sm:flex-none py-3 px-6 rounded-lg bg-accent-action hover:bg-accent-primary text-accent-contrast font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(14,165,233,0.35)] hover:shadow-[0_0_30px_rgba(137,206,255,0.5)] transition-all cursor-pointer disabled:opacity-50"
+                    className="flex-1 sm:flex-none py-3 px-6 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-semibold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50"
                   >
-                    <Sparkles className="w-4 h-4 text-accent-contrast" />
+                    <Check className="w-4 h-4" />
                     <span>
                       {isSubmitting ? 'Đang xác nhận lịch...' : 'Xác nhận đăng ký lái thử'}
                     </span>

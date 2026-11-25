@@ -114,7 +114,7 @@ export const CustomerInfoForm: React.FC<CustomerInfoFormProps> = ({
           />
           <div className="space-y-0.5 text-xs text-text-secondary leading-relaxed">
             <div className="font-semibold text-text-primary flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>Cam kết tuân thủ điều kiện cấp phép lái thử</span>
             </div>
             <p>

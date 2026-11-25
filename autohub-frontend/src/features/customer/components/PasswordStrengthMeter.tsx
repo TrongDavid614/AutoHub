@@ -9,33 +9,33 @@ export const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> = ({ sc
     switch (s) {
       case 4:
         return {
-          label: 'RẤT MẠNH (4/4)',
-          color: 'text-[#34D399]',
-          barColor: 'bg-[#34D399] shadow-[0_0_8px_rgba(52,211,153,0.5)]',
+          label: 'Rất mạnh (4/4)',
+          color: 'text-emerald-700',
+          barColor: 'bg-emerald-600',
         };
       case 3:
         return {
-          label: 'KHÁ MẠNH (3/4)',
-          color: 'text-[#89CEFF]',
-          barColor: 'bg-[#89CEFF] shadow-[0_0_8px_rgba(137,206,255,0.5)]',
+          label: 'Khá mạnh (3/4)',
+          color: 'text-[var(--accent)]',
+          barColor: 'bg-[var(--accent)]',
         };
       case 2:
         return {
-          label: 'TRUNG BÌNH (2/4)',
-          color: 'text-amber-400',
-          barColor: 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.4)]',
+          label: 'Trung bình (2/4)',
+          color: 'text-amber-700',
+          barColor: 'bg-amber-500',
         };
       case 1:
         return {
-          label: 'YẾU (1/4)',
-          color: 'text-rose-400',
-          barColor: 'bg-rose-400 shadow-[0_0_8px_rgba(244,63,94,0.4)]',
+          label: 'Yếu (1/4)',
+          color: 'text-red-600',
+          barColor: 'bg-red-500',
         };
       default:
         return {
-          label: 'CHƯA NHẬP (0/4)',
-          color: 'text-[#88929B]',
-          barColor: 'bg-[#2D3449]',
+          label: 'Chưa nhập (0/4)',
+          color: 'text-[var(--text-muted)]',
+          barColor: 'bg-[var(--line)]',
         };
     }
   };
@@ -43,26 +43,21 @@ export const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> = ({ sc
   const { label, color, barColor } = getStrengthInfo(score);
 
   return (
-    <div className="pt-1 w-full">
-      {/* Telemetry Password Strength Display Card matching Figma 20:14537 */}
-      <div className="p-2 rounded-[4px] bg-[#171F33]/60 border border-[#2D3449]/50 space-y-1.5 shadow-sm">
-        {/* Metric Header Row */}
-        <div className="flex items-center justify-between text-[10px] font-mono font-bold tracking-[1.5px] uppercase">
-          <span className="text-[#BEC8D2]">ĐỘ BẢO MẬT:</span>
-          <span className={color}>{label}</span>
-        </div>
+    <div className="pt-1.5 w-full space-y-1.5">
+      <div className="flex items-center justify-between text-[11px]">
+        <span className="text-[var(--text-secondary)]">Độ mạnh mật khẩu:</span>
+        <span className={`font-medium tabular-nums ${color}`}>{label}</span>
+      </div>
 
-        {/* 4-Segment Precision Telemetry Bar (Height 6px, Gap 6px) */}
-        <div className="flex items-center gap-1.5 h-1.5 w-full">
-          {[1, 2, 3, 4].map((step) => (
-            <div
-              key={step}
-              className={`flex-1 h-full rounded-full transition-all duration-300 ${
-                score >= step ? barColor : 'bg-[#2D3449]'
-              }`}
-            />
-          ))}
-        </div>
+      <div className="flex items-center gap-1.5 h-1.5 w-full">
+        {[1, 2, 3, 4].map((step) => (
+          <div
+            key={step}
+            className={`flex-1 h-full rounded-full transition-colors duration-200 ${
+              score >= step ? barColor : 'bg-[var(--line)]'
+            }`}
+          />
+        ))}
       </div>
     </div>
   );

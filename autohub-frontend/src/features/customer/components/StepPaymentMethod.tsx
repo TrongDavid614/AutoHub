@@ -15,29 +15,29 @@ export const StepPaymentMethod: React.FC<StepPaymentMethodProps> = ({
   const isVnPaySelected = selectedPaymentMethod === 'vnpay' || selectedPaymentMethod === 'sepay';
 
   return (
-    <section className="rounded-[4px] bg-[#171F33] border border-[#2D3449] p-6 shadow-xl space-y-6">
+    <section className="rounded-xl bg-[var(--surface)] border border-[var(--line)] p-6 space-y-5">
       {/* Step Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-[#2D3449]">
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-[var(--line)]">
         <div className="flex items-center gap-3">
-          <span className="w-7 h-7 rounded-[2px] bg-[#0EA5E9]/20 text-[#89CEFF] border border-[#0EA5E9]/30 flex items-center justify-center font-mono text-xs font-bold">
+          <span className="w-7 h-7 rounded-md bg-[var(--accent-soft)] text-[var(--accent)] flex items-center justify-center text-xs font-bold tabular-nums">
             03
           </span>
-          <h2 className="text-lg font-bold text-[#DAE2FD]">Phương thức thanh toán</h2>
+          <h2 className="text-lg font-bold text-[var(--text)]">Phương thức thanh toán</h2>
         </div>
-        <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-[#88929B] uppercase tracking-wider">
-          <ShieldCheck className="w-3.5 h-3.5 text-[#89CEFF]" />
-          <span>CỔNG THANH TOÁN BẢO VỆ 100%</span>
+        <div className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-2)]">
+          <ShieldCheck className="w-4 h-4 text-[var(--accent)]" />
+          <span>Cổng thanh toán bảo vệ 100%</span>
         </div>
       </div>
 
       <div className="space-y-4">
-        {/* Option 1: VNPAY (Highlighted) */}
+        {/* Option 1: VNPAY */}
         <div
           onClick={() => onSelectPaymentMethod('vnpay')}
-          className={`rounded-[2px] border p-5 cursor-pointer transition-all space-y-4 ${
+          className={`rounded-lg border p-5 cursor-pointer transition-colors space-y-3.5 ${
             isVnPaySelected
-              ? 'bg-[#060E20] border-[#89CEFF] shadow-[0_0_20px_rgba(14,165,233,0.15)]'
-              : 'bg-[#060E20]/60 border-[#2D3449] hover:bg-[#060E20] hover:border-[#3E4850]'
+              ? 'bg-[var(--accent-soft)]/50 border-[var(--accent)] ring-1 ring-[var(--accent)]/20'
+              : 'bg-[var(--surface)] border-[var(--line)] hover:bg-[var(--surface-subtle)]'
           }`}
         >
           <div className="flex items-start justify-between gap-4">
@@ -45,53 +45,52 @@ export const StepPaymentMethod: React.FC<StepPaymentMethodProps> = ({
               <div
                 className={`w-4 h-4 rounded-full border flex items-center justify-center mt-0.5 shrink-0 transition-colors ${
                   isVnPaySelected
-                    ? 'border-[#89CEFF] bg-[#89CEFF]'
-                    : 'border-[#3E4850] bg-[#171F33]'
+                    ? 'border-[var(--accent)] bg-[var(--accent)]'
+                    : 'border-[var(--line)] bg-[var(--surface)]'
                 }`}
               >
                 {isVnPaySelected && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#060E20]" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-white" />
                 )}
               </div>
 
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-bold text-sm text-[#DAE2FD]">
+                  <span className="font-semibold text-sm text-[var(--text)]">
                     Thanh toán trực tuyến VNPAY-QR (MB Bank / VietQR)
                   </span>
-                  <span className="px-1.5 py-0.5 rounded-[2px] bg-[#0EA5E9] text-[#003751] font-mono text-[9px] font-bold uppercase">
-                    KHUYÊN DÙNG
+                  <span className="px-2 py-0.5 rounded-md bg-[var(--accent)] text-white text-xs font-semibold">
+                    Khuyên dùng
                   </span>
-                  <span className="px-1.5 py-0.5 rounded-[2px] bg-[#0EA5E9]/20 text-[#89CEFF] font-mono text-[9px] font-bold uppercase border border-[#0EA5E9]/30">
-                    ƯU ĐÃI GIẢM 500.000 Đ
+                  <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-medium tabular-nums">
+                    Ưu đãi giảm 500.000 đ
                   </span>
                 </div>
 
-                <p className="text-xs text-[#BEC8D2] leading-relaxed">
+                <p className="text-xs text-[var(--text-2)] leading-relaxed">
                   Hiển thị mã QR thanh toán nhanh qua ứng dụng ngân hàng. Mã QR tự động làm mới và đóng sau mỗi 1 phút để bảo đảm an toàn giao dịch.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Payment Badges Tray */}
+          {/* Payment Info Pills */}
           <div className="flex items-center gap-2 pl-7 flex-wrap">
-            {['VNPAY-QR', 'TỰ ĐỘNG KHỚP LỆNH', 'MÃ QR 60S TỰ ĐÓNG', 'MB BANK / VCB / TECHCOMBANK'].map((badge) => (
+            {['VNPAY-QR', 'Tự động khớp lệnh', 'MB Bank / VCB / Techcombank'].map((badge) => (
               <span
                 key={badge}
-                className="px-2 py-0.5 rounded-[2px] bg-[#222A3D] border border-[#2D3449] font-mono text-[9px] font-bold text-[#BEC8D2]"
+                className="px-2.5 py-0.5 rounded-md bg-[var(--surface-subtle)] border border-[var(--line)] text-xs font-medium text-[var(--text-2)]"
               >
                 {badge}
               </span>
             ))}
           </div>
 
-          {/* Expandable VNPay Benefit Ribbon */}
-          <div className="ml-7 p-3 rounded-[2px] bg-[#0EA5E9]/15 border border-[#0EA5E9]/30 text-xs text-[#DAE2FD] flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#89CEFF] animate-pulse shrink-0" />
+          {/* VNPay Benefit Ribbon */}
+          <div className="ml-7 p-3 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-xs text-[var(--text-2)]">
             <p className="leading-relaxed">
-              <strong className="text-[#89CEFF]">Ưu đãi thanh toán: </strong>
-              Tự động áp dụng chiết khấu voucher <strong className="font-mono text-[#89CEFF]">VNPAYAUTOHUB</strong> giảm thêm <strong className="font-mono text-[#89CEFF]">500.000 đ</strong> khi quét mã VNPAY QR thanh toán thành công.
+              <strong className="text-[var(--accent)]">Ưu đãi thanh toán: </strong>
+              Tự động áp dụng voucher <strong className="font-mono text-[var(--text)]">VNPAYAUTOHUB</strong> giảm thêm <strong className="text-[var(--accent)] tabular-nums">500.000 đ</strong> khi quét mã VNPAY QR thanh toán thành công.
             </p>
           </div>
         </div>
@@ -99,35 +98,35 @@ export const StepPaymentMethod: React.FC<StepPaymentMethodProps> = ({
         {/* Option 2: COD */}
         <div
           onClick={() => onSelectPaymentMethod('cod')}
-          className={`rounded-[2px] border p-5 cursor-pointer transition-all ${
+          className={`rounded-lg border p-5 cursor-pointer transition-colors ${
             selectedPaymentMethod === 'cod'
-              ? 'bg-[#060E20] border-[#89CEFF] shadow-lg'
-              : 'bg-[#060E20]/60 border-[#2D3449] hover:bg-[#060E20] hover:border-[#3E4850]'
+              ? 'bg-[var(--accent-soft)]/50 border-[var(--accent)] ring-1 ring-[var(--accent)]/20'
+              : 'bg-[var(--surface)] border-[var(--line)] hover:bg-[var(--surface-subtle)]'
           }`}
         >
           <div className="flex items-start gap-3">
             <div
               className={`w-4 h-4 rounded-full border flex items-center justify-center mt-0.5 shrink-0 transition-colors ${
                 selectedPaymentMethod === 'cod'
-                  ? 'border-[#89CEFF] bg-[#89CEFF]'
-                  : 'border-[#3E4850] bg-[#171F33]'
+                  ? 'border-[var(--accent)] bg-[var(--accent)]'
+                  : 'border-[var(--line)] bg-[var(--surface)]'
               }`}
             >
               {selectedPaymentMethod === 'cod' && (
-                <div className="w-1.5 h-1.5 rounded-full bg-[#060E20]" />
+                <div className="w-1.5 h-1.5 rounded-full bg-white" />
               )}
             </div>
 
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-sm text-[#DAE2FD]">
+                <span className="font-semibold text-sm text-[var(--text)]">
                   Thanh toán khi nhận hàng (COD)
                 </span>
-                <span className="px-1.5 py-0.5 rounded-[2px] bg-[#222A3D] text-[#88929B] font-mono text-[9px] font-bold uppercase">
-                  THU HỘ
+                <span className="px-2 py-0.5 rounded-md bg-[var(--surface-subtle)] border border-[var(--line)] text-[var(--text-2)] text-xs font-medium">
+                  Thu hộ
                 </span>
               </div>
-              <p className="text-xs text-[#BEC8D2] leading-relaxed">
+              <p className="text-xs text-[var(--text-2)] leading-relaxed">
                 Áp dụng cho đơn hàng phụ kiện xe điện dưới 50.000.000 đ. Kiểm tra niêm phong, kiểm đếm linh kiện nguyên vẹn trước khi thanh toán tiền mặt.
               </p>
             </div>
@@ -136,12 +135,12 @@ export const StepPaymentMethod: React.FC<StepPaymentMethodProps> = ({
       </div>
 
       {/* Warning Notice Callout with Live Countdown */}
-      <div className="rounded-[2px] bg-[#060E20] border border-[#2D3449] p-4 flex items-start gap-3">
-        <Clock className="w-4 h-4 text-[#89CEFF] shrink-0 mt-0.5" />
-        <div className="text-xs text-[#88929B] leading-relaxed">
-          <strong className="text-[#DAE2FD]">Lưu ý quan trọng: </strong>
-          Đơn hàng thanh toán VNPay sẽ có thời hạn giữ kho độc quyền{' '}
-          <span className="font-mono text-[#89CEFF] font-bold text-sm px-1.5 py-0.5 rounded bg-[#222A3D]">
+      <div className="rounded-lg bg-amber-50 border border-amber-200 p-4 flex items-start gap-3">
+        <Clock className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+        <div className="text-xs text-amber-900 leading-relaxed">
+          <strong className="text-amber-950">Lưu ý quan trọng: </strong>
+          Đơn hàng thanh toán VNPay sẽ có thời hạn giữ kho{' '}
+          <span className="font-bold tabular-nums text-sm px-2 py-0.5 rounded bg-white border border-amber-200 text-amber-800">
             {timeLeftFormatted}
           </span>{' '}
           phút. Quý khách vui lòng chuẩn bị sẵn ứng dụng ngân hàng hoặc thẻ thanh toán để xác thực giao dịch nhanh chóng và an toàn.

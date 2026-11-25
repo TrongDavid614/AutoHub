@@ -83,9 +83,9 @@ export const TestDriveBookingPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsBookingModalOpen(true)}
-            className="py-2.5 px-4 rounded-lg bg-accent-action hover:bg-accent-primary text-accent-contrast font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_0_15px_rgba(14,165,233,0.3)] hover:shadow-[0_0_25px_rgba(137,206,255,0.4)] transition-all cursor-pointer"
+            className="py-2 px-4 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-medium text-xs flex items-center gap-2 transition-colors cursor-pointer"
           >
-            <Plus className="w-4 h-4 text-accent-contrast" />
+            <Plus className="w-4 h-4" />
             <span>Đăng ký lái thử mới</span>
           </button>
         </div>
@@ -100,8 +100,8 @@ export const TestDriveBookingPage: React.FC = () => {
 
       {/* Toast notification */}
       {toastMessage && (
-        <div className="p-3.5 rounded bg-emerald-500/15 border border-emerald-500/40 text-xs text-emerald-300 flex items-center gap-2 animate-fadeIn shadow-lg">
-          <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+        <div className="p-3.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
+          <Check className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
@@ -111,7 +111,7 @@ export const TestDriveBookingPage: React.FC = () => {
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2].map((i) => (
-              <div key={i} className="p-6 rounded-[4px] bg-surface-elevated/40 border border-surface-highlight animate-pulse h-44" />
+              <div key={i} className="p-6 rounded-lg bg-[var(--surface)] border border-[var(--line)] h-40" />
             ))}
           </div>
         ) : filteredItems.length === 0 ? (

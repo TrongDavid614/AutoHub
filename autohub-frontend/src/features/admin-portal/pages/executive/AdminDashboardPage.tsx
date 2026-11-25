@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { AlertCircle, RotateCw, Inbox } from 'lucide-react';
 
 import { Button } from '@/components/Button';
-import { useAdminTheme } from '@/context/AdminThemeContext';
 import { cn } from '@/lib/utils';
 import { AdminWelcomeBanner } from '@/features/admin-portal/components/AdminWelcomeBanner';
 import { AdminStatCards } from '@/features/admin-portal/components/AdminStatCards';
@@ -13,7 +12,6 @@ import { AiEngineMonitorCard } from '@/features/admin-portal/components/AiEngine
 import { useAdminDashboard } from '@/features/admin-portal/hooks/useAdminDashboard';
 
 export const AdminDashboardPage: React.FC = () => {
-  const { isDarkMode } = useAdminTheme();
   const { overview, isLoading, error, refetch } = useAdminDashboard();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -34,117 +32,71 @@ export const AdminDashboardPage: React.FC = () => {
     overview.revenueChart.length === 0;
 
   return (
-    <div
-      className={cn(
-        'w-full space-y-6 antialiased pb-12 animate-fade-in transition-colors duration-300',
-        isDarkMode ? 'text-[#DAE2FD]' : 'text-slate-800'
-      )}
-    >
+    <div className="w-full space-y-6 antialiased pb-12 text-[var(--text)]">
       {/* 1. EXECUTIVE DASHBOARD BANNER */}
       <AdminWelcomeBanner onRefresh={handleRefresh} isRefreshing={isRefreshing || isLoading} />
 
       {/* 2. ERROR STATE */}
       {error && (
-        <div
-          className={cn(
-            'p-5 rounded-xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all duration-300',
-            isDarkMode
-              ? 'bg-rose-950/20 border-rose-500/30 text-rose-200'
-              : 'bg-rose-50 border-rose-200 text-rose-900'
-          )}
-        >
+        <div className="p-5 rounded-lg border border-red-200 bg-red-50 text-red-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-rose-500/20 text-rose-500">
-              <AlertCircle className="w-5 h-5" />
-            </div>
+            <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
             <div>
-              <h3 className="text-sm font-bold">Không thể tải dữ liệu Bảng Điều Khiển Admin</h3>
-              <p className="text-xs opacity-90 mt-0.5">{error}</p>
+              <h3 className="text-sm font-semibold">Không thể tải dữ liệu Bảng điều khiển Admin</h3>
+              <p className="text-xs text-red-700 mt-0.5">{error}</p>
             </div>
           </div>
           <Button
             variant="outline"
             size="sm"
             onClick={handleRefresh}
-            className={cn(
-              'border-rose-300 text-rose-700 hover:bg-rose-100 flex items-center gap-2 cursor-pointer',
-              isDarkMode && 'border-rose-700/60 text-rose-300 hover:bg-rose-900/40'
-            )}
+            className="border-red-300 text-red-700 hover:bg-red-100 flex items-center gap-2 cursor-pointer"
           >
             <RotateCw className={cn('w-4 h-4', isRefreshing && 'animate-spin')} />
-            Thử lại kết nối
+            Thử lại
           </Button>
         </div>
       )}
 
       {/* 3. LOADING SKELETON */}
       {isLoading && !overview && (
-        <div className="space-y-6 animate-pulse">
-          {/* Skeleton 4 KPI Cards */}
+        <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className={cn(
-                  'h-36 rounded-xl border p-5 flex flex-col justify-between',
-                  isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40' : 'bg-slate-100 border-slate-200'
-                )}
+                className="h-32 rounded-lg border border-[var(--line)] bg-[var(--surface)] p-5 flex flex-col justify-between"
               >
-                <div className="flex justify-between items-start">
-                  <div className={cn('w-10 h-10 rounded-lg', isDarkMode ? 'bg-[#1A233A]' : 'bg-slate-200')} />
-                  <div className={cn('w-20 h-5 rounded', isDarkMode ? 'bg-[#1A233A]' : 'bg-slate-200')} />
-                </div>
+                <div className="w-24 h-4 rounded bg-[var(--surface-subtle)]" />
                 <div className="space-y-2">
-                  <div className={cn('w-32 h-6 rounded', isDarkMode ? 'bg-[#1A233A]' : 'bg-slate-200')} />
-                  <div className={cn('w-44 h-3 rounded', isDarkMode ? 'bg-[#1A233A]' : 'bg-slate-200')} />
+                  <div className="w-32 h-6 rounded bg-[var(--surface-subtle)]" />
+                  <div className="w-40 h-3 rounded bg-[var(--surface-subtle)]" />
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Skeleton Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div
-              className={cn(
-                'lg:col-span-8 h-80 rounded-xl border p-6',
-                isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40' : 'bg-slate-100 border-slate-200'
-              )}
-            />
-            <div
-              className={cn(
-                'lg:col-span-4 h-80 rounded-xl border p-6',
-                isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40' : 'bg-slate-100 border-slate-200'
-              )}
-            />
+            <div className="lg:col-span-8 h-80 rounded-lg border border-[var(--line)] bg-[var(--surface)]" />
+            <div className="lg:col-span-4 h-80 rounded-lg border border-[var(--line)] bg-[var(--surface)]" />
           </div>
 
-          {/* Skeleton Queue */}
-          <div
-            className={cn(
-              'h-64 rounded-xl border p-6',
-              isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40' : 'bg-slate-100 border-slate-200'
-            )}
-          />
+          <div className="h-64 rounded-lg border border-[var(--line)] bg-[var(--surface)]" />
         </div>
       )}
 
       {/* 4. EMPTY STATE */}
       {isEmpty && (
-        <div
-          className={cn(
-            'p-12 rounded-xl border text-center flex flex-col items-center justify-center space-y-3',
-            isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40 text-[#88929B]' : 'bg-white border-slate-200 text-slate-500'
-          )}
-        >
-          <Inbox className="w-12 h-12 stroke-[1.5] text-slate-400" />
-          <h3 className="text-base font-bold text-slate-700 dark:text-slate-200">
+        <div className="p-12 rounded-lg border border-[var(--line)] bg-[var(--surface)] text-center flex flex-col items-center justify-center space-y-3 text-[var(--text-secondary)]">
+          <Inbox className="w-10 h-10 stroke-[1.5] text-[var(--text-muted)]" />
+          <h3 className="text-base font-semibold text-[var(--text)]">
             Chưa có dữ liệu thống kê tổng quan
           </h3>
           <p className="text-xs max-w-md">
-            Hệ thống chưa ghi nhận giao dịch phát sinh trong kỳ báo cáo hoặc kết nối dữ liệu đang được đồng bộ.
+            Hệ thống chưa ghi nhận giao dịch phát sinh trong kỳ báo cáo.
           </p>
           <Button variant="outline" size="sm" onClick={handleRefresh} className="mt-2">
-            Làm mới trang
+            Làm mới
           </Button>
         </div>
       )}

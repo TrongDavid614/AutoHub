@@ -1,0 +1,51 @@
+:root {
+  /* Light ground & surfaces (warm off-white tint, never pure #000 or harsh neon dark) */
+  --bg: oklch(0.985 0.004 85);
+  --surface: oklch(1 0 0);
+  --surface-subtle: oklch(0.965 0.004 85);
+  --surface-muted: oklch(0.945 0.005 85);
+
+  /* Ink & borders (>= 4.5:1 contrast ratio on white & --bg) */
+  --text: oklch(0.21 0.012 250);
+  --text-secondary: oklch(0.37 0.012 250);
+  --text-muted: oklch(0.49 0.01 250);
+  --line: oklch(0.90 0.006 85);
+  --line-strong: oklch(0.83 0.008 85);
+
+  /* Single primary brand accent (<= 10% screen area) - Cobalt automotive blue, non-neon */
+  --accent: oklch(0.49 0.16 254);
+  --accent-hover: oklch(0.43 0.16 254);
+  --accent-soft: oklch(0.955 0.025 254);
+  --accent-contrast: oklch(1 0 0);
+
+  /* Semantic statuses (muted, trustworthy) */
+  --status-success: oklch(0.48 0.14 152);
+  --status-success-bg: oklch(0.96 0.03 152);
+  --status-warning: oklch(0.55 0.15 72);
+  --status-warning-bg: oklch(0.96 0.04 80);
+  --status-danger: oklch(0.50 0.18 25);
+  --status-danger-bg: oklch(0.96 0.03 25);
+
+  /* Consistent radius & minimal motion */
+  --radius: 8px;
+  --radius-sm: 6px;
+  --ease-ui: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Optional neutral charcoal dark mode for Staff / Admin back-office toggle */
+.dark {
+  --bg: oklch(0.16 0.006 260);
+  --surface: oklch(0.20 0.006 260);
+  --surface-subtle: oklch(0.23 0.006 260);
+  --surface-muted: oklch(0.27 0.006 260);
+  --text: oklch(0.94 0.004 260);
+  --text-secondary: oklch(0.78 0.006 260);
+  --text-muted: oklch(0.65 0.006 260);
+  --line: oklch(0.30 0.006 260);
+  --line-strong: oklch(0.38 0.008 260);
+  --accent: oklch(0.66 0.14 254);
+  --accent-hover: oklch(0.72 0.13 254);
+  --accent-soft: oklch(0.26 0.04 254);
+  --accent-contrast: oklch(0.99 0 0);
+}
+

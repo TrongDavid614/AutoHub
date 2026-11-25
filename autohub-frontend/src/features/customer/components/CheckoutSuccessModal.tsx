@@ -23,69 +23,68 @@ export const CheckoutSuccessModal: React.FC<CheckoutSuccessModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#060E20]/85 backdrop-blur-md animate-fade-in">
-      <div className="w-full max-w-lg rounded-[4px] bg-[#131B2E] border border-[#89CEFF]/60 p-8 shadow-2xl text-center space-y-6 relative overflow-hidden">
-        {/* Glow */}
-        <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-[#0EA5E9]/20 blur-[60px]" />
-
-        <div className="w-16 h-16 rounded-full bg-[#0EA5E9]/20 border border-[#89CEFF] flex items-center justify-center mx-auto text-[#89CEFF] shadow-lg">
-          <CheckCircle2 className="w-8 h-8 text-[#89CEFF]" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45">
+      <div className="w-full max-w-lg rounded-xl bg-[var(--surface)] border border-[var(--line)] p-7 shadow-xl text-center space-y-5">
+        <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto text-emerald-600">
+          <CheckCircle2 className="w-7 h-7" />
         </div>
 
         <div className="space-y-2">
-          <div className="inline-block px-3 py-1 rounded-[2px] bg-[#222A3D] text-[#89CEFF] font-mono text-xs font-bold uppercase tracking-wider">
-            {paymentMethod === 'cod' ? 'ĐẶT HÀNG COD THÀNH CÔNG' : 'GIAO DỊCH VNPAY-QR THÀNH CÔNG'} • #{orderCode}
+          <div className="inline-block px-3 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold tabular-nums">
+            {paymentMethod === 'cod' ? 'Đặt hàng COD thành công' : 'Giao dịch VNPay-QR thành công'} • #{orderCode}
           </div>
-          <h3 className="text-2xl font-bold text-[#DAE2FD]">
+          <h3 className="text-2xl font-bold text-[var(--text)]">
             Cảm ơn quý khách, {recipientName}!
           </h3>
-          <p className="text-xs text-[#BEC8D2] leading-relaxed max-w-md mx-auto">
+          <p className="text-xs text-[var(--text-2)] leading-relaxed max-w-md mx-auto">
             Đơn hàng phụ kiện xe điện của bạn đã được tiếp nhận. Đội ngũ kỹ thuật viên AutoHub Logistics đang chuẩn bị thùng hàng niêm phong chuyên dụng và lên lịch bàn giao.
           </p>
         </div>
 
-        <div className="rounded-[2px] bg-[#060E20] border border-[#2D3449] p-4 flex items-center justify-between text-xs font-mono">
-          <span className="text-[#88929B]">TỔNG THANH TOÁN:</span>
-          <span className="text-lg font-bold text-[#89CEFF]">
+        <div className="rounded-lg bg-[var(--surface-subtle)] border border-[var(--line)] p-4 flex items-center justify-between text-xs">
+          <span className="font-medium text-[var(--text-2)]">Tổng thanh toán:</span>
+          <span className="text-lg font-bold tabular-nums text-[var(--accent)]">
             {(grandTotal ?? 0).toLocaleString('vi-VN')} đ
           </span>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 text-left">
-          <div className="p-3 rounded-[2px] bg-[#171F33] border border-[#2D3449] space-y-1">
-            <div className="flex items-center gap-1.5 text-[#89CEFF] font-bold text-[11px]">
+        <div className="grid grid-cols-2 border border-[var(--line)] rounded-lg bg-[var(--surface-subtle)] divide-x divide-[var(--line)] text-left">
+          <div className="p-3.5 space-y-1">
+            <div className="flex items-center gap-1.5 text-[var(--accent)] font-semibold text-xs">
               <Zap className="w-3.5 h-3.5" />
-              <span>GIAO TIÊU CHUẨN</span>
+              <span>Giao tiêu chuẩn</span>
             </div>
-            <p className="text-[10px] text-[#88929B]">Bàn giao ngày mai, kiểm tra niêm phong.</p>
+            <p className="text-xs text-[var(--text-muted)]">Bàn giao ngày mai, kiểm tra niêm phong.</p>
           </div>
-          <div className="p-3 rounded-[2px] bg-[#171F33] border border-[#2D3449] space-y-1">
-            <div className="flex items-center gap-1.5 text-[#89CEFF] font-bold text-[11px]">
+          <div className="p-3.5 space-y-1">
+            <div className="flex items-center gap-1.5 text-emerald-700 font-semibold text-xs">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>BẢO HIỂM 100%</span>
+              <span>Bảo hiểm 100%</span>
             </div>
-            <p className="text-[10px] text-[#88929B]">Bảo hiểm an toàn pin cao áp 800V.</p>
+            <p className="text-xs text-[var(--text-muted)]">Bảo hiểm an toàn pin cao áp 800V.</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 pt-2">
+        <div className="flex items-center gap-3 pt-1">
           <button
+            type="button"
             onClick={() => {
               onClose();
               navigate('/accessories');
             }}
-            className="flex-1 py-3 px-4 rounded-[2px] bg-[#222A3D] hover:bg-[#2D3449] text-[#DAE2FD] text-xs font-semibold cursor-pointer transition-colors"
+            className="flex-1 py-2.5 px-4 rounded-lg bg-[var(--surface)] hover:bg-[var(--surface-subtle)] border border-[var(--line)] text-[var(--text)] text-xs font-medium cursor-pointer transition-colors"
           >
             Về Showroom Phụ Kiện
           </button>
           <button
+            type="button"
             onClick={() => {
               onClose();
               navigate('/customer/orders');
             }}
-            className="flex-1 py-3 px-4 rounded-[2px] bg-[#0EA5E9] hover:bg-[#89CEFF] text-[#003751] font-bold text-xs uppercase flex items-center justify-center gap-1.5 cursor-pointer shadow-lg transition-all"
+            className="flex-1 py-2.5 px-4 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
           >
-            <span>Quản Lý Đơn Hàng</span>
+            <span>Quản lý đơn hàng</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

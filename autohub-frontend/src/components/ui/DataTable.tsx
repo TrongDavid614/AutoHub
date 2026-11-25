@@ -133,18 +133,17 @@ export function DataTable<T extends Record<string, unknown>>({
 
   return (
     <div className={cn('space-y-3', className)}>
-      {/* BULK ACTIONS TOOLBAR (inspired by shadcn-admin-kit) */}
       {enableSelection && selectedKeys.length > 0 && (
-        <div className="flex items-center justify-between px-4 py-2.5 bg-slate-800 border border-red-500/30 rounded-xl text-xs shadow-md">
-          <div className="flex items-center gap-2 text-slate-200">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+        <div className="flex items-center justify-between px-4 py-2.5 bg-[var(--accent-soft)] border border-[var(--accent)]/30 rounded-lg text-xs">
+          <div className="flex items-center gap-2 text-[var(--text)]">
+            <span className="w-2 h-2 rounded-full bg-[var(--accent)]" />
             <span>
-              Đã chọn <strong className="text-white font-bold">{selectedKeys.length}</strong> hàng
+              Đã chọn <strong className="font-semibold tabular-nums">{selectedKeys.length}</strong> hàng
             </span>
             <button
               type="button"
               onClick={() => onSelectionChange?.([])}
-              className="ml-2 text-slate-400 hover:text-white underline cursor-pointer text-[11px]"
+              className="ml-2 text-[var(--text-secondary)] hover:text-[var(--text)] underline cursor-pointer text-[11px]"
             >
               Bỏ chọn tất cả
             </button>
@@ -154,19 +153,19 @@ export function DataTable<T extends Record<string, unknown>>({
       )}
 
       {/* TABLE CONTAINER */}
-      <div className="w-full overflow-hidden rounded-xl border border-slate-800 bg-slate-900 shadow-sm">
+      <div className="w-full overflow-hidden rounded-lg border border-[var(--line)] bg-[var(--surface)]">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
+          <table className="w-full text-left text-[13px] text-[var(--text)]">
             {/* TABLE HEADER */}
-            <thead className="bg-slate-950/80 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            <thead className="bg-[var(--surface-subtle)] border-b border-[var(--line)] text-xs font-semibold text-[var(--text-secondary)]">
               <tr>
                 {enableSelection && (
-                  <th className="w-10 px-4 py-3.5 text-center">
+                  <th className="w-10 px-4 py-3 text-center">
                     <input
                       type="checkbox"
                       checked={isAllCurrentPageSelected}
                       onChange={handleSelectAll}
-                      className="rounded border-slate-700 bg-slate-900 text-red-600 focus:ring-red-500 w-3.5 h-3.5 cursor-pointer"
+                      className="rounded border-[var(--line-strong)] bg-[var(--surface)] text-[var(--accent)] focus:ring-[var(--accent)] w-3.5 h-3.5 cursor-pointer"
                     />
                   </th>
                 )}
@@ -174,20 +173,20 @@ export function DataTable<T extends Record<string, unknown>>({
                   <th
                     key={col.key}
                     style={{ width: col.width }}
-                    className={cn('px-4 py-3.5 select-none', col.className)}
+                    className={cn('px-4 py-3 select-none', col.className)}
                   >
                     {col.sortable ? (
                       <button
                         type="button"
                         onClick={() => handleSort(col.key)}
-                        className="flex items-center gap-1.5 hover:text-white transition-colors cursor-pointer group"
+                        className="flex items-center gap-1.5 hover:text-[var(--text)] transition-colors cursor-pointer group"
                       >
                         <span>{col.title}</span>
                         {sortKey === col.key ? (
                           sortDirection === 'asc' ? (
-                            <ArrowUp className="w-3.5 h-3.5 text-red-500" />
+                            <ArrowUp className="w-3.5 h-3.5 text-[var(--accent)]" />
                           ) : (
-                            <ArrowDown className="w-3.5 h-3.5 text-red-500" />
+                            <ArrowDown className="w-3.5 h-3.5 text-[var(--accent)]" />
                           )
                         ) : (
                           <ArrowUpDown className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition-opacity" />
@@ -202,20 +201,19 @@ export function DataTable<T extends Record<string, unknown>>({
             </thead>
 
             {/* TABLE BODY */}
-            <tbody className="divide-y divide-slate-800/60 bg-slate-900">
+            <tbody className="divide-y divide-[var(--line)] bg-[var(--surface)]">
               {isLoading ? (
-                // SKELETON LOADING
                 Array.from({ length: pageSize }).map((_, rIdx) => (
-                  <tr key={rIdx} className="animate-pulse">
+                  <tr key={rIdx}>
                     {enableSelection && (
                       <td className="px-4 py-4 text-center">
-                        <div className="w-3.5 h-3.5 bg-slate-800 rounded mx-auto" />
+                        <div className="w-3.5 h-3.5 bg-[var(--surface-subtle)] rounded mx-auto" />
                       </td>
                     )}
                     {columns.map((_, cIdx) => (
                       <td key={cIdx} className="px-4 py-4">
                         <div
-                          className="h-3.5 bg-slate-800 rounded"
+                          className="h-3.5 bg-[var(--surface-subtle)] rounded"
                           style={{ width: `${60 + ((rIdx + cIdx) % 4) * 10}%` }}
                         />
                       </td>
@@ -227,14 +225,14 @@ export function DataTable<T extends Record<string, unknown>>({
                 <tr>
                   <td
                     colSpan={columns.length + (enableSelection ? 1 : 0)}
-                    className="px-4 py-16 text-center"
+                    className="px-4 py-14 text-center"
                   >
                     <div className="flex flex-col items-center justify-center space-y-2">
-                      <div className="p-3 bg-slate-800/80 rounded-full border border-slate-700/60 text-slate-400">
-                        <Inbox className="w-8 h-8" />
+                      <div className="p-3 bg-[var(--surface-subtle)] rounded-full border border-[var(--line)] text-[var(--text-muted)]">
+                        <Inbox className="w-7 h-7" />
                       </div>
-                      <p className="text-sm font-semibold text-slate-300">{emptyText}</p>
-                      <p className="text-xs text-slate-500">{emptySubtext}</p>
+                      <p className="text-sm font-semibold text-[var(--text)]">{emptyText}</p>
+                      <p className="text-xs text-[var(--text-muted)]">{emptySubtext}</p>
                     </div>
                   </td>
                 </tr>
@@ -250,7 +248,9 @@ export function DataTable<T extends Record<string, unknown>>({
                       onClick={() => onRowClick?.(record)}
                       className={cn(
                         'transition-colors duration-150',
-                        isSelected ? 'bg-red-950/20 hover:bg-red-950/30' : 'hover:bg-slate-800/50',
+                        isSelected
+                          ? 'bg-[var(--accent-soft)]'
+                          : 'hover:bg-[var(--surface-subtle)]',
                         onRowClick && 'cursor-pointer'
                       )}
                     >
@@ -263,7 +263,7 @@ export function DataTable<T extends Record<string, unknown>>({
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => handleSelectRow(key)}
-                            className="rounded border-slate-700 bg-slate-900 text-red-600 focus:ring-red-500 w-3.5 h-3.5 cursor-pointer"
+                            className="rounded border-[var(--line-strong)] bg-[var(--surface)] text-[var(--accent)] focus:ring-[var(--accent)] w-3.5 h-3.5 cursor-pointer"
                           />
                         </td>
                       )}
@@ -284,18 +284,18 @@ export function DataTable<T extends Record<string, unknown>>({
 
         {/* PAGINATION FOOTER */}
         {!isLoading && totalItems > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-3 border-t border-slate-800/80 bg-slate-950/40 gap-3 text-xs text-slate-400">
+          <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-3 border-t border-[var(--line)] bg-[var(--surface-subtle)] gap-3 text-xs text-[var(--text-secondary)]">
             <div className="flex items-center gap-3">
-              <span>
+              <span className="tabular-nums">
                 Hiển thị{' '}
-                <strong className="text-slate-200">
+                <strong className="text-[var(--text)]">
                   {Math.min((safeCurrentPage - 1) * pageSize + 1, totalItems)} -{' '}
                   {Math.min(safeCurrentPage * pageSize, totalItems)}
                 </strong>{' '}
-                trên <strong className="text-slate-200">{totalItems}</strong> bản ghi
+                trên <strong className="text-[var(--text)]">{totalItems}</strong> bản ghi
               </span>
 
-              <div className="flex items-center gap-1.5 pl-3 border-l border-slate-800">
+              <div className="flex items-center gap-1.5 pl-3 border-l border-[var(--line)]">
                 <span>Số hàng:</span>
                 <select
                   value={pageSize}
@@ -303,7 +303,7 @@ export function DataTable<T extends Record<string, unknown>>({
                     setPageSize(Number(e.target.value));
                     setCurrentPage(1);
                   }}
-                  className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-red-500"
+                  className="bg-[var(--surface)] border border-[var(--line-strong)] rounded px-2 py-1 text-xs text-[var(--text)] focus:outline-none focus:border-[var(--accent)]"
                 >
                   {pageSizeOptions.map((opt) => (
                     <option key={opt} value={opt}>
@@ -315,8 +315,8 @@ export function DataTable<T extends Record<string, unknown>>({
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-slate-400 mr-2">
-                Trang <strong className="text-white">{safeCurrentPage}</strong> / {totalPages}
+              <span className="text-[var(--text-secondary)] mr-2 tabular-nums">
+                Trang <strong className="text-[var(--text)]">{safeCurrentPage}</strong> / {totalPages}
               </span>
 
               <div className="inline-flex items-center gap-1">
@@ -324,7 +324,7 @@ export function DataTable<T extends Record<string, unknown>>({
                   type="button"
                   disabled={safeCurrentPage <= 1}
                   onClick={() => setCurrentPage(1)}
-                  className="p-1.5 rounded border border-slate-800 bg-slate-900 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 transition-colors"
+                  className="p-1.5 rounded border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-subtle)] disabled:opacity-40 disabled:cursor-not-allowed text-[var(--text-secondary)] transition-colors"
                   title="Trang đầu"
                 >
                   <ChevronsLeft className="w-3.5 h-3.5" />
@@ -333,7 +333,7 @@ export function DataTable<T extends Record<string, unknown>>({
                   type="button"
                   disabled={safeCurrentPage <= 1}
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  className="p-1.5 rounded border border-slate-800 bg-slate-900 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 transition-colors"
+                  className="p-1.5 rounded border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-subtle)] disabled:opacity-40 disabled:cursor-not-allowed text-[var(--text-secondary)] transition-colors"
                   title="Trang trước"
                 >
                   <ChevronLeft className="w-3.5 h-3.5" />
@@ -342,7 +342,7 @@ export function DataTable<T extends Record<string, unknown>>({
                   type="button"
                   disabled={safeCurrentPage >= totalPages}
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  className="p-1.5 rounded border border-slate-800 bg-slate-900 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 transition-colors"
+                  className="p-1.5 rounded border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-subtle)] disabled:opacity-40 disabled:cursor-not-allowed text-[var(--text-secondary)] transition-colors"
                   title="Trang sau"
                 >
                   <ChevronRight className="w-3.5 h-3.5" />
@@ -351,7 +351,7 @@ export function DataTable<T extends Record<string, unknown>>({
                   type="button"
                   disabled={safeCurrentPage >= totalPages}
                   onClick={() => setCurrentPage(totalPages)}
-                  className="p-1.5 rounded border border-slate-800 bg-slate-900 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 transition-colors"
+                  className="p-1.5 rounded border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-subtle)] disabled:opacity-40 disabled:cursor-not-allowed text-[var(--text-secondary)] transition-colors"
                   title="Trang cuối"
                 >
                   <ChevronsRight className="w-3.5 h-3.5" />

@@ -191,8 +191,8 @@ export const AdminPagination: React.FC<AdminPaginationProps> = ({
                   'min-w-[32px] h-8 px-2 rounded-lg text-xs font-semibold border transition-all cursor-pointer',
                   isActive
                     ? isDarkMode
-                      ? 'bg-[#171F33] border-[#89CEFF] text-[#89CEFF] shadow-[0_0_8px_rgba(137,206,255,0.25)]'
-                      : 'bg-blue-50 border-blue-500 text-blue-600 shadow-xs'
+                      ? 'bg-[#171F33] border-[#89CEFF] text-[#89CEFF]'
+                      : 'bg-blue-50 border-blue-500 text-blue-600'
                     : isDarkMode
                       ? 'bg-transparent border-[#3E4850]/40 text-[#88929B] hover:bg-[#171F33] hover:text-white'
                       : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900'

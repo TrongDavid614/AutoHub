@@ -336,16 +336,16 @@ export const VoucherMasterPage: React.FC = () => {
           isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40' : 'bg-white border-slate-200'
         }`}>
           <div className="flex justify-between items-center pb-2 border-b border-dashed border-slate-200 dark:border-slate-800">
-            <div className="h-4 w-40 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-            <div className="h-4 w-20 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+            <div className="h-4 w-40 bg-slate-200 dark:bg-slate-800 rounded" />
+            <div className="h-4 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
           </div>
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="flex items-center justify-between py-3 border-b border-slate-100 dark:border-slate-800/50">
-              <div className="h-4 w-28 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-              <div className="h-4 w-32 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-              <div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-              <div className="h-6 w-20 bg-slate-200 dark:bg-slate-800 rounded-full animate-pulse" />
-              <div className="h-8 w-24 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+              <div className="h-4 w-28 bg-slate-200 dark:bg-slate-800 rounded" />
+              <div className="h-4 w-32 bg-slate-200 dark:bg-slate-800 rounded" />
+              <div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+              <div className="h-6 w-20 bg-slate-200 dark:bg-slate-800 rounded-full" />
+              <div className="h-8 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
             </div>
           ))}
         </div>
@@ -482,7 +482,7 @@ export const VoucherMasterPage: React.FC = () => {
 
       {/* Modal: Tạo Mã Voucher Mới */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4">
           <div className={`w-full max-w-md rounded-xl border p-6 shadow-2xl transition-all ${
             isDarkMode ? 'bg-[#0B1326] text-white border-[#3E4850]/50' : 'bg-white text-slate-900 border-slate-200'
           }`}>

@@ -37,9 +37,9 @@ export const OrderFilterTabs: React.FC<OrderFilterTabsProps> = ({
               key={tab.key}
               type="button"
               onClick={() => onSelectTab(tab.key)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-[4px] text-xs font-mono font-bold tracking-wider uppercase transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-md text-xs font-semibold transition-colors cursor-pointer ${
                 isActive
-                  ? 'bg-accent-action text-accent-contrast shadow-[0_0_15px_rgba(14,165,233,0.35)]'
+                  ? 'bg-[var(--accent)] text-white'
                   : 'text-text-secondary hover:text-text-primary hover:bg-surface-container'
               }`}
             >

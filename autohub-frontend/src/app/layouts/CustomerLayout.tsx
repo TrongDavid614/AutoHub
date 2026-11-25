@@ -9,10 +9,12 @@ import {
   X,
   ChevronRight,
   LogOut,
-  Headphones,
+  Menu,
+  Phone,
 } from 'lucide-react';
 import { Header, Footer } from '@/components';
 import { useAuthStore } from '@/store/useAuthStore';
+import { cn } from '@/lib/utils';
 
 interface NavItem {
   to: string;
@@ -27,17 +29,15 @@ export const CustomerLayout: React.FC = () => {
   const { user, logout } = useAuthStore();
 
   const navItems: NavItem[] = [
-    { to: '/customer/profile', label: 'Hồ Sơ Cá Nhân', icon: User },
-    { to: '/customer/addresses', label: 'Sổ Địa Chỉ', icon: MapPin },
-    { to: '/customer/test-drives', label: 'Lịch Hẹn Lái Thử', icon: Calendar },
-    { to: '/customer/deposits', label: 'Phiếu Đặt Cọc Xe (72h)', icon: CreditCard, badge: '72h' },
-    { to: '/customer/orders', label: 'Đơn Hàng Phụ Kiện', icon: Package },
+    { to: '/customer/profile', label: 'Hồ sơ cá nhân', icon: User },
+    { to: '/customer/addresses', label: 'Sổ địa chỉ', icon: MapPin },
+    { to: '/customer/test-drives', label: 'Lịch hẹn lái thử', icon: Calendar },
+    { to: '/customer/deposits', label: 'Phiếu đặt cọc xe (72h)', icon: CreditCard, badge: '72h' },
+    { to: '/customer/orders', label: 'Đơn hàng phụ kiện', icon: Package },
   ];
 
-  // Tìm nav item đang active để hiển thị breadcrumb trên thanh công cụ
   const currentNavItem = navItems.find((item) => location.pathname.startsWith(item.to)) || navItems[0];
 
-  // Đóng Drawer khi nhấn phím Escape
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isDrawerOpen) {
@@ -48,7 +48,6 @@ export const CustomerLayout: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isDrawerOpen]);
 
-  // Khóa cuộn trang nền khi Drawer đang mở
   useEffect(() => {
     if (isDrawerOpen) {
       document.body.style.overflow = 'hidden';
@@ -61,91 +60,71 @@ export const CustomerLayout: React.FC = () => {
   }, [isDrawerOpen]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-canvas-primary text-text-primary">
-      {/* 1. GLOBAL HEADER */}
+    <div className="min-h-screen flex flex-col bg-[var(--bg)] text-[var(--text)] antialiased">
       <Header />
 
-      {/* 2. CUSTOMER TOP CONTROL BAR (Thanh điều hướng với nút 3 gạch) */}
-      <section className="border-b border-surface-highlight/80 bg-surface-container/90 backdrop-blur-md sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
-          {/* Nút 3 gạch mở Drawer */}
+      {/* Customer Sub-Bar */}
+      <section className="border-b border-[var(--line)] bg-[var(--surface)] sticky top-16 z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setIsDrawerOpen(true)}
-              className="group relative flex items-center gap-2.5 px-3.5 py-2 rounded-[4px] bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight hover:border-accent-primary/60 text-text-primary hover:text-accent-primary transition-all duration-200 cursor-pointer shadow-sm hover:shadow-[0_0_15px_rgba(137,206,255,0.2)]"
+              className="flex items-center gap-2 px-3 py-2 min-h-[40px] rounded-[var(--radius)] bg-[var(--surface-subtle)] hover:bg-[var(--surface-muted)] border border-[var(--line)] text-[var(--text)] text-[13px] font-medium transition-colors cursor-pointer"
               aria-label="Mở menu tài khoản thành viên"
-              title="Mở menu tài khoản thành viên"
             >
-              {/* Icon 3 gạch với hiệu ứng chuyển động khi hover */}
-              <div className="w-4 h-4 flex flex-col justify-center gap-1">
-                <span className="h-[2px] w-4 bg-accent-primary rounded-full transition-transform duration-200 group-hover:translate-x-0.5" />
-                <span className="h-[2px] w-3 bg-text-primary rounded-full transition-all duration-200 group-hover:w-4 group-hover:bg-accent-primary" />
-                <span className="h-[2px] w-4 bg-accent-primary rounded-full transition-transform duration-200 group-hover:-translate-x-0.5" />
-              </div>
-
-              <span className="text-xs font-semibold tracking-wide hidden sm:inline">
-                Tài khoản thành viên
-              </span>
-
-              {/* Indicator chấm xanh thông báo */}
-              <span className="w-1.5 h-1.5 rounded-full bg-accent-primary animate-pulse" />
+              <Menu className="w-4 h-4 text-[var(--text-secondary)]" />
+              <span className="hidden sm:inline">Danh mục tài khoản</span>
             </button>
 
-            {/* Breadcrumb hiển thị mục đang xem */}
-            <div className="flex items-center gap-2 text-xs text-text-muted">
-              <ChevronRight className="w-3.5 h-3.5 text-border-subtle" />
-              <div className="flex items-center gap-1.5 text-text-primary font-semibold">
-                {React.createElement(currentNavItem.icon, { className: 'w-4 h-4 text-accent-primary' })}
+            <div className="flex items-center gap-2 text-[13px] text-[var(--text-muted)]">
+              <ChevronRight className="w-4 h-4 text-[var(--line-strong)]" />
+              <div className="flex items-center gap-1.5 text-[var(--text)] font-medium">
+                {React.createElement(currentNavItem.icon, { className: 'w-4 h-4 text-[var(--accent)]' })}
                 <span>{currentNavItem.label}</span>
               </div>
             </div>
           </div>
-
-          {/* Phía bên phải thanh trạng thái */}
-          <div className="flex items-center gap-3" />
         </div>
       </section>
 
-      {/* 3. SLIDE-OVER DRAWER MENU (Hiệu ứng animation ra vào mượt mà) */}
-      {/* Backdrop mờ tối */}
+      {/* Drawer Backdrop */}
       <div
-        className={`fixed inset-0 bg-canvas-deep/80 backdrop-blur-sm z-50 transition-opacity duration-300 ease-in-out ${
+        className={cn(
+          'fixed inset-0 bg-black/30 z-50 transition-opacity duration-200',
           isDrawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
+        )}
         onClick={() => setIsDrawerOpen(false)}
         aria-hidden="true"
       />
 
-      {/* Panel Drawer trượt từ bên trái */}
+      {/* Slide-over Navigation Drawer */}
       <aside
-        className={`fixed top-0 left-0 bottom-0 w-[300px] sm:w-[320px] bg-surface-container border-r border-surface-highlight shadow-[0_0_50px_rgba(0,0,0,0.85),0_0_30px_rgba(14,165,233,0.18)] z-50 flex flex-col transition-transform duration-300 ease-out will-change-transform ${
+        className={cn(
+          'fixed top-0 left-0 bottom-0 w-[300px] sm:w-[320px] bg-[var(--surface)] border-r border-[var(--line)] shadow-lg z-50 flex flex-col transition-transform duration-200 ease-out',
           isDrawerOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-        aria-label="Thanh điều hướng tài khoản thành viên"
+        )}
+        aria-label="Điều hướng tài khoản thành viên"
       >
-        {/* Specular Highlight Bar trên đỉnh */}
-        <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-accent-primary to-transparent" />
-
-        {/* Drawer Header */}
-        <div className="p-5 border-b border-surface-highlight flex items-center justify-between gap-3 bg-surface-elevated/60">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-canvas-deep border border-accent-primary/40 flex items-center justify-center text-accent-primary font-bold text-sm shadow-inner">
+        <div className="p-5 border-b border-[var(--line)] flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-full bg-[var(--accent-soft)] border border-[var(--line)] flex items-center justify-center text-[var(--accent)] font-semibold text-sm shrink-0">
               {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'A'}
             </div>
-            <div>
-              <h3 className="text-sm font-bold text-text-primary">
-                {user?.fullName || 'Nguyễn Văn A'}
+            <div className="min-w-0">
+              <h3 className="text-sm font-semibold text-[var(--text)] truncate">
+                {user?.fullName || 'Khách hàng'}
               </h3>
-              <p className="text-[10px] text-text-muted font-mono">{user?.email || "nguyenvana@gmail.com"}</p>
+              <p className="text-[13px] text-[var(--text-muted)] truncate">
+                {user?.email || 'customer@autohub.vn'}
+              </p>
             </div>
           </div>
 
-          {/* Nút Đóng X */}
           <button
             type="button"
             onClick={() => setIsDrawerOpen(false)}
-            className="w-8 h-8 rounded-[4px] bg-surface-container border border-surface-highlight hover:border-accent-primary/50 text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors cursor-pointer"
+            className="w-9 h-9 rounded-[var(--radius-sm)] border border-[var(--line)] hover:bg-[var(--surface-subtle)] text-[var(--text-secondary)] flex items-center justify-center transition-colors cursor-pointer"
             title="Đóng menu"
             aria-label="Đóng menu"
           >
@@ -153,16 +132,11 @@ export const CustomerLayout: React.FC = () => {
           </button>
         </div>
 
-        {/* Drawer Navigation List matching 100% người dùng cung cấp */}
-        <div className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {/* Nhãn tiêu đề danh mục */}
-          <div className="px-3 pt-2 pb-3">
-            <span className="text-[11px] font-bold uppercase tracking-[1.5px] text-text-muted font-mono">
-              TÀI KHOẢN THÀNH VIÊN
-            </span>
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          <div className="px-3 pt-1 pb-2 text-[13px] font-medium text-[var(--text-muted)]">
+            Tài khoản thành viên
           </div>
 
-          {/* 5 Menu Items */}
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -171,52 +145,45 @@ export const CustomerLayout: React.FC = () => {
                 to={item.to}
                 onClick={() => setIsDrawerOpen(false)}
                 className={({ isActive }) =>
-                  `group relative flex items-center justify-between px-3.5 py-3 rounded-[4px] text-[13px] font-semibold transition-all duration-200 cursor-pointer ${
+                  cn(
+                    'flex items-center justify-between px-3 py-2.5 rounded-[var(--radius)] text-sm font-medium transition-colors cursor-pointer',
                     isActive
-                      ? 'bg-surface-elevated text-accent-primary border border-accent-primary shadow-[0_0_15px_rgba(137,206,255,0.25)]'
-                      : 'text-text-secondary border border-transparent hover:bg-surface-elevated/80 hover:text-text-primary hover:border-surface-highlight'
-                  }`
+                      ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-semibold'
+                      : 'text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text)]'
+                  )
                 }
               >
                 {({ isActive }) => (
                   <>
                     <div className="flex items-center gap-3">
                       <Icon
-                        className={`w-[18px] h-[18px] transition-transform duration-200 group-hover:scale-110 ${
-                          isActive ? 'text-accent-primary' : 'text-accent-primary'
-                        }`}
+                        className={cn(
+                          'w-[18px] h-[18px]',
+                          isActive ? 'text-[var(--accent)]' : 'text-[var(--text-muted)]'
+                        )}
                       />
                       <span>{item.label}</span>
                     </div>
 
                     {item.badge && (
-                      <span className="px-1.5 py-0.5 rounded-[2px] bg-accent-action/20 text-accent-primary font-mono text-[9px] font-bold">
+                      <span className="px-2 py-0.5 rounded-[var(--radius-sm)] bg-[var(--surface-subtle)] border border-[var(--line)] text-[var(--text-secondary)] text-[12px] font-medium tabular-nums">
                         {item.badge}
                       </span>
-                    )}
-
-                    {/* Chỉ báo active thanh viền cyan bên trái */}
-                    {isActive && (
-                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r bg-accent-primary shadow-[0_0_8px_#89CEFF]" />
                     )}
                   </>
                 )}
               </NavLink>
             );
           })}
-        </div>
+        </nav>
 
-        {/* Drawer Footer: Hỗ trợ & Đăng xuất */}
-        <div className="p-4 border-t border-surface-highlight bg-surface-elevated/40 space-y-2">
-          <div className="p-2.5 rounded-[4px] bg-canvas-deep border border-surface-highlight/70 flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2 text-text-secondary">
-              <Headphones className="w-3.5 h-3.5 text-accent-primary" />
-              <span>Hỗ trợ 24/7:</span>
-            </div>
-            <a
-              href="tel:19008888"
-              className="font-mono font-bold text-accent-primary hover:underline"
-            >
+        <div className="p-4 border-t border-[var(--line)] space-y-3">
+          <div className="flex items-center justify-between text-[13px] px-1">
+            <span className="flex items-center gap-1.5 text-[var(--text-muted)]">
+              <Phone className="w-3.5 h-3.5" />
+              Hỗ trợ khách hàng
+            </span>
+            <a href="tel:19008888" className="font-semibold text-[var(--text)] tabular-nums hover:text-[var(--accent)]">
               1900 8888
             </a>
           </div>
@@ -227,22 +194,23 @@ export const CustomerLayout: React.FC = () => {
               setIsDrawerOpen(false);
               logout();
             }}
-            className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-[4px] bg-surface-elevated hover:bg-rose-950/40 border border-surface-highlight hover:border-rose-500/50 text-xs font-semibold text-text-secondary hover:text-rose-400 transition-colors cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-[var(--radius)] border border-[var(--line)] hover:bg-[var(--status-danger-bg)] hover:border-[var(--status-danger)]/30 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--status-danger)] transition-colors cursor-pointer"
           >
-            <LogOut className="w-3.5 h-3.5" />
+            <LogOut className="w-4 h-4" />
             <span>Đăng xuất tài khoản</span>
           </button>
         </div>
       </aside>
 
-      {/* 4. CUSTOMER CONTENT OUTLET (Toàn bộ không gian rộng rãi, thoáng đãng) */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <div key={location.pathname} className="bg-surface-container border border-surface-highlight rounded-[4px] p-4 sm:p-6 md:p-8 shadow-2xl min-w-0 animate-pageTransition">
+        <div
+          key={location.pathname}
+          className="bg-[var(--surface)] border border-[var(--line)] rounded-[var(--radius)] p-4 sm:p-6 md:p-8 min-w-0 animate-pageTransition"
+        >
           <Outlet />
         </div>
       </main>
 
-      {/* 5. GLOBAL FOOTER */}
       <Footer />
     </div>
   );

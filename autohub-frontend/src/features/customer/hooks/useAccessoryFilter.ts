@@ -1,8 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { Accessory, AccessoryCategory, AccessoryFilterParams } from '@/types/accessory.types';
 import { accessoryService } from '../services/accessory.service';
 import type { CarModelInfo } from '../mocks/accessory.mock';
+
+const ACCESSORIES_PER_PAGE = 12;
 
 export function useAccessoryFilter() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -22,6 +24,7 @@ export function useAccessoryFilter() {
   }, [queryCarId]);
 
   const [categories, setCategories] = useState<AccessoryCategory[]>([]);
+  const [categoryCountsMap, setCategoryCountsMap] = useState<Record<number, number> | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | undefined>(undefined);
 
   const [draftSearch, setDraftSearch] = useState<{ urlSearch: string; value: string } | null>(null);
@@ -41,9 +44,37 @@ export function useAccessoryFilter() {
 
   const [sortBy, setSortBy] = useState<'popular' | 'price-asc' | 'price-desc' | 'newest'>('popular');
   const [accessories, setAccessories] = useState<Accessory[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loadedFilterKey, setLoadedFilterKey] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const itemsPerPage = 4;
+  const itemsPerPage = ACCESSORIES_PER_PAGE;
+  const selectedCarModelId = selectedCarModel?.id;
+
+  const activeFilterKey = useMemo(
+    () =>
+      JSON.stringify([
+        selectedCarModelId ?? null,
+        selectedCategoryId ?? null,
+        searchQuery,
+        selectedPriceRange,
+        readyInShowroom,
+        homeInstallation,
+        isGenuine,
+        warrantyYears ?? null,
+        sortBy,
+      ]),
+    [
+      selectedCarModelId,
+      selectedCategoryId,
+      searchQuery,
+      selectedPriceRange,
+      readyInShowroom,
+      homeInstallation,
+      isGenuine,
+      warrantyYears,
+      sortBy,
+    ]
+  );
+  const isLoading = loadedFilterKey !== activeFilterKey;
 
   // Load initial categories
   useEffect(() => {
@@ -75,7 +106,7 @@ export function useAccessoryFilter() {
     }
 
     const params: AccessoryFilterParams = {
-      carModelId: selectedCarModel ? selectedCarModel.id : undefined,
+      carModelId: selectedCarModelId,
       categoryId: selectedCategoryId,
       search: searchQuery,
       minPrice,
@@ -87,10 +118,29 @@ export function useAccessoryFilter() {
       sortBy,
     };
 
+    const isUnfiltered =
+      !selectedCarModelId &&
+      selectedCategoryId === undefined &&
+      !searchQuery.trim() &&
+      minPrice === undefined &&
+      maxPrice === undefined &&
+      !readyInShowroom &&
+      !homeInstallation &&
+      !isGenuine &&
+      warrantyYears === undefined;
+
     accessoryService.getAccessories(params).then((items) => {
       if (isMounted) {
         setAccessories(items);
-        setIsLoading(false);
+        setCurrentPage(1);
+        if (isUnfiltered) {
+          const counts: Record<number, number> = {};
+          for (const item of items) {
+            counts[item.categoryId] = (counts[item.categoryId] || 0) + 1;
+          }
+          setCategoryCountsMap(counts);
+        }
+        setLoadedFilterKey(activeFilterKey);
       }
     });
 
@@ -98,7 +148,8 @@ export function useAccessoryFilter() {
       isMounted = false;
     };
   }, [
-    selectedCarModel?.id,
+    activeFilterKey,
+    selectedCarModelId,
     selectedCategoryId,
     searchQuery,
     selectedPriceRange,
@@ -108,6 +159,14 @@ export function useAccessoryFilter() {
     warrantyYears,
     sortBy,
   ]);
+
+  const resolvedCategories = useMemo<AccessoryCategory[]>(() => {
+    if (!categoryCountsMap) return categories;
+    return categories.map((cat) => ({
+      ...cat,
+      count: categoryCountsMap[cat.id] ?? 0,
+    }));
+  }, [categories, categoryCountsMap]);
 
   const clearAllFilters = () => {
     setSelectedCarModel(null);
@@ -119,6 +178,7 @@ export function useAccessoryFilter() {
     setIsGenuine(false);
     setWarrantyYears(undefined);
     setSortBy('popular');
+    setCurrentPage(1);
     if (searchParams.has('search')) {
       const nextParams = new URLSearchParams(searchParams);
       nextParams.delete('search');
@@ -139,7 +199,7 @@ export function useAccessoryFilter() {
     setSelectedCarModel,
     isCarModalOpen,
     setIsCarModalOpen,
-    categories,
+    categories: resolvedCategories,
     selectedCategoryId,
     setSelectedCategoryId,
     searchQuery,

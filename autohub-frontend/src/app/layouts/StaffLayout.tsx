@@ -19,7 +19,6 @@ import {
   Sun,
   Moon,
   MapPin,
-  Clock,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Logo } from '@/components/Logo';
@@ -30,13 +29,9 @@ import type { WorkspaceMetricsResponse } from '@/types/staff.types';
 
 interface StaffNavItem {
   to: string;
-  code: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  badge?: {
-    text: string;
-    variant: 'danger' | 'warning' | 'success' | 'cyan' | 'neutral';
-  };
+  badgeCount?: number;
 }
 
 interface StaffNavGroup {
@@ -55,7 +50,6 @@ const StaffLayoutContent: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [workspaceData, setWorkspaceData] = useState<WorkspaceMetricsResponse | null>(null);
 
@@ -67,7 +61,7 @@ const StaffLayoutContent: React.FC = () => {
         if (isMounted) setWorkspaceData(res);
       })
       .catch(() => {
-        // Keep sidebar clean without fake fallback numbers on error
+        // Keep sidebar clean with no fake fallback numbers
       });
     return () => {
       isMounted = false;
@@ -76,110 +70,83 @@ const StaffLayoutContent: React.FC = () => {
 
   const counts = workspaceData?.sidebarCounts;
 
-  const handleScroll = (e: React.UIEvent<HTMLElement>) => {
-    const top = e.currentTarget.scrollTop;
-    if (top > 12) {
-      if (!isScrolled) setIsScrolled(true);
-    } else {
-      if (isScrolled) setIsScrolled(false);
-    }
-  };
-
-  // 4 Core Groups synced dynamically with live SQL Server counts
   const navigationGroups: StaffNavGroup[] = useMemo(
     () => [
       {
         id: 'workspace-leads',
-        title: 'Bàn Làm Việc & Khách Hàng',
+        title: 'Bàn làm việc & khách hàng',
         items: [
           {
             to: '/staff/workspace',
-            code: 'STF-01',
-            label: 'Bàn Làm Việc Showroom',
+            label: 'Bàn làm việc showroom',
             icon: Briefcase,
-            badge: { text: 'Co-Pilot', variant: 'cyan' },
           },
           {
             to: '/staff/consultations',
-            code: 'STF-02',
-            label: 'Tiếp Nhận Tư Vấn',
+            label: 'Tiếp nhận tư vấn',
             icon: MessageSquare,
-            badge: counts ? { text: `${counts.totalLeads} Lead`, variant: 'warning' } : undefined,
+            badgeCount: counts?.totalLeads,
           },
         ],
       },
       {
         id: 'testdrive-deposits',
-        title: 'Lái Thử & Giữ Chỗ 72 Giờ',
+        title: 'Lái thử & đặt cọc 72h',
         items: [
           {
             to: '/staff/test-drives',
-            code: 'STF-03',
-            label: 'Điều Phối Lái Thử',
+            label: 'Điều phối lái thử',
             icon: CalendarClock,
-            badge: counts ? { text: `${counts.totalTestDrives} Lịch`, variant: 'success' } : undefined,
+            badgeCount: counts?.totalTestDrives,
           },
           {
             to: '/staff/deposit-audit',
-            code: 'STF-04',
-            label: 'Đối Soát Cọc & Gán VIN',
+            label: 'Đối soát cọc & gán VIN',
             icon: ShieldCheck,
-            badge: counts ? { text: `${counts.totalDeposits} Phiếu`, variant: 'danger' } : undefined,
+            badgeCount: counts?.totalDeposits,
           },
           {
             to: '/staff/refund-dockets',
-            code: 'STF-05',
-            label: 'Thẩm Định Hoàn Cọc',
+            label: 'Thẩm định hoàn cọc',
             icon: FileText,
-            badge:
-              counts && counts.pendingRefunds > 0
-                ? { text: `${counts.pendingRefunds} Chờ`, variant: 'warning' }
-                : undefined,
+            badgeCount: counts?.pendingRefunds,
           },
         ],
       },
       {
         id: 'inventory-logistics',
-        title: 'Kho Hàng & Vận Chuyển',
+        title: 'Kho hàng & vận chuyển',
         items: [
           {
             to: '/staff/fulfillment',
-            code: 'STF-06',
-            label: 'Đóng Gói Xuất Kho',
+            label: 'Đóng gói xuất kho',
             icon: Package,
-            badge:
-              counts && typeof counts.pendingOrders === 'number'
-                ? { text: `${counts.pendingOrders} Đơn`, variant: 'warning' }
-                : undefined,
+            badgeCount: counts?.pendingOrders,
           },
           {
             to: '/staff/returns',
-            code: 'STF-07',
-            label: 'Xử Lý Đổi Trả',
+            label: 'Xử lý đổi trả',
             icon: RotateCcw,
           },
           {
             to: '/staff/inventory-transfer',
-            code: 'STF-08',
-            label: 'Tra Cứu & Chuyển Kho',
+            label: 'Tra cứu & chuyển kho',
             icon: Boxes,
           },
           {
             to: '/staff/fleet-maintenance',
-            code: 'STF-09',
-            label: 'Bảo Dưỡng Xe Demo',
+            label: 'Bảo dưỡng xe lái thử',
             icon: Wrench,
           },
         ],
       },
       {
         id: 'personnel-shift',
-        title: 'Nhân Sự & Ca Trực',
+        title: 'Nhân sự & ca trực',
         items: [
           {
             to: '/staff/profile-handover',
-            code: 'STF-10',
-            label: 'Hồ Sơ & Bàn Giao Ca',
+            label: 'Hồ sơ & bàn giao ca',
             icon: UserCheck,
           },
         ],
@@ -188,60 +155,38 @@ const StaffLayoutContent: React.FC = () => {
     [counts]
   );
 
+  const notificationCount = (counts?.pendingLeads || 0) + (counts?.activeDeposits || 0);
+
   return (
-    <div
-      className={cn(
-        'min-h-screen flex font-sans antialiased transition-colors duration-300',
-        isDarkMode ? 'dark bg-[#060E20] text-[#DAE2FD]' : 'bg-slate-50 text-slate-800'
-      )}
-    >
-      {/* 1. STAFF BACK-OFFICE SIDEBAR (Collapsible 280px <-> 72px) */}
+    <div className="min-h-screen flex font-sans antialiased bg-[var(--bg)] text-[var(--text)]">
+      {/* Staff Sidebar */}
       <aside
         className={cn(
-          'border-r flex flex-col justify-between transition-all duration-300 z-30 select-none flex-shrink-0 sticky top-0 h-screen',
-          isDarkMode
-            ? 'bg-[#0B1326] border-[#3E4850]/40 text-[#DAE2FD]'
-            : 'bg-white border-slate-200 text-slate-700 shadow-xs',
-          isCollapsed ? 'w-20' : 'w-72'
+          'border-r border-[var(--line)] bg-[var(--surface)] flex flex-col justify-between transition-all duration-200 z-30 select-none flex-shrink-0 sticky top-0 h-screen',
+          isCollapsed ? 'w-20' : 'w-68'
         )}
       >
         <div className="flex flex-col h-full overflow-hidden">
-          {/* Top Brand Header */}
-          <div
-            className={cn(
-              'p-4 border-b flex items-center justify-between',
-              isDarkMode ? 'border-[#3E4850]/40' : 'border-slate-200'
-            )}
-          >
-            <Link to="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
+          <div className="p-4 h-16 border-b border-[var(--line)] flex items-center justify-between">
+            <Link to="/" className="hover:opacity-90 transition-opacity">
               <Logo variant={isCollapsed ? 'icon-only' : 'horizontal'} size="sm" />
             </Link>
             <button
               type="button"
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className={cn(
-                'w-7 h-7 rounded-md border flex items-center justify-center transition-colors cursor-pointer',
-                isDarkMode
-                  ? 'bg-[#131B2E] border-[#3E4850]/50 hover:bg-[#171F33] text-[#88929B] hover:text-[#89CEFF]'
-                  : 'bg-slate-100 border-slate-200 hover:bg-slate-200 text-slate-600 hover:text-slate-900'
-              )}
+              className="w-8 h-8 rounded-[var(--radius-sm)] border border-[var(--line)] bg-[var(--surface-subtle)] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)] flex items-center justify-center transition-colors cursor-pointer"
               title={isCollapsed ? 'Mở rộng menu' : 'Thu gọn menu'}
+              aria-label={isCollapsed ? 'Mở rộng menu' : 'Thu gọn menu'}
             >
               {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
             </button>
           </div>
 
-          {/* Grouped Navigation Links Area */}
-          <div className="flex-1 overflow-y-auto px-3 pt-4 pb-16 space-y-5 scrollbar-thin scrollbar-thumb-slate-800">
+          <nav className="flex-1 overflow-y-auto px-3 pt-4 pb-10 space-y-5">
             {navigationGroups.map((group) => (
               <div key={group.id} className="space-y-1">
                 {!isCollapsed && (
-                  <div
-                    className={cn(
-                      'px-2.5 pb-1.5 text-[10px] font-mono font-bold uppercase tracking-wider',
-                      isDarkMode ? 'text-[#88929B]' : 'text-slate-400'
-                    )}
-                  >
+                  <div className="px-2.5 pb-1 text-[12px] font-medium text-[var(--text-muted)]">
                     {group.title}
                   </div>
                 )}
@@ -253,172 +198,75 @@ const StaffLayoutContent: React.FC = () => {
                       to={item.to}
                       className={({ isActive }) =>
                         cn(
-                          'flex items-center gap-3 px-2.5 py-2 rounded-lg text-xs font-medium transition-all group relative',
+                          'flex items-center gap-3 px-2.5 py-2 rounded-[var(--radius-sm)] text-[13px] font-medium transition-colors group relative',
                           isActive
-                            ? isDarkMode
-                              ? 'bg-[#171F33] text-[#89CEFF] border border-[#89CEFF]/30 font-semibold shadow-sm'
-                              : 'bg-blue-50 text-blue-600 border border-blue-200 font-semibold shadow-xs'
-                            : isDarkMode
-                            ? 'text-[#88929B] hover:text-[#DAE2FD] hover:bg-[#131B2E]'
-                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                            ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-semibold'
+                            : 'text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--surface-subtle)]'
                         )
                       }
-                      title={isCollapsed ? `${item.code} - ${item.label}` : undefined}
+                      title={isCollapsed ? item.label : undefined}
                     >
-                      <Icon className="w-4 h-4 flex-shrink-0 transition-transform group-hover:scale-105" />
-                      {!isCollapsed && (
-                        <div className="flex items-center justify-between w-full min-w-0">
-                          <span className="truncate">{item.label}</span>
-                          {item.badge && (
-                            <span
-                              className={cn(
-                                'text-[10px] font-mono px-1.5 py-0.5 rounded font-bold uppercase tracking-tight flex-shrink-0 ml-1.5',
-                                item.badge.variant === 'danger' &&
-                                  (isDarkMode
-                                    ? 'bg-[#450A0A] text-[#FCA5A5] border border-[#DC2626]/40'
-                                    : 'bg-red-50 text-red-600 border border-red-200'),
-                                item.badge.variant === 'warning' &&
-                                  (isDarkMode
-                                    ? 'bg-[#78350F]/50 text-[#FDE68A] border border-[#D97706]/40'
-                                    : 'bg-amber-50 text-amber-700 border border-amber-200'),
-                                item.badge.variant === 'success' &&
-                                  (isDarkMode
-                                    ? 'bg-[#0D2818] text-[#10B981] border border-[#10B981]/40'
-                                    : 'bg-emerald-50 text-emerald-600 border border-emerald-200'),
-                                item.badge.variant === 'cyan' &&
-                                  (isDarkMode
-                                    ? 'bg-[#0F2942] text-[#89CEFF] border border-[#0284C7]/40'
-                                    : 'bg-sky-50 text-sky-600 border border-sky-200'),
-                                item.badge.variant === 'neutral' &&
-                                  (isDarkMode ? 'bg-[#1E293B] text-[#94A3B8]' : 'bg-slate-100 text-slate-600')
+                      {({ isActive }) => (
+                        <>
+                          <Icon
+                            className={cn(
+                              'w-4 h-4 flex-shrink-0',
+                              isActive ? 'text-[var(--accent)]' : 'text-[var(--text-muted)] group-hover:text-[var(--text)]'
+                            )}
+                          />
+                          {!isCollapsed && (
+                            <div className="flex items-center justify-between w-full min-w-0">
+                              <span className="truncate">{item.label}</span>
+                              {typeof item.badgeCount === 'number' && item.badgeCount > 0 && (
+                                <span className="text-[12px] font-medium px-1.5 py-0.5 rounded-[4px] bg-[var(--surface-subtle)] border border-[var(--line)] text-[var(--text-secondary)] tabular-nums ml-1.5">
+                                  {item.badgeCount}
+                                </span>
                               )}
-                            >
-                              {item.badge.text}
-                            </span>
+                            </div>
                           )}
-                        </div>
-                      )}
-
-                      {/* Tooltip on Collapsed Mode */}
-                      {isCollapsed && (
-                        <div
-                          className={cn(
-                            'absolute left-full ml-2 px-2.5 py-1.5 border rounded-md text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-50',
-                            isDarkMode
-                              ? 'bg-[#131B2E] border-[#3E4850]/80 text-white'
-                              : 'bg-white border-slate-200 text-slate-800'
-                          )}
-                        >
-                          <div className={cn('font-mono text-[10px]', isDarkMode ? 'text-[#89CEFF]' : 'text-blue-600')}>
-                            {item.code}
-                          </div>
-                          <div>{item.label}</div>
-                        </div>
+                        </>
                       )}
                     </NavLink>
                   );
                 })}
               </div>
             ))}
-          </div>
+          </nav>
         </div>
       </aside>
 
-      {/* 2. STAFF MAIN CONTAINER WITH STICKY HEADER */}
+      {/* Main Content Container */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-        {/* Top App Header Bar */}
-        <header
-          className={cn(
-            'sticky top-0 h-16 px-6 flex items-center justify-between flex-shrink-0 z-30 transition-all duration-300',
-            isDarkMode
-              ? 'bg-[#0B1326]/95 border-b border-[#3E4850]/40'
-              : 'bg-white/95 border-b border-slate-200',
-            isScrolled &&
-              (isDarkMode
-                ? 'shadow-lg shadow-black/50 border-[#89CEFF]/20 backdrop-blur-md bg-[#0B1326]/90'
-                : 'shadow-md shadow-slate-200/80 backdrop-blur-md bg-white/90')
-          )}
-        >
-          {/* Left: Showroom Location Tag & Quick Search */}
-          <div className="flex items-center gap-4">
-            <div
-              className={cn(
-                'hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium',
-                isDarkMode
-                  ? 'bg-[#131B2E] border-[#3E4850]/50 text-[#89CEFF]'
-                  : 'bg-sky-50 border-sky-200 text-sky-700'
-              )}
-            >
-              <MapPin className="w-3.5 h-3.5" />
-              <span>Showroom Sài Gòn Central - Q.7</span>
+        <header className="sticky top-0 h-16 px-6 bg-[var(--surface)] border-b border-[var(--line)] flex items-center justify-between flex-shrink-0 z-30">
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-[var(--radius-sm)] bg-[var(--surface-subtle)] border border-[var(--line)] text-[13px] text-[var(--text-secondary)]">
+              <MapPin className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+              <span>Showroom Sài Gòn – Q.7</span>
             </div>
 
             <div className="relative w-64 md:w-80">
-              <Search
-                className={cn(
-                  'w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 transition-colors',
-                  isDarkMode ? 'text-[#88929B]' : 'text-slate-400'
-                )}
-              />
+              <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Tìm khách, mã cọc, số VIN..."
-                className={cn(
-                  'w-full pl-9 pr-14 py-1.5 text-xs rounded-xl transition-all duration-200 outline-none',
-                  isDarkMode
-                    ? 'bg-[#131B2E] border border-[#3E4850]/50 text-white placeholder-[#88929B] focus:border-[#89CEFF]'
-                    : 'bg-slate-100 border border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-500'
-                )}
+                placeholder="Tìm khách hàng, mã cọc, số VIN..."
+                className="w-full pl-9 pr-4 py-1.5 text-[13px] rounded-[var(--radius)] bg-[var(--surface-subtle)] border border-[var(--line)] text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:bg-[var(--surface)] focus:border-[var(--accent)] transition-colors"
               />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 -mt-[0.5px]">
-                <kbd
-                  className={cn(
-                    'px-1.5 py-0.5 text-[9px] font-mono font-semibold rounded border select-none',
-                    isDarkMode
-                      ? 'bg-[#171F33] text-[#88929B] border-[#3E4850]/60'
-                      : 'bg-white text-slate-500 border-slate-200 shadow-2xs'
-                  )}
-                >
-                  <span className="inline-block -translate-y-[1px]">Ctrl K</span>
-                </kbd>
-              </div>
             </div>
           </div>
 
-          {/* Right Controls */}
-          <div className="flex items-center gap-3">
-            {/* Animated Smooth Dark / Light Theme Toggle Switch */}
+          <div className="flex items-center gap-2.5">
             <button
               type="button"
               onClick={toggleTheme}
-              className={cn(
-                'relative w-14 h-8 rounded-full p-1 transition-all duration-500 ease-in-out cursor-pointer focus:outline-none shadow-inner flex items-center',
-                isDarkMode
-                  ? 'bg-[#131B2E] border border-[#3E4850]/70'
-                  : 'bg-slate-200 border border-slate-300'
-              )}
-              title={isDarkMode ? 'Chuyển sang giao diện Sáng' : 'Chuyển sang giao diện Tối'}
-              aria-label="Toggle Dark/Light Mode"
+              className="w-9 h-9 rounded-[var(--radius-sm)] border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-subtle)] text-[var(--text-secondary)] flex items-center justify-center transition-colors cursor-pointer"
+              title={isDarkMode ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'}
+              aria-label="Đổi giao diện sáng/tối"
             >
-              <div
-                className={cn(
-                  'w-6 h-6 rounded-full flex items-center justify-center transition-all duration-500 transform shadow-md',
-                  isDarkMode
-                    ? 'translate-x-6 bg-[#171F33] text-[#89CEFF] rotate-0'
-                    : 'translate-x-0 bg-white text-amber-500 rotate-180'
-                )}
-              >
-                {isDarkMode ? (
-                  <Moon className="w-3.5 h-3.5 transition-transform duration-500 rotate-0" />
-                ) : (
-                  <Sun className="w-3.5 h-3.5 transition-transform duration-500 rotate-180" />
-                )}
-              </div>
+              {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
 
-            {/* Notification Bell */}
             <div className="relative">
               <button
                 type="button"
@@ -426,61 +274,46 @@ const StaffLayoutContent: React.FC = () => {
                   setShowNotifications(!showNotifications);
                   setShowUserMenu(false);
                 }}
-                className={cn(
-                  'relative p-2 rounded-xl border transition-colors cursor-pointer',
-                  isDarkMode
-                    ? 'bg-[#131B2E] border-[#3E4850]/50 text-[#88929B] hover:text-[#89CEFF] hover:bg-[#171F33]'
-                    : 'bg-slate-100 border-slate-200 text-slate-600 hover:text-blue-600 hover:bg-slate-200'
-                )}
-                title="Thông báo nhiệm vụ ca trực"
+                className="relative w-9 h-9 rounded-[var(--radius-sm)] border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-subtle)] text-[var(--text-secondary)] flex items-center justify-center transition-colors cursor-pointer"
+                title="Nhiệm vụ ca trực"
+                aria-label="Thông báo nhiệm vụ ca trực"
               >
                 <Bell className="w-4 h-4" />
-                {((counts?.pendingLeads || 0) + (counts?.activeDeposits || 0)) > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white font-mono text-[9px] font-bold flex items-center justify-center animate-pulse">
-                    {(counts?.pendingLeads || 0) + (counts?.activeDeposits || 0)}
+                {notificationCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[var(--status-danger)] text-white text-[11px] font-semibold flex items-center justify-center tabular-nums">
+                    {notificationCount}
                   </span>
                 )}
               </button>
 
-              {/* Notification Popover */}
               {showNotifications && (
-                <div
-                  className={cn(
-                    'absolute right-0 mt-2 w-80 border rounded-xl shadow-2xl p-4 space-y-3 z-50 animate-fade-in text-xs',
-                    isDarkMode
-                      ? 'bg-[#0B1326] border-[#3E4850]/60 text-white'
-                      : 'bg-white border-slate-200 text-slate-800'
-                  )}
-                >
-                  <div className={cn('flex items-center justify-between pb-2 border-b', isDarkMode ? 'border-[#3E4850]/40' : 'border-slate-100')}>
-                    <span className="font-bold flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-amber-500" />
-                      Nhiệm Vụ Ca Trực Cần Xử Lý
-                    </span>
-                    <span className="text-[10px] font-mono text-red-500 font-bold">
-                      {(workspaceData?.urgentDeposits.length || 0) + (workspaceData?.todayTimeline.length || 0)} MỤC
+                <div className="absolute right-0 mt-2 w-80 bg-[var(--surface)] border border-[var(--line)] rounded-[var(--radius)] shadow-lg p-4 space-y-3 z-50 text-[13px] animate-fadeIn">
+                  <div className="flex items-center justify-between pb-2 border-b border-[var(--line)]">
+                    <span className="font-semibold text-[var(--text)]">Nhiệm vụ ca trực</span>
+                    <span className="text-[12px] text-[var(--text-muted)] tabular-nums">
+                      {(workspaceData?.urgentDeposits.length || 0) + (workspaceData?.todayTimeline.length || 0)} mục
                     </span>
                   </div>
                   <div className="space-y-2 max-h-60 overflow-y-auto">
                     {(workspaceData?.urgentDeposits || []).slice(0, 2).map((dep) => (
-                      <div key={dep.id} className={cn('p-2.5 rounded-lg border', isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40' : 'bg-slate-50 border-slate-200')}>
-                        <div className="font-semibold text-blue-500">Phiếu cọc {dep.depositCode}</div>
-                        <div className={cn('text-[11px]', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
+                      <div key={dep.id} className="p-2.5 rounded-[var(--radius-sm)] bg-[var(--surface-subtle)] border border-[var(--line)]">
+                        <div className="font-medium text-[var(--text)]">Phiếu cọc {dep.depositCode}</div>
+                        <div className="text-[12px] text-[var(--text-muted)]">
                           {dep.customerName} • {dep.assignedVin ? `VIN: ${dep.assignedVin}` : 'Chưa gán VIN'}
                         </div>
                       </div>
                     ))}
                     {(workspaceData?.todayTimeline || []).slice(0, 2).map((slot) => (
-                      <div key={slot.id} className={cn('p-2.5 rounded-lg border', isDarkMode ? 'bg-[#131B2E] border-[#3E4850]/40' : 'bg-slate-50 border-slate-200')}>
-                        <div className="font-semibold text-emerald-500">Lái thử {slot.timeSlot}</div>
-                        <div className={cn('text-[11px]', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-                          Khách {slot.customerName} • {slot.carModel}
+                      <div key={slot.id} className="p-2.5 rounded-[var(--radius-sm)] bg-[var(--surface-subtle)] border border-[var(--line)]">
+                        <div className="font-medium text-[var(--text)]">Lái thử {slot.timeSlot}</div>
+                        <div className="text-[12px] text-[var(--text-muted)]">
+                          {slot.customerName} • {slot.carModel}
                         </div>
                       </div>
                     ))}
                     {(!workspaceData || (workspaceData.urgentDeposits.length === 0 && workspaceData.todayTimeline.length === 0)) && (
-                      <div className="text-[11px] text-slate-400 text-center py-2">
-                        Chưa có nhiệm vụ mới trong cơ sở dữ liệu.
+                      <div className="text-[13px] text-[var(--text-muted)] text-center py-3">
+                        Chưa có nhiệm vụ mới trong ca trực.
                       </div>
                     )}
                   </div>
@@ -488,7 +321,6 @@ const StaffLayoutContent: React.FC = () => {
               )}
             </div>
 
-            {/* ONLY AVATAR TRIGGER */}
             <div className="relative">
               <button
                 type="button"
@@ -496,76 +328,50 @@ const StaffLayoutContent: React.FC = () => {
                   setShowUserMenu(!showUserMenu);
                   setShowNotifications(false);
                 }}
-                className={cn(
-                  'w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs transition-all duration-200 cursor-pointer shadow-sm relative focus:outline-none',
-                  isDarkMode
-                    ? 'bg-gradient-to-tr from-[#0284C7] to-[#89CEFF] text-[#060E20] border border-[#89CEFF]/50 hover:scale-105'
-                    : 'bg-gradient-to-tr from-blue-600 to-sky-400 text-white border border-blue-300 hover:scale-105'
-                )}
-                title={`Nhân viên: ${user?.fullName || 'Staff'}`}
-                aria-label="Tài khoản Nhân viên Showroom"
+                className="w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--line)] cursor-pointer"
+                title={`Nhân viên: ${user?.fullName || 'Nhân viên'}`}
+                aria-label="Tài khoản nhân viên"
               >
-                {(user?.fullName || 'S').charAt(0).toUpperCase()}
-                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-[#0B1326]" />
+                {(user?.fullName || 'N').charAt(0).toUpperCase()}
               </button>
 
-              {/* User Dropdown Menu */}
               {showUserMenu && (
-                <div
-                  className={cn(
-                    'absolute right-0 mt-2 w-56 border rounded-xl shadow-2xl p-3 space-y-2 z-50 animate-fade-in text-xs',
-                    isDarkMode
-                      ? 'bg-[#0B1326] border-[#3E4850]/60 text-[#DAE2FD]'
-                      : 'bg-white border-slate-200 text-slate-800'
-                  )}
-                >
-                  <div className={cn('border-b pb-2', isDarkMode ? 'border-[#3E4850]/40' : 'border-slate-200')}>
-                    <div className="font-bold">{user?.fullName || 'Nguyễn Văn Tuấn'}</div>
-                    <div className={cn('text-[11px] font-mono', isDarkMode ? 'text-[#88929B]' : 'text-slate-500')}>
-                      {user?.email || 'tuan.nguyen@autohub.vn'}
-                    </div>
-                    <div className="mt-1 inline-block px-1.5 py-0.5 rounded text-[10px] font-mono bg-blue-950/80 text-blue-300 border border-blue-800/40 font-bold">
-                      STAFF OPERATIONS
+                <div className="absolute right-0 mt-2 w-56 bg-[var(--surface)] border border-[var(--line)] rounded-[var(--radius)] shadow-lg p-3 space-y-2 z-50 text-[13px] animate-fadeIn">
+                  <div className="border-b border-[var(--line)] pb-2">
+                    <div className="font-semibold text-[var(--text)]">{user?.fullName || 'Nhân viên showroom'}</div>
+                    <div className="text-[12px] text-[var(--text-muted)] truncate">
+                      {user?.email || 'staff@autohub.vn'}
                     </div>
                   </div>
 
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     <Link
                       to="/staff/profile-handover"
                       onClick={() => setShowUserMenu(false)}
-                      className={cn(
-                        'block px-2.5 py-1.5 rounded transition-colors',
-                        isDarkMode ? 'hover:bg-[#131B2E] hover:text-[#89CEFF]' : 'hover:bg-slate-100 hover:text-blue-600'
-                      )}
+                      className="block px-2.5 py-1.5 rounded-[var(--radius-sm)] hover:bg-[var(--surface-subtle)] text-[var(--text-secondary)] hover:text-[var(--text)] transition-colors"
                     >
-                      Hồ sơ cá nhân & Bàn giao ca
+                      Hồ sơ & bàn giao ca
                     </Link>
                     <Link
                       to="/cars"
                       onClick={() => setShowUserMenu(false)}
-                      className={cn(
-                        'block px-2.5 py-1.5 rounded transition-colors',
-                        isDarkMode ? 'hover:bg-[#131B2E] hover:text-[#89CEFF]' : 'hover:bg-slate-100 hover:text-blue-600'
-                      )}
+                      className="block px-2.5 py-1.5 rounded-[var(--radius-sm)] hover:bg-[var(--surface-subtle)] text-[var(--text-secondary)] hover:text-[var(--text)] transition-colors"
                     >
-                      Xem Showroom Khách
+                      Xem showroom khách
                     </Link>
                   </div>
 
-                  <div className={cn('border-t pt-2', isDarkMode ? 'border-[#3E4850]/40' : 'border-slate-200')}>
+                  <div className="border-t border-[var(--line)] pt-2">
                     <button
                       type="button"
                       onClick={() => {
                         logout();
                         navigate('/staff/login');
                       }}
-                      className={cn(
-                        'w-full flex items-center gap-2 px-2.5 py-1.5 rounded text-red-500 transition-colors cursor-pointer text-left',
-                        isDarkMode ? 'hover:bg-[#131B2E]' : 'hover:bg-red-50'
-                      )}
+                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[var(--radius-sm)] text-[var(--status-danger)] hover:bg-[var(--status-danger-bg)] transition-colors cursor-pointer text-left font-medium"
                     >
-                      <LogOut className="w-3.5 h-3.5" />
-                      <span>Đăng xuất Staff</span>
+                      <LogOut className="w-4 h-4" />
+                      <span>Đăng xuất</span>
                     </button>
                   </div>
                 </div>
@@ -574,14 +380,7 @@ const StaffLayoutContent: React.FC = () => {
           </div>
         </header>
 
-        {/* 3. SCROLLABLE CONTENT BODY */}
-        <main
-          onScroll={handleScroll}
-          className={cn(
-            'flex-1 p-6 lg:p-8 overflow-y-auto transition-colors duration-300',
-            isDarkMode ? 'bg-[#060E20]' : 'bg-slate-50'
-          )}
-        >
+        <main className="flex-1 p-6 lg:p-8 overflow-y-auto bg-[var(--bg)]">
           <div key={pathname} className="animate-pageTransition w-full">
             <Outlet />
           </div>

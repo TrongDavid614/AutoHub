@@ -111,8 +111,8 @@ export const PromoSelector: React.FC<PromoSelectorProps> = ({
               <span className="text-xs sm:text-sm font-bold text-text-primary">
                 Gói cứu hộ di động AutoHub Mobile Service 24/7 (3 năm)
               </span>
-              <span className="px-2 py-0.5 rounded-[2px] bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono text-[10px] font-bold">
-                MIỄN PHÍ
+              <span className="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
+                Miễn phí
               </span>
             </div>
             <p className="text-xs text-text-muted leading-relaxed">

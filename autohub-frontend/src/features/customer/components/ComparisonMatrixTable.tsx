@@ -69,7 +69,7 @@ export const ComparisonMatrixTable: React.FC<ComparisonMatrixTableProps> = ({
                           {row.label}
                         </span>
                         {isRowDifferent && (
-                          <span className="no-print px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-amber-500/10 border border-amber-500/30 text-amber-400">
+                          <span className="no-print px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 border border-amber-200 text-amber-800">
                             Khác biệt
                           </span>
                         )}

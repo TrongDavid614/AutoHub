@@ -10,69 +10,69 @@ export const DepositPolicyCard: React.FC = () => {
   };
 
   return (
-    <div className="p-5 rounded-xl bg-gradient-to-br from-[#131B2E] to-[#0E1626] border border-cyan-500/40 shadow-xl text-[#DAE2FD] space-y-4 max-w-2xl">
-      <div className="flex items-center justify-between pb-3 border-b border-[#3E4850]/50">
+    <div className="p-5 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-[var(--text)] space-y-4 max-w-2xl">
+      <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/40 shadow-sm">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-200">
+            <ShieldCheck className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="text-sm font-bold text-white tracking-wide">
-              Chính sách bảo chứng cọc 72 giờ
+            <h4 className="text-sm font-semibold text-[var(--text)]">
+              Chính sách đặt cọc giữ xe 72 giờ
             </h4>
-            <p className="text-xs text-[#88929B]">100% Hoàn tiền không rủi ro cho khách hàng</p>
+            <p className="text-xs text-[var(--text-secondary)]">Hoàn tiền 100% trong 72h nếu bạn thay đổi quyết định</p>
           </div>
         </div>
 
-        <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-          AN TÂM TUYỆT ĐỐI
+        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+          Hoàn cọc 72h
         </span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="p-3 rounded-lg bg-[#0B1326] border border-[#3E4850]/40 space-y-1">
-          <div className="flex items-center gap-1.5 text-cyan-400 text-xs font-semibold">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 divide-y sm:divide-y-0 sm:divide-x divide-[var(--line)]">
+        <div className="space-y-1">
+          <div className="flex items-center gap-1.5 text-[var(--accent)] text-xs font-semibold">
             <Lock className="w-3.5 h-3.5" />
-            <span>20 Triệu giữ xe</span>
+            <span>20 triệu giữ xe</span>
           </div>
-          <p className="text-[11px] text-[#88929B] leading-relaxed">
-            Khóa số khung VIN và mức giá niêm yết độc quyền trong 72 giờ.
+          <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+            Giữ suất xe và số khung VIN trong 72 giờ với mức giá niêm yết.
           </p>
         </div>
 
-        <div className="p-3 rounded-lg bg-[#0B1326] border border-[#3E4850]/40 space-y-1">
-          <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-semibold">
+        <div className="pt-3 sm:pt-0 sm:pl-4 space-y-1">
+          <div className="flex items-center gap-1.5 text-emerald-700 text-xs font-semibold">
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Hoàn tiền 100%</span>
           </div>
-          <p className="text-[11px] text-[#88929B] leading-relaxed">
-            Hủy cọc bất kỳ lúc nào trong 72h, hoàn trọn vẹn không phí phạt.
+          <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+            Hủy cọc trong vòng 72h được hoàn trọn vẹn không mất phí.
           </p>
         </div>
 
-        <div className="p-3 rounded-lg bg-[#0B1326] border border-[#3E4850]/40 space-y-1">
-          <div className="flex items-center gap-1.5 text-amber-400 text-xs font-semibold">
+        <div className="pt-3 sm:pt-0 sm:pl-4 space-y-1">
+          <div className="flex items-center gap-1.5 text-amber-700 text-xs font-semibold">
             <Clock className="w-3.5 h-3.5" />
-            <span>Xử lý 24 - 48h</span>
+            <span>Xử lý 24 – 48h</span>
           </div>
-          <p className="text-[11px] text-[#88929B] leading-relaxed">
-            Tự động chuyển khoản ngân hàng nhanh chóng và minh bạch.
+          <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+            Chuyển khoản hoàn cọc nhanh về tài khoản của bạn.
           </p>
         </div>
       </div>
 
-      <div className="flex items-center justify-between pt-2">
-        <div className="flex items-center gap-2 text-xs text-[#88929B]">
-          <Check className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Hợp đồng điện tử minh bạch có giá trị pháp lý</span>
+      <div className="flex items-center justify-between pt-3 border-t border-[var(--line)] flex-wrap gap-2">
+        <div className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)]">
+          <Check className="w-3.5 h-3.5 text-emerald-600" />
+          <span>Hợp đồng điện tử rõ ràng</span>
         </div>
 
         <button
           type="button"
           onClick={handleDeposit}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-semibold shadow-md transition-all cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-xs font-medium transition-colors cursor-pointer"
         >
-          <span>Đặt cọc giữ xe ngay</span>
+          <span>Đặt cọc giữ xe</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
