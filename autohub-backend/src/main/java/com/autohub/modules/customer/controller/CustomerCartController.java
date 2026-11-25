@@ -79,9 +79,7 @@ public class CustomerCartController {
             return nguoiDungRepository.findById(requestedCustomerId).orElse(null);
         }
 
-        // Fallback demo user ID 5 (Nguyễn Văn A)
-        return nguoiDungRepository.findById(5L)
-                .orElseGet(() -> nguoiDungRepository.findAll().stream().findFirst().orElse(null));
+        return null;
     }
 
     private GioHang getOrCreateCart(NguoiDung user) {
@@ -283,9 +281,10 @@ public class CustomerCartController {
                 ChiTietGioHangId id = new ChiTietGioHangId(cart.getId(), pk.getId());
                 Optional<ChiTietGioHang> existingOpt = chiTietGioHangRepository.findById(id);
 
-                int addQty = (guestItem.getQuantity() != null && guestItem.getQuantity() > 0) ? guestItem.getQuantity() : 1;
+                int guestQty = (guestItem.getQuantity() != null && guestItem.getQuantity() > 0) ? guestItem.getQuantity() : 1;
                 int currentQty = existingOpt.map(ChiTietGioHang::getSoLuong).orElse(0);
-                int finalQty = Math.min(currentQty + addQty, stock);
+                // Đảm bảo tính Idempotent: Sử dụng Math.max thay vì cộng dồn, tránh việc re-render/đồng bộ nhiều lần làm tăng số lượng gấp bội
+                int finalQty = Math.min(Math.max(currentQty, guestQty), stock);
 
                 if (existingOpt.isPresent()) {
                     ChiTietGioHang item = existingOpt.get();
