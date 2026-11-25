@@ -55,10 +55,18 @@ export function useCartCheckout() {
 
   // Order submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [orderSuccess, setOrderSuccess] = useState(false);
+  const [orderSuccess, setOrderSuccessState] = useState(false);
+  const [confirmedOrderTotal, setConfirmedOrderTotal] = useState(0);
   const [orderId, setOrderId] = useState('');
   const [sepayData, setSepayData] = useState<SepayPaymentInfo | undefined>(undefined);
   const [checkoutError, setCheckoutError] = useState('');
+
+  const setOrderSuccess = useCallback((success: boolean) => {
+    setOrderSuccessState(success);
+    if (!success) {
+      setConfirmedOrderTotal(0);
+    }
+  }, []);
 
   // 1. Tự động đồng bộ giỏ hàng từ máy chủ khi vào trang /cart hoặc khi user đổi
   useEffect(() => {
@@ -195,6 +203,7 @@ export function useCartCheckout() {
 
     try {
       const customerId = user?.id || 5;
+      const snapshotTotal = totalPayable;
       const res = await cartService.checkout({
         customerId,
         recipientName: selectedAddress.recipientName || user?.fullName || 'Khách hàng AutoHub',
@@ -217,6 +226,8 @@ export function useCartCheckout() {
         setSepayData(res.sepay);
       }
 
+      const finalTotal = Number(res.totalPayable ?? res.grandTotal ?? snapshotTotal);
+      setConfirmedOrderTotal(finalTotal);
       setOrderSuccess(true);
       await clearCart(customerId);
     } catch (err: unknown) {
@@ -264,6 +275,7 @@ export function useCartCheckout() {
     shippingFee,
     installationFee,
     totalPayable,
+    confirmedOrderTotal,
     isSubmitting,
     orderSuccess,
     setOrderSuccess,

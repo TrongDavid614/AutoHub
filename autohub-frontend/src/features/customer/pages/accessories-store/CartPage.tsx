@@ -50,6 +50,7 @@ export const CartPage: React.FC = () => {
     shippingFee,
     installationFee,
     totalPayable,
+    confirmedOrderTotal,
     isSubmitting,
     orderSuccess,
     setOrderSuccess,
@@ -163,7 +164,7 @@ export const CartPage: React.FC = () => {
       <OrderSuccessModal
         isOpen={orderSuccess}
         orderId={orderId}
-        totalPayable={totalPayable}
+        totalPayable={confirmedOrderTotal || totalPayable}
         recipientName={selectedAddress.recipientName || 'Khách hàng'}
         sepayData={sepayData}
         onClose={() => setOrderSuccess(false)}

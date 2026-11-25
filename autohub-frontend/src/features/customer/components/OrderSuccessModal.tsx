@@ -85,7 +85,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                 <div className="flex justify-between text-[#88929B]">
                   <span>Tổng tiền đơn hàng:</span>
                   <span className="font-mono text-[#DAE2FD] font-bold">
-                    {totalPayable.toLocaleString('vi-VN')} đ
+                    {(totalPayable ?? 0).toLocaleString('vi-VN')} đ
                   </span>
                 </div>
                 <div className="flex justify-between text-[#88929B]">
@@ -118,7 +118,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
         <div className="rounded-[2px] bg-[#060E20] border border-[#2D3449] p-3 flex items-center justify-between text-xs font-mono">
           <span className="text-[#88929B]">TỔNG GIÁ TRỊ ĐƠN HÀNG:</span>
           <span className="text-lg font-bold text-[#89CEFF]">
-            {totalPayable.toLocaleString('vi-VN')} đ
+            {(totalPayable ?? 0).toLocaleString('vi-VN')} đ
           </span>
         </div>
 

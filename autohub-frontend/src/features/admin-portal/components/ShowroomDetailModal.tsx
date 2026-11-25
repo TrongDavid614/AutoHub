@@ -80,6 +80,15 @@ export const ShowroomDetailModal: React.FC<ShowroomDetailModalProps> = ({
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleSaveDemoCar = async (e: React.FormEvent) => {
@@ -107,15 +116,6 @@ export const ShowroomDetailModal: React.FC<ShowroomDetailModalProps> = ({
     setIsAddingDemoCar(false);
     setLicensePlate('');
   };
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
 
   const sr = detail?.showroom;
 
