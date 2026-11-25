@@ -10,7 +10,6 @@ import {
   Building,
   User,
   Phone,
-  Sparkles,
   Lock,
   ArrowRight,
   CheckCircle2,
@@ -229,11 +228,11 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas-deep/80 backdrop-blur-md animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45"
     >
-      <div className="w-full max-w-xl rounded-2xl bg-surface-container border border-accent-primary/30 p-6 sm:p-8 shadow-2xl relative overflow-hidden max-h-[90vh] overflow-y-auto">
-        {/* Top Accent Gradient Border */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-accent-primary to-transparent" />
+      <div className="w-full max-w-xl rounded-xl bg-[var(--surface)] border border-[var(--line)] p-6 sm:p-8 shadow-xl relative overflow-hidden max-h-[90vh] overflow-y-auto">
+        {/* Top Cobalt Accent Bar */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-[var(--accent)]" />
 
         {/* 1. Header Modal */}
         <div className="flex items-start justify-between pb-4 border-b border-surface-highlight gap-4">
@@ -261,8 +260,8 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
 
         {/* TRƯỜNG HỢP 1: CHƯA ĐĂNG NHẬP -> YÊU CẦU ĐĂNG NHẬP */}
         {!isAuthenticated ? (
-          <div className="py-8 px-4 text-center space-y-5 animate-fadeIn">
-            <div className="w-16 h-16 mx-auto rounded-full bg-accent-action/15 border border-accent-primary/40 flex items-center justify-center text-accent-primary shadow-[0_0_25px_rgba(14,165,233,0.2)]">
+          <div className="py-8 px-4 text-center space-y-5">
+            <div className="w-16 h-16 mx-auto rounded-full bg-[var(--accent-soft)] border border-[var(--accent)]/25 flex items-center justify-center text-[var(--accent)]">
               <Lock className="w-8 h-8" />
             </div>
 
@@ -308,27 +307,26 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
           </div>
         ) : isPendingPayment ? (
           /* TRƯỜNG HỢP 2: BƯỚC THANH TOÁN QR (PENDING_PAYMENT - 15 PHÚT) */
-          <div className="py-4 space-y-4 animate-fadeIn text-left">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-accent-action/10 border border-accent-primary/30">
-              <div className="flex items-center gap-2 text-xs font-bold text-accent-primary">
-                <Clock className="w-4 h-4 animate-pulse" />
-                <span>THỜI HẠN GIỮ SUẤT THANH TOÁN (15 PHÚT):</span>
+          <div className="py-4 space-y-4 text-left">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-[var(--accent-soft)] border border-[var(--accent)]/25">
+              <div className="flex items-center gap-2 text-xs font-semibold text-[var(--accent)]">
+                <Clock className="w-4 h-4" />
+                <span>Thời hạn giữ suất thanh toán (15 phút):</span>
               </div>
-              <span className="font-mono font-bold text-sm text-accent-primary">{formatTimer(remainingSeconds)}</span>
+              <span className="font-mono font-bold text-sm tabular-nums text-[var(--accent)]">{formatTimer(remainingSeconds)}</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
               {/* VietQR Code */}
-              <div className="p-3 rounded-xl bg-canvas-deep border border-surface-highlight text-center space-y-2">
+              <div className="p-3 rounded-xl bg-[var(--surface-subtle)] border border-[var(--line)] text-center space-y-2">
                 <img
                   src={qrImageUrl}
                   alt="Mã QR thanh toán cọc xe AutoHub"
-                  className="w-44 h-44 mx-auto object-contain rounded-lg shadow-md bg-white p-1"
+                  className="w-44 h-44 mx-auto object-contain rounded-lg border border-[var(--line)] bg-white p-1"
                 />
                 <div className="space-y-1">
-                  <span className="text-[10px] text-text-muted block">Quét mã bằng App Ngân Hàng bất kỳ</span>
-                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-accent-action/15 border border-accent-primary/30 text-[10px] font-mono text-accent-primary font-bold">
-                    <Sparkles className="w-3 h-3 text-accent-primary shrink-0" />
+                  <span className="text-xs text-[var(--text-muted)] block">Quét mã bằng App Ngân Hàng bất kỳ</span>
+                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[var(--accent-soft)] border border-[var(--accent)]/20 text-xs font-medium tabular-nums text-[var(--accent)]">
                     <span>Mã test: {testAmount.toLocaleString('vi-VN')} ₫</span>
                   </div>
                 </div>
@@ -336,55 +334,55 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
 
               {/* Thông tin chuyển khoản */}
               <div className="space-y-2 text-xs">
-                <div className="p-2.5 rounded-lg bg-surface-elevated border border-surface-highlight space-y-0.5">
-                  <span className="text-[10px] text-text-muted font-mono block">NGÂN HÀNG THỤ HƯỞNG</span>
-                  <span className="font-bold text-text-primary">{bankBrand} - {bankAccountName}</span>
+                <div className="p-2.5 rounded-lg bg-[var(--surface-subtle)] border border-[var(--line)] space-y-0.5">
+                  <span className="text-xs text-[var(--text-muted)] block">Ngân hàng thụ hưởng</span>
+                  <span className="font-semibold text-[var(--text)]">{bankBrand} - {bankAccountName}</span>
                 </div>
 
-                <div className="p-2.5 rounded-lg bg-surface-elevated border border-surface-highlight flex items-center justify-between">
+                <div className="p-2.5 rounded-lg bg-[var(--surface-subtle)] border border-[var(--line)] flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] text-text-muted font-mono block">SỐ TÀI KHOẢN (SEPAY VIETQR)</span>
-                    <span className="font-mono font-bold text-sm text-text-primary">{bankAccount}</span>
+                    <span className="text-xs text-[var(--text-muted)] block">Số tài khoản (SePay VietQR)</span>
+                    <span className="font-mono font-bold text-sm tabular-nums text-[var(--text)]">{bankAccount}</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => copyToClipboard(bankAccount, 'stk')}
-                    className="p-1 rounded text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+                    className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text)] transition-colors cursor-pointer"
                   >
-                    {copiedField === 'stk' ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                    {copiedField === 'stk' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
                   </button>
                 </div>
 
-                <div className="p-2.5 rounded-lg bg-surface-elevated border border-surface-highlight flex items-center justify-between">
+                <div className="p-2.5 rounded-lg bg-[var(--surface-subtle)] border border-[var(--line)] flex items-center justify-between">
                   <div className="truncate pr-2">
-                    <span className="text-[10px] text-text-muted font-mono block">NỘI DUNG CHUYỂN KHOẢN</span>
-                    <span className="font-mono font-bold text-xs text-accent-primary truncate block">{transferContent}</span>
+                    <span className="text-xs text-[var(--text-muted)] block">Nội dung chuyển khoản</span>
+                    <span className="font-mono font-bold text-xs text-[var(--accent)] truncate block">{transferContent}</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => copyToClipboard(transferContent, 'content')}
-                    className="p-1 rounded text-text-muted hover:text-text-primary transition-colors cursor-pointer shrink-0"
+                    className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text)] transition-colors cursor-pointer shrink-0"
                   >
-                    {copiedField === 'content' ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                    {copiedField === 'content' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
                   </button>
                 </div>
 
-                <div className="p-2.5 rounded-lg bg-surface-elevated border border-surface-highlight flex items-center justify-between">
+                <div className="p-2.5 rounded-lg bg-[var(--surface-subtle)] border border-[var(--line)] flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] text-text-muted font-mono block">SỐ TIỀN CỌC PHÁP LÝ</span>
-                    <span className="font-mono font-black text-sm text-emerald-400">{depositAmount.toLocaleString('vi-VN')} VNĐ</span>
+                    <span className="text-xs text-[var(--text-muted)] block">Số tiền cọc pháp lý</span>
+                    <span className="font-bold text-sm tabular-nums text-emerald-700">{depositAmount.toLocaleString('vi-VN')} VNĐ</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] text-accent-primary font-mono block">TIỀN QUÉT MÃ TEST</span>
-                    <span className="font-mono font-bold text-xs text-accent-primary">{testAmount.toLocaleString('vi-VN')} VNĐ</span>
+                    <span className="text-xs text-[var(--accent)] block">Tiền quét mã test</span>
+                    <span className="font-bold text-xs tabular-nums text-[var(--accent)]">{testAmount.toLocaleString('vi-VN')} VNĐ</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {paymentPendingMsg && (
-              <div className="p-3 rounded-lg bg-amber-500/15 border border-amber-500/40 text-xs text-amber-300 flex items-start gap-2 animate-fadeIn">
-                <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
                 <span>{paymentPendingMsg}</span>
               </div>
             )}
@@ -425,46 +423,46 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
           </div>
         ) : depositSuccess ? (
           /* TRƯỜNG HỢP 3: ĐÃ ĐẶT CỌC THÀNH CÔNG VÀ KÍCH HOẠT 72H */
-          <div className="py-6 space-y-5 text-center animate-fadeIn">
-            <div className="w-16 h-16 mx-auto rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-[0_0_25px_rgba(16,185,129,0.25)]">
+          <div className="py-6 space-y-5 text-center">
+            <div className="w-16 h-16 mx-auto rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
               <CheckCircle2 className="w-8 h-8" />
             </div>
 
             <div className="space-y-1">
-              <h3 className="text-xl font-bold text-text-primary">Đặt cọc xe thành công!</h3>
-              <p className="text-xs text-text-muted">
+              <h3 className="text-xl font-bold text-[var(--text)]">Đặt cọc xe thành công!</h3>
+              <p className="text-xs text-[var(--text-2)]">
                 Hệ thống đã xác nhận phiếu đặt cọc và kích hoạt bảo lưu số khung xe trong 72 giờ.
               </p>
             </div>
 
             {/* Receipt Summary Card */}
-            <div className="p-4 rounded-xl bg-surface-elevated border border-surface-highlight text-left space-y-3">
-              <div className="flex items-center justify-between pb-2.5 border-b border-surface-highlight text-xs">
-                <span className="text-text-muted uppercase text-[10px] font-mono">MÃ PHIẾU CỌC</span>
-                <span className="font-mono font-bold text-accent-primary">{depositCode}</span>
+            <div className="p-4 rounded-xl bg-[var(--surface-subtle)] border border-[var(--line)] text-left space-y-3">
+              <div className="flex items-center justify-between pb-2.5 border-b border-[var(--line)] text-xs">
+                <span className="text-[var(--text-muted)] text-xs">Mã phiếu cọc</span>
+                <span className="font-mono font-bold text-[var(--accent)]">{depositCode}</span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="grid grid-cols-2 gap-2.5 text-xs">
                 <div>
-                  <span className="text-[10px] font-mono text-text-muted uppercase block">XE ĐẶT CỌC</span>
-                  <span className="font-semibold text-text-primary">{carName} - {trimName}</span>
+                  <span className="text-xs text-[var(--text-muted)] block">Xe đặt cọc</span>
+                  <span className="font-semibold text-[var(--text)]">{carName} - {trimName}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono text-text-muted uppercase block">MÀU NGOẠI THẤT</span>
-                  <span className="font-semibold text-accent-primary">{colorName}</span>
+                  <span className="text-xs text-[var(--text-muted)] block">Màu ngoại thất</span>
+                  <span className="font-semibold text-[var(--accent)]">{colorName}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono text-text-muted uppercase block">TIỀN CỌC ĐÃ XÁC NHẬN</span>
-                  <span className="font-mono font-bold text-emerald-400">{depositAmount.toLocaleString('vi-VN')} VNĐ</span>
+                  <span className="text-xs text-[var(--text-muted)] block">Tiền cọc đã xác nhận</span>
+                  <span className="font-bold tabular-nums text-emerald-700">{depositAmount.toLocaleString('vi-VN')} VNĐ</span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono text-text-muted uppercase block">SHOWROOM NHẬN XE</span>
-                  <span className="font-semibold text-text-primary truncate block">{showroom}</span>
+                  <span className="text-xs text-[var(--text-muted)] block">Showroom nhận xe</span>
+                  <span className="font-semibold text-[var(--text)] truncate block">{showroom}</span>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-surface-highlight flex items-center gap-2 text-[11px] text-amber-300 bg-amber-500/10 p-2.5 rounded">
-                <CalendarCheck className="w-4 h-4 shrink-0" />
+              <div className="flex items-center gap-2 text-xs text-amber-800 bg-amber-50 border border-amber-200 p-2.5 rounded-lg">
+                <CalendarCheck className="w-4 h-4 text-amber-700 shrink-0" />
                 <span>Suất giữ xe có hiệu lực trong <strong>72 giờ</strong>. Chuyên viên tư vấn AutoHub sẽ liên hệ trong 30 phút để bàn giao hợp đồng.</span>
               </div>
             </div>
@@ -508,34 +506,34 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
                   </div>
                 </div>
 
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-accent-action/15 border border-accent-primary/30 text-accent-primary font-mono text-[11px] font-bold">
-                  <Clock className="w-3.5 h-3.5 animate-pulse" />
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--accent-soft)] border border-[var(--accent)]/20 text-[var(--accent)] text-xs font-semibold tabular-nums">
+                  <Clock className="w-3.5 h-3.5" />
                   <span>Tạm giữ suất: {formatTimer(remainingSeconds)}</span>
                 </div>
               </div>
 
               <div className="flex items-baseline justify-between pt-0.5">
                 <div>
-                  <span className="text-[10px] font-mono text-text-muted uppercase block">MỨC TIỀN CỌC CỐ ĐỊNH</span>
-                  <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
+                  <span className="text-xs text-[var(--text-muted)] block">Mức tiền cọc cố định</span>
+                  <span className="text-xs text-emerald-700 font-semibold flex items-center gap-1">
                     <ShieldCheck className="w-3.5 h-3.5" />
                     <span>Cam kết hoàn cọc 100% trong 72h (BR05)</span>
                   </span>
                 </div>
 
                 <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-black font-mono text-accent-primary">
+                  <span className="text-2xl font-bold tabular-nums text-[var(--accent)]">
                     {depositAmount.toLocaleString('vi-VN')}
                   </span>
-                  <span className="text-xs font-mono font-bold text-text-muted">VNĐ</span>
+                  <span className="text-xs font-bold text-[var(--text-muted)]">VNĐ</span>
                 </div>
               </div>
             </div>
 
             {/* Error message */}
             {errorMessage && (
-              <div className="p-3 rounded bg-rose-500/15 border border-rose-500/40 text-xs text-rose-300 flex items-center gap-2 animate-fadeIn">
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+              <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
                 <span>{errorMessage}</span>
               </div>
             )}
@@ -639,24 +637,24 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
             </div>
 
             {/* 5. Cụm nút thao tác */}
-            <div className="flex flex-col sm:flex-row items-center gap-3 pt-2 border-t border-surface-highlight">
+            <div className="flex flex-col sm:flex-row items-center gap-3 pt-2 border-t border-[var(--line)]">
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full sm:flex-1 py-3 px-5 rounded-lg bg-accent-action hover:bg-accent-primary text-accent-contrast font-bold text-xs sm:text-sm uppercase tracking-wide flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(14,165,233,0.35)] hover:shadow-[0_0_30px_rgba(137,206,255,0.5)] transition-all cursor-pointer disabled:opacity-50"
+                className="w-full sm:flex-1 py-3 px-5 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50"
               >
-                <Sparkles className="w-4 h-4 text-accent-contrast" />
-                <span>
+                <ShieldCheck className="w-4 h-4" />
+                <span className="tabular-nums">
                   {isSubmitting
                     ? 'Đang khởi tạo phiếu cọc...'
-                    : `XÁC NHẬN ĐẶT CỌC GIỮ XE 72H (${depositAmount.toLocaleString('vi-VN')} đ)`}
+                    : `Xác nhận đặt cọc giữ xe 72h (${depositAmount.toLocaleString('vi-VN')} đ)`}
                 </span>
               </button>
 
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full sm:w-auto py-3 px-5 rounded-lg bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+                className="w-full sm:w-auto py-3 px-5 rounded-lg bg-[var(--surface)] hover:bg-[var(--surface-subtle)] border border-[var(--line)] text-xs font-medium text-[var(--text)] transition-colors cursor-pointer"
               >
                 Hủy bỏ
               </button>

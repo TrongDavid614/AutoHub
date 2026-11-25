@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, ShoppingCart, Check, ExternalLink, Sparkles } from 'lucide-react';
+import { CheckCircle2, ShoppingCart, Check, ExternalLink } from 'lucide-react';
 import { formatCurrencyVND } from '@/lib/utils';
 import { useCartStore } from '@/store/useCartStore';
 import type { AiRecommendedAccessory } from '@/types/ai.types';
@@ -55,28 +55,27 @@ export const RecommendedAccessoryCard: React.FC<RecommendedAccessoryCardProps> =
   };
 
   return (
-    <div className="w-full rounded-lg bg-[#131B2E] border border-[#3E4850]/60 shadow-2xl p-6 space-y-4">
-      {/* Top Header Badge */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#3E4850]/50">
+    <div className="w-full rounded-xl bg-[var(--surface)] border border-[var(--line)] p-5 space-y-4">
+      {/* Top Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[var(--line)]">
         <div className="inline-flex items-center gap-2">
-          <span className="px-2 py-0.5 rounded-[2px] bg-[#89CEFF] text-[#00344D] font-mono text-[10px] font-bold tracking-[1px]">
-            {accessory.matchPercentage}% MATCH
+          <span className="px-2.5 py-0.5 rounded-md bg-[var(--accent-soft)] text-[var(--accent)] text-xs font-semibold tabular-nums">
+            {accessory.matchPercentage}% phù hợp
           </span>
-          <span className="font-mono text-xs font-bold text-[#89CEFF] tracking-wider uppercase flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-[#89CEFF]" />
+          <span className="text-xs font-semibold text-[var(--text)]">
             {accessory.badgeTitle}
           </span>
         </div>
 
-        <span className="font-mono text-[10px] text-[#88929B] bg-[#171F33] px-2.5 py-1 rounded-[2px] border border-[#3E4850]/50">
-          MÃ: {accessory.sku}
+        <span className="font-mono text-xs text-[var(--text-muted)] bg-[var(--surface-subtle)] px-2.5 py-1 rounded-md border border-[var(--line)] tabular-nums">
+          Mã: {accessory.sku}
         </span>
       </div>
 
       {/* Main Content & Image */}
       <div className="flex flex-col md:flex-row gap-5 items-start">
         {accessory.imageUrl && (
-          <div className="w-full md:w-44 h-36 rounded-[4px] bg-[#060E20] border border-[#3E4850]/60 overflow-hidden flex-shrink-0">
+          <div className="w-full md:w-44 h-36 rounded-lg bg-[var(--surface-subtle)] border border-[var(--line)] overflow-hidden flex-shrink-0">
             <img
               src={accessory.imageUrl}
               alt={accessory.name}
@@ -87,23 +86,23 @@ export const RecommendedAccessoryCard: React.FC<RecommendedAccessoryCardProps> =
 
         <div className="flex-1 space-y-2.5">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h4 className="text-base sm:text-lg font-bold text-[#DAE2FD] tracking-tight">
+            <h4 className="text-base sm:text-lg font-bold text-[var(--text)] tracking-tight">
               {accessory.name}
             </h4>
-            <span className="text-lg font-bold text-[#89CEFF] font-mono">
+            <span className="text-lg font-bold text-[var(--accent)] tabular-nums">
               {formatCurrencyVND(accessory.price)}
             </span>
           </div>
 
-          <p className="text-[13px] text-[#BEC8D2] leading-[20px]">
+          <p className="text-sm text-[var(--text-2)] leading-relaxed">
             {accessory.description}
           </p>
 
           {/* Benefits list */}
           <div className="space-y-1.5 pt-1">
             {accessory.benefits.map((benefit, idx) => (
-              <div key={idx} className="flex items-center gap-2 text-xs text-[#BEC8D2]">
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#89CEFF] flex-shrink-0" />
+              <div key={idx} className="flex items-center gap-2 text-xs text-[var(--text-2)]">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                 <span>{benefit}</span>
               </div>
             ))}
@@ -112,11 +111,11 @@ export const RecommendedAccessoryCard: React.FC<RecommendedAccessoryCardProps> =
       </div>
 
       {/* Actions */}
-      <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-[#3E4850]/50">
+      <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-[var(--line)]">
         <button
           type="button"
           onClick={handleAddToCart}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-[2px] bg-[#0EA5E9] hover:bg-[#0284C7] text-white font-medium text-[13px] transition-all min-w-[170px]"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-semibold text-sm transition-colors cursor-pointer min-w-[170px]"
         >
           {isAdded ? (
             <>
@@ -134,10 +133,10 @@ export const RecommendedAccessoryCard: React.FC<RecommendedAccessoryCardProps> =
         <button
           type="button"
           onClick={() => navigate('/accessories')}
-          className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-[2px] bg-[#171F33] hover:bg-[#222A3D] text-[#DAE2FD] border border-[#3E4850]/80 text-[13px] font-medium transition-colors"
+          className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-[var(--surface)] hover:bg-[var(--surface-subtle)] text-[var(--text)] border border-[var(--line)] text-sm font-medium transition-colors cursor-pointer"
         >
           <span>Xem danh mục phụ kiện cho xe này</span>
-          <ExternalLink className="w-3.5 h-3.5 text-[#88929B]" />
+          <ExternalLink className="w-3.5 h-3.5 text-[var(--text-muted)]" />
         </button>
       </div>
     </div>

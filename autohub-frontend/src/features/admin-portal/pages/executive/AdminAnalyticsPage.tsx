@@ -147,7 +147,7 @@ export const AdminAnalyticsPage: React.FC = () => {
               <div
                 key={i}
                 className={cn(
-                  'p-4 rounded-xl border animate-pulse space-y-3',
+                  'p-4 rounded-xl border space-y-3',
                   isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40' : 'bg-white border-slate-200'
                 )}
               >
@@ -163,7 +163,7 @@ export const AdminAnalyticsPage: React.FC = () => {
               <div
                 key={i}
                 className={cn(
-                  'p-6 rounded-xl border animate-pulse space-y-4',
+                  'p-6 rounded-xl border space-y-4',
                   isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40' : 'bg-white border-slate-200'
                 )}
               >

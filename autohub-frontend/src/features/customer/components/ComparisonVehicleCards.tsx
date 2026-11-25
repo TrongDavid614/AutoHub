@@ -24,7 +24,7 @@ export const ComparisonVehicleCards: React.FC<ComparisonVehicleCardsProps> = ({
   const emptySlotsCount = Math.max(0, maxCars - trims.length);
 
   return (
-    <div className="rounded-xl bg-surface-container/95 border border-surface-highlight p-4 sm:p-6 shadow-xl backdrop-blur-md">
+    <div className="rounded-xl bg-[var(--surface)] border border-[var(--line)] p-4 sm:p-6">
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-stretch">
         {/* Col 1-3: Label Header Column */}
         <div className="md:col-span-3 flex flex-col justify-between p-2 pb-4 space-y-3 border-b md:border-b-0 md:border-r border-surface-highlight/60">
@@ -64,19 +64,19 @@ export const ComparisonVehicleCards: React.FC<ComparisonVehicleCardsProps> = ({
           return (
             <div
               key={trim.id}
-              className={`md:col-span-3 p-4 rounded-lg flex flex-col justify-between gap-4 border transition-all relative ${
+              className={`md:col-span-3 p-4 rounded-lg flex flex-col justify-between gap-4 border transition-colors relative ${
                 isRecommended
-                  ? 'bg-surface-elevated border-accent-primary ring-1 ring-accent-primary/60 shadow-[0_0_20px_rgba(14,165,233,0.2)]'
-                  : 'bg-surface-elevated/70 border-surface-highlight hover:border-surface-interactive'
+                  ? 'bg-[var(--surface)] border-[var(--accent)] ring-1 ring-[var(--accent)]/30'
+                  : 'bg-[var(--surface)] border-[var(--line)] hover:border-[var(--accent)]/40'
               }`}
             >
               {/* Badge if present */}
               {trim.badge && (
                 <div
-                  className={`absolute -top-2.5 left-4 px-2 py-0.5 rounded-[2px] font-mono text-[9px] font-black uppercase tracking-wider shadow z-10 ${
+                  className={`absolute -top-2.5 left-4 px-2.5 py-0.5 rounded-md text-xs font-semibold z-10 ${
                     isRecommended
-                      ? 'bg-accent-action text-accent-contrast'
-                      : 'bg-[#1E293B] text-accent-primary border border-accent-primary/40'
+                      ? 'bg-[var(--accent)] text-white'
+                      : 'bg-[var(--surface-subtle)] text-[var(--text-2)] border border-[var(--line)]'
                   }`}
                 >
                   {trim.badge}
@@ -109,16 +109,15 @@ export const ComparisonVehicleCards: React.FC<ComparisonVehicleCardsProps> = ({
 
               {/* Visual & Titles */}
               <div className="space-y-3">
-                <div className="relative aspect-[16/10] w-full rounded overflow-hidden bg-canvas-deep border border-surface-highlight/70 group">
+                <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden bg-[var(--surface-subtle)] border border-[var(--line)]">
                   <img
                     src={trim.imageUrl}
                     alt={trim.name}
-                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover object-center"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-canvas-deep/80 via-transparent to-transparent pointer-events-none" />
 
-                  <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-[2px] bg-canvas-deep/80 backdrop-blur-md border border-surface-highlight text-[9px] font-mono text-accent-primary font-bold">
+                  <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-white/95 border border-[var(--line)] text-xs font-medium text-[var(--accent)]">
                     {trim.tag}
                   </span>
                 </div>
@@ -150,10 +149,10 @@ export const ComparisonVehicleCards: React.FC<ComparisonVehicleCardsProps> = ({
                 <button
                   type="button"
                   onClick={() => onOpenDeposit(trim)}
-                  className={`w-full py-2.5 px-3 rounded text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  className={`w-full py-2.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
                     isRecommended
-                      ? 'bg-accent-action hover:bg-accent-primary text-accent-contrast shadow-[0_0_15px_rgba(14,165,233,0.3)]'
-                      : 'bg-surface-interactive hover:bg-accent-action text-text-primary hover:text-accent-contrast'
+                      ? 'bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white'
+                      : 'bg-[var(--surface-subtle)] hover:bg-[var(--accent)] text-[var(--text)] hover:text-white border border-[var(--line)]'
                   }`}
                 >
                   <CreditCard className="w-3.5 h-3.5" />

@@ -261,8 +261,8 @@ export const OrderFulfillmentPage: React.FC = () => {
           {activeTab === 'NEED_PACK'
             ? 'Không có đơn hàng ở trạng thái cần nhặt hàng.'
             : activeTab === 'PACKING'
-            ? 'Không có đơn hàng ở trạng thái đang đóng gói.'
-            : 'Không có đơn hàng ở trạng thái đã bàn giao.'}
+              ? 'Không có đơn hàng ở trạng thái đang đóng gói.'
+              : 'Không có đơn hàng ở trạng thái đã bàn giao.'}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -352,7 +352,7 @@ export const OrderFulfillmentPage: React.FC = () => {
       {selectedOrderForHandover && (
         <div
           onClick={() => setSelectedOrderForHandover(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
         >
           <div
             onClick={(e) => e.stopPropagation()}

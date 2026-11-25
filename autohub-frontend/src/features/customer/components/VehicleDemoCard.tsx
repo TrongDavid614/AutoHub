@@ -43,20 +43,19 @@ export const VehicleDemoCard: React.FC<VehicleDemoCardProps> = ({
   return (
     <div className="p-4 sm:p-5 rounded bg-surface-container border border-surface-highlight flex flex-col md:flex-row items-center gap-5">
       {/* Car Visual with Badges */}
-      <div className="relative w-full md:w-72 h-44 rounded overflow-hidden bg-canvas-deep shrink-0 border border-surface-highlight/70 group">
+      <div className="relative w-full md:w-72 h-44 rounded-lg overflow-hidden bg-[var(--surface-subtle)] shrink-0 border border-[var(--line)]">
         <img
           src={displayImage}
           alt={variantName}
-          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-cover object-center"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-canvas-deep/80 via-transparent to-transparent pointer-events-none" />
 
         <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-          <span className="px-2 py-0.5 rounded-[2px] bg-canvas-deep/80 backdrop-blur-md border border-accent-primary/40 text-[9px] font-mono font-bold text-accent-primary">
-            PHANTOM METALLIC
+          <span className="px-2 py-0.5 rounded-md bg-white/95 border border-[var(--line)] text-xs font-medium text-[var(--text)]">
+            Phantom Metallic
           </span>
-          <span className="px-2 py-0.5 rounded-[2px] bg-accent-action/25 backdrop-blur-md border border-accent-primary/50 text-[9px] font-mono font-bold text-accent-primary">
-            BẢN DEMO CAO CẤP
+          <span className="px-2 py-0.5 rounded-md bg-white/95 border border-[var(--line)] text-xs font-semibold text-[var(--accent)]">
+            Bản Demo
           </span>
         </div>
       </div>

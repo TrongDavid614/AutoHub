@@ -585,7 +585,7 @@ export const StaffSchedulePage: React.FC = () => {
       {toastMessage && (
         <div
           className={cn(
-            'fixed top-20 right-8 z-50 flex items-center gap-3 px-4 py-3 text-white text-sm font-medium rounded-xl shadow-2xl border animate-fadeIn',
+            'fixed top-20 right-8 z-50 flex items-center gap-3 px-4 py-3 text-white text-sm font-medium rounded-xl shadow-2xl border',
             toastType === 'SUCCESS'
               ? 'bg-emerald-600 border-emerald-500'
               : 'bg-rose-600 border-rose-500'
@@ -690,7 +690,7 @@ export const StaffSchedulePage: React.FC = () => {
       {lastAutoResult && (
         <div
           className={cn(
-            'p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-fadeIn',
+            'p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs',
             isDarkMode ? 'bg-[#17233B] border-[#89CEFF]/40 text-[#DAE2FD]' : 'bg-sky-50 border-sky-200 text-sky-900'
           )}
         >
@@ -834,7 +834,7 @@ export const StaffSchedulePage: React.FC = () => {
               <ArrowRightLeft className="w-3.5 h-3.5" />
               <span>Yêu Cầu Đổi Ca & Nghỉ Phép</span>
               {swapRequests.filter((r) => r.status === 'PENDING').length > 0 && (
-                <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping absolute -top-0.5 -right-0.5" />
+                <span className="w-2 h-2 rounded-full bg-rose-500 absolute -top-0.5 -right-0.5" />
               )}
             </button>
           </div>
@@ -1156,8 +1156,8 @@ export const StaffSchedulePage: React.FC = () => {
                             <div className="flex items-center justify-between text-[10px] font-mono pt-1 border-t border-surface-highlight/30">
                               <span className="text-slate-400">{shift.roleLabel}</span>
                               {shift.status === 'IN_PROGRESS' ? (
-                                <span className="text-cyan-400 font-bold flex items-center gap-1">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                                <span className="text-cyan-600 dark:text-cyan-400 font-bold flex items-center gap-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-600 dark:bg-cyan-400" />
                                   Đang trực
                                 </span>
                               ) : shift.status === 'COMPLETED' ? (
@@ -1301,7 +1301,7 @@ export const StaffSchedulePage: React.FC = () => {
 
       {/* ==================== MODAL: AUTO-SCHEDULE CONFIGURATION ==================== */}
       {showAutoScheduleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <div
             className={cn(
               'w-full max-w-lg rounded-2xl border p-6 shadow-2xl space-y-5 relative',
@@ -1489,7 +1489,7 @@ export const StaffSchedulePage: React.FC = () => {
 
       {/* ==================== MODAL: ASSIGN / EDIT SHIFT ==================== */}
       {showAssignModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <div
             className={cn(
               'w-full max-w-lg rounded-2xl border p-6 shadow-2xl space-y-5 relative',
@@ -1661,7 +1661,7 @@ export const StaffSchedulePage: React.FC = () => {
 
       {/* ==================== MODAL: STAFF SHIFT & SCHEDULE DETAIL ==================== */}
       {selectedShiftDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <div
             className={cn(
               'w-full max-w-2xl rounded-2xl border p-6 shadow-2xl space-y-5 relative max-h-[90vh] overflow-y-auto',
@@ -1750,8 +1750,8 @@ export const StaffSchedulePage: React.FC = () => {
                   <span className="text-slate-400 text-[11px] block">Trạng thái ca trực:</span>
                   <div className="font-bold flex items-center gap-1.5 mt-0.5">
                     {selectedShiftDetail.status === 'IN_PROGRESS' ? (
-                      <span className="text-cyan-400 flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                      <span className="text-cyan-600 dark:text-cyan-400 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-cyan-600 dark:bg-cyan-400" />
                         Đang trực tại Showroom
                       </span>
                     ) : (

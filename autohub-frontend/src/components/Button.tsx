@@ -13,20 +13,21 @@ export const Button: React.FC<ButtonProps> = ({
   size = 'md',
   ...props
 }) => {
-  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none disabled:opacity-50 disabled:pointer-events-none';
-  
+  const baseClasses =
+    'inline-flex items-center justify-center font-medium rounded-[var(--radius)] transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-1 disabled:opacity-50 disabled:pointer-events-none cursor-pointer';
+
   const variantClasses = {
-    primary: 'bg-red-600 text-white hover:bg-red-700 shadow-sm',
-    secondary: 'bg-slate-800 text-white hover:bg-slate-900',
-    danger: 'bg-rose-600 text-white hover:bg-rose-700',
-    outline: 'border border-slate-300 text-slate-700 hover:bg-slate-100',
-    ghost: 'text-slate-700 hover:bg-slate-100',
+    primary: 'bg-[var(--accent)] text-[var(--accent-contrast)] hover:bg-[var(--accent-hover)]',
+    secondary: 'bg-[var(--surface-subtle)] text-[var(--text)] border border-[var(--line)] hover:bg-[var(--surface-muted)]',
+    danger: 'bg-[var(--status-danger)] text-white hover:opacity-90',
+    outline: 'border border-[var(--line-strong)] bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-subtle)]',
+    ghost: 'text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text)]',
   };
 
   const sizeClasses = {
-    sm: 'px-3 py-1.5 text-xs',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-6 py-3 text-base',
+    sm: 'px-3 py-1.5 text-[13px] min-h-[36px]',
+    md: 'px-4 py-2 text-sm min-h-[40px]',
+    lg: 'px-6 py-2.5 text-base min-h-[44px]',
   };
 
   return (

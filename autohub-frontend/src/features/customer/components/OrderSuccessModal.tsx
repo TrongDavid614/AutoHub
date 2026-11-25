@@ -32,40 +32,37 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#060E20]/90 backdrop-blur-md animate-fade-in overflow-y-auto">
-      <div className="w-full max-w-lg rounded-[4px] bg-[#131B2E] border border-[#89CEFF]/60 p-6 md:p-8 shadow-2xl text-center space-y-5 relative overflow-hidden my-8">
-        {/* Glow */}
-        <div className="pointer-events-none absolute -top-20 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-[#0EA5E9]/20 blur-[60px]" />
-
-        <div className="w-14 h-14 rounded-full bg-[#0EA5E9]/20 border border-[#89CEFF] flex items-center justify-center mx-auto text-[#89CEFF] shadow-lg">
-          <CheckCircle className="w-7 h-7 text-[#89CEFF]" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 overflow-y-auto">
+      <div className="w-full max-w-lg rounded-xl bg-[var(--surface)] border border-[var(--line)] p-6 md:p-7 shadow-xl text-center space-y-5 my-8">
+        <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto text-emerald-600">
+          <CheckCircle className="w-7 h-7" />
         </div>
 
         <div className="space-y-1.5">
-          <div className="inline-block px-3 py-1 rounded-[2px] bg-[#222A3D] text-[#89CEFF] font-mono text-xs font-bold uppercase tracking-wider">
-            ĐẶT HÀNG THÀNH CÔNG • MÃ ĐƠN: #{orderId}
+          <div className="inline-block px-3 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold tabular-nums">
+            Đặt hàng thành công • Mã đơn: #{orderId}
           </div>
-          <h3 className="text-xl md:text-2xl font-bold text-[#DAE2FD]">
+          <h3 className="text-xl md:text-2xl font-bold text-[var(--text)]">
             Cảm ơn quý khách, {recipientName}!
           </h3>
-          <p className="text-xs text-[#BEC8D2] leading-relaxed max-w-md mx-auto">
+          <p className="text-xs text-[var(--text-2)] leading-relaxed max-w-md mx-auto">
             Đơn hàng phụ kiện đã được lưu trữ thành công trên hệ thống máy chủ AutoHub và sẵn sàng điều chuyển xuất kho.
           </p>
         </div>
 
-        {/* SePay QR Code Payment Block if SEPAY */}
+        {/* SePay QR Code Payment Block */}
         {sepayData && (
-          <div className="p-4 rounded-[2px] bg-[#060E20] border border-[#0EA5E9]/40 space-y-3 text-left">
-            <div className="flex items-center justify-between border-b border-[#2D3449] pb-2">
-              <div className="flex items-center gap-1.5 text-[#89CEFF] font-mono text-xs font-bold">
+          <div className="p-4 rounded-lg bg-[var(--surface-subtle)] border border-[var(--line)] space-y-3 text-left">
+            <div className="flex items-center justify-between border-b border-[var(--line)] pb-2">
+              <div className="flex items-center gap-1.5 text-[var(--accent)] text-xs font-semibold">
                 <QrCode className="w-4 h-4" />
-                <span>QUÉT MÃ VIETQR THANH TOÁN (SEPAY)</span>
+                <span>Quét mã VietQR thanh toán (SePay)</span>
               </div>
-              <span className="text-[10px] font-mono text-[#34D399] font-bold">TỰ ĐỘNG XÁC NHẬN</span>
+              <span className="text-xs text-emerald-700 font-semibold">Tự động xác nhận</span>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-4 pt-1">
-              <div className="p-2 bg-white rounded-[2px] shrink-0 shadow-md">
+              <div className="p-2 bg-white border border-[var(--line)] rounded-lg shrink-0">
                 <img
                   src={sepayData.qrUrl}
                   alt={`VietQR SePay ${sepayData.transferContent}`}
@@ -73,40 +70,40 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                 />
               </div>
 
-              <div className="space-y-1.5 text-xs flex-1">
-                <div className="flex justify-between text-[#88929B]">
+              <div className="space-y-1.5 text-xs flex-1 w-full">
+                <div className="flex justify-between text-[var(--text-2)]">
                   <span>Ngân hàng:</span>
-                  <span className="font-mono text-[#DAE2FD] font-bold">{sepayData.bankBrandName}</span>
+                  <span className="text-[var(--text)] font-semibold">{sepayData.bankBrandName}</span>
                 </div>
-                <div className="flex justify-between text-[#88929B]">
+                <div className="flex justify-between text-[var(--text-2)]">
                   <span>Số tài khoản:</span>
-                  <span className="font-mono text-[#DAE2FD] font-bold">{sepayData.accountNumber}</span>
+                  <span className="font-mono text-[var(--text)] font-semibold tabular-nums">{sepayData.accountNumber}</span>
                 </div>
-                <div className="flex justify-between text-[#88929B]">
+                <div className="flex justify-between text-[var(--text-2)]">
                   <span>Tổng tiền đơn hàng:</span>
-                  <span className="font-mono text-[#DAE2FD] font-bold">
+                  <span className="text-[var(--text)] font-semibold tabular-nums">
                     {(totalPayable ?? 0).toLocaleString('vi-VN')} đ
                   </span>
                 </div>
-                <div className="flex justify-between text-[#88929B]">
+                <div className="flex justify-between text-[var(--text-2)]">
                   <span>Số tiền quét mã test:</span>
-                  <span className="font-mono text-[#89CEFF] font-bold">
+                  <span className="text-[var(--accent)] font-semibold tabular-nums">
                     {sepayData.transferAmount.toLocaleString('vi-VN')} đ (Sandbox)
                   </span>
                 </div>
                 <div className="pt-1">
-                  <div className="text-[10px] text-[#88929B] font-mono">NỘI DUNG CHUYỂN KHOẢN:</div>
-                  <div className="flex items-center justify-between bg-[#171F33] p-1.5 rounded-[2px] mt-0.5 border border-[#2D3449]">
-                    <span className="font-mono text-xs font-bold text-[#34D399]">
+                  <div className="text-xs text-[var(--text-muted)]">Nội dung chuyển khoản:</div>
+                  <div className="flex items-center justify-between bg-[var(--surface)] px-2.5 py-1.5 rounded-md mt-0.5 border border-[var(--line)]">
+                    <span className="font-mono text-xs font-bold text-emerald-700">
                       {sepayData.transferContent}
                     </span>
                     <button
                       type="button"
                       onClick={() => handleCopyContent(sepayData.transferContent)}
-                      className="text-[#89CEFF] hover:text-white transition-colors cursor-pointer p-0.5"
+                      className="text-[var(--accent)] hover:text-[var(--accent-hover)] transition-colors cursor-pointer p-0.5"
                       title="Sao chép nội dung"
                     >
-                      {copied ? <Check className="w-3.5 h-3.5 text-[#34D399]" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                     </button>
                   </div>
                 </div>
@@ -115,38 +112,38 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
           </div>
         )}
 
-        <div className="rounded-[2px] bg-[#060E20] border border-[#2D3449] p-3 flex items-center justify-between text-xs font-mono">
-          <span className="text-[#88929B]">TỔNG GIÁ TRỊ ĐƠN HÀNG:</span>
-          <span className="text-lg font-bold text-[#89CEFF]">
+        <div className="rounded-lg bg-[var(--surface-subtle)] border border-[var(--line)] p-3.5 flex items-center justify-between text-xs">
+          <span className="font-medium text-[var(--text-2)]">Tổng giá trị đơn hàng:</span>
+          <span className="text-lg font-bold tabular-nums text-[var(--accent)]">
             {(totalPayable ?? 0).toLocaleString('vi-VN')} đ
           </span>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 text-left">
-          <div className="p-3 rounded-[2px] bg-[#171F33] border border-[#2D3449] space-y-1">
-            <div className="flex items-center gap-1.5 text-[#89CEFF] font-bold text-[11px]">
+        <div className="grid grid-cols-2 border border-[var(--line)] rounded-lg bg-[var(--surface-subtle)] divide-x divide-[var(--line)] text-left">
+          <div className="p-3.5 space-y-1">
+            <div className="flex items-center gap-1.5 text-[var(--accent)] font-semibold text-xs">
               <Zap className="w-3.5 h-3.5" />
-              <span>LẮP ĐẶT 24H</span>
+              <span>Lắp đặt 24h</span>
             </div>
-            <p className="text-[10px] text-[#88929B]">Kỹ sư liên hệ trước 30 phút theo lịch hẹn.</p>
+            <p className="text-xs text-[var(--text-muted)]">Kỹ sư liên hệ trước 30 phút theo lịch hẹn.</p>
           </div>
-          <div className="p-3 rounded-[2px] bg-[#171F33] border border-[#2D3449] space-y-1">
-            <div className="flex items-center gap-1.5 text-[#89CEFF] font-bold text-[11px]">
+          <div className="p-3.5 space-y-1">
+            <div className="flex items-center gap-1.5 text-emerald-700 font-semibold text-xs">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>BẢO HÀNH CHÍNH HÃNG</span>
+              <span>Bảo hành chính hãng</span>
             </div>
-            <p className="text-[10px] text-[#88929B]">Bảo hành 24-36 tháng tiêu chuẩn OEM.</p>
+            <p className="text-xs text-[var(--text-muted)]">Bảo hành 24–36 tháng tiêu chuẩn OEM.</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 pt-2">
+        <div className="flex items-center gap-3 pt-1">
           <button
             type="button"
             onClick={() => {
               onClose();
               navigate('/accessories');
             }}
-            className="flex-1 py-3 px-4 rounded-[2px] bg-[#222A3D] hover:bg-[#2D3449] text-[#DAE2FD] text-xs font-semibold cursor-pointer transition-colors"
+            className="flex-1 py-2.5 px-4 rounded-lg bg-[var(--surface)] hover:bg-[var(--surface-subtle)] border border-[var(--line)] text-[var(--text)] text-xs font-medium cursor-pointer transition-colors"
           >
             Tiếp tục mua sắm
           </button>
@@ -156,7 +153,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
               onClose();
               navigate('/customer/orders');
             }}
-            className="flex-1 py-3 px-4 rounded-[2px] bg-[#0EA5E9] hover:bg-[#89CEFF] text-[#003751] font-bold text-xs uppercase flex items-center justify-center gap-1.5 cursor-pointer shadow-lg transition-all"
+            className="flex-1 py-2.5 px-4 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
           >
             <span>Quản lý đơn hàng</span>
             <ArrowRight className="w-4 h-4" />

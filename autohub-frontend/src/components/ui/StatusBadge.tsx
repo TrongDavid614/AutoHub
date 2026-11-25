@@ -80,29 +80,29 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   const displayText = label || config.label;
 
   const styleVariants = {
-    emerald: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30',
-    amber: 'bg-amber-500/10 text-amber-400 border-amber-500/30',
-    rose: 'bg-rose-500/10 text-rose-400 border-rose-500/30',
-    blue: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
-    purple: 'bg-purple-500/10 text-purple-400 border-purple-500/30',
-    cyan: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30',
-    slate: 'bg-slate-800 text-slate-400 border-slate-700',
+    emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    amber: 'bg-amber-50 text-amber-800 border-amber-200',
+    rose: 'bg-rose-50 text-rose-700 border-rose-200',
+    blue: 'bg-blue-50 text-blue-700 border-blue-200',
+    purple: 'bg-purple-50 text-purple-700 border-purple-200',
+    cyan: 'bg-sky-50 text-sky-700 border-sky-200',
+    slate: 'bg-[var(--surface-subtle)] text-[var(--text-secondary)] border-[var(--line)]',
   };
 
   const dotVariants = {
-    emerald: 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]',
-    amber: 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]',
-    rose: 'bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.6)]',
-    blue: 'bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.6)]',
-    purple: 'bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.6)]',
-    cyan: 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.6)]',
-    slate: 'bg-slate-500',
+    emerald: 'bg-emerald-600',
+    amber: 'bg-amber-600',
+    rose: 'bg-rose-600',
+    blue: 'bg-blue-600',
+    purple: 'bg-purple-600',
+    cyan: 'bg-sky-600',
+    slate: 'bg-[var(--text-muted)]',
   };
 
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border tracking-wide transition-all',
+        'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium border transition-colors',
         styleVariants[config.variant],
         className
       )}

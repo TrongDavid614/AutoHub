@@ -70,15 +70,15 @@ export const CartPage: React.FC = () => {
   );
 
   return (
-    <div className="w-full bg-[#060E20] text-[#DAE2FD] min-h-screen">
-      {/* 1. SUB-HEADER & CONTEXTUAL AMBIENT BANNER */}
+    <div className="w-full bg-[var(--bg)] text-[var(--text)] min-h-screen">
+      {/* 1. SUB-HEADER & CONTEXTUAL BANNER */}
       <CartSubHeaderBanner />
 
       {/* 2. MAIN 2-COLUMN SPLIT WORKSPACE */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
         {checkoutError && (
-          <div className="mb-6 p-4 rounded-[2px] bg-[#3B1219] border border-[#FF5353]/50 text-[#FFD7D7] flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-[#FF5353] shrink-0" />
+          <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200 text-red-800 flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
             <p className="text-sm font-medium">{checkoutError}</p>
           </div>
         )}

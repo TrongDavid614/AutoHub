@@ -180,10 +180,10 @@ export const DepositAuditPage: React.FC = () => {
       {isLoading ? (
         <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-[#3E4850]/40 shadow-xs">
           <div className="p-8 space-y-4">
-            <div className="h-4 bg-slate-200 dark:bg-slate-700/50 rounded-md w-1/4 animate-pulse" />
+            <div className="h-4 bg-slate-200 dark:bg-slate-700/50 rounded-md w-1/4" />
             <div className="space-y-3">
               {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="h-12 bg-slate-100 dark:bg-[#131B2E]/60 rounded-lg animate-pulse" />
+                <div key={i} className="h-12 bg-slate-100 dark:bg-[#131B2E]/60 rounded-lg" />
               ))}
             </div>
           </div>
@@ -322,11 +322,11 @@ export const DepositAuditPage: React.FC = () => {
             onClick={(e) => {
               if (e.target === e.currentTarget) setSelectedDepositForVin(null);
             }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
           >
             <div
               className={cn(
-                'w-full max-w-lg max-h-[90vh] flex flex-col p-6 rounded-2xl border space-y-4 shadow-2xl animate-in zoom-in-95 duration-150 overflow-hidden',
+                'w-full max-w-lg max-h-[90vh] flex flex-col p-6 rounded-2xl border space-y-4 shadow-2xl overflow-hidden',
                 isDarkMode ? 'bg-[#0B1326] border-[#3E4850] text-[#DAE2FD]' : 'bg-white border-slate-200 text-slate-800'
               )}
             >
@@ -464,11 +464,11 @@ export const DepositAuditPage: React.FC = () => {
             onClick={(e) => {
               if (e.target === e.currentTarget) setConfirmSignModal(null);
             }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
           >
             <div
               className={cn(
-                'w-full max-w-md rounded-2xl border p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150',
+                'w-full max-w-md rounded-2xl border p-6 shadow-2xl space-y-4',
                 isDarkMode ? 'bg-[#171F33] border-[#3E4850]/60 text-[#DAE2FD]' : 'bg-white border-slate-200 text-slate-800'
               )}
             >

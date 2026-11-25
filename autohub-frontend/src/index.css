@@ -1,27 +1,28 @@
 @import "tailwindcss";
+@import "./tokens.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-archivo: 'Archivo', sans-serif;
-  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'Space Mono', monospace;
+  --font-sans: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-archivo: 'Be Vietnam Pro', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --color-canvas-primary: #0B1326;
-  --color-canvas-deep: #060E20;
-  --color-surface-container: #131B2E;
-  --color-surface-elevated: #171F33;
-  --color-surface-interactive: #222A3D;
-  --color-surface-highlight: #2D3449;
-  --color-border-subtle: #3E4850;
+  --color-canvas-primary: var(--bg);
+  --color-canvas-deep: var(--surface-subtle);
+  --color-surface-container: var(--surface);
+  --color-surface-elevated: var(--surface);
+  --color-surface-interactive: var(--surface-subtle);
+  --color-surface-highlight: var(--line);
+  --color-border-subtle: var(--line-strong);
 
-  --color-accent-primary: #89CEFF;
-  --color-accent-action: #0EA5E9;
-  --color-accent-contrast: #00344D;
+  --color-accent-primary: var(--accent);
+  --color-accent-action: var(--accent);
+  --color-accent-contrast: var(--accent-contrast);
 
-  --color-text-primary: #DAE2FD;
-  --color-text-secondary: #BEC8D2;
-  --color-text-muted: #88929B;
+  --color-text-primary: var(--text);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
 }
 
 @layer base {
@@ -32,37 +33,38 @@
   }
 
   html {
-    color-scheme: dark;
+    color-scheme: light;
+    font-size: 16px;
   }
 
   body {
-    background-color: #0B1326;
-    color: #DAE2FD;
+    background-color: var(--bg);
+    color: var(--text);
     -webkit-font-smoothing: antialiased;
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--font-sans);
+    line-height: 1.55;
   }
 
-  /* Custom scrollbar for dark luxury UI */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: #0B1326;
+    background: var(--bg);
   }
   ::-webkit-scrollbar-thumb {
-    background: #222A3D;
+    background: var(--line-strong);
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #3E4850;
+    background: var(--text-muted);
   }
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -71,13 +73,13 @@
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.2s var(--ease-ui) forwards;
 }
 
 @keyframes pageEnter {
   0% {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(4px);
   }
   100% {
     opacity: 1;
@@ -86,7 +88,7 @@
 }
 
 .animate-pageTransition {
-  animation: pageEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: pageEnter 0.18s var(--ease-ui);
 }
 
 @media (prefers-reduced-motion: reduce) {

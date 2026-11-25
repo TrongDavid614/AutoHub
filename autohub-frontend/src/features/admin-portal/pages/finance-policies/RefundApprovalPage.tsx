@@ -450,7 +450,7 @@ export const RefundApprovalPage: React.FC = () => {
                     }`}>
                       <div className="flex items-center justify-between gap-2 flex-wrap pb-2 border-b border-current/20">
                         <div className="flex items-center gap-2">
-                          <Sparkles className="w-4 h-4 text-current animate-pulse" />
+                          <Sparkles className="w-4 h-4 text-current" />
                           <span className="font-bold tracking-wide">SPRING AI COPILOT:</span>
                           <span className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold ${
                             isLow
@@ -516,7 +516,7 @@ export const RefundApprovalPage: React.FC = () => {
             onClick={(e) => {
               if (e.target === e.currentTarget) setRejectItem(null);
             }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
           >
           <div className={`w-full max-w-md rounded-xl border p-6 transition-colors shadow-2xl ${
             isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/50 text-white' : 'bg-white border-slate-200 text-slate-900'

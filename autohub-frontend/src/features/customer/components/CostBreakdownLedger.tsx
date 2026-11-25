@@ -32,37 +32,32 @@ export const CostBreakdownLedger: React.FC<CostBreakdownLedgerProps> = ({
   return (
     <div className="space-y-4">
       {/* 1. Car Visual & Designation Header */}
-      <div className="rounded-lg bg-surface-container border border-surface-highlight overflow-hidden shadow-lg relative">
-        <div className="relative aspect-video w-full bg-canvas-deep flex items-center justify-center overflow-hidden">
+      <div className="rounded-xl bg-[var(--surface)] border border-[var(--line)] overflow-hidden">
+        <div className="relative aspect-video w-full bg-[var(--surface-subtle)] flex items-center justify-center overflow-hidden border-b border-[var(--line)]">
           <img
             src="https://api.builder.io/api/v1/image/assets/TEMP/87dca2c869ce8aeb0822dca506e4f3bd186b3ffa?width=913"
             alt={`AutoHub GT-e ${selectedTrim.name}`}
-            className="w-full h-full object-cover object-center transform hover:scale-105 transition-transform duration-700"
+            className="w-full h-full object-cover object-center"
           />
-
-          {/* Gradient Overlay for Text Readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-surface-container via-surface-container/30 to-transparent" />
 
           {/* Floating Pill Badges on Visual */}
           <div className="absolute top-3 left-3 flex flex-wrap items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-[2px] bg-canvas-deep/80 backdrop-blur-md border border-accent-primary/40 text-[10px] font-mono font-bold text-accent-primary">
-              AUTOHUB GT-e STUDIO
+            <span className="px-2.5 py-0.5 rounded-md bg-white/95 border border-[var(--line)] text-xs font-semibold text-[var(--accent)]">
+              AutoHub GT-e Studio
             </span>
-            <span className="px-2 py-0.5 rounded-[2px] bg-canvas-deep/80 backdrop-blur-md border border-surface-highlight text-[10px] font-mono text-text-muted">
+            <span className="px-2 py-0.5 rounded-md bg-white/95 border border-[var(--line)] text-xs font-medium text-[var(--text-2)] tabular-nums">
               VIN 2025
             </span>
           </div>
+        </div>
 
-          <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
-            <div className="space-y-0.5">
-              <div className="text-lg font-bold text-text-primary tracking-tight">
-                AutoHub GT-e {selectedTrim.name}
-              </div>
-              <div className="text-xs font-mono text-accent-primary flex items-center gap-1.5">
-                <span>Khu vực đăng ký:</span>
-                <span className="font-semibold text-text-primary">{selectedCity.name}</span>
-              </div>
-            </div>
+        <div className="px-5 pt-4 pb-2 border-b border-[var(--line)] bg-[var(--surface-subtle)] flex items-center justify-between gap-2">
+          <div className="text-base font-bold text-[var(--text)] tracking-tight">
+            AutoHub GT-e {selectedTrim.name}
+          </div>
+          <div className="text-xs text-[var(--text-2)] flex items-center gap-1">
+            <span>Khu vực:</span>
+            <span className="font-semibold text-[var(--accent)]">{selectedCity.name}</span>
           </div>
         </div>
 
@@ -150,27 +145,27 @@ export const CostBreakdownLedger: React.FC<CostBreakdownLedgerProps> = ({
             </div>
           </div>
 
-          {/* 3. Final Total Highlight HUD Card */}
-          <div className="mt-4 p-5 rounded-lg bg-surface-elevated border border-accent-primary/40 space-y-3 relative overflow-hidden shadow-inner">
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-accent-primary to-transparent" />
+          {/* 3. Final Total Summary Card */}
+          <div className="mt-4 p-5 rounded-xl bg-[var(--surface-subtle)] border border-[var(--line)] space-y-2.5 relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-[var(--accent)]" />
 
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-accent-primary">
-                TỔNG CHI PHÍ LĂN BÁNH TẠM TÍNH
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-xs font-semibold text-[var(--accent)]">
+                Tổng chi phí lăn bánh tạm tính
               </span>
-              <span className="px-2 py-0.5 rounded-[2px] bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono text-[10px] font-bold">
-                CHÍNH XÁC 100%
+              <span className="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
+                Chính xác 100%
               </span>
             </div>
 
             <div className="flex items-baseline gap-2">
-              <span className="text-2xl sm:text-3xl font-black font-mono text-text-primary tracking-tight">
+              <span className="text-2xl sm:text-3xl font-bold tabular-nums text-[var(--text)] tracking-tight">
                 {breakdown.totalRolloutCost.toLocaleString('vi-VN')}
               </span>
-              <span className="text-sm font-mono font-bold text-accent-primary">VNĐ</span>
+              <span className="text-sm font-bold text-[var(--accent)]">VNĐ</span>
             </div>
 
-            <p className="text-[11px] text-text-muted leading-relaxed">
+            <p className="text-xs text-[var(--text-muted)] leading-relaxed">
               Giá đã bao gồm toàn bộ thuế VAT, Pin công nghệ cao thế hệ mới và trọn gói phí dịch vụ thủ tục lưu hành hợp pháp.
             </p>
           </div>
@@ -180,9 +175,9 @@ export const CostBreakdownLedger: React.FC<CostBreakdownLedgerProps> = ({
             <button
               type="button"
               onClick={onOpenDepositModal}
-              className="w-full py-3.5 px-5 rounded-lg bg-accent-action hover:bg-accent-primary text-accent-contrast font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(14,165,233,0.35)] hover:shadow-[0_0_35px_rgba(137,206,255,0.5)] transition-all cursor-pointer transform hover:-translate-y-0.5"
+              className="w-full py-3.5 px-5 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
-              <CreditCard className="w-4 h-4 text-accent-contrast" />
+              <CreditCard className="w-4 h-4" />
               <span>Đặt cọc giữ xe 72h</span>
             </button>
 

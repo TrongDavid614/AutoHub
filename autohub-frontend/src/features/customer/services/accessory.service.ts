@@ -1,7 +1,7 @@
 import { axiosClient } from '@/lib/axios';
 import type { ApiResponse } from '@/types/api.types';
-import type { Accessory, AccessoryCategory, AccessoryFilterParams, AccessoryCompatibility } from '@/types/accessory.types';
-import { type CarModelInfo } from '../mocks/accessory.mock';
+import type { Accessory, AccessoryCategory, AccessoryFilterParams } from '@/types/accessory.types';
+import { MOCK_ACCESSORIES, MOCK_ACCESSORY_CATEGORIES, MOCK_CAR_MODELS, type CarModelInfo } from '../mocks/accessory.mock';
 import { carService } from './car.service';
 
 interface RawCategoryDto {
@@ -18,6 +18,75 @@ interface RawAccessoryDto extends Accessory {
   isUniversal?: boolean;
 }
 
+function filterAndSortAccessories(items: Accessory[], params?: AccessoryFilterParams): Accessory[] {
+  let filtered = [...items];
+
+  if (params?.categoryId) {
+    filtered = filtered.filter((item) => item.categoryId === params.categoryId);
+  }
+
+  if (params?.search) {
+    const q = params.search.toLowerCase().trim();
+    filtered = filtered.filter(
+      (item) => item.name.toLowerCase().includes(q) || item.brand.toLowerCase().includes(q)
+    );
+  }
+
+  if (params?.minPrice !== undefined) {
+    filtered = filtered.filter((item) => item.price >= params.minPrice!);
+  }
+
+  if (params?.maxPrice !== undefined) {
+    filtered = filtered.filter((item) => item.price <= params.maxPrice!);
+  }
+
+  if (params?.carModelId) {
+    const modelIdNum = Number(params.carModelId);
+    filtered = filtered.filter(
+      (item) =>
+        Boolean(item.dungChung) ||
+        Boolean(item.isUniversal) ||
+        item.compatibilities?.some((c) => Number(c.carModelId) === modelIdNum)
+    );
+  }
+
+  if (params?.readyInShowroom) {
+    filtered = filtered.filter((item) => item.readyInShowroom);
+  }
+
+  if (params?.homeInstallation) {
+    filtered = filtered.filter((item) => item.homeInstallation);
+  }
+
+  if (params?.isGenuine) {
+    filtered = filtered.filter((item) => item.isGenuine);
+  }
+
+  if (params?.warrantyYears) {
+    filtered = filtered.filter((item) => (item.warrantyYears || 0) >= params.warrantyYears!);
+  }
+
+  if (params?.sortBy) {
+    switch (params.sortBy) {
+      case 'price-asc':
+        filtered.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-desc':
+        filtered.sort((a, b) => b.price - a.price);
+        break;
+      case 'newest':
+        filtered.sort((a, b) => b.id - a.id);
+        break;
+      case 'popular':
+      default:
+        filtered.sort((a, b) => (b.stockQuantity || 0) - (a.stockQuantity || 0));
+        break;
+    }
+  }
+
+  return filtered;
+}
+
 export const accessoryService = {
   /**
    * Get list of accessories based on filter criteria
@@ -32,40 +101,24 @@ export const accessoryService = {
 
       const url = `/customer/accessories${queryParts.length ? '?' + queryParts.join('&') : ''}`;
       const res = await axiosClient.get<unknown, ApiResponse<RawAccessoryDto[]>>(url);
-      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
-        let items: Accessory[] = res.data;
-        if (params?.carModelId) {
-          const modelIdStr = String(params.carModelId);
-          items = items.filter((item: RawAccessoryDto) =>
-            Boolean(item.dungChung) ||
-            Boolean(item.isUniversal) ||
-            item.compatibilities?.some((c: AccessoryCompatibility) => String(c.carModelId) === modelIdStr)
-          );
+      if (res?.data && Array.isArray(res.data)) {
+        const hasServerQueryFilter = queryParts.length > 0;
+        if (res.data.length > 0 || hasServerQueryFilter) {
+          return filterAndSortAccessories(res.data, {
+            carModelId: params?.carModelId,
+            readyInShowroom: params?.readyInShowroom,
+            homeInstallation: params?.homeInstallation,
+            isGenuine: params?.isGenuine,
+            warrantyYears: params?.warrantyYears,
+            sortBy: params?.sortBy,
+          });
         }
-        if (params?.sortBy) {
-          switch (params.sortBy) {
-            case 'price-asc':
-              items.sort((a, b) => a.price - b.price);
-              break;
-            case 'price-desc':
-              items.sort((a, b) => b.price - a.price);
-              break;
-            case 'newest':
-              items.sort((a, b) => b.id - a.id);
-              break;
-            case 'popular':
-            default:
-              items.sort((a, b) => (b.stockQuantity || 0) - (a.stockQuantity || 0));
-              break;
-          }
-        }
-        return items;
       }
     } catch {
-      // network error
+      // Backend unavailable or network error - gracefully fall back to mock data
     }
 
-    return [];
+    return filterAndSortAccessories(MOCK_ACCESSORIES, params);
   },
 
   /**
@@ -94,10 +147,11 @@ export const accessoryService = {
         };
       }
     } catch {
-      // network error
+      // Backend unavailable - fallback to mock item
     }
 
-    return null;
+    const fallback = MOCK_ACCESSORIES.find((a) => a.id === id);
+    return fallback ? { ...fallback } : null;
   },
 
   /**
@@ -115,9 +169,9 @@ export const accessoryService = {
         }));
       }
     } catch {
-      // network error
+      // Backend unavailable - fallback to mock categories
     }
-    return [];
+    return MOCK_ACCESSORY_CATEGORIES;
   },
 
   /**
@@ -132,13 +186,13 @@ export const accessoryService = {
           name: c.name,
           yearRange: '2024 – 2026',
           architecture: c.powertrain || 'Thuần điện 800V SiC',
-          thumbnailUrl: c.image || 'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=1200',
+          thumbnailUrl: c.image || '/images/cars/gte-grand-touring.jpg',
           accessoryCount: 12,
         }));
       }
     } catch {
       // network error
     }
-    return [];
+    return MOCK_CAR_MODELS;
   },
 };

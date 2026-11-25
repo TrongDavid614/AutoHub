@@ -34,10 +34,10 @@ export const OrderCancelModal: React.FC<OrderCancelModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas-deep/80 backdrop-blur-md animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45"
     >
-      <div className="w-full max-w-md rounded-xl bg-surface-container border border-surface-highlight p-6 shadow-2xl relative">
-        <div className="flex items-center gap-3 text-rose-400 pb-3 border-b border-surface-highlight">
+      <div className="w-full max-w-md rounded-xl bg-[var(--surface)] border border-[var(--line)] p-6 shadow-xl relative">
+        <div className="flex items-center gap-3 text-red-700 pb-3 border-b border-[var(--line)]">
           <AlertCircle className="w-6 h-6 shrink-0" />
           <h3 className="text-base font-bold text-text-primary">Xác nhận hủy đơn hàng</h3>
         </div>

@@ -15,18 +15,14 @@ export const VehicleCompatibilityBar: React.FC<VehicleCompatibilityBarProps> = (
   onClearCarClick,
 }) => {
   return (
-    <section className="w-full bg-[#060E20] border-b border-[#2D3449]/80 py-6 px-4 md:px-8">
+    <section className="w-full bg-[var(--surface)] border-b border-[var(--line)] py-4 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="relative overflow-hidden rounded-[2px] bg-[#131B2E] border border-[#2D3449] p-5 md:p-6 shadow-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          {/* Subtle Electric Ambient Glow */}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#89CEFF]/10 via-transparent to-[#89CEFF]/5" />
-
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           {/* Left Info Cluster */}
-          <div className="relative flex items-center gap-4 z-10">
+          <div className="flex items-center gap-3.5">
             {carModel ? (
               <>
-                {/* Car Thumbnail */}
-                <div className="w-12 h-12 rounded-[2px] overflow-hidden bg-[#060E20] border border-[#2D3449] flex-shrink-0 flex items-center justify-center shadow-md">
+                <div className="w-12 h-12 rounded-lg overflow-hidden bg-[var(--surface-subtle)] border border-[var(--line)] flex-shrink-0 flex items-center justify-center">
                   <img
                     src={carModel.thumbnailUrl}
                     alt={carModel.name}
@@ -34,81 +30,64 @@ export const VehicleCompatibilityBar: React.FC<VehicleCompatibilityBarProps> = (
                   />
                 </div>
 
-                {/* Details */}
-                <div className="flex flex-col gap-1.5">
-                  {/* Badges */}
+                <div className="flex flex-col gap-0.5">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="px-2 py-0.5 rounded-[2px] bg-[#0EA5E9]/20 text-[#89CEFF] font-mono text-[10px] font-bold tracking-wider uppercase border border-[#0EA5E9]/30">
-                      XÁC THỰC OEM 100%
+                    <span className="text-xs font-medium text-[var(--accent)]">
+                      Phụ kiện chính hãng tương thích theo xe
                     </span>
-                    <span className="text-[#88929B] font-mono text-[10px] font-bold tracking-[1.5px] uppercase">
-                      VIN COMPLIANT: {carModel.architecture}
-                    </span>
+                    <span className="text-xs text-[var(--text-muted)]">· {carModel.architecture}</span>
                   </div>
-
-                  {/* Title & Year */}
-                  <div className="flex items-baseline gap-2 flex-wrap text-base md:text-lg">
-                    <span className="font-semibold text-[#DAE2FD]">Đang chọn phụ kiện cho:</span>
-                    <span className="font-bold text-[#89CEFF]">{carModel.name}</span>
-                    <span className="text-xs md:text-sm text-[#BEC8D2] font-medium">({carModel.yearRange})</span>
+                  <div className="flex items-baseline gap-2 flex-wrap text-sm md:text-base">
+                    <span className="text-[var(--text-secondary)]">Đang lọc cho:</span>
+                    <span className="font-semibold text-[var(--text)]">{carModel.name}</span>
+                    <span className="text-xs text-[var(--text-muted)]">({carModel.yearRange})</span>
                   </div>
                 </div>
               </>
             ) : (
               <>
-                {/* All Cars Icon */}
-                <div className="w-12 h-12 rounded-[2px] bg-[#0EA5E9]/15 border border-[#0EA5E9]/40 flex-shrink-0 flex items-center justify-center text-[#89CEFF] shadow-md">
-                  <Layers className="w-6 h-6 text-[#89CEFF]" />
+                <div className="w-10 h-10 rounded-lg bg-[var(--surface-subtle)] border border-[var(--line)] flex-shrink-0 flex items-center justify-center text-[var(--accent)]">
+                  <Layers className="w-5 h-5" />
                 </div>
 
-                {/* Details */}
-                <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="px-2 py-0.5 rounded-[2px] bg-[#0EA5E9]/20 text-[#89CEFF] font-mono text-[10px] font-bold tracking-wider uppercase border border-[#0EA5E9]/30">
-                      XÁC THỰC OEM 100%
-                    </span>
-                    <span className="text-[#88929B] font-mono text-[10px] font-bold tracking-[1.5px] uppercase">
-                      TẤT CẢ DÒNG XE AUTOHUB
-                    </span>
-                  </div>
-
-                  <div className="flex items-baseline gap-2 flex-wrap text-base md:text-lg">
-                    <span className="font-bold text-white">Toàn Bộ Phụ Kiện Chính Hãng AutoHub</span>
-                    <span className="text-xs text-[#88929B] font-medium">
-                      (Trạm sạc, camera LiDAR, thảm sàn, phụ kiện nâng cấp)
-                    </span>
-                  </div>
+                <div className="flex flex-col gap-0.5">
+                  <h2 className="text-base md:text-lg font-semibold text-[var(--text)]">
+                    Phụ kiện chính hãng AutoHub
+                  </h2>
+                  <p className="text-xs text-[var(--text-secondary)]">
+                    Bộ sạc tại nhà, camera hành trình, thảm sàn và phụ kiện lắp vừa theo từng dòng xe.
+                  </p>
                 </div>
               </>
             )}
           </div>
 
-          {/* Right Action: Change or Clear Vehicle */}
-          <div className="relative z-10 flex items-center gap-3 self-start lg:self-center">
+          {/* Right Action */}
+          <div className="flex items-center gap-2.5 self-start lg:self-center">
             {carModel && onClearCarClick && (
               <button
                 type="button"
                 onClick={onClearCarClick}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[2px] bg-[#171F33] hover:bg-[#222A3D] text-[#88929B] hover:text-[#DAE2FD] border border-[#2D3449] text-xs font-semibold transition-all cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--surface)] hover:bg-[var(--surface-subtle)] text-[var(--text-secondary)] hover:text-[var(--text)] border border-[var(--line)] text-xs font-medium transition-colors cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
-                <span>Xem tất cả phụ kiện</span>
+                <span>Xem tất cả</span>
               </button>
             )}
 
             <button
               type="button"
               onClick={onChangeCarClick}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-[2px] bg-[#222A3D] hover:bg-[#2D3449] text-[#DAE2FD] hover:text-[#89CEFF] border border-[#3E4850]/80 hover:border-[#89CEFF]/60 text-sm font-medium transition-all shadow-md active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-[var(--surface)] hover:bg-[var(--surface-subtle)] text-[var(--text)] border border-[var(--line-strong)] text-xs font-medium transition-colors cursor-pointer"
             >
               {carModel ? (
                 <>
-                  <ArrowLeftRight className="w-4 h-4 text-[#89CEFF]" />
+                  <ArrowLeftRight className="w-3.5 h-3.5 text-[var(--accent)]" />
                   <span>Đổi dòng xe</span>
                 </>
               ) : (
                 <>
-                  <Car className="w-4 h-4 text-[#89CEFF]" />
+                  <Car className="w-3.5 h-3.5 text-[var(--accent)]" />
                   <span>Lọc theo dòng xe của bạn</span>
                 </>
               )}

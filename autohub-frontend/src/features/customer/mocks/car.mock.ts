@@ -54,7 +54,7 @@ export const MOCK_CARS: MockCar[] = [
     depositAmount: 20000000,
     depositNote: 'Cọc giữ xe 72h: 20.000.000 đ',
     estimatedOnRoad: 3087140700,
-    image: 'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=1200',
+    image: '/images/cars/gte-grand-touring.jpg',
     availableColors: [
       { name: 'Xanh Riviera', hex: '#0284C7' },
       { name: 'Trắng Ceramic', hex: '#F8FAFC' },
@@ -88,7 +88,7 @@ export const MOCK_CARS: MockCar[] = [
     depositAmount: 20000000,
     depositNote: 'Cọc giữ xe 72h: 20.000.000 đ',
     estimatedOnRoad: 3734200000,
-    image: 'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=1200',
+    image: '/images/cars/gte-track.jpg',
     availableColors: [
       { name: 'Đen Obsidian', hex: '#0F172A' },
       { name: 'Xám Liquid', hex: '#94A3B8' },
@@ -121,7 +121,7 @@ export const MOCK_CARS: MockCar[] = [
     depositAmount: 20000000,
     depositNote: 'Cọc giữ xe 72h: 20.000.000 đ',
     estimatedOnRoad: 2659300000,
-    image: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=1200',
+    image: '/images/cars/gte-standard.jpg',
     availableColors: [
       { name: 'Trắng Ceramic', hex: '#F8FAFC' },
       { name: 'Đen Obsidian', hex: '#0F172A' },
@@ -154,7 +154,7 @@ export const MOCK_CARS: MockCar[] = [
     depositAmount: 20000000,
     depositNote: 'Cọc giữ xe 72h: 20.000.000 đ',
     estimatedOnRoad: 3194000000,
-    image: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1200',
+    image: '/images/cars/suve-cross.jpg',
     availableColors: [
       { name: 'Đỏ Crimson', hex: '#DC2626' },
       { name: 'Xám Liquid', hex: '#94A3B8' },
@@ -187,7 +187,7 @@ export const MOCK_CARS: MockCar[] = [
     depositAmount: 20000000,
     depositNote: 'Cọc giữ xe 72h: 20.000.000 đ',
     estimatedOnRoad: 2873400000,
-    image: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1200',
+    image: '/images/cars/gte-executive.jpg',
     availableColors: [
       { name: 'Xanh Phantom', hex: '#1E293B' },
       { name: 'Xám Liquid', hex: '#94A3B8' },
@@ -220,7 +220,7 @@ export const MOCK_CARS: MockCar[] = [
     depositAmount: 20000000,
     depositNote: 'Cọc giữ xe 72h: 20.000.000 đ',
     estimatedOnRoad: 3338400000,
-    image: 'https://images.unsplash.com/photo-1502877338535-766e1452684a?w=1200',
+    image: '/images/cars/gte-tourer.jpg',
     availableColors: [
       { name: 'Xám Liquid', hex: '#94A3B8' },
       { name: 'Đen Obsidian', hex: '#0F172A' },
@@ -253,7 +253,7 @@ export const MOCK_CARS: MockCar[] = [
     depositAmount: 20000000,
     depositNote: 'Cọc giữ xe 72h: 20.000.000 đ',
     estimatedOnRoad: 1345000000,
-    image: 'https://images.unsplash.com/photo-1563720223185-11003d516935?w=1200',
+    image: '/images/cars/vf8.jpg',
     availableColors: [
       { name: 'Đen Obsidian', hex: '#0F172A' },
       { name: 'Trắng Ceramic', hex: '#F8FAFC' },
@@ -286,7 +286,7 @@ export const MOCK_CARS: MockCar[] = [
     depositAmount: 20000000,
     depositNote: 'Cọc giữ xe 72h: 20.000.000 đ',
     estimatedOnRoad: 1815000000,
-    image: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1200',
+    image: '/images/cars/vf9.jpg',
     availableColors: [
       { name: 'Đen Obsidian', hex: '#0F172A' },
       { name: 'Trắng Ceramic', hex: '#F8FAFC' },
@@ -319,7 +319,7 @@ export const MOCK_CARS: MockCar[] = [
     depositAmount: 20000000,
     depositNote: 'Cọc giữ xe 72h: 20.000.000 đ',
     estimatedOnRoad: 1530000000,
-    image: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1200',
+    image: '/images/cars/santafe.jpg',
     availableColors: [
       { name: 'Đen Obsidian', hex: '#0F172A' },
       { name: 'Trắng Ceramic', hex: '#F8FAFC' },
@@ -352,7 +352,7 @@ export const MOCK_CARS: MockCar[] = [
     depositAmount: 20000000,
     depositNote: 'Cọc giữ xe 72h: 20.000.000 đ',
     estimatedOnRoad: 1640000000,
-    image: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=1200',
+    image: '/images/cars/everest.jpg',
     availableColors: [
       { name: 'Đen Obsidian', hex: '#0F172A' },
       { name: 'Trắng Ceramic', hex: '#F8FAFC' },

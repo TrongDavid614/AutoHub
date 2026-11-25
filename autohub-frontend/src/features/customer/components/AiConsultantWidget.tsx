@@ -22,22 +22,17 @@ export const AiConsultantWidget: React.FC = () => {
   return (
     <div
       id="ai-consultant-modal"
-      className="hidden fixed bottom-20 right-6 w-[92vw] max-w-xl h-[650px] bg-[#0B1326] border border-[#3E4850]/80 rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden text-[#DAE2FD]"
+      className="hidden fixed bottom-20 right-6 w-[92vw] max-w-xl h-[620px] bg-[var(--surface)] border border-[var(--line-strong)] rounded-lg shadow-xl z-50 flex flex-col overflow-hidden text-[var(--text)]"
     >
       {/* Widget Header */}
-      <div className="flex items-center justify-between px-5 py-3.5 bg-[#131B2E] border-b border-[#3E4850]/80">
+      <div className="flex items-center justify-between px-4 py-3 bg-[var(--surface-subtle)] border-b border-[var(--line)]">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-[4px] bg-[#222A3D] text-[#89CEFF] flex items-center justify-center border border-[#3E4850]/50 shadow-sm">
-            <Bot className="w-4 h-4 text-[#89CEFF]" />
+          <div className="w-8 h-8 rounded-lg bg-[var(--accent-soft)] text-[var(--accent)] flex items-center justify-center">
+            <Bot className="w-4 h-4" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-bold text-xs text-[#DAE2FD]">AutoHub Intelligence AI</h3>
-              <span className="px-1.5 py-0.2 rounded-[2px] bg-[#2D3449] text-[#89CEFF] font-mono text-[9px] font-bold">
-                v3.5
-              </span>
-            </div>
-            <p className="font-mono text-[9px] text-[#89CEFF]">TRỰC TUYẾN 24/7</p>
+            <h3 className="font-semibold text-sm text-[var(--text)]">Trợ lý tư vấn xe AutoHub</h3>
+            <p className="text-[11px] text-emerald-700">Sẵn sàng hỗ trợ</p>
           </div>
         </div>
 
@@ -45,7 +40,7 @@ export const AiConsultantWidget: React.FC = () => {
           <button
             type="button"
             onClick={handleOpenFullPage}
-            className="p-1.5 text-[#88929B] hover:text-white rounded-[4px] hover:bg-[#222A3D] transition-colors"
+            className="p-1.5 text-[var(--text-secondary)] hover:text-[var(--text)] rounded-md hover:bg-[var(--surface)] transition-colors cursor-pointer"
             title="Mở toàn màn hình"
           >
             <Maximize2 className="w-4 h-4" />
@@ -53,7 +48,7 @@ export const AiConsultantWidget: React.FC = () => {
           <button
             type="button"
             onClick={handleClose}
-            className="p-1.5 text-[#88929B] hover:text-white rounded-[4px] hover:bg-[#222A3D] transition-colors"
+            className="p-1.5 text-[var(--text-secondary)] hover:text-[var(--text)] rounded-md hover:bg-[var(--surface)] transition-colors cursor-pointer"
             title="Đóng cửa sổ"
           >
             <X className="w-4 h-4" />
@@ -62,7 +57,7 @@ export const AiConsultantWidget: React.FC = () => {
       </div>
 
       {/* Messages Scroll Area */}
-      <div className="flex-1 p-4 overflow-y-auto space-y-4">
+      <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-[var(--bg)]">
         {messages.map((msg) => (
           <AiMessageItem
             key={msg.id}
@@ -74,16 +69,16 @@ export const AiConsultantWidget: React.FC = () => {
       </div>
 
       {/* Bottom Input */}
-      <div className="p-3 bg-[#131B2E] border-t border-[#3E4850]/80">
+      <div className="p-3 bg-[var(--surface)] border-t border-[var(--line)]">
         <AiChatInput onSend={(text) => void sendMessage(text)} isSending={isSending} />
-        <div className="flex justify-between items-center mt-2 px-1 text-[10px] text-[#88929B]">
-          <span>Hỗ trợ tư vấn thông số xe & cọc giữ chỗ 72h</span>
+        <div className="flex justify-between items-center mt-2 px-1 text-[11px] text-[var(--text-muted)]">
+          <span>Tư vấn thông số xe &amp; giữ chỗ 72h</span>
           <button
             type="button"
             onClick={handleOpenFullPage}
-            className="text-[#89CEFF] hover:underline text-[10px]"
+            className="text-[var(--accent)] hover:underline cursor-pointer"
           >
-            Mở giao diện lớn →
+            Mở trang tư vấn →
           </button>
         </div>
       </div>

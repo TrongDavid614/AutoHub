@@ -343,18 +343,18 @@ export const ReviewModerationPage: React.FC = () => {
       {loading ? (
         <div className={cn('p-8 rounded-xl border space-y-4', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40' : 'bg-white border-slate-200')}>
           <div className="flex items-center justify-between pb-2 border-b border-dashed border-slate-200 dark:border-slate-800">
-            <div className="h-4 w-40 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-            <div className="h-4 w-20 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+            <div className="h-4 w-40 bg-slate-200 dark:bg-slate-800 rounded" />
+            <div className="h-4 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
           </div>
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="flex items-center justify-between py-3 border-b border-slate-100 dark:border-slate-800/50">
               <div className="space-y-2 w-1/4">
-                <div className="h-4 w-28 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-                <div className="h-3 w-20 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+                <div className="h-4 w-28 bg-slate-200 dark:bg-slate-800 rounded" />
+                <div className="h-3 w-20 bg-slate-200 dark:bg-slate-800 rounded" />
               </div>
-              <div className="h-4 w-1/3 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-              <div className="h-6 w-20 bg-slate-200 dark:bg-slate-800 rounded-full animate-pulse" />
-              <div className="h-8 w-24 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+              <div className="h-4 w-1/3 bg-slate-200 dark:bg-slate-800 rounded" />
+              <div className="h-6 w-20 bg-slate-200 dark:bg-slate-800 rounded-full" />
+              <div className="h-8 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
             </div>
           ))}
         </div>

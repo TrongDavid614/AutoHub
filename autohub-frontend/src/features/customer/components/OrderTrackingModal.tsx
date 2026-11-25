@@ -32,30 +32,30 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas-deep/80 backdrop-blur-md animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45"
     >
-      <div className="w-full max-w-lg rounded-xl bg-surface-container border border-surface-highlight p-6 shadow-2xl relative">
-        <div className="flex items-center justify-between pb-3 border-b border-surface-highlight">
+      <div className="w-full max-w-lg rounded-xl bg-[var(--surface)] border border-[var(--line)] p-6 shadow-xl relative">
+        <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
           <div className="flex items-center gap-2">
-            <Truck className="w-5 h-5 text-purple-400" />
-            <h3 className="text-base font-bold text-text-primary">Hành trình vận chuyển (Bưu chính VIP)</h3>
+            <Truck className="w-5 h-5 text-violet-600" />
+            <h3 className="text-base font-bold text-[var(--text)]">Hành trình vận chuyển (Bưu chính VIP)</h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-7 h-7 rounded bg-surface-elevated text-text-secondary hover:text-text-primary flex items-center justify-center cursor-pointer transition-colors"
+            className="w-7 h-7 rounded bg-[var(--surface-subtle)] text-[var(--text-muted)] hover:text-[var(--text)] flex items-center justify-center cursor-pointer transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         <div className="py-4 space-y-4">
-          <div className="p-3 rounded bg-canvas-deep border border-surface-highlight flex items-center justify-between text-xs">
+          <div className="p-3 rounded-lg bg-[var(--surface-subtle)] border border-[var(--line)] flex items-center justify-between text-xs">
             <div>
-              <span className="text-text-muted">Mã vận đơn: </span>
-              <span className="font-mono font-bold text-accent-primary">{order.trackingNumber}</span>
+              <span className="text-[var(--text-muted)]">Mã vận đơn: </span>
+              <span className="font-mono font-bold text-[var(--accent)]">{order.trackingNumber}</span>
             </div>
-            <div className="text-emerald-400 font-bold">AutoHub Logistics VIP</div>
+            <div className="text-emerald-700 font-semibold">AutoHub Logistics VIP</div>
           </div>
 
           {/* Lộ trình bưu cục */}

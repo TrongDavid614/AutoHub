@@ -14,7 +14,6 @@ import {
   CheckCircle2,
   RotateCw,
   X,
-  Sparkles,
 } from 'lucide-react';
 import { calculateTestPaymentAmount } from '@/lib/utils';
 import type { CarDepositStatus, CarDepositItem } from '@/features/customer/types/car-deposit.types';
@@ -321,7 +320,7 @@ export const CarDepositPage: React.FC = () => {
       )}&accountName=CONG%20TY%20CO%20PHAN%20AUTOHUB%20VIETNAM`;
 
     return (
-      <div className="w-full max-w-5xl mx-auto px-4 py-6 space-y-6 animate-fadeIn text-[#DAE2FD]">
+      <div className="w-full max-w-5xl mx-auto px-4 py-6 space-y-6 text-[var(--text)]">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-xs text-text-muted">
           <Link to="/" className="hover:text-accent-primary transition-colors">Trang chủ</Link>
@@ -348,29 +347,29 @@ export const CarDepositPage: React.FC = () => {
           </div>
 
           {/* Stepper Dots */}
-          <div className="flex items-center gap-2 text-xs font-mono">
-            <span className={`px-2.5 py-1 rounded-[2px] font-bold ${
+          <div className="flex items-center gap-2 text-xs">
+            <span className={`px-2.5 py-1 rounded-md font-semibold ${
               checkoutStep === 'FORM'
-                ? 'bg-accent-action text-accent-contrast'
-                : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                ? 'bg-[var(--accent)] text-white'
+                : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
             }`}>
               1. Thông tin
             </span>
-            <span className="text-border-subtle">›</span>
-            <span className={`px-2.5 py-1 rounded-[2px] font-bold ${
+            <span className="text-[var(--text-muted)]">›</span>
+            <span className={`px-2.5 py-1 rounded-md font-semibold ${
               checkoutStep === 'PAYMENT_QR'
-                ? 'bg-accent-action text-accent-contrast shadow-[0_0_12px_rgba(14,165,233,0.4)]'
+                ? 'bg-[var(--accent)] text-white'
                 : checkoutStep === 'SUCCESS'
-                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                : 'bg-surface-elevated text-text-muted'
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                : 'bg-[var(--surface-subtle)] text-[var(--text-muted)]'
             }`}>
               2. Quét SePay QR
             </span>
-            <span className="text-border-subtle">›</span>
-            <span className={`px-2.5 py-1 rounded-[2px] font-bold ${
+            <span className="text-[var(--text-muted)]">›</span>
+            <span className={`px-2.5 py-1 rounded-md font-semibold ${
               checkoutStep === 'SUCCESS'
-                ? 'bg-emerald-500 text-white'
-                : 'bg-surface-elevated text-text-muted'
+                ? 'bg-emerald-600 text-white'
+                : 'bg-[var(--surface-subtle)] text-[var(--text-muted)]'
             }`}>
               3. Giữ xe 72h
             </span>
@@ -388,8 +387,8 @@ export const CarDepositPage: React.FC = () => {
                   alt={targetCar?.name || 'Xe AutoHub'}
                   className="w-full h-full object-cover"
                 />
-                <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-[2px] bg-canvas-deep/80 backdrop-blur-md border border-accent-primary/40 text-[10px] font-mono text-accent-primary font-bold">
-                  BẢO LƯU 72 GIỜ
+                <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-md bg-white/95 border border-[var(--line)] text-xs font-semibold text-[var(--accent)]">
+                  Bảo lưu 72 giờ
                 </span>
               </div>
 
@@ -400,11 +399,11 @@ export const CarDepositPage: React.FC = () => {
                 <p className="text-xs text-text-muted">{targetCar?.subtitle || 'Tự động điện tử Dual-Motor'}</p>
               </div>
 
-              <div className="p-3.5 rounded bg-canvas-deep border border-surface-highlight space-y-2 text-xs">
+              <div className="p-3.5 rounded-lg bg-[var(--surface-subtle)] border border-[var(--line)] space-y-2 text-xs">
                 <div className="flex justify-between items-center">
                   <span className="text-text-muted">Màu ngoại thất:</span>
                   <div className="flex items-center gap-1.5 font-semibold text-accent-primary">
-                    <span className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: selectedColorHex }} />
+                    <span className="w-3 h-3 rounded-full border border-black/20" style={{ backgroundColor: selectedColorHex }} />
                     <span>{selectedColor}</span>
                   </div>
                 </div>
@@ -443,8 +442,8 @@ export const CarDepositPage: React.FC = () => {
               </h2>
 
               {errorMessage && (
-                <div className="p-3.5 rounded bg-rose-500/15 border border-rose-500/40 text-xs text-rose-300 flex items-center gap-2 animate-fadeIn">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                <div className="p-3.5 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
                   <span>{errorMessage}</span>
                 </div>
               )}
@@ -452,8 +451,8 @@ export const CarDepositPage: React.FC = () => {
               <form onSubmit={handleCreateDeposit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-xs font-mono font-semibold text-text-secondary block">
-                      HỌ VÀ TÊN CHỦ XE <span className="text-rose-400">*</span>
+                    <label className="text-xs font-semibold text-text-secondary block">
+                      Họ và tên chủ xe <span className="text-red-600">*</span>
                     </label>
                     <input
                       type="text"
@@ -461,13 +460,13 @@ export const CarDepositPage: React.FC = () => {
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="Nguyễn Văn A"
-                      className="w-full px-3.5 py-2.5 rounded bg-canvas-deep border border-surface-highlight text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors"
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-canvas-deep border border-surface-highlight text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-mono font-semibold text-text-secondary block">
-                      SỐ ĐIỆN THOẠI LIÊN HỆ <span className="text-rose-400">*</span>
+                    <label className="text-xs font-semibold text-text-secondary block">
+                      Số điện thoại liên hệ <span className="text-red-600">*</span>
                     </label>
                     <input
                       type="tel"
@@ -475,14 +474,14 @@ export const CarDepositPage: React.FC = () => {
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
                       placeholder="0912 345 678"
-                      className="w-full px-3.5 py-2.5 rounded bg-canvas-deep border border-surface-highlight text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors"
+                      className="w-full px-3.5 py-2.5 rounded-lg bg-canvas-deep border border-surface-highlight text-xs text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-mono font-semibold text-text-secondary block">
-                    SỐ CĂN CƯỚC CÔNG DÂN (CCCD 12 SỐ) <span className="text-rose-400">*</span>
+                  <label className="text-xs font-semibold text-text-secondary block">
+                    Số căn cước công dân (CCCD 12 số) <span className="text-red-600">*</span>
                   </label>
                   <input
                     type="text"
@@ -491,16 +490,16 @@ export const CarDepositPage: React.FC = () => {
                     value={identityCard}
                     onChange={(e) => setIdentityCard(e.target.value.replace(/\D/g, ''))}
                     placeholder="079201009988"
-                    className="w-full px-3.5 py-2.5 rounded bg-canvas-deep border border-surface-highlight text-xs font-mono tracking-widest text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors"
+                    className="w-full px-3.5 py-2.5 rounded-lg bg-canvas-deep border border-surface-highlight text-xs font-mono tracking-wider text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors"
                   />
-                  <p className="text-[10px] text-text-muted">
+                  <p className="text-xs text-text-muted">
                     Bắt buộc 12 chữ số theo quy chế BR01 để lập phiếu đặt cọc và đăng ký biển số sau này.
                   </p>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-mono font-semibold text-text-secondary block">
-                    SHOWROOM BÀN GIAO XE TIẾP NHẬN <span className="text-rose-400">*</span>
+                  <label className="text-xs font-semibold text-text-secondary block">
+                    Showroom bàn giao xe tiếp nhận <span className="text-red-600">*</span>
                   </label>
                   <select
                     value={showroom}
@@ -531,7 +530,7 @@ export const CarDepositPage: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full sm:flex-1 py-3.5 px-6 rounded-[2px] bg-accent-action hover:bg-accent-primary text-accent-contrast font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(14,165,233,0.35)] transition-all cursor-pointer disabled:opacity-50"
+                    className="w-full sm:flex-1 py-3 px-6 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50"
                   >
                     {isSubmitting ? (
                       <>
@@ -562,11 +561,11 @@ export const CarDepositPage: React.FC = () => {
         {checkoutStep === 'PAYMENT_QR' && (
           <div className="p-6 sm:p-8 rounded-lg bg-surface-elevated/80 border border-accent-primary/40 shadow-2xl space-y-6">
             {/* Top Alert Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded bg-accent-action/10 border border-accent-primary/30">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg bg-[var(--accent-soft)] border border-[var(--accent)]/25">
               <div className="flex items-center gap-2.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-accent-primary animate-ping" />
-                <span className="text-xs sm:text-sm font-bold text-accent-primary uppercase font-mono">
-                  CHỜ THANH TOÁN SEPAY QR • HIỆU LỰC GIỮ SUẤT:
+                <div className="w-2.5 h-2.5 rounded-full bg-[var(--accent)]" />
+                <span className="text-xs sm:text-sm font-semibold text-[var(--accent)]">
+                  Chờ thanh toán SePay QR • Hiệu lực giữ suất:
                 </span>
               </div>
               <div className="flex items-center gap-1.5 font-mono text-base font-bold text-accent-primary">
@@ -618,24 +617,24 @@ export const CarDepositPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleCopy('5811676579', 'accNum')}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[2px] bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight text-[11px] text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight text-xs text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
                   >
-                    {copiedField === 'accNum' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedField === 'accNum' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                     <span>{copiedField === 'accNum' ? 'Đã chép' : 'Sao chép STK'}</span>
                   </button>
                 </div>
 
                 <div className="p-3.5 rounded bg-canvas-deep/80 border border-surface-highlight flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] font-mono text-text-muted uppercase block">CHỦ TÀI KHOẢN</span>
+                    <span className="text-xs text-text-muted block">Chủ tài khoản</span>
                     <span className="font-bold text-text-primary uppercase">CONG TY CO PHAN AUTOHUB VIETNAM</span>
                   </div>
                 </div>
 
                 <div className="p-3.5 rounded bg-canvas-deep/80 border border-surface-highlight flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] font-mono text-text-muted uppercase block">SỐ TIỀN CỌC PHÁP LÝ</span>
-                    <span className="font-mono font-black text-lg text-emerald-400">
+                    <span className="text-xs text-text-muted block">Số tiền cọc pháp lý</span>
+                    <span className="font-bold tabular-nums text-lg text-emerald-700">
                       {depositAmount.toLocaleString('vi-VN')} VNĐ
                     </span>
                   </div>
@@ -716,17 +715,17 @@ export const CarDepositPage: React.FC = () => {
 
         {/* BƯỚC 3: MÀN HÌNH XÁC NHẬN GIỮ XE 72H THÀNH CÔNG */}
         {checkoutStep === 'SUCCESS' && (
-          <div className="p-8 rounded-lg bg-surface-elevated/80 border border-emerald-500/40 shadow-2xl space-y-6 text-center animate-fadeIn">
-            <div className="w-20 h-20 rounded-full bg-emerald-500/15 border border-emerald-500/40 flex items-center justify-center text-emerald-400 mx-auto shadow-[0_0_35px_rgba(16,185,129,0.3)]">
-              <CheckCircle2 className="w-10 h-10" />
+          <div className="p-8 rounded-xl bg-[var(--surface)] border border-emerald-200 space-y-6 text-center">
+            <div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 mx-auto">
+              <CheckCircle2 className="w-9 h-9" />
             </div>
 
             <div className="space-y-1">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono text-xs font-bold uppercase tracking-wider">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
                 <ShieldCheck className="w-4 h-4" />
-                <span>THANH TOÁN SEPAY THÀNH CÔNG • KÍCH HOẠT GIỮ XE 72H</span>
+                <span>Thanh toán SePay thành công • Kích hoạt giữ xe 72h</span>
               </div>
-              <h2 className="text-2xl font-black text-text-primary tracking-tight mt-2">
+              <h2 className="text-2xl font-bold text-text-primary tracking-tight mt-2">
                 Chúc mừng {fullName}! Bạn đã đặt cọc giữ xe thành công
               </h2>
               <p className="text-xs text-text-muted max-w-xl mx-auto">
@@ -735,37 +734,37 @@ export const CarDepositPage: React.FC = () => {
             </div>
 
             {/* Chi tiết phiếu cọc thành công */}
-            <div className="max-w-2xl mx-auto p-5 rounded-xl bg-canvas-deep border border-surface-highlight text-left space-y-3">
-              <div className="flex justify-between items-center pb-2.5 border-b border-surface-highlight">
-                <span className="text-[10px] font-mono text-text-muted uppercase">MÃ PHIẾU CỌC ĐIỆN TỬ</span>
+            <div className="max-w-2xl mx-auto p-5 rounded-xl bg-[var(--surface-subtle)] border border-[var(--line)] text-left space-y-3">
+              <div className="flex justify-between items-center pb-2.5 border-b border-[var(--line)]">
+                <span className="text-xs text-text-muted">Mã phiếu cọc điện tử</span>
                 <span className="font-mono font-bold text-accent-primary text-sm">{activeDeposit?.depositCode}</span>
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div>
-                  <span className="text-[10px] font-mono text-text-muted uppercase block">MẪU XE</span>
+                  <span className="text-xs text-text-muted block">Mẫu xe</span>
                   <span className="font-semibold text-text-primary">{targetCar?.name || 'AutoHub GT-e'}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono text-text-muted uppercase block">MÀU NGOẠI THẤT</span>
+                  <span className="text-xs text-text-muted block">Màu ngoại thất</span>
                   <span className="font-semibold text-accent-primary">{selectedColor}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono text-text-muted uppercase block">TIỀN CỌC ĐÃ THANH TOÁN</span>
-                  <span className="font-mono font-bold text-emerald-400">{depositAmount.toLocaleString('vi-VN')} VNĐ</span>
+                  <span className="text-xs text-text-muted block">Tiền cọc đã thanh toán</span>
+                  <span className="font-bold tabular-nums text-emerald-700">{depositAmount.toLocaleString('vi-VN')} VNĐ</span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono text-text-muted uppercase block">SHOWROOM NHẬN XE</span>
+                  <span className="text-xs text-text-muted block">Showroom nhận xe</span>
                   <span className="font-semibold text-text-primary truncate block">{showroom}</span>
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-surface-highlight p-3 rounded bg-accent-action/10 border border-accent-primary/20 flex items-center justify-between text-xs">
-                <span className="font-mono text-accent-primary flex items-center gap-1.5 font-bold">
-                  <Clock className="w-4 h-4 animate-pulse" />
-                  <span>THỜI HẠN GIỮ SUẤT XE:</span>
+              <div className="p-3 rounded-lg bg-[var(--accent-soft)] border border-[var(--accent)]/20 flex items-center justify-between text-xs">
+                <span className="text-accent-primary flex items-center gap-1.5 font-semibold">
+                  <Clock className="w-4 h-4" />
+                  <span>Thời hạn giữ suất xe:</span>
                 </span>
-                <span className="font-mono font-black text-emerald-400">72 GIỜ LIÊN TỤC</span>
+                <span className="font-bold text-emerald-700 tabular-nums">72 giờ liên tục</span>
               </div>
             </div>
 
@@ -811,7 +810,7 @@ export const CarDepositPage: React.FC = () => {
   // VIEW MODE 2: MANAGEMENT PORTAL (DANH SÁCH PHIẾU CỌC XE CỦA TÔI)
   // =========================================================================
   return (
-    <div className="space-y-6 animate-fadeIn text-[#DAE2FD]">
+    <div className="space-y-6 text-[var(--text)]">
       {/* 1. Header trang */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-surface-highlight">
         <div>
@@ -843,8 +842,8 @@ export const CarDepositPage: React.FC = () => {
 
       {/* Toast notification */}
       {toastMessage && (
-        <div className="p-3.5 rounded bg-emerald-500/15 border border-emerald-500/40 text-xs text-emerald-300 flex items-center gap-2 animate-fadeIn shadow-lg">
-          <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+        <div className="p-3.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
+          <Check className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
@@ -854,7 +853,9 @@ export const CarDepositPage: React.FC = () => {
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2].map((i) => (
-              <div key={i} className="p-6 rounded-[4px] bg-surface-elevated/40 border border-surface-highlight animate-pulse h-48" />
+              <div key={i} className="p-6 rounded-xl bg-[var(--surface-subtle)] border border-[var(--line)] h-48 flex items-center justify-center text-xs text-[var(--text-muted)]">
+                Đang tải danh sách phiếu cọc...
+              </div>
             ))}
           </div>
         ) : filteredDeposits.length === 0 ? (
@@ -894,8 +895,8 @@ export const CarDepositPage: React.FC = () => {
 
       {/* 4. Modal Quét Mã SePay VietQR BIDV cho phiếu PENDING_PAYMENT */}
       {qrModalDeposit && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas-deep/80 backdrop-blur-md animate-fadeIn">
-          <div className="w-full max-w-lg rounded-xl bg-surface-container border border-accent-primary/40 p-6 shadow-2xl space-y-4 relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45">
+          <div className="w-full max-w-lg rounded-xl bg-[var(--surface)] border border-[var(--line)] p-6 shadow-xl space-y-4 relative">
             <div className="flex items-center justify-between pb-3 border-b border-surface-highlight">
               <div className="flex items-center gap-2 font-bold text-text-primary text-sm">
                 <QrCode className="w-5 h-5 text-accent-primary" />
@@ -934,8 +935,7 @@ export const CarDepositPage: React.FC = () => {
                       <div className="text-[11px] text-text-muted">
                         Quét mã bằng bất kỳ App Ngân Hàng hoặc Chuyển khoản BIDV 24/7
                       </div>
-                      <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-accent-action/15 border border-accent-primary/30 text-[10px] font-mono text-accent-primary font-bold">
-                        <Sparkles className="w-3 h-3 text-accent-primary shrink-0" />
+                      <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-[var(--accent-soft)] border border-[var(--accent)]/20 text-xs font-medium tabular-nums text-[var(--accent)]">
                         <span>Mã test: {modalTestAmount.toLocaleString('vi-VN')} ₫</span>
                       </div>
                     </div>
@@ -945,14 +945,14 @@ export const CarDepositPage: React.FC = () => {
             </div>
 
             <div className="space-y-2 text-xs">
-              <div className="p-2.5 rounded bg-surface-elevated border border-surface-highlight flex justify-between">
+              <div className="p-2.5 rounded-lg bg-[var(--surface-subtle)] border border-[var(--line)] flex justify-between">
                 <span className="text-text-muted">Ngân hàng:</span>
                 <span className="font-bold text-text-primary">BIDV (5811676579)</span>
               </div>
-              <div className="p-2.5 rounded bg-surface-elevated border border-surface-highlight flex justify-between items-center">
+              <div className="p-2.5 rounded-lg bg-[var(--surface-subtle)] border border-[var(--line)] flex justify-between items-center">
                 <div>
-                  <span className="text-[10px] text-text-muted font-mono block">SỐ TIỀN CỌC PHÁP LÝ</span>
-                  <span className="font-mono font-bold text-emerald-400">
+                  <span className="text-xs text-text-muted block">Số tiền cọc pháp lý</span>
+                  <span className="font-bold tabular-nums text-emerald-700">
                     {qrModalDeposit.depositAmount.toLocaleString('vi-VN')} VNĐ
                   </span>
                 </div>

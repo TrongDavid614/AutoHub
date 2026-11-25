@@ -16,11 +16,9 @@ export const AiPromptChips: React.FC<AiPromptChipsProps> = ({
 
   return (
     <div className="space-y-2 pt-2">
-      <div className="flex items-center gap-2">
-        <Sparkles className="w-3.5 h-3.5 text-[#89CEFF]" />
-        <span className="font-mono text-[10px] font-bold text-[#88929B] uppercase tracking-[1.5px]">
-          GỢI Ý CÂU HỎI TIẾP THEO
-        </span>
+      <div className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)]">
+        <Sparkles className="w-3.5 h-3.5 text-[var(--accent)]" />
+        <span>Gợi ý câu hỏi tiếp theo</span>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -30,7 +28,7 @@ export const AiPromptChips: React.FC<AiPromptChipsProps> = ({
             type="button"
             disabled={disabled}
             onClick={() => onSelectPrompt(prompt)}
-            className="px-3.5 py-1.5 rounded-[2px] bg-[#171F33] hover:bg-[#222A3D] text-[#89CEFF] border border-[#3E4850]/50 hover:border-[#89CEFF]/50 text-[13px] font-normal transition-all text-left disabled:opacity-50 disabled:pointer-events-none"
+            className="px-3 py-1.5 rounded-lg bg-[var(--surface-subtle)] hover:bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--line)] hover:border-[var(--accent)]/40 text-xs transition-colors text-left disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
           >
             {prompt}
           </button>

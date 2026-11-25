@@ -14,11 +14,11 @@ export const TestDriveEvaluationModal: React.FC<TestDriveEvaluationModalProps> =
   if (!evaluation) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas-deep/80 backdrop-blur-md animate-fadeIn">
-      <div className="w-full max-w-md rounded-xl bg-surface-container border border-surface-highlight p-6 shadow-2xl relative">
-        <div className="flex items-center justify-between pb-3 border-b border-surface-highlight">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45">
+      <div className="w-full max-w-md rounded-xl bg-[var(--surface)] border border-[var(--line)] p-6 shadow-xl relative">
+        <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
           <div className="flex items-center gap-2">
-            <FileCheck2 className="w-5 h-5 text-emerald-400" />
+            <FileCheck2 className="w-5 h-5 text-emerald-600" />
             <h3 className="text-base font-bold text-text-primary">Biên Bản Trải Nghiệm Lái Thử</h3>
           </div>
           <button

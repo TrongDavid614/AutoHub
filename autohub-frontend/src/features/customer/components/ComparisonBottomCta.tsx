@@ -12,7 +12,7 @@ export const ComparisonBottomCta: React.FC<ComparisonBottomCtaProps> = ({
   const navigate = useNavigate();
 
   return (
-    <div className="p-6 sm:p-10 rounded-2xl bg-gradient-to-r from-surface-container via-surface-elevated to-surface-container border border-surface-highlight shadow-xl space-y-6">
+    <div className="p-6 sm:p-10 rounded-xl bg-[var(--surface)] border border-[var(--line)] space-y-6">
       <div className="text-center space-y-2 max-w-2xl mx-auto">
         <h3 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight">
           Vẫn Còn Phân Vân Giữa Các Phiên Bản?
@@ -43,9 +43,9 @@ export const ComparisonBottomCta: React.FC<ComparisonBottomCtaProps> = ({
         <button
           type="button"
           onClick={onOpenTestDriveModal}
-          className="w-full sm:w-auto py-3 px-6 rounded-lg bg-accent-action hover:bg-accent-primary text-accent-contrast font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(14,165,233,0.35)] hover:shadow-[0_0_30px_rgba(137,206,255,0.5)] transition-all cursor-pointer"
+          className="w-full sm:w-auto py-3 px-6 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-semibold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
         >
-          <Calendar className="w-4 h-4 text-accent-contrast" />
+          <Calendar className="w-4 h-4" />
           <span>Đăng ký lái thử trải nghiệm xe</span>
         </button>
       </div>

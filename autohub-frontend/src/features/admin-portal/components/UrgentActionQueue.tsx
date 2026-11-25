@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, BellRing, Check, ExternalLink, ShieldAlert } from 'lucide-react';
-import { useAdminTheme } from '@/context/AdminThemeContext';
 import type { UrgentDeposit } from '@/types/admin-dashboard.types';
 import { MOCK_URGENT_DEPOSITS } from '../mocks/dashboard.mock';
 import { formatCurrencyVND } from '@/lib/utils';
@@ -13,7 +12,6 @@ export interface UrgentActionQueueProps {
 export const UrgentActionQueue: React.FC<UrgentActionQueueProps> = ({
   deposits = MOCK_URGENT_DEPOSITS,
 }) => {
-  const { isDarkMode } = useAdminTheme();
   const [items, setItems] = useState<UrgentDeposit[]>(deposits);
   const [nudgedIds, setNudgedIds] = useState<string[]>([]);
   const [nudgingId, setNudgingId] = useState<string | null>(null);
@@ -63,52 +61,43 @@ export const UrgentActionQueue: React.FC<UrgentActionQueueProps> = ({
     }
   };
 
+  const urgentCount = items.filter((i) => i.remainingSeconds < 3600 * 6).length;
+
   return (
-    <div className={`rounded-xl border p-6 transition-colors ${
-      isDarkMode
-        ? 'bg-[#131B2E] border-[#3E4850]/50 shadow-xl'
-        : 'bg-white border-slate-200 shadow-sm'
-    } space-y-4`}>
+    <div className="rounded-lg bg-[var(--surface)] border border-[var(--line)] p-5 space-y-4 text-[var(--text)]">
       {/* Header */}
-      <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b ${
-        isDarkMode ? 'border-[#3E4850]/40' : 'border-slate-100'
-      }`}>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--line)]">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-amber-500" />
-            <h2 className={`text-base font-bold tracking-tight ${
-              isDarkMode ? 'text-white' : 'text-slate-900'
-            }`}>
-              Hàng Đợi Tác Vụ Khẩn Cấp (Cọc Xe 72 Giờ)
+          <div className="flex items-center gap-2 flex-wrap">
+            <ShieldAlert className="w-4 h-4 text-amber-600" />
+            <h2 className="text-base font-semibold text-[var(--text)]">
+              Phiếu cọc xe sắp hết hạn 72 giờ
             </h2>
-            <span className="px-2 py-0.5 rounded-full bg-red-500/15 border border-red-500/30 text-red-500 text-[10px] font-mono font-bold animate-pulse">
-              4 SUẤT SẮP HẾT HẠN
-            </span>
+            {urgentCount > 0 && (
+              <span className="px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-medium tabular-nums">
+                {urgentCount} suất cần xử lý
+              </span>
+            )}
           </div>
-          <p className={`text-xs ${isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}`}>
-            Cảnh báo các phiếu cọc xe sắp chạm mốc 72h (&lt; 6 tiếng) cần lãnh đạo kiểm tra đốc thúc Staff xử lý
+          <p className="text-xs text-[var(--text-secondary)]">
+            Danh sách các phiếu cọc còn dưới 6 giờ để nhân viên liên hệ và xác nhận hợp đồng.
           </p>
         </div>
 
-        <div className={`flex items-center gap-2 text-[11px] font-mono px-3 py-1.5 rounded-lg border ${
-          isDarkMode
-            ? 'text-[#88929B] bg-[#0B1326] border-[#3E4850]/40'
-            : 'text-slate-600 bg-slate-50 border-slate-200'
-        }`}>
-          <Clock className="w-3.5 h-3.5 text-amber-500" />
-          <span>Cron Job quét cọc:</span>
-          <span className="text-emerald-500 font-bold">Mỗi 60s</span>
+        <div className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] shrink-0">
+          <Clock className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+          <span>Tự động kiểm tra mỗi 60 giây</span>
         </div>
       </div>
 
       {/* Toast Feedback */}
       {toastMessage && (
-        <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-mono flex items-center justify-between animate-fade-in">
+        <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between">
           <span>{toastMessage}</span>
           <button
             type="button"
             onClick={() => setToastMessage(null)}
-            className="text-emerald-500 hover:text-emerald-700 dark:hover:text-white ml-2 text-xs cursor-pointer"
+            className="text-emerald-700 hover:text-emerald-900 ml-2 text-xs cursor-pointer"
           >
             ✕
           </button>
@@ -116,294 +105,186 @@ export const UrgentActionQueue: React.FC<UrgentActionQueueProps> = ({
       )}
 
       {/* Table Data */}
-      <div className="overflow-x-auto -mx-6 px-6">
+      <div className="overflow-x-auto -mx-5 px-5">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
-            <tr className={`border-b text-[11px] font-mono uppercase tracking-wider ${
-              isDarkMode
-                ? 'border-[#3E4850]/60 text-[#88929B]'
-                : 'border-slate-200 text-slate-500 bg-slate-50/70'
-            }`}>
-              <th className="py-3 px-3">Mã Phiếu Cọc</th>
-              <th className="py-3 px-3">Khách Hàng & SĐT</th>
-              <th className="py-3 px-3">Dòng Xe Đặt Cọc</th>
-              <th className="py-3 px-3">Số Tiền Cọc</th>
-              <th className="py-3 px-3">Thời Hạn 72H</th>
-              <th className="py-3 px-3">Staff Phụ Trách</th>
-              <th className="py-3 px-3 text-right">Thao Tác</th>
+            <tr className="border-b border-[var(--line)] bg-[var(--surface-subtle)] text-[var(--text-secondary)] font-semibold">
+              <th className="py-2.5 px-3">Mã phiếu cọc</th>
+              <th className="py-2.5 px-3">Khách hàng</th>
+              <th className="py-2.5 px-3">Mẫu xe</th>
+              <th className="py-2.5 px-3">Số tiền cọc</th>
+              <th className="py-2.5 px-3">Thời hạn 72h</th>
+              <th className="py-2.5 px-3">Nhân viên phụ trách</th>
+              <th className="py-2.5 px-3 text-right">Thao tác</th>
             </tr>
           </thead>
-          <tbody className={`divide-y font-sans ${
-            isDarkMode ? 'divide-[#3E4850]/30' : 'divide-slate-100'
-          }`}>
-            {items.map((item) => {
-              const isUrgent = item.remainingSeconds < 3600 * 3; // dưới 3 tiếng
-              const hasNudged = nudgedIds.includes(item.id);
+          <tbody className="divide-y divide-[var(--line)]">
+            {items.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="py-8 text-center text-xs text-[var(--text-muted)]">
+                  Không có phiếu cọc nào sắp hết hạn cần xử lý.
+                </td>
+              </tr>
+            ) : (
+              items.map((item) => {
+                const isUrgent = item.remainingSeconds < 3600 * 3;
+                const hasNudged = nudgedIds.includes(item.id);
 
-              return (
-                <tr
-                  key={item.id}
-                  className={`transition-colors group ${
-                    isDarkMode ? 'hover:bg-[#171F33]/70' : 'hover:bg-slate-50/80'
-                  }`}
-                >
-                  {/* Mã cọc */}
-                  <td className="py-3 px-3">
-                    <span className={`font-mono font-bold group-hover:underline cursor-pointer ${
-                      isDarkMode ? 'text-[#89CEFF]' : 'text-blue-600'
-                    }`}>
-                      {item.depositCode}
-                    </span>
-                    <div className={`text-[10px] font-mono ${
-                      isDarkMode ? 'text-[#88929B]' : 'text-slate-400'
-                    }`}>
-                      {item.sepayTxnRef || item.vnpayTxnRef}
-                    </div>
-                  </td>
+                return (
+                  <tr
+                    key={item.id}
+                    className="hover:bg-[var(--surface-subtle)] transition-colors"
+                  >
+                    <td className="py-3 px-3">
+                      <span className="font-mono font-semibold text-[var(--accent)]">
+                        {item.depositCode}
+                      </span>
+                      <div className="text-[11px] font-mono text-[var(--text-muted)]">
+                        {item.sepayTxnRef || item.vnpayTxnRef}
+                      </div>
+                    </td>
 
-                  {/* Khách hàng */}
-                  <td className="py-3 px-3">
-                    <div className={`font-semibold ${
-                      isDarkMode ? 'text-white' : 'text-slate-900'
-                    }`}>
-                      {item.customerName}
-                    </div>
-                    <div className={`text-[11px] font-mono ${
-                      isDarkMode ? 'text-[#88929B]' : 'text-slate-500'
-                    }`}>
-                      {item.customerPhone}
-                    </div>
-                  </td>
+                    <td className="py-3 px-3">
+                      <div className="font-medium text-[var(--text)]">{item.customerName}</div>
+                      <div className="text-[11px] text-[var(--text-secondary)] tabular-nums">
+                        {item.customerPhone}
+                      </div>
+                    </td>
 
-                  {/* Dòng xe */}
-                  <td className="py-3 px-3">
-                    <div className={`font-medium ${
-                      isDarkMode ? 'text-[#DAE2FD]' : 'text-slate-800'
-                    }`}>
-                      {item.carModel}
-                    </div>
-                    <div className={`text-[10px] ${
-                      isDarkMode ? 'text-[#88929B]' : 'text-slate-500'
-                    }`}>
-                      {item.variant} • {item.color}
-                    </div>
-                  </td>
+                    <td className="py-3 px-3">
+                      <div className="font-medium text-[var(--text)]">{item.carModel}</div>
+                      <div className="text-[11px] text-[var(--text-muted)]">
+                        {item.variant} · {item.color}
+                      </div>
+                    </td>
 
-                  {/* Tiền cọc */}
-                  <td className="py-3 px-3 font-mono font-bold text-emerald-600 dark:text-[#10B981]">
-                    {formatCurrencyVND(item.depositAmount)}
-                  </td>
+                    <td className="py-3 px-3 font-semibold text-[var(--text)] tabular-nums">
+                      {formatCurrencyVND(item.depositAmount)}
+                    </td>
 
-                  {/* Countdown Timer */}
-                  <td className="py-3 px-3">
-                    <div
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-mono text-xs font-bold ${
-                        isUrgent
-                          ? 'bg-red-500/15 border border-red-500/30 text-red-600 dark:text-red-400 animate-pulse'
-                          : 'bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-400'
-                      }`}
-                    >
-                      <Clock className="w-3 h-3" />
-                      <span>{formatCountdown(item.remainingSeconds)}</span>
-                    </div>
-                  </td>
-
-                  {/* Staff & Showroom */}
-                  <td className="py-3 px-3">
-                    <div className={`font-medium ${
-                      isDarkMode ? 'text-white' : 'text-slate-900'
-                    }`}>
-                      {item.assignedStaff}
-                    </div>
-                    <div className={`text-[10px] ${
-                      isDarkMode ? 'text-[#88929B]' : 'text-slate-500'
-                    }`}>
-                      {item.assignedShowroom}
-                    </div>
-                  </td>
-
-                  {/* Actions */}
-                  <td className="py-3 px-3 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleNudgeStaff(item.id, item.assignedStaff)}
-                        disabled={hasNudged || nudgingId === item.id}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                          hasNudged
-                            ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
-                            : isDarkMode
-                              ? 'bg-[#0B1326] hover:bg-amber-500 text-amber-400 hover:text-[#060E20] border border-amber-500/50 hover:shadow-[0_0_12px_rgba(245,158,11,0.4)]'
-                              : 'bg-amber-50 hover:bg-amber-500 text-amber-700 hover:text-white border border-amber-300'
+                    <td className="py-3 px-3">
+                      <div
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium tabular-nums border ${
+                          isUrgent
+                            ? 'bg-red-50 border-red-200 text-red-700'
+                            : 'bg-amber-50 border-amber-200 text-amber-800'
                         }`}
                       >
-                        {nudgingId === item.id ? (
-                          <>
-                            <Clock className="w-3 h-3 animate-spin" />
-                            <span>Đang Gửi...</span>
-                          </>
-                        ) : hasNudged ? (
-                          <>
-                            <Check className="w-3 h-3" />
-                            <span>Đã Nhắc</span>
-                          </>
-                        ) : (
-                          <>
-                            <BellRing className="w-3 h-3" />
-                            <span>Đốc Thúc</span>
-                          </>
-                        )}
-                      </button>
+                        <Clock className="w-3 h-3" />
+                        <span>{formatCountdown(item.remainingSeconds)}</span>
+                      </div>
+                    </td>
 
-                      <button
-                        type="button"
-                        onClick={() => setActiveModalItem(item)}
-                        className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
-                          isDarkMode
-                            ? 'bg-[#0B1326] text-[#88929B] hover:text-[#89CEFF] border-[#3E4850]/60 hover:border-[#89CEFF]/50'
-                            : 'bg-slate-50 text-slate-500 hover:text-blue-600 border-slate-200 hover:border-blue-400'
-                        }`}
-                        title="Xem chi tiết phiếu cọc"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
+                    <td className="py-3 px-3">
+                      <div className="font-medium text-[var(--text)]">{item.assignedStaff}</div>
+                      <div className="text-[11px] text-[var(--text-muted)]">{item.assignedShowroom}</div>
+                    </td>
+
+                    <td className="py-3 px-3 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleNudgeStaff(item.id, item.assignedStaff)}
+                          disabled={hasNudged || nudgingId === item.id}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer border ${
+                            hasNudged
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-[var(--surface)] hover:bg-[var(--surface-subtle)] text-[var(--text)] border-[var(--line-strong)]'
+                          }`}
+                        >
+                          {nudgingId === item.id ? (
+                            <>
+                              <Clock className="w-3 h-3 animate-spin" />
+                              <span>Đang gửi...</span>
+                            </>
+                          ) : hasNudged ? (
+                            <>
+                              <Check className="w-3 h-3" />
+                              <span>Đã nhắc</span>
+                            </>
+                          ) : (
+                            <>
+                              <BellRing className="w-3 h-3 text-amber-600" />
+                              <span>Nhắc xử lý</span>
+                            </>
+                          )}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setActiveModalItem(item)}
+                          className="p-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-subtle)] text-[var(--text-secondary)] hover:text-[var(--text)] transition-colors cursor-pointer"
+                          title="Xem chi tiết phiếu cọc"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* Modal Quick View */}
+      {/* Modal Quick View (flat divider layout) */}
       {activeModalItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-          <div className={`w-full max-w-lg rounded-xl border p-6 shadow-2xl space-y-4 ${
-            isDarkMode
-              ? 'bg-[#131B2E] border-[#3E4850]'
-              : 'bg-white border-slate-200'
-          }`}>
-            <div className={`flex items-center justify-between pb-3 border-b ${
-              isDarkMode ? 'border-[#3E4850]/60' : 'border-slate-100'
-            }`}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45">
+          <div className="w-full max-w-lg rounded-lg border border-[var(--line)] bg-[var(--surface)] p-6 shadow-lg space-y-4 text-[var(--text)]">
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-blue-500" />
-                <h3 className={`font-bold text-sm ${
-                  isDarkMode ? 'text-white' : 'text-slate-900'
-                }`}>
-                  Chi Tiết Phiếu Cọc {activeModalItem.depositCode}
+                <Clock className="w-4 h-4 text-[var(--accent)]" />
+                <h3 className="font-semibold text-sm">
+                  Chi tiết phiếu cọc <span className="font-mono">{activeModalItem.depositCode}</span>
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveModalItem(null)}
-                className={`font-mono text-sm cursor-pointer ${
-                  isDarkMode ? 'text-[#88929B] hover:text-white' : 'text-slate-400 hover:text-slate-700'
-                }`}
+                className="text-sm text-[var(--text-muted)] hover:text-[var(--text)] cursor-pointer"
               >
                 ✕
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-3">
-                <div className={`p-3 rounded-lg border ${
-                  isDarkMode
-                    ? 'bg-[#0B1326] border-[#3E4850]/40'
-                    : 'bg-slate-50 border-slate-200'
-                }`}>
-                  <span className={`block text-[10px] uppercase font-mono ${
-                    isDarkMode ? 'text-[#88929B]' : 'text-slate-400'
-                  }`}>
-                    Khách hàng
-                  </span>
-                  <span className={`font-bold ${
-                    isDarkMode ? 'text-white' : 'text-slate-900'
-                  }`}>
-                    {activeModalItem.customerName}
-                  </span>
-                  <div className={`font-mono ${
-                    isDarkMode ? 'text-[#89CEFF]' : 'text-blue-600'
-                  }`}>
-                    {activeModalItem.customerPhone}
-                  </div>
-                </div>
-
-                <div className={`p-3 rounded-lg border ${
-                  isDarkMode
-                    ? 'bg-[#0B1326] border-[#3E4850]/40'
-                    : 'bg-slate-50 border-slate-200'
-                }`}>
-                  <span className={`block text-[10px] uppercase font-mono ${
-                    isDarkMode ? 'text-[#88929B]' : 'text-slate-400'
-                  }`}>
-                    Tiền cọc giữ xe
-                  </span>
-                  <span className="font-mono font-bold text-emerald-600 dark:text-[#10B981] text-sm">
-                    {formatCurrencyVND(activeModalItem.depositAmount)}
-                  </span>
-                  <div className={`text-[10px] ${
-                    isDarkMode ? 'text-[#88929B]' : 'text-slate-400'
-                  }`}>
-                    Cổng SePay IPN
-                  </div>
-                </div>
+            <dl className="grid grid-cols-2 gap-4 text-xs divide-y divide-[var(--line)]">
+              <div className="pt-2 border-t-0">
+                <dt className="text-[var(--text-muted)]">Khách hàng</dt>
+                <dd className="font-semibold mt-0.5">{activeModalItem.customerName}</dd>
+                <dd className="text-[var(--text-secondary)] tabular-nums">{activeModalItem.customerPhone}</dd>
               </div>
-
-              <div className={`p-3 rounded-lg border space-y-1 ${
-                isDarkMode
-                  ? 'bg-[#0B1326] border-[#3E4850]/40'
-                  : 'bg-slate-50 border-slate-200'
-              }`}>
-                <span className={`block text-[10px] uppercase font-mono ${
-                  isDarkMode ? 'text-[#88929B]' : 'text-slate-400'
-                }`}>
-                  Dòng xe đặt cọc
-                </span>
-                <span className={`font-bold text-sm ${
-                  isDarkMode ? 'text-white' : 'text-slate-900'
-                }`}>
-                  {activeModalItem.carModel} • {activeModalItem.variant}
-                </span>
-                <div className={`text-[11px] ${
-                  isDarkMode ? 'text-[#BEC8D2]' : 'text-slate-600'
-                }`}>
+              <div className="pt-2 border-t-0">
+                <dt className="text-[var(--text-muted)]">Tiền cọc giữ xe</dt>
+                <dd className="font-bold text-emerald-700 text-sm tabular-nums mt-0.5">
+                  {formatCurrencyVND(activeModalItem.depositAmount)}
+                </dd>
+                <dd className="text-[11px] text-[var(--text-muted)]">Thanh toán IPN</dd>
+              </div>
+              <div className="col-span-2 pt-3">
+                <dt className="text-[var(--text-muted)]">Dòng xe đặt cọc</dt>
+                <dd className="font-semibold text-sm mt-0.5">
+                  {activeModalItem.carModel} · {activeModalItem.variant}
+                </dd>
+                <dd className="text-[var(--text-secondary)] mt-0.5">
                   Màu ngoại thất: {activeModalItem.color}
-                </div>
+                </dd>
               </div>
-
-              <div className="grid grid-cols-2 gap-3 text-[11px] font-mono">
-                <div>
-                  <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}>
-                    Staff phụ trách:
-                  </span>
-                  <div className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                    {activeModalItem.assignedStaff}
-                  </div>
-                </div>
-                <div>
-                  <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}>
-                    Chi nhánh:
-                  </span>
-                  <div className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
-                    {activeModalItem.assignedShowroom}
-                  </div>
-                </div>
+              <div className="pt-3">
+                <dt className="text-[var(--text-muted)]">Nhân viên phụ trách</dt>
+                <dd className="font-medium mt-0.5">{activeModalItem.assignedStaff}</dd>
               </div>
-            </div>
+              <div className="pt-3">
+                <dt className="text-[var(--text-muted)]">Chi nhánh</dt>
+                <dd className="font-medium mt-0.5">{activeModalItem.assignedShowroom}</dd>
+              </div>
+            </dl>
 
-            <div className={`flex justify-end gap-3 pt-3 border-t ${
-              isDarkMode ? 'border-[#3E4850]/60' : 'border-slate-100'
-            }`}>
+            <div className="flex justify-end gap-2.5 pt-4 border-t border-[var(--line)]">
               <button
                 type="button"
                 onClick={() => setActiveModalItem(null)}
-                className={`px-4 py-2 rounded-lg text-xs font-semibold cursor-pointer ${
-                  isDarkMode
-                    ? 'bg-[#171F33] hover:bg-[#222A3D] text-[#DAE2FD]'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                }`}
+                className="px-4 py-2 rounded-lg text-xs font-medium bg-[var(--surface-subtle)] hover:bg-[var(--line)] text-[var(--text)] cursor-pointer"
               >
                 Đóng
               </button>
@@ -413,9 +294,9 @@ export const UrgentActionQueue: React.FC<UrgentActionQueueProps> = ({
                   handleNudgeStaff(activeModalItem.id, activeModalItem.assignedStaff);
                   setActiveModalItem(null);
                 }}
-                className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold cursor-pointer transition-colors"
+                className="px-4 py-2 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-xs font-medium cursor-pointer transition-colors"
               >
-                Đốc Thúc Ngay
+                Nhắc nhân viên ngay
               </button>
             </div>
           </div>

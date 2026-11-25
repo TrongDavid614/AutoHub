@@ -51,63 +51,63 @@ export const CustomerOrderRowCard: React.FC<CustomerOrderRowCardProps> = ({
     switch (status) {
       case 'PAID':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 font-mono text-[11px] font-bold uppercase tracking-wider">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>ĐÃ THANH TOÁN (PAID)</span>
+            <span>Đã thanh toán</span>
           </span>
         );
       case 'DELIVERED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 font-mono text-[11px] font-bold uppercase tracking-wider">
-            <Check className="w-3.5 h-3.5 stroke-[3]" />
-            <span>ĐÃ GIAO HÀNG (DELIVERED)</span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
+            <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span>Đã giao hàng</span>
           </span>
         );
       case 'SHIPPING':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-purple-500/15 border border-purple-500/40 text-purple-300 font-mono text-[11px] font-bold uppercase tracking-wider">
-            <Truck className="w-3.5 h-3.5 animate-bounce" />
-            <span>ĐANG GIAO HÀNG (SHIPPING)</span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-violet-50 border border-violet-200 text-violet-700 text-xs font-semibold">
+            <Truck className="w-3.5 h-3.5" />
+            <span>Đang giao hàng</span>
           </span>
         );
       case 'PROCESSING':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-indigo-500/15 border border-indigo-500/40 text-indigo-300 font-mono text-[11px] font-bold uppercase tracking-wider">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-semibold">
             <Package className="w-3.5 h-3.5" />
-            <span>ĐANG XỬ LÝ (PROCESSING)</span>
+            <span>Đang xử lý</span>
           </span>
         );
       case 'PENDING_PAYMENT':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-amber-500/15 border border-amber-500/40 text-amber-300 font-mono text-[11px] font-bold uppercase tracking-wider">
-            <Clock className="w-3.5 h-3.5 animate-spin" />
-            <span>CHỜ THANH TOÁN ({formatCountdown(timeLeft)})</span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold tabular-nums">
+            <Clock className="w-3.5 h-3.5" />
+            <span>Chờ thanh toán ({formatCountdown(timeLeft)})</span>
           </span>
         );
       case 'PENDING':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-sky-500/15 border border-sky-500/40 text-sky-300 font-mono text-[11px] font-bold uppercase tracking-wider">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-sky-50 border border-sky-200 text-sky-700 text-xs font-semibold">
             <Clock className="w-3.5 h-3.5" />
-            <span>CHỜ XỬ LÝ (PENDING COD)</span>
+            <span>Chờ xử lý (COD)</span>
           </span>
         );
       case 'CANCELLED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-rose-500/15 border border-rose-500/40 text-rose-300 font-mono text-[11px] font-bold uppercase tracking-wider">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
             <XCircle className="w-3.5 h-3.5" />
-            <span>ĐÃ HỦY (CANCELLED)</span>
+            <span>Đã hủy</span>
           </span>
         );
       case 'RETURNED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-orange-500/15 border border-orange-500/40 text-orange-300 font-mono text-[11px] font-bold uppercase tracking-wider">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-orange-50 border border-orange-200 text-orange-800 text-xs font-semibold">
             <RefreshCcw className="w-3.5 h-3.5" />
-            <span>ĐỔI TRẢ (RETURNED)</span>
+            <span>Đổi trả</span>
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-slate-500/15 border border-slate-500/40 text-slate-300 font-mono text-[11px] font-bold uppercase">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold">
             {status}
           </span>
         );
@@ -131,7 +131,7 @@ export const CustomerOrderRowCard: React.FC<CustomerOrderRowCardProps> = ({
               title="Sao chép mã đơn"
             >
               {copiedCode === order.orderCode ? (
-                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                <Check className="w-3.5 h-3.5 text-emerald-600" />
               ) : (
                 <Copy className="w-3.5 h-3.5" />
               )}
@@ -297,14 +297,14 @@ export const CustomerOrderRowCard: React.FC<CustomerOrderRowCardProps> = ({
               <button
                 type="button"
                 onClick={() => onOpenCancel(order)}
-                className="px-3 py-2 rounded-[4px] bg-surface-elevated hover:bg-rose-950/40 border border-surface-highlight hover:border-rose-500/50 text-xs font-semibold text-rose-300 flex items-center gap-1 cursor-pointer transition-colors"
+                className="px-3 py-2 rounded-lg bg-[var(--surface)] hover:bg-red-50 border border-[var(--line)] hover:border-red-200 text-xs font-semibold text-red-700 flex items-center gap-1 cursor-pointer transition-colors"
               >
                 <XCircle className="w-3.5 h-3.5" />
                 <span>Hủy đơn</span>
               </button>
               <Link
                 to={`/checkout?orderCode=${order.orderCode}&retryPayment=true`}
-                className="px-4 py-2 rounded-[4px] bg-amber-500 hover:bg-amber-400 text-xs font-bold text-canvas-deep flex items-center gap-1.5 cursor-pointer shadow-md transition-colors"
+                className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer transition-colors tabular-nums"
               >
                 <CreditCard className="w-3.5 h-3.5" />
                 <span>Thanh toán ngay ({formatCountdown(timeLeft)})</span>
@@ -318,12 +318,11 @@ export const CustomerOrderRowCard: React.FC<CustomerOrderRowCardProps> = ({
               <button
                 type="button"
                 onClick={() => onOpenCancel(order)}
-                className="px-3 py-2 rounded-[4px] bg-surface-elevated hover:bg-rose-950/40 border border-surface-highlight hover:border-rose-500/50 text-xs font-semibold text-rose-300 flex items-center gap-1 cursor-pointer transition-colors"
+                className="px-3 py-2 rounded-lg bg-[var(--surface)] hover:bg-red-50 border border-[var(--line)] hover:border-red-200 text-xs font-semibold text-red-700 flex items-center gap-1 cursor-pointer transition-colors"
               >
                 <XCircle className="w-3.5 h-3.5" />
                 <span>Hủy đơn hàng</span>
               </button>
-              
             </>
           )}
 
@@ -332,30 +331,30 @@ export const CustomerOrderRowCard: React.FC<CustomerOrderRowCardProps> = ({
             <button
               type="button"
               onClick={() => onOpenProgress(order)}
-              className="px-3.5 py-2 rounded-[4px] bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight text-xs font-semibold text-indigo-300 flex items-center gap-1.5 cursor-pointer transition-colors"
+              className="px-3.5 py-2 rounded-lg bg-[var(--surface)] hover:bg-[var(--surface-subtle)] border border-[var(--line)] text-xs font-semibold text-indigo-700 flex items-center gap-1.5 cursor-pointer transition-colors"
             >
               <Package className="w-3.5 h-3.5" />
               <span>Xem tiến độ đóng gói kho</span>
             </button>
           )}
 
-          {/* 6. Nếu là đơn SHIPPING -> Theo dõi định vị xe bưu bực (Tracking) & Xác nhận nhận hàng */}
+          {/* 6. Nếu là đơn SHIPPING -> Theo dõi định vị xe bưu cục (Tracking) & Xác nhận nhận hàng */}
           {order.status === 'SHIPPING' && (
             <>
               <button
                 type="button"
                 onClick={() => onOpenTracking(order)}
-                className="px-3.5 py-2 rounded-[4px] bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight text-xs font-semibold text-purple-300 flex items-center gap-1.5 cursor-pointer transition-colors"
+                className="px-3.5 py-2 rounded-lg bg-[var(--surface)] hover:bg-[var(--surface-subtle)] border border-[var(--line)] text-xs font-semibold text-violet-700 flex items-center gap-1.5 cursor-pointer transition-colors"
               >
-                <Truck className="w-3.5 h-3.5 text-purple-400" />
+                <Truck className="w-3.5 h-3.5 text-violet-600" />
                 <span>Theo dõi đơn vận</span>
               </button>
               <button
                 type="button"
                 onClick={() => onConfirmDelivered(order.id)}
-                className="px-3.5 py-2 rounded-[4px] bg-emerald-400 hover:bg-emerald-300 text-xs font-bold text-canvas-deep flex items-center gap-1 cursor-pointer transition-colors"
+                className="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-xs font-semibold text-white flex items-center gap-1 cursor-pointer transition-colors"
               >
-                <Check className="w-3.5 h-3.5 stroke-[3]" />
+                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
                 <span>Đã nhận được hàng</span>
               </button>
             </>
@@ -367,15 +366,15 @@ export const CustomerOrderRowCard: React.FC<CustomerOrderRowCardProps> = ({
               <button
                 type="button"
                 onClick={() => onOpenReview(order)}
-                className="px-3.5 py-2 rounded-[4px] bg-surface-elevated hover:bg-amber-950/40 border border-surface-highlight hover:border-amber-400/50 text-xs font-semibold text-amber-400 flex items-center gap-1.5 cursor-pointer transition-colors"
+                className="px-3.5 py-2 rounded-lg bg-[var(--surface)] hover:bg-amber-50 border border-[var(--line)] hover:border-amber-200 text-xs font-semibold text-amber-700 flex items-center gap-1.5 cursor-pointer transition-colors"
               >
-                <Star className="w-3.5 h-3.5 fill-amber-400" />
+                <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
                 <span>Đánh giá</span>
               </button>
               <button
                 type="button"
                 onClick={() => onOpenReturn(order)}
-                className="px-3.5 py-2 rounded-[4px] bg-surface-elevated hover:bg-orange-950/40 border border-surface-highlight hover:border-orange-500/50 text-xs font-semibold text-orange-400 flex items-center gap-1.5 cursor-pointer transition-colors"
+                className="px-3.5 py-2 rounded-lg bg-[var(--surface)] hover:bg-orange-50 border border-[var(--line)] hover:border-orange-200 text-xs font-semibold text-orange-700 flex items-center gap-1.5 cursor-pointer transition-colors"
               >
                 <RefreshCcw className="w-3.5 h-3.5" />
                 <span>Đổi trả 30 ngày</span>

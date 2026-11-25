@@ -32,8 +32,8 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
           onClick={() => onSelectLocation('SHOWROOM')}
           className={`p-4 rounded border text-left transition-all cursor-pointer relative flex flex-col justify-between gap-3 ${
             selectedLocation === 'SHOWROOM'
-              ? 'bg-surface-elevated border-accent-primary ring-1 ring-accent-primary/60 shadow-[0_0_20px_rgba(14,165,233,0.18)]'
-              : 'bg-surface-container/60 border-surface-highlight hover:border-surface-interactive hover:bg-surface-container'
+              ? 'bg-[var(--surface)] border-[var(--accent)] ring-1 ring-[var(--accent)]/25'
+              : 'bg-[var(--surface)] border-[var(--line)] hover:border-[var(--accent)]/40 hover:bg-[var(--surface-subtle)]'
           }`}
         >
           <div className="space-y-1.5">
@@ -77,8 +77,8 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
           onClick={() => onSelectLocation('HOME')}
           className={`p-4 rounded border text-left transition-all cursor-pointer relative flex flex-col justify-between gap-3 ${
             selectedLocation === 'HOME'
-              ? 'bg-surface-elevated border-accent-primary ring-1 ring-accent-primary/60 shadow-[0_0_20px_rgba(14,165,233,0.18)]'
-              : 'bg-surface-container/60 border-surface-highlight hover:border-surface-interactive hover:bg-surface-container'
+              ? 'bg-[var(--surface)] border-[var(--accent)] ring-1 ring-[var(--accent)]/25'
+              : 'bg-[var(--surface)] border-[var(--line)] hover:border-[var(--accent)]/40 hover:bg-[var(--surface-subtle)]'
           }`}
         >
           <div className="space-y-1.5">
