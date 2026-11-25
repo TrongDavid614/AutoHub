@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { X, Search, Check, Plus, RefreshCw, Car as CarIcon } from 'lucide-react';
 import { carService } from '../services/car.service';
 import type { MockCar } from '../mocks/car.mock';
-import { formatCurrencyVND } from '@/lib/utils';
+import { formatCurrencyVND, matchesSearchTerms } from '@/lib/utils';
 
 export interface SelectCarCompareModalProps {
   isOpen: boolean;
@@ -43,13 +43,14 @@ export const SelectCarCompareModal: React.FC<SelectCarCompareModalProps> = ({
 
   const filteredCars = useMemo(() => {
     return cars.filter((car) => {
-      const q = search.trim().toLowerCase();
-      const matchSearch =
-        !q ||
-        car.name.toLowerCase().includes(q) ||
-        car.subtitle.toLowerCase().includes(q) ||
-        car.segment.toLowerCase().includes(q) ||
-        car.powertrain.toLowerCase().includes(q);
+      const matchSearch = matchesSearchTerms(
+        search,
+        car.name,
+        car.subtitle,
+        car.segment,
+        car.powertrain,
+        car.seats
+      );
 
       if (!matchSearch) return false;
 

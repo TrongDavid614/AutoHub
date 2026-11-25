@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { MockCar } from '../mocks/car.mock';
 import { carService } from '../services/car.service';
+import { matchesSearchTerms } from '@/lib/utils';
 
 export const useCarCatalog = () => {
   const [viewMode, setViewMode] = useState<'GRID' | 'ROW'>('GRID');
@@ -31,9 +32,14 @@ export const useCarCatalog = () => {
   const filteredCars = useMemo(() => {
     return cars.filter((car) => {
       const matchSegment = selectedSegment === 'ALL' || car.segment === selectedSegment;
-      const matchSearch =
-        car.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        car.subtitle.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchSearch = matchesSearchTerms(
+        searchQuery,
+        car.name,
+        car.subtitle,
+        car.segment,
+        car.powertrain,
+        car.seats
+      );
       return matchSegment && matchSearch;
     }).sort((a, b) => {
       if (sortBy === 'PRICE_ASC') return a.listedPrice - b.listedPrice;

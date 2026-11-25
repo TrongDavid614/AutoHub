@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -63,10 +64,25 @@ public class CustomerAccessoryController {
         }
 
         if (search != null && !search.isBlank()) {
-            String q = search.trim().toLowerCase();
+            String normalizedQuery = normalizeSearch(search);
+            String[] tokens = normalizedQuery.split("\\s+");
             items = items.stream()
-                    .filter(p -> (p.getTenPhuKien() != null && p.getTenPhuKien().toLowerCase().contains(q))
-                            || (p.getThuongHieu() != null && p.getThuongHieu().toLowerCase().contains(q)))
+                    .filter(p -> {
+                        StringBuilder haystack = new StringBuilder();
+                        if (p.getTenPhuKien() != null) haystack.append(p.getTenPhuKien()).append(' ');
+                        if (p.getThuongHieu() != null) haystack.append(p.getThuongHieu()).append(' ');
+                        if (p.getDanhMucPhuKien() != null && p.getDanhMucPhuKien().getTenDanhMuc() != null) {
+                            haystack.append(p.getDanhMucPhuKien().getTenDanhMuc()).append(' ');
+                        }
+                        if (p.getQuyCachLapDat() != null) haystack.append(p.getQuyCachLapDat());
+                        String normalizedHaystack = normalizeSearch(haystack.toString());
+                        for (String token : tokens) {
+                            if (!token.isEmpty() && !normalizedHaystack.contains(token)) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    })
                     .collect(Collectors.toList());
         }
 
@@ -310,5 +326,17 @@ public class CustomerAccessoryController {
                 .dungChung(p.isDungChung())
                 .isUniversal(p.isDungChung())
                 .build();
+    }
+
+    private String normalizeSearch(String input) {
+        if (input == null || input.isBlank()) {
+            return "";
+        }
+        return Normalizer.normalize(input, Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
+                .replace('đ', 'd')
+                .replace('Đ', 'D')
+                .toLowerCase(Locale.ROOT)
+                .trim();
     }
 }

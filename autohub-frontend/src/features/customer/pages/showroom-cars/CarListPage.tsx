@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   Filter, 
   ArrowRight,
@@ -11,16 +11,22 @@ import {
   LayoutGrid,
   List,
   Scale,
-  CheckCircle2
+  CheckCircle2,
+  Search,
+  X
 } from 'lucide-react';
 import type { MockCar } from '@/features/customer/mocks/car.mock';
 import type { CarVariant } from '@/types/car.types';
 import { carService } from '@/features/customer/services/car.service';
 import { useCompareStore } from '@/store/useCompareStore';
 import { useStickySidebar } from '@/hooks/useStickySidebar';
+import { matchesSearchTerms } from '@/lib/utils';
 
 export const CarListPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchQueryParam = searchParams.get('search') || '';
+  const searchTerm = searchQueryParam.trim();
   const { addVariantToCompare } = useCompareStore();
   const filterSidebarRef = useStickySidebar<HTMLElement>({ headerOffset: 80, bottomOffset: 24 });
 
@@ -61,13 +67,31 @@ export const CarListPage: React.FC = () => {
 
   const activeFilterCount = useMemo(() => {
     return (
+      (searchTerm ? 1 : 0) +
       (selectedSegment !== 'all' ? 1 : 0) +
       (priceRange !== 'all' ? 1 : 0) +
       selectedPowertrains.length +
       (selectedSeats !== 'all' ? 1 : 0) +
       (selectedColor !== 'all' ? 1 : 0)
     );
-  }, [selectedSegment, priceRange, selectedPowertrains, selectedSeats, selectedColor]);
+  }, [searchTerm, selectedSegment, priceRange, selectedPowertrains, selectedSeats, selectedColor]);
+
+  const handleSearchInputChange = (value: string) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (value.trim()) {
+      nextParams.set('search', value);
+    } else {
+      nextParams.delete('search');
+    }
+    setSearchParams(nextParams, { replace: true });
+  };
+
+  const clearSearchTerm = () => {
+    if (!searchParams.has('search')) return;
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('search');
+    setSearchParams(nextParams, { replace: true });
+  };
 
   const filterSegments = useMemo(() => {
     const map = new Map<string, number>();
@@ -89,6 +113,7 @@ export const CarListPage: React.FC = () => {
   ];
 
   const handleResetFilters = () => {
+    clearSearchTerm();
     setSelectedSegment('all');
     setPriceRange('all');
     setSelectedPowertrains([]);
@@ -104,6 +129,22 @@ export const CarListPage: React.FC = () => {
 
   const filteredCars = useMemo(() => {
     return cars.filter((car) => {
+      if (
+        searchTerm &&
+        !matchesSearchTerms(
+          searchTerm,
+          car.name,
+          car.subtitle,
+          car.segment,
+          car.powertrain,
+          car.seats,
+          car.feature1,
+          car.feature2,
+          car.badge
+        )
+      ) {
+        return false;
+      }
       if (selectedSegment !== 'all' && car.segment !== selectedSegment) return false;
       if (selectedPowertrains.length > 0 && !selectedPowertrains.includes(car.powertrain)) return false;
       if (selectedSeats !== 'all') {
@@ -125,7 +166,7 @@ export const CarListPage: React.FC = () => {
       if (sortBy === 'price-desc') return b.listedPrice - a.listedPrice;
       return 0;
     });
-  }, [cars, selectedSegment, selectedPowertrains, selectedSeats, selectedColor, priceRange, sortBy]);
+  }, [cars, searchTerm, selectedSegment, selectedPowertrains, selectedSeats, selectedColor, priceRange, sortBy]);
 
   const handleCompare = (car: MockCar) => {
     const realId = Number(car.id) || 1;
@@ -216,6 +257,33 @@ export const CarListPage: React.FC = () => {
             ) : (
               <span className="text-[10px] font-mono text-[#88929B]">Tất cả</span>
             )}
+          </div>
+
+          {/* Keyword Search Filter */}
+          <div className="space-y-1.5">
+            <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-[#88929B]">
+              TỪ KHÓA TÌM KIẾM
+            </label>
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-[#88929B] absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQueryParam}
+                onChange={(e) => handleSearchInputChange(e.target.value)}
+                placeholder="Tên xe, hãng, động cơ..."
+                className="w-full pl-8 pr-7 py-1.5 bg-[#0B1326] border border-[#3E4850]/60 rounded-[2px] text-xs text-[#DAE2FD] placeholder-[#88929B] focus:outline-none focus:border-[#89CEFF]"
+              />
+              {searchQueryParam && (
+                <button
+                  type="button"
+                  onClick={clearSearchTerm}
+                  aria-label="Xóa từ khóa"
+                  className="text-[#88929B] hover:text-white absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Section 1: Phân khúc xe (Segment) */}
@@ -388,6 +456,17 @@ export const CarListPage: React.FC = () => {
                   {loading ? 'Đang đồng bộ dữ liệu từ cơ sở dữ liệu...' : `Hiển thị ${filteredCars.length} mẫu xe sẵn sàng giao`}
                 </span>
               </div>
+              {searchTerm && (
+                <span className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#89CEFF] text-[10px] font-mono font-bold flex items-center gap-1.5">
+                  Tìm: &ldquo;{searchTerm}&rdquo;{' '}
+                  <span
+                    onClick={clearSearchTerm}
+                    className="cursor-pointer hover:text-white"
+                  >
+                    ✕
+                  </span>
+                </span>
+              )}
               {selectedSegment !== 'all' && (
                 <span className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#89CEFF] text-[10px] font-mono font-bold flex items-center gap-1.5">
                   {selectedSegment}{' '}
