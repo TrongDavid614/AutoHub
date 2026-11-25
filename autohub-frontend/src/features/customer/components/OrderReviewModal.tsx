@@ -48,18 +48,18 @@ export const OrderReviewModal: React.FC<OrderReviewModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-canvas-deep/80 backdrop-blur-md animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45"
     >
-      <div className="w-full max-w-lg rounded-xl bg-surface-container border border-surface-highlight p-6 shadow-2xl relative">
-        <div className="flex items-center justify-between pb-3 border-b border-surface-highlight">
+      <div className="w-full max-w-lg rounded-xl bg-[var(--surface)] border border-[var(--line)] p-6 shadow-xl relative">
+        <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
           <div className="flex items-center gap-2">
-            <Star className="w-5 h-5 text-amber-400 fill-amber-400" />
-            <h3 className="text-base font-bold text-text-primary">Đánh giá chất lượng phụ kiện</h3>
+            <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+            <h3 className="text-base font-bold text-[var(--text)]">Đánh giá chất lượng phụ kiện</h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-7 h-7 rounded bg-surface-elevated text-text-secondary hover:text-text-primary flex items-center justify-center cursor-pointer transition-colors"
+            className="w-7 h-7 rounded bg-[var(--surface-subtle)] text-[var(--text-muted)] hover:text-[var(--text)] flex items-center justify-center cursor-pointer transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -67,7 +67,7 @@ export const OrderReviewModal: React.FC<OrderReviewModalProps> = ({
 
         {reviewSubmitted ? (
           <div className="py-8 text-center space-y-2">
-            <Check className="w-12 h-12 text-emerald-400 mx-auto animate-bounce" />
+            <Check className="w-12 h-12 text-emerald-600 mx-auto" />
             <h4 className="text-sm font-bold text-text-primary">Cảm ơn bạn đã gửi đánh giá!</h4>
             <p className="text-xs text-text-muted">
               Nhận xét của bạn đang được hệ thống tiếp nhận và chuyển sang Admin kiểm duyệt.
@@ -97,13 +97,13 @@ export const OrderReviewModal: React.FC<OrderReviewModalProps> = ({
                     <Star
                       className={`w-6 h-6 ${
                         star <= reviewRating
-                          ? 'text-amber-400 fill-amber-400'
-                          : 'text-border-subtle'
+                          ? 'text-amber-500 fill-amber-500'
+                          : 'text-[var(--line)]'
                       }`}
                     />
                   </button>
                 ))}
-                <span className="text-xs font-mono font-bold text-amber-400 ml-2">
+                <span className="text-xs font-semibold text-amber-700 ml-2 tabular-nums">
                   {reviewRating}/5 Sao ({reviewRating === 5 ? 'Cực kỳ hài lòng' : reviewRating >= 4 ? 'Hài lòng' : 'Tạm ổn'})
                 </span>
               </div>

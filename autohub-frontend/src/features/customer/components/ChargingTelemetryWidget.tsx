@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, ShieldCheck } from 'lucide-react';
+import { ShieldCheck, Zap } from 'lucide-react';
 
 export interface ChargingTelemetryWidgetProps {
   hasChargingDevice?: boolean;
@@ -9,56 +9,23 @@ export const ChargingTelemetryWidget: React.FC<ChargingTelemetryWidgetProps> = (
   hasChargingDevice = true,
 }) => {
   return (
-    <div className="rounded-[2px] bg-[#060E20] border border-[#2D3449] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
-      {/* Left Telemetry Info */}
-      <div className="space-y-1">
-        <div className="flex items-center gap-2">
-          {hasChargingDevice ? (
-            <Activity className="w-3.5 h-3.5 text-[#89CEFF]" />
-          ) : (
-            <ShieldCheck className="w-3.5 h-3.5 text-[#34D399]" />
-          )}
-          <span className="text-[10px] font-mono font-bold tracking-[1.5px] text-[#89CEFF] uppercase">
-            {hasChargingDevice ? 'HIỆU NĂNG SẠC TƯƠNG THÍCH' : 'TIÊU CHUẨN TƯƠNG THÍCH AUTOHUB'}
-          </span>
-        </div>
-        <div className="text-sm font-bold text-[#DAE2FD]">
+    <div className="rounded-lg bg-[var(--surface)] border border-[var(--line)] p-4 flex items-start gap-3">
+      {hasChargingDevice ? (
+        <Zap className="w-4 h-4 text-[var(--accent)] mt-0.5 shrink-0" />
+      ) : (
+        <ShieldCheck className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+      )}
+      <div className="space-y-0.5">
+        <div className="text-xs font-semibold text-[var(--text)]">
           {hasChargingDevice
-            ? '120 km tầm vận hành / 60 phút sạc (Chuẩn 22kW 3-Phase)'
-            : '100% Khớp form xe & AutoOS điện toán'}
+            ? 'Tương thích chuẩn sạc 22kW 3 pha'
+            : 'Phụ kiện chính hãng bảo đảm an toàn bảo hành'}
         </div>
-        <p className="text-[11px] text-[#88929B]">
+        <p className="text-xs text-[var(--text-secondary)]">
           {hasChargingDevice
-            ? 'Kiểm soát dòng điện thông minh, chống quá nhiệt thông qua ứng dụng AutoHub Mobile.'
-            : 'Phụ kiện chính hãng bảo đảm an toàn điện áp và không ảnh hưởng chính sách bảo hành xe.'}
+            ? 'Hỗ trợ khảo sát và lắp đặt tận nhà bởi kỹ thuật viên AutoHub, không ảnh hưởng điều kiện bảo hành pin.'
+            : 'Sản phẩm được kiểm định đúng thông số cho từng dòng xe và giữ nguyên quyền lợi bảo hành chính hãng.'}
         </p>
-      </div>
-
-      {/* Right Sparkline & Metric */}
-      <div className="flex items-center gap-4 self-end sm:self-center shrink-0">
-        {/* SVG Sparkline */}
-        <div className="w-24 h-8">
-          <svg width="96" height="32" viewBox="0 0 96 32" fill="none" className="overflow-visible">
-            <path
-              d="M0 25.5999L19.2 20.7999L38.4 22.7199L57.6 11.1999L76.8 15.0399L96 5.43994"
-              stroke="#89CEFF"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <circle cx="96" cy="5.44" r="3.5" fill="#89CEFF" className="animate-pulse" />
-          </svg>
-        </div>
-
-        {/* Numeric Telemetry */}
-        <div className="text-right">
-          <div className="font-mono text-base font-bold text-[#89CEFF]">
-            {hasChargingDevice ? '99.4%' : '100%'}
-          </div>
-          <div className="font-mono text-[9px] text-[#88929B] tracking-wider uppercase">
-            {hasChargingDevice ? 'HIỆU SUẤT TRUYỀN DẪN' : 'ĐỘ CHUẨN FORM XE'}
-          </div>
-        </div>
       </div>
     </div>
   );

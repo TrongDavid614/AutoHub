@@ -40,52 +40,52 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
 
   const dynamicTrims = (car?.variants && car.variants.length > 0)
     ? car.variants.map((v) => ({
-        id: String(v.id) as TrimType,
-        name: v.variantName || v.tenPhienBan || 'Phiên bản',
-        badge: v.badge || (v.listedPrice >= 2000000000 ? 'KHUYÊN DÙNG' : 'TIÊU CHUẨN'),
-        power: v.desc || (car.power || '500 HP'),
-        range: v.tamHoatDongKm ? `Phạm vi ${v.tamHoatDongKm} km` : (v.transmission || 'Tự động'),
-        price: `${(v.listedPrice || v.giaNiemYet || 0).toLocaleString('vi-VN')} đ`,
-        priceNum: v.listedPrice || v.giaNiemYet || 0,
-        isRecommended: v.isCurrent || v.listedPrice >= 2000000000,
-      }))
+      id: String(v.id) as TrimType,
+      name: v.variantName || v.tenPhienBan || 'Phiên bản',
+      badge: v.badge || (v.listedPrice >= 2000000000 ? 'KHUYÊN DÙNG' : 'TIÊU CHUẨN'),
+      power: v.desc || (car.power || '500 HP'),
+      range: v.tamHoatDongKm ? `Phạm vi ${v.tamHoatDongKm} km` : (v.transmission || 'Tự động'),
+      price: `${(v.listedPrice || v.giaNiemYet || 0).toLocaleString('vi-VN')} đ`,
+      priceNum: v.listedPrice || v.giaNiemYet || 0,
+      isRecommended: v.isCurrent || v.listedPrice >= 2000000000,
+    }))
     : [
-        {
-          id: 'standard' as TrimType,
-          name: 'Standard GT',
-          badge: 'TIÊU CHUẨN',
-          power: '520 HP',
-          range: 'Phạm vi 580 km • RWD Dual Mode',
-          price: '2.490.000.000 đ',
-          priceNum: 2490000000,
-        },
-        {
-          id: 'performance' as TrimType,
-          name: 'GT-e Performance',
-          badge: 'KHUYÊN DÙNG',
-          power: '680 HP',
-          range: 'Phạm vi 680 km • Dual Motor AWD',
-          price: '2.890.000.000 đ',
-          priceNum: 2890000000,
-          isRecommended: true,
-        },
-        {
-          id: 'track' as TrimType,
-          name: 'Track Edition RS',
-          badge: 'HYPER TRACK',
-          power: '820 HP',
-          range: 'Phạm vi 620 km • Tri-Motor Torque Vectoring',
-          price: '3.490.000.000 đ',
-          priceNum: 3490000000,
-        },
-      ];
+      {
+        id: 'standard' as TrimType,
+        name: 'Standard GT',
+        badge: 'TIÊU CHUẨN',
+        power: '520 HP',
+        range: 'Phạm vi 580 km • RWD Dual Mode',
+        price: '2.490.000.000 đ',
+        priceNum: 2490000000,
+      },
+      {
+        id: 'performance' as TrimType,
+        name: 'GT-e Performance',
+        badge: 'KHUYÊN DÙNG',
+        power: '680 HP',
+        range: 'Phạm vi 680 km • Dual Motor AWD',
+        price: '2.890.000.000 đ',
+        priceNum: 2890000000,
+        isRecommended: true,
+      },
+      {
+        id: 'track' as TrimType,
+        name: 'Track Edition RS',
+        badge: 'HYPER TRACK',
+        power: '820 HP',
+        range: 'Phạm vi 620 km • Tri-Motor Torque Vectoring',
+        price: '3.490.000.000 đ',
+        priceNum: 3490000000,
+      },
+    ];
 
   const dynamicColors = (car?.availableColors && car.availableColors.length > 0)
     ? car.availableColors.map((c, idx) => ({
-        id: String(c.id || idx + 1),
-        name: c.name || c.colorName || 'Màu ngoại thất',
-        hex: c.hex || c.colorCodeHex || '#0284C7',
-      }))
+      id: String(c.id || idx + 1),
+      name: c.name || c.colorName || 'Màu ngoại thất',
+      hex: c.hex || c.colorCodeHex || '#0284C7',
+    }))
     : EXTERIOR_COLORS;
 
   const selectedTrimObj = dynamicTrims.find((t) => t.id === activeTrim) || dynamicTrims[0];
@@ -120,65 +120,61 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
         </div>
 
         {/* Official Pricing */}
-        <div className="p-4 rounded-lg bg-canvas-deep/80 border border-surface-highlight space-y-2">
-          <div className="flex items-center justify-between text-[11px] font-mono text-text-muted uppercase">
-            <span>GIÁ NIÊM YẾT CHÍNH THỨC</span>
-            <span className="text-emerald-400 font-bold">ĐÃ BAO GỒM VAT & PIN</span>
+        <div className="pt-3 border-t border-[var(--line)] space-y-2">
+          <div className="flex items-center justify-between text-xs text-[var(--text-secondary)]">
+            <span>Giá niêm yết</span>
+            <span className="text-emerald-700 font-medium">Đã bao gồm VAT</span>
           </div>
 
-          <div className="flex items-baseline justify-between gap-2">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl sm:text-3xl font-black font-mono text-accent-primary">
-                {(car?.listedPrice || selectedTrimObj.priceNum).toLocaleString('vi-VN')}
+          <div className="flex items-baseline justify-between gap-2 flex-wrap">
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl sm:text-3xl font-bold text-[var(--text)] tabular-nums">
+                {(car?.listedPrice || selectedTrimObj.priceNum).toLocaleString('vi-VN')} ₫
               </span>
-              <span className="text-xs font-mono font-bold text-text-muted">VNĐ</span>
             </div>
 
             <button
               type="button"
               onClick={() => navigate(car?.id ? `/car-estimator?carId=${car.id}` : '/car-estimator')}
-              className="inline-flex items-center gap-1 text-xs text-accent-primary hover:underline font-semibold cursor-pointer"
+              className="inline-flex items-center gap-1 text-xs text-[var(--accent)] hover:underline font-medium cursor-pointer"
             >
               <Calculator className="w-3.5 h-3.5" />
-              <span>Dự toán chi phí lăn bánh</span>
+              <span>Dự toán lăn bánh</span>
             </button>
           </div>
         </div>
 
-        {/* Prominent Reservation Deposit Banner (BR05) */}
-        <div className="p-3.5 rounded-lg bg-accent-action/10 border border-accent-primary/30 space-y-1.5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-xs font-bold text-accent-primary">
-              <ShieldCheck className="w-4 h-4 text-accent-primary" />
-              <span>Mức tiền cọc cố định: {(car?.depositAmount || 20000000).toLocaleString('vi-VN')} VNĐ</span>
-            </div>
-            <span className="px-2 py-0.5 rounded-[2px] bg-accent-action text-[10px] font-mono text-accent-contrast font-bold">
-              QUY CHẾ BR05
+        {/* Reservation Deposit Policy Note */}
+        <div className="p-3.5 rounded-lg bg-[var(--accent-soft)] border border-[var(--accent)]/20 space-y-1">
+          <div className="flex items-center gap-2 text-xs font-semibold text-[var(--accent)]">
+            <ShieldCheck className="w-4 h-4 shrink-0" />
+            <span className="tabular-nums">
+              Cọc giữ xe 72h: {(car?.depositAmount || 20000000).toLocaleString('vi-VN')} ₫
             </span>
           </div>
-          <p className="text-[11px] text-text-secondary leading-relaxed">
-            Cam kết hoàn cọc 100% trong vòng 72h nếu khách hàng thay đổi quyết định mà không phải chịu bất kỳ chi phí nào. Suất xe được tự động khóa số VIN.
+          <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+            Hoàn cọc 100% trong vòng 72 giờ nếu bạn đổi ý; giữ ưu đãi và số khung VIN trong thời gian chờ ký hợp đồng.
           </p>
         </div>
       </div>
 
       {/* 2. Configuration Step 1: Trim Selection */}
-      <div className="p-5 rounded-lg bg-surface-elevated/80 border border-surface-highlight shadow-xl space-y-3">
+      <div className="p-5 rounded-lg bg-[var(--surface)] border border-[var(--line)] space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-text-primary font-mono flex items-center gap-2">
-            <span className="w-5 h-5 rounded-full bg-accent-action/20 text-accent-primary flex items-center justify-center text-[10px]">1</span>
-            <span>LỰA CHỌN PHIÊN BẢN (TRIM)</span>
+          <h3 className="text-sm font-semibold text-[var(--text)] flex items-center gap-2">
+            <span className="w-5 h-5 rounded-full bg-[var(--accent-soft)] text-[var(--accent)] flex items-center justify-center text-xs tabular-nums">1</span>
+            <span>Chọn phiên bản</span>
           </h3>
           <Link
             to="/car-comparison"
-            className="text-xs text-accent-primary hover:underline font-semibold flex items-center gap-1"
+            className="text-xs text-[var(--accent)] hover:underline font-medium flex items-center gap-1"
           >
             <Compass className="w-3.5 h-3.5" />
             <span>So sánh 3 bản</span>
           </Link>
         </div>
 
-        <div className="space-y-2.5">
+        <div className="space-y-2">
           {dynamicTrims.map((trim) => {
             const isSelected = activeTrim === trim.id || String(car?.id) === String(trim.id);
             return (
@@ -201,34 +197,29 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
                     navigate(`/cars/${trim.id}`);
                   }
                 }}
-                className={`p-3.5 rounded-lg border transition-all cursor-pointer relative ${
-                  isSelected
-                    ? 'bg-surface-container border-accent-primary shadow-[0_0_15px_rgba(137,206,255,0.2)]'
-                    : 'bg-canvas-deep/60 border-surface-highlight hover:border-border-subtle hover:bg-surface-elevated/40'
-                }`}
+                className={`p-3.5 rounded-lg border transition-colors cursor-pointer ${isSelected
+                  ? 'bg-[var(--accent-soft)] border-[var(--accent)]'
+                  : 'bg-[var(--surface)] border-[var(--line)] hover:border-[var(--line-strong)]'
+                  }`}
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-text-primary">{trim.name}</span>
+                      <span className="font-semibold text-sm text-[var(--text)]">{trim.name}</span>
                       {trim.isRecommended && (
-                        <span className="px-1.5 py-0.5 rounded-[2px] bg-accent-action text-[9px] font-mono font-bold text-accent-contrast">
-                          {trim.badge || 'KHUYÊN DÙNG'}
+                        <span className="px-2 py-0.5 rounded bg-[var(--surface)] border border-[var(--line)] text-[11px] font-medium text-[var(--accent)]">
+                          {trim.badge || 'Phổ biến'}
                         </span>
                       )}
                     </div>
-                    <p className="text-[11px] text-text-muted">{trim.range}</p>
+                    <p className="text-xs text-[var(--text-secondary)]">{trim.range}</p>
                   </div>
 
-                  <div className="text-right">
-                    <div className="font-mono font-bold text-sm text-accent-primary">{trim.price}</div>
-                    <div className="text-[10px] font-mono text-emerald-400 font-semibold">{trim.power}</div>
+                  <div className="text-right tabular-nums">
+                    <div className="font-semibold text-sm text-[var(--text)]">{trim.price}</div>
+                    <div className="text-xs text-emerald-700 font-medium">{trim.power}</div>
                   </div>
                 </div>
-
-                {isSelected && (
-                  <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-accent-primary" />
-                )}
               </div>
             );
           })}
@@ -236,13 +227,13 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
       </div>
 
       {/* 3. Configuration Step 2: Exterior Color Swatches */}
-      <div className="p-5 rounded-lg bg-surface-elevated/80 border border-surface-highlight shadow-xl space-y-3">
+      <div className="p-5 rounded-lg bg-[var(--surface)] border border-[var(--line)] space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-text-primary font-mono flex items-center gap-2">
-            <span className="w-5 h-5 rounded-full bg-accent-action/20 text-accent-primary flex items-center justify-center text-[10px]">2</span>
-            <span>MÀU SẮC NGOẠI THẤT CAO CẤP</span>
+          <h3 className="text-sm font-semibold text-[var(--text)] flex items-center gap-2">
+            <span className="w-5 h-5 rounded-full bg-[var(--accent-soft)] text-[var(--accent)] flex items-center justify-center text-xs tabular-nums">2</span>
+            <span>Màu ngoại thất</span>
           </h3>
-          <span className="text-[11px] font-semibold text-accent-primary font-mono">
+          <span className="text-xs font-medium text-[var(--accent)]">
             {selectedColorObj.name}
           </span>
         </div>
@@ -268,22 +259,20 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
                     },
                   });
                 }}
-                className={`group relative w-10 h-10 rounded-full p-0.5 transition-all cursor-pointer ${
-                  isSelected
-                    ? 'ring-2 ring-accent-primary ring-offset-2 ring-offset-canvas-deep scale-110 shadow-[0_0_15px_rgba(137,206,255,0.4)]'
-                    : 'hover:scale-105'
-                }`}
+                className={`relative w-9 h-9 rounded-full p-0.5 transition-transform cursor-pointer ${isSelected
+                  ? 'ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--surface)]'
+                  : 'hover:scale-105'
+                  }`}
                 title={color.name}
               >
                 <span
-                  className="block w-full h-full rounded-full border border-white/20 shadow-inner"
+                  className="block w-full h-full rounded-full border border-black/15"
                   style={{ backgroundColor: color.hex }}
                 />
                 {isSelected && (
                   <span className="absolute inset-0 flex items-center justify-center">
-                    <Check className={`w-4 h-4 stroke-[3] ${
-                      color.hex?.toLowerCase() === '#ffffff' || color.hex?.toLowerCase() === '#f8fafc' ? 'text-canvas-deep' : 'text-white'
-                    }`} />
+                    <Check className={`w-4 h-4 stroke-[3] ${color.hex?.toLowerCase() === '#ffffff' || color.hex?.toLowerCase() === '#f8fafc' ? 'text-[var(--text)]' : 'text-white'
+                      }`} />
                   </span>
                 )}
               </button>
@@ -292,42 +281,34 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
         </div>
       </div>
 
-      {/* 4. Configuration Step 3: Wheels & Interior Quick Toggles */}
-      <div className="p-5 rounded-lg bg-surface-elevated/80 border border-surface-highlight shadow-xl space-y-3">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-text-primary font-mono flex items-center gap-2">
-          <span className="w-5 h-5 rounded-full bg-accent-action/20 text-accent-primary flex items-center justify-center text-[10px]">3</span>
-          <span>TRANG BỊ MÂM XE & NỘI THẤT</span>
+      {/* 4. Configuration Step 3: Trim Equipment Summary */}
+      <div className="p-5 rounded-lg bg-[var(--surface)] border border-[var(--line)] space-y-3">
+        <h3 className="text-sm font-semibold text-[var(--text)] flex items-center gap-2">
+          <span className="w-5 h-5 rounded-full bg-[var(--accent-soft)] text-[var(--accent)] flex items-center justify-center text-xs tabular-nums">3</span>
+          <span>Mâm xe &amp; nội thất tiêu chuẩn</span>
         </h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {/* Wheel */}
-          <div className="p-3 rounded-lg bg-canvas-deep/60 border border-surface-highlight flex items-center gap-3">
-            <div className="w-9 h-9 rounded bg-surface-interactive flex items-center justify-center text-accent-primary shrink-0">
-              <Disc className="w-5 h-5 text-accent-primary" />
-            </div>
-            <div className="space-y-0.5 min-w-0">
-              <div className="text-[10px] font-mono text-text-muted uppercase">LA-ZĂNG TIÊU CHUẨN</div>
-              <div className="text-xs font-bold text-text-primary truncate">21" Aero Turbine Forged</div>
-              <div className="text-[10px] text-emerald-400 font-semibold">Bao gồm trong giá</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 divide-y sm:divide-y-0 sm:divide-x divide-[var(--line)]">
+          <div className="flex items-center gap-2.5">
+            <Disc className="w-4 h-4 text-[var(--accent)] shrink-0" />
+            <div className="min-w-0 text-xs">
+              <div className="text-[var(--text-muted)]">Mâm xe tiêu chuẩn</div>
+              <div className="font-semibold text-[var(--text)] truncate">21&quot; Aero Turbine</div>
             </div>
           </div>
 
-          {/* Interior */}
-          <div className="p-3 rounded-lg bg-canvas-deep/60 border border-surface-highlight flex items-center gap-3">
-            <div className="w-9 h-9 rounded bg-surface-interactive flex items-center justify-center text-accent-primary shrink-0">
-              <Layers className="w-5 h-5 text-accent-primary" />
-            </div>
-            <div className="space-y-0.5 min-w-0">
-              <div className="text-[10px] font-mono text-text-muted uppercase">KHÔNG GIAN NỘI THẤT</div>
-              <div className="text-xs font-bold text-text-primary truncate">Nappa Cognac & Carbon</div>
-              <div className="text-[10px] text-accent-primary font-semibold">Gói Premium Suite</div>
+          <div className="flex items-center gap-2.5 pt-2 sm:pt-0 sm:pl-3">
+            <Layers className="w-4 h-4 text-[var(--accent)] shrink-0" />
+            <div className="min-w-0 text-xs">
+              <div className="text-[var(--text-muted)]">Nội thất</div>
+              <div className="font-semibold text-[var(--text)] truncate">Da Nappa &amp; ốp Carbon</div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 5. Action CTA Cluster (Đặt cọc giữ xe 72h & Lái thử tận nhà) */}
-      <div className="space-y-3 pt-2">
+      {/* 5. Primary & Secondary Actions */}
+      <div className="space-y-2.5 pt-1">
         <button
           type="button"
           onClick={() => {
@@ -348,15 +329,12 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
               navigate('/customer/deposits');
             }
           }}
-          className="w-full py-4 px-6 rounded-lg bg-accent-action hover:bg-accent-primary text-accent-contrast font-bold text-sm tracking-wide shadow-[0_0_25px_rgba(14,165,233,0.4)] hover:shadow-[0_0_35px_rgba(137,206,255,0.6)] flex items-center justify-center gap-2.5 transition-all cursor-pointer transform hover:-translate-y-0.5"
+          className="w-full py-3 px-5 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-medium text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer"
         >
-          <CreditCard className="w-5 h-5 text-accent-contrast" />
-          <div className="text-left">
-            <div className="text-sm font-black uppercase">ĐẶT CỌC GIỮ XE 72H</div>
-            <div className="text-[10px] font-mono font-medium opacity-90">
-              Chỉ 20.000.000 VNĐ • Giữ số thứ tự xe và khuyến mãi độc quyền
-            </div>
-          </div>
+          <CreditCard className="w-4 h-4" />
+          <span>
+            Đặt cọc giữ xe 72h ({(car?.depositAmount || 20000000).toLocaleString('vi-VN')} ₫)
+          </span>
         </button>
 
         <button
@@ -373,37 +351,31 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
             });
             navigate(car?.id ? `/test-drive?carId=${car.id}` : '/test-drive');
           }}
-          className="w-full py-3.5 px-6 rounded-lg bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight hover:border-accent-primary/50 text-text-primary hover:text-accent-primary font-bold text-xs tracking-wider uppercase flex items-center justify-center gap-2 transition-all cursor-pointer"
+          className="w-full py-2.5 px-5 rounded-lg bg-[var(--surface)] hover:bg-[var(--surface-subtle)] border border-[var(--line-strong)] text-[var(--text)] font-medium text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer"
         >
-          <Calendar className="w-4 h-4 text-accent-primary" />
+          <Calendar className="w-4 h-4 text-[var(--accent)]" />
           <span>Đăng ký lái thử tận nhà (Miễn phí)</span>
         </button>
       </div>
 
       {/* 6. Brand Guarantees Strip */}
-      <div className="grid grid-cols-3 gap-2 pt-2">
-        <div className="p-3 rounded bg-canvas-deep border border-surface-highlight text-center space-y-1">
-          <Truck className="w-4 h-4 text-accent-primary mx-auto" />
-          <div className="text-[9px] font-mono font-bold text-text-primary uppercase leading-tight">
-            GIAO XE 14 NGÀY
-          </div>
-          <div className="text-[8px] text-text-muted uppercase">TOÀN QUỐC</div>
+      <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[var(--line)] text-center text-xs">
+        <div className="py-2 space-y-0.5">
+          <Truck className="w-4 h-4 text-[var(--accent)] mx-auto" />
+          <div className="font-semibold text-[var(--text)]">Giao xe toàn quốc</div>
+          <div className="text-[11px] text-[var(--text-muted)]">Hỗ trợ đăng ký</div>
         </div>
 
-        <div className="p-3 rounded bg-canvas-deep border border-surface-highlight text-center space-y-1">
-          <ShieldCheck className="w-4 h-4 text-accent-primary mx-auto" />
-          <div className="text-[9px] font-mono font-bold text-text-primary uppercase leading-tight">
-            BẢO HÀNH 8 NĂM
-          </div>
-          <div className="text-[8px] text-text-muted uppercase">HOẶC 160.000 KM</div>
+        <div className="py-2 space-y-0.5">
+          <ShieldCheck className="w-4 h-4 text-[var(--accent)] mx-auto" />
+          <div className="font-semibold text-[var(--text)]">Bảo hành 8 năm</div>
+          <div className="text-[11px] text-[var(--text-muted)]">Hoặc 160.000 km</div>
         </div>
 
-        <div className="p-3 rounded bg-canvas-deep border border-surface-highlight text-center space-y-1">
-          <Zap className="w-4 h-4 text-accent-primary mx-auto" />
-          <div className="text-[9px] font-mono font-bold text-text-primary uppercase leading-tight">
-            SẠC SIÊU NHANH
-          </div>
-          <div className="text-[8px] text-text-muted uppercase">MIỄN PHÍ TRỌN ĐỜI</div>
+        <div className="py-2 space-y-0.5">
+          <Zap className="w-4 h-4 text-[var(--accent)] mx-auto" />
+          <div className="font-semibold text-[var(--text)]">Trạm sạc 350kW</div>
+          <div className="text-[11px] text-[var(--text-muted)]">Mạng lưới toàn quốc</div>
         </div>
       </div>
     </div>

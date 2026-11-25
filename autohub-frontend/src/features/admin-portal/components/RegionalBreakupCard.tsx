@@ -59,52 +59,39 @@ export const RegionalBreakupCard: React.FC<RegionalBreakupCardProps> = ({
     setTooltipPos(null);
   };
 
+  const topMarket = useMemo(() => {
+    if (!revenues.length) return '—';
+    return [...revenues].sort((a, b) => b.revenue - a.revenue)[0]?.region || '—';
+  }, [revenues]);
+
+  const totalOrders = useMemo(
+    () => revenues.reduce((acc, item) => acc + (item.ordersCount || 0), 0),
+    [revenues]
+  );
+
   return (
     <div
       className={cn(
-        'rounded-xl border p-6 flex flex-col justify-between transition-colors duration-300 relative h-full',
-        isDarkMode
-          ? 'bg-[#131B2E] border-[#3E4850]/50 shadow-xl text-white'
-          : 'bg-white border-slate-200 shadow-sm text-slate-900',
+        'rounded-lg bg-[var(--surface)] border border-[var(--line)] p-5 flex flex-col justify-between transition-colors relative h-full text-[var(--text)]',
         className
       )}
     >
       {/* Header */}
-      <div
-        className={cn(
-          'flex items-center justify-between pb-3 border-b',
-          isDarkMode ? 'border-[#3E4850]/40' : 'border-slate-100'
-        )}
-      >
-        <div>
-          <div className="flex items-center gap-2">
-            <Building2 className={cn('w-4 h-4', isDarkMode ? 'text-[#89CEFF]' : 'text-blue-600')} />
-            <h2
-              className={cn(
-                'text-base font-bold tracking-tight',
-                isDarkMode ? 'text-white' : 'text-slate-900'
-              )}
-            >
-              Tỷ Trọng Doanh Thu Showroom
-            </h2>
-          </div>
+      <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
+        <div className="flex items-center gap-2">
+          <Building2 className="w-4 h-4 text-[var(--accent)]" />
+          <h2 className="text-base font-semibold text-[var(--text)]">
+            Tỷ trọng doanh thu showroom
+          </h2>
         </div>
 
-        <span
-          className={cn(
-            'px-2.5 py-1 rounded-full text-[10px] font-mono font-bold border',
-            isDarkMode
-              ? 'bg-[#171F33] text-[#89CEFF] border-[#3E4850]/60'
-              : 'bg-blue-50 text-blue-700 border-blue-200'
-          )}
-        >
-          3 CHI NHÁNH
+        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium border border-[var(--line)] bg-[var(--surface-subtle)] text-[var(--text-secondary)] tabular-nums">
+          {revenues.length} chi nhánh
         </span>
       </div>
 
-      {/* Donut Chart Visual & Summary - Centered & Equal Height */}
+      {/* Donut Chart Visual & Summary */}
       <div className="flex-1 flex flex-col items-center justify-center my-auto py-3">
-        {/* SVG Donut Wrapper with Tooltip */}
         <div className="donut-wrapper relative w-[180px] h-[180px] flex-shrink-0">
           <svg
             width={size}
@@ -113,17 +100,15 @@ export const RegionalBreakupCard: React.FC<RegionalBreakupCardProps> = ({
             className="transform -rotate-90 overflow-visible"
             onMouseLeave={handleMouseLeave}
           >
-            {/* Background ring */}
             <circle
               cx={size / 2}
               cy={size / 2}
               r={radius}
               fill="transparent"
-              stroke={isDarkMode ? '#171F33' : '#F1F5F9'}
+              stroke={isDarkMode ? '#21262D' : '#F1F3F6'}
               strokeWidth={strokeWidth}
             />
 
-            {/* Slices */}
             {slices.map((item) => {
               const isHovered = hoveredItem?.region === item.region;
               const isOtherHovered = hoveredItem && !isHovered;
@@ -136,17 +121,13 @@ export const RegionalBreakupCard: React.FC<RegionalBreakupCardProps> = ({
                   r={radius}
                   fill="transparent"
                   stroke={item.color}
-                  strokeWidth={isHovered ? strokeWidth + 4 : strokeWidth}
+                  strokeWidth={isHovered ? strokeWidth + 3 : strokeWidth}
                   strokeDasharray={item.strokeDasharray}
                   strokeDashoffset={item.strokeDashoffset}
-                  strokeLinecap="round"
+                  strokeLinecap="butt"
                   className={cn(
-                    'transition-all duration-200 cursor-pointer',
-                    isHovered
-                      ? 'opacity-100 filter drop-shadow-[0_0_10px_rgba(137,206,255,0.45)]'
-                      : isOtherHovered
-                      ? 'opacity-35'
-                      : 'opacity-100'
+                    'transition-opacity duration-200 cursor-pointer',
+                    isOtherHovered ? 'opacity-35' : 'opacity-100'
                   )}
                   onMouseEnter={(e) => handleSliceMouseMove(e, item)}
                   onMouseMove={(e) => handleSliceMouseMove(e, item)}
@@ -155,120 +136,105 @@ export const RegionalBreakupCard: React.FC<RegionalBreakupCardProps> = ({
             })}
           </svg>
 
-          {/* Donut Inner Text (Live Dynamic on Hover) */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none transition-all duration-200 px-3">
+          {/* Donut Inner Text */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none px-3">
             {hoveredItem ? (
-              <div className="animate-fadeIn space-y-0.5">
+              <div className="space-y-0.5">
                 <span
-                  className="block text-[11px] font-mono font-bold uppercase truncate max-w-[100px]"
+                  className="block text-xs font-medium truncate max-w-[100px]"
                   style={{ color: hoveredItem.color }}
                 >
                   {hoveredItem.region}
                 </span>
-                <span
-                  className={cn(
-                    'block text-base font-mono font-black tracking-tight leading-none',
-                    isDarkMode ? 'text-white' : 'text-slate-900'
-                  )}
-                >
-                  {(hoveredItem.revenue / 1000000000).toFixed(2)} Tỷ
+                <span className="block text-base font-bold text-[var(--text)] tabular-nums leading-none">
+                  {(hoveredItem.revenue / 1000000000).toFixed(2)} tỷ
                 </span>
                 <span
-                  className="block text-[10px] font-mono font-bold"
+                  className="block text-[11px] font-medium tabular-nums"
                   style={{ color: hoveredItem.color }}
                 >
-                  {hoveredItem.percentage}% thị phần
+                  {hoveredItem.percentage}%
                 </span>
               </div>
             ) : (
-              <div className="animate-fadeIn space-y-0.5">
-                <span className={cn('block text-[10px] font-mono uppercase', isDarkMode ? 'text-[#88929B]' : 'text-slate-400')}>
-                  Tổng Hệ Thống
+              <div className="space-y-0.5">
+                <span className="block text-[11px] text-[var(--text-muted)]">
+                  Tổng doanh thu
                 </span>
-                <span
-                  className={cn(
-                    'block text-base font-mono font-bold tracking-tight leading-none',
-                    isDarkMode ? 'text-white' : 'text-slate-900'
-                  )}
-                >
-                  {(total / 1000000000).toFixed(1)} Tỷ
+                <span className="block text-base font-bold text-[var(--text)] tabular-nums leading-none">
+                  {(total / 1000000000).toFixed(1)} tỷ
                 </span>
-                <span className="block text-[10px] font-mono text-[#10B981] font-bold">+18.4% YoY</span>
+                <span className="block text-[11px] text-[var(--text-secondary)] tabular-nums">
+                  {totalOrders} đơn
+                </span>
               </div>
             )}
           </div>
 
-          {/* Floating Tooltip with Full Statistics */}
+          {/* Floating Tooltip */}
           {hoveredItem && tooltipPos && (
             <div
-              className={cn(
-                'absolute pointer-events-none z-50 min-w-[210px] p-3 rounded-lg border text-xs shadow-2xl backdrop-blur-md transition-opacity duration-150 animate-fadeIn',
-                isDarkMode
-                  ? 'bg-[#0B1326]/95 border-[#3E4850] text-[#DAE2FD] shadow-[0_12px_30px_rgba(0,0,0,0.6)]'
-                  : 'bg-white/95 border-slate-200 text-slate-800 shadow-[0_12px_30px_rgba(0,0,0,0.12)]'
-              )}
+              className="absolute pointer-events-none z-50 min-w-[200px] p-3 rounded-lg border border-[var(--line-strong)] bg-[var(--surface)] text-xs text-[var(--text)] shadow-md"
               style={{
                 left: `${tooltipPos.x}px`,
                 top: `${tooltipPos.y - 12}px`,
                 transform: 'translate(-50%, -100%)',
               }}
             >
-              <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-surface-highlight/40">
-                <div className="flex items-center gap-1.5 font-bold">
-                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: hoveredItem.color }} />
-                  <span className={isDarkMode ? 'text-white' : 'text-slate-900'}>{hoveredItem.region}</span>
+              <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-[var(--line)]">
+                <div className="flex items-center gap-1.5 font-semibold">
+                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: hoveredItem.color }} />
+                  <span>{hoveredItem.region}</span>
                 </div>
-                <span
-                  className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-                >
+                <span className="text-[11px] font-medium text-[var(--text-secondary)] tabular-nums">
                   {hoveredItem.percentage}%
                 </span>
               </div>
 
-              <div className="mt-2 space-y-1 font-mono">
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}>Doanh thu:</span>
-                  <span className="font-bold text-[#89CEFF]">{hoveredItem.formattedRevenue}</span>
+              <div className="mt-2 space-y-1 tabular-nums">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[var(--text-muted)]">Doanh thu:</span>
+                  <span className="font-semibold text-[var(--accent)]">{hoveredItem.formattedRevenue}</span>
                 </div>
-                <div className="flex items-center justify-between text-[10px]">
-                  <span className={isDarkMode ? 'text-[#88929B]' : 'text-slate-500'}>Showroom:</span>
-                  <span className={cn('truncate max-w-[120px]', isDarkMode ? 'text-slate-300' : 'text-slate-700')} title={hoveredItem.showroomName}>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-[var(--text-muted)]">Showroom:</span>
+                  <span className="truncate max-w-[115px] text-[var(--text)]" title={hoveredItem.showroomName}>
                     {hoveredItem.showroomName}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-[10px] pt-1 border-t border-surface-highlight/30">
-                  <span className="flex items-center gap-1 text-slate-400">
-                    <PackageCheck className="w-3 h-3 text-emerald-400" />
+                <div className="flex items-center justify-between text-[11px] pt-1 border-t border-[var(--line)]">
+                  <span className="flex items-center gap-1 text-[var(--text-muted)]">
+                    <PackageCheck className="w-3 h-3 text-emerald-600" />
                     Đơn hàng:
                   </span>
-                  <strong className={isDarkMode ? 'text-white' : 'text-slate-900'}>{hoveredItem.ordersCount}</strong>
+                  <strong>{hoveredItem.ordersCount}</strong>
                 </div>
-                <div className="flex items-center justify-between text-[10px]">
-                  <span className="flex items-center gap-1 text-slate-400">
-                    <Users className="w-3 h-3 text-blue-400" />
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="flex items-center gap-1 text-[var(--text-muted)]">
+                    <Users className="w-3 h-3 text-[var(--accent)]" />
                     Nhân sự:
                   </span>
-                  <strong className={isDarkMode ? 'text-white' : 'text-slate-900'}>{hoveredItem.staffCount} người</strong>
+                  <strong>{hoveredItem.staffCount} người</strong>
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* Subtle Region Indicators */}
-        <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-mono pt-4">
+        {/* Region Legend */}
+        <div className="flex flex-wrap items-center justify-center gap-3 text-xs pt-4">
           {slices.map((item) => (
             <div
               key={item.region}
               className={cn(
-                'flex items-center gap-1.5 cursor-pointer transition-opacity px-2 py-1 rounded hover:bg-surface-highlight/20',
+                'flex items-center gap-1.5 cursor-pointer transition-opacity px-2 py-1 rounded hover:bg-[var(--surface-subtle)]',
                 hoveredItem && hoveredItem.region !== item.region ? 'opacity-40' : 'opacity-100'
               )}
               onMouseEnter={() => setHoveredItem(item)}
               onMouseLeave={handleMouseLeave}
             >
               <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-              <span className={isDarkMode ? 'text-slate-300 font-medium' : 'text-slate-700 font-medium'}>
+              <span className="text-[var(--text-secondary)] font-medium">
                 {item.region}
               </span>
             </div>
@@ -276,20 +242,15 @@ export const RegionalBreakupCard: React.FC<RegionalBreakupCardProps> = ({
         </div>
       </div>
 
-      {/* Regional Operational Breakdown Footer */}
-      <div
-        className={cn(
-          'pt-3 border-t grid grid-cols-2 gap-2 text-xs font-mono',
-          isDarkMode ? 'border-[#3E4850]/40 text-[#88929B]' : 'border-slate-100 text-slate-500'
-        )}
-      >
+      {/* Regional Operational Footer */}
+      <div className="pt-3 border-t border-[var(--line)] flex items-center justify-between gap-2 text-xs text-[var(--text-secondary)] tabular-nums">
         <div className="flex items-center gap-1.5">
-          <MapPin className={cn('w-3.5 h-3.5', isDarkMode ? 'text-[#89CEFF]' : 'text-blue-600')} />
-          <span>Thị trường dẫn đầu: <strong className={isDarkMode ? 'text-white' : 'text-slate-900'}>TP.HCM</strong></span>
+          <MapPin className="w-3.5 h-3.5 text-[var(--accent)]" />
+          <span>Dẫn đầu: <strong className="text-[var(--text)]">{topMarket}</strong></span>
         </div>
-        <div className="flex items-center gap-1.5 justify-end">
-          <ShoppingBag className="w-3.5 h-3.5 text-[#10B981]" />
-          <span>Xe giao trong tháng: <strong className="text-[#10B981]">142 Xe</strong></span>
+        <div className="flex items-center gap-1.5">
+          <ShoppingBag className="w-3.5 h-3.5 text-emerald-600" />
+          <span>Tổng đơn: <strong className="text-[var(--text)]">{totalOrders}</strong></span>
         </div>
       </div>
     </div>

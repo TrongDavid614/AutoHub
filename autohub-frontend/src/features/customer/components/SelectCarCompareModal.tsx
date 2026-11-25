@@ -88,41 +88,38 @@ export const SelectCarCompareModal: React.FC<SelectCarCompareModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45"
     >
-      <div className="bg-[#131B2E] border border-[#3E4850] rounded-xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+      <div className="bg-[var(--surface)] border border-[var(--line)] rounded-xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-xl overflow-hidden">
         {/* Header */}
-        <div className="p-5 border-b border-[#3E4850]/60 flex items-center justify-between bg-[#0F172A]/80">
+        <div className="p-5 border-b border-[var(--line)] flex items-center justify-between bg-[var(--surface)]">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-accent-primary animate-pulse" />
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-accent-primary">
-                DANH MỤC XE SHOWROOM
-              </span>
-            </div>
-            <h3 className="text-lg font-bold text-text-primary tracking-tight mt-0.5">
+            <span className="text-xs font-semibold text-[var(--accent)] block">
+              Danh mục xe Showroom
+            </span>
+            <h3 className="text-lg font-bold text-[var(--text)] tracking-tight mt-0.5">
               {replacingCarName ? `Thay đổi phiên bản xe (${replacingCarName})` : 'Chọn xe thêm vào so sánh'}
             </h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-text-muted hover:text-text-primary hover:bg-[#1E293B] rounded-lg transition-colors cursor-pointer"
+            className="p-2 text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--surface-subtle)] rounded-lg transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Filter & Search Bar */}
-        <div className="p-4 border-b border-[#3E4850]/40 space-y-3 bg-[#11192C]">
+        <div className="p-4 border-b border-[var(--line)] space-y-3 bg-[var(--surface-subtle)]">
           <div className="relative">
-            <Search className="w-4 h-4 text-text-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Tìm kiếm theo tên xe, hãng xe, phân khúc (VF8, SantaFe, GT-e, Hybrid...)"
-              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-[#0A0F1D] border border-[#3E4850] text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary transition-colors font-sans"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-[var(--surface)] border border-[var(--line)] text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] transition-colors"
               autoFocus
             />
           </div>
@@ -139,10 +136,10 @@ export const SelectCarCompareModal: React.FC<SelectCarCompareModalProps> = ({
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
                   selectedCategory === cat.id
-                    ? 'bg-accent-action text-accent-contrast shadow-[0_0_12px_rgba(14,165,233,0.35)]'
-                    : 'bg-[#1E293B] text-text-secondary hover:text-text-primary hover:bg-[#28354D]'
+                    ? 'bg-[var(--accent)] text-white'
+                    : 'bg-[var(--surface)] border border-[var(--line)] text-[var(--text-2)] hover:text-[var(--text)] hover:bg-[var(--surface-subtle)]'
                 }`}
               >
                 {cat.label}
@@ -152,15 +149,15 @@ export const SelectCarCompareModal: React.FC<SelectCarCompareModalProps> = ({
         </div>
 
         {/* Cars List */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 divide-y divide-[#3E4850]/30">
+        <div className="flex-1 overflow-y-auto p-4 divide-y divide-[var(--line)]">
           {loading ? (
-            <div className="py-16 flex flex-col items-center justify-center gap-3 text-text-muted">
-              <RefreshCw className="w-6 h-6 animate-spin text-accent-primary" />
-              <span className="text-sm font-mono">Đang tải danh mục xe từ hệ thống...</span>
+            <div className="py-16 flex flex-col items-center justify-center gap-3 text-[var(--text-muted)]">
+              <RefreshCw className="w-6 h-6 animate-spin text-[var(--accent)]" />
+              <span className="text-sm">Đang tải danh mục xe từ hệ thống...</span>
             </div>
           ) : filteredCars.length === 0 ? (
-            <div className="py-16 text-center text-text-muted space-y-2">
-              <CarIcon className="w-10 h-10 mx-auto text-text-muted/60" />
+            <div className="py-16 text-center text-[var(--text-muted)] space-y-2">
+              <CarIcon className="w-10 h-10 mx-auto text-[var(--text-muted)]" />
               <p className="text-sm font-medium">Không tìm thấy mẫu xe nào phù hợp với từ khóa.</p>
             </div>
           ) : (
@@ -171,10 +168,10 @@ export const SelectCarCompareModal: React.FC<SelectCarCompareModalProps> = ({
               return (
                 <div
                   key={car.id}
-                  className="pt-3 first:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3 rounded-lg hover:bg-[#17223A]/80 transition-colors"
+                  className="py-3 first:pt-1 last:pb-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-2 rounded-lg hover:bg-[var(--surface-subtle)]/70 transition-colors"
                 >
                   <div className="flex items-center gap-3.5">
-                    <div className="w-20 h-14 rounded-md overflow-hidden bg-black/40 border border-[#3E4850] shrink-0">
+                    <div className="w-20 h-14 rounded-lg overflow-hidden bg-[var(--surface-subtle)] border border-[var(--line)] shrink-0">
                       <img
                         src={car.image}
                         alt={car.name}
@@ -184,13 +181,13 @@ export const SelectCarCompareModal: React.FC<SelectCarCompareModalProps> = ({
                     </div>
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-accent-primary/10 border border-accent-primary/20 text-accent-primary font-bold">
+                        <span className="text-xs px-2 py-0.5 rounded-md bg-[var(--accent-soft)] text-[var(--accent)] font-medium">
                           {car.segment}
                         </span>
-                        <span className="text-xs text-text-muted font-mono">{car.powertrain}</span>
+                        <span className="text-xs text-[var(--text-muted)]">{car.powertrain}</span>
                       </div>
-                      <h4 className="text-sm font-bold text-text-primary">{car.name}</h4>
-                      <p className="text-xs font-mono font-bold text-accent-primary">
+                      <h4 className="text-sm font-semibold text-[var(--text)]">{car.name}</h4>
+                      <p className="text-xs font-bold tabular-nums text-[var(--accent)]">
                         {formatCurrencyVND(car.listedPrice)}
                       </p>
                     </div>
@@ -198,7 +195,7 @@ export const SelectCarCompareModal: React.FC<SelectCarCompareModalProps> = ({
 
                   <div className="shrink-0 flex items-center justify-end">
                     {isAlreadySelected ? (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
                         <Check className="w-3.5 h-3.5" />
                         <span>Đang so sánh</span>
                       </span>
@@ -209,7 +206,7 @@ export const SelectCarCompareModal: React.FC<SelectCarCompareModalProps> = ({
                           onSelectCar(carId);
                           onClose();
                         }}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded bg-accent-action hover:bg-accent-primary text-accent-contrast text-xs font-bold uppercase tracking-wider transition-all shadow-[0_0_12px_rgba(14,165,233,0.3)] cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-xs font-semibold transition-colors cursor-pointer"
                       >
                         {replacingCarName ? <RefreshCw className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
                         <span>{replacingCarName ? 'Đổi sang xe này' : 'Chọn so sánh'}</span>

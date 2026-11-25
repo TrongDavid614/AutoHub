@@ -99,7 +99,9 @@ export const router = createBrowserRouter([
       { path: 'cars/:id', element: <CarDetailPage /> },
       { path: 'ai-consultant', element: <AiConsultantPage /> },
       { path: 'car-estimator', element: <CarEstimatorPage /> },
+      { path: 'estimator', element: <Navigate to="/car-estimator" replace /> },
       { path: 'car-comparison', element: <CarComparisonPage /> },
+      { path: 'compare', element: <Navigate to="/car-comparison" replace /> },
       { path: 'accessories', element: <AccessoryListPage /> },
       { path: 'accessories/:id', element: <AccessoryDetailPage /> },
       { path: 'cart', element: <CartPage /> },
@@ -210,10 +212,12 @@ export const router = createBrowserRouter([
   {
     path: '*',
     element: (
-      <div className="min-h-screen flex items-center justify-center p-6 bg-slate-900 text-white">
-        <div className="text-center">
-          <h1 className="text-6xl font-black text-red-500">404</h1>
-          <p className="text-sm text-slate-400 mt-2">Trang bạn tìm kiếm không tồn tại trên AutoHub Platform.</p>
+      <div className="min-h-screen flex items-center justify-center p-6 bg-[var(--bg)] text-[var(--text)]">
+        <div className="text-center max-w-md space-y-2 rounded-xl bg-[var(--surface)] border border-[var(--line)] p-8">
+          <h1 className="text-6xl font-extrabold tabular-nums text-[var(--accent)]">404</h1>
+          <p className="text-sm text-[var(--text-2)]">
+            Trang bạn tìm kiếm không tồn tại trên AutoHub Platform.
+          </p>
         </div>
       </div>
     ),

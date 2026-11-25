@@ -42,7 +42,7 @@ export const ComparisonHeader: React.FC<ComparisonHeaderProps> = ({
           <span className="px-2.5 py-0.5 rounded-[2px] bg-accent-action/20 border border-accent-primary/30 text-accent-primary font-mono text-[10px] font-bold tracking-wider uppercase">
             SHOWDOWN MATRIX • AUTOHUB ARCHITECTURE 800V
           </span>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[2px] bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 font-mono text-[10px] font-semibold">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-medium">
             <ShieldCheck className="w-3.5 h-3.5" />
             <span>Bảo hành Pin 8 năm / Vô hạn km</span>
           </div>

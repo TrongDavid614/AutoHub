@@ -158,28 +158,28 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
                 key={date.id}
                 type="button"
                 onClick={() => onSelectDate(date.id)}
-                className={`p-3 rounded text-center border transition-all cursor-pointer relative flex flex-col items-center justify-center gap-1 ${
+                className={`p-3 rounded-lg text-center border transition-colors cursor-pointer relative flex flex-col items-center justify-center gap-1 ${
                   isSelected
-                    ? 'bg-accent-action text-accent-contrast border-accent-primary shadow-[0_0_15px_rgba(14,165,233,0.3)] font-bold'
-                    : 'bg-surface-elevated/70 text-text-secondary border-surface-highlight hover:border-surface-interactive hover:text-text-primary'
+                    ? 'bg-[var(--accent)] text-white border-[var(--accent)] font-bold'
+                    : 'bg-[var(--surface)] text-text-secondary border-surface-highlight hover:border-[var(--accent)]/40 hover:text-text-primary'
                 }`}
               >
-                <span className={`text-[10px] font-mono font-bold uppercase tracking-wider ${
-                  isSelected ? 'text-accent-contrast/90' : 'text-text-muted'
+                <span className={`text-xs font-semibold ${
+                  isSelected ? 'text-white/90' : 'text-text-muted'
                 }`}>
                   {date.dayLabel}
                 </span>
 
-                <span className="text-base font-bold font-mono tracking-tight">
+                <span className="text-base font-bold tabular-nums tracking-tight">
                   {date.dateStr}
                 </span>
 
                 {date.badge && (
-                  <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded ${
+                  <span className={`text-xs px-1.5 py-0.5 rounded ${
                     isSelected
-                      ? 'bg-canvas-deep/30 text-accent-contrast font-bold'
+                      ? 'bg-white/20 text-white font-semibold'
                       : date.badgeVariant === 'emerald'
-                      ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                       : 'bg-accent-primary/10 text-accent-primary border border-accent-primary/30'
                   }`}>
                     {date.badge}
@@ -224,17 +224,17 @@ export const DateTimeSelector: React.FC<DateTimeSelectorProps> = ({
                 key={slot.id}
                 type="button"
                 onClick={() => onSelectSlot(slot.id)}
-                className={`p-3 rounded border text-xs font-mono transition-all cursor-pointer flex items-center justify-between gap-1.5 ${
+                className={`p-3 rounded-lg border text-xs tabular-nums transition-colors cursor-pointer flex items-center justify-between gap-1.5 ${
                   isSelected
-                    ? 'bg-accent-action text-accent-contrast border-accent-primary shadow-[0_0_15px_rgba(14,165,233,0.3)] font-bold'
-                    : 'bg-surface-elevated text-text-primary border-surface-highlight hover:border-accent-primary/50'
+                    ? 'bg-[var(--accent)] text-white border-[var(--accent)] font-semibold'
+                    : 'bg-[var(--surface)] text-text-primary border-surface-highlight hover:border-[var(--accent)]/50'
                 }`}
               >
                 <span>{slot.timeRange}</span>
                 {isSelected ? (
-                  <Check className="w-3.5 h-3.5 text-accent-contrast stroke-[3]" />
+                  <Check className="w-3.5 h-3.5 text-white stroke-[2.5]" />
                 ) : (
-                  <span className="w-2 h-2 rounded-full bg-accent-primary animate-pulse" />
+                  <span className="w-2 h-2 rounded-full bg-[var(--accent)]" />
                 )}
               </button>
             );

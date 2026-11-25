@@ -74,7 +74,7 @@ export const RegistrationFeePage: React.FC = () => {
       {toastMessage && (
         <div
           className={cn(
-            'fixed top-5 right-5 z-50 p-4 rounded-xl border shadow-xl flex items-center gap-3 text-xs max-w-md animate-fade-in transition-all',
+            'fixed top-5 right-5 z-50 p-4 rounded-xl border shadow-xl flex items-center gap-3 text-xs max-w-md transition-all',
             toastType === 'success'
               ? isDarkMode
                 ? 'bg-[#0D2818] border-emerald-500/50 text-emerald-300'

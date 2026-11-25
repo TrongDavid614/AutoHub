@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { Check, ShieldCheck, Mail, User, ArrowRight } from 'lucide-react';
+import { Check, Mail, User, ArrowRight } from 'lucide-react';
 
 export const RegisterSuccessPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -24,116 +24,72 @@ export const RegisterSuccessPage: React.FC = () => {
   }, [countdown, navigate]);
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center p-4 bg-[#060E20] overflow-hidden">
-      {/* 1. Immersive Blurred Luxury Automotive Studio Background matching Figma 21:15394 */}
-      <div className="absolute inset-0 z-0">
-        <img
-          src="https://api.builder.io/api/v1/image/assets/TEMP/3bea387701c2ccce6c1ed0bcadd2b76f0f595bc6?width=2496"
-          alt="AutoHub Studio Background"
-          className="w-full h-full object-cover opacity-20 filter blur-[3px]"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#060E20] via-[#060E20]/80 to-[#060E20]/90" />
-      </div>
+    <div className="min-h-screen w-full flex items-center justify-center p-4 bg-[var(--bg)] text-[var(--text)]">
+      <div className="w-full max-w-[460px] rounded-lg bg-[var(--surface)] border border-[var(--line)] shadow-xs p-7 sm:p-8 space-y-6 text-center">
+        <div className="mx-auto w-14 h-14 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+          <Check className="w-7 h-7 stroke-[2.5]" />
+        </div>
 
-      {/* Cybernetic Radial Glow Layers */}
-      <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-[#0EA5E9]/15 blur-[140px] z-0" />
-      <div className="pointer-events-none absolute bottom-10 left-1/3 w-[500px] h-[500px] rounded-full bg-[#89CEFF]/10 blur-[130px] z-0" />
+        <div className="space-y-1.5">
+          <h1 className="text-2xl font-bold text-[var(--text)] tracking-tight">
+            Tạo tài khoản thành công
+          </h1>
+          <p className="text-sm text-[var(--text-secondary)]">
+            Tài khoản thành viên AutoHub của bạn đã sẵn sàng sử dụng.
+          </p>
+        </div>
 
-      {/* 2. Main Modal Container (Centered, max-w-[540px]) */}
-      <div className="relative z-10 w-full max-w-[540px] rounded-[4px] bg-[#131B2E] border border-[#2D3449] shadow-2xl overflow-hidden my-8">
-        {/* Specular ambient top glow bar */}
-        <div className="h-1 w-full bg-gradient-to-r from-[#0EA5E9] via-[#89CEFF] to-[#0EA5E9]" />
-
-        <div className="p-8 md:p-10 space-y-8 text-center">
-          {/* Centerpiece Visual Success HUD Badge */}
-          <div className="relative mx-auto w-24 h-24 flex items-center justify-center">
-            {/* Pulsing glow rings */}
-            <div className="absolute inset-0 rounded-full bg-[#0EA5E9]/20 animate-ping opacity-60" />
-            <div className="absolute -inset-2 rounded-full border border-[#89CEFF]/30 animate-pulse" />
-
-            {/* Glowing Center Circle */}
-            <div className="relative w-20 h-20 rounded-full bg-[#060E20] border-2 border-[#89CEFF] flex items-center justify-center text-[#89CEFF] shadow-[0_0_35px_rgba(137,206,255,0.4)]">
-              <Check className="w-10 h-10 stroke-[3] text-[#89CEFF]" />
-            </div>
+        {/* Account Summary (hairline divider rows, no nested dark cards) */}
+        <div className="border-y border-[var(--line)] py-3 text-left space-y-2.5 text-xs">
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-2 text-[var(--text-secondary)]">
+              <User className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+              Họ và tên
+            </span>
+            <span className="font-semibold text-[var(--text)]">{fullName}</span>
           </div>
-
-          {/* Heading 2 - Headline & Subtitle */}
-          <div className="space-y-2">
-            <h1 className="text-2xl md:text-3xl font-bold text-[#DAE2FD] tracking-tight">
-              Tạo tài khoản thành công!
-            </h1>
-            <p className="text-xs md:text-sm text-[#BEC8D2] leading-relaxed max-w-md mx-auto">
-              Chào mừng quý khách gia nhập cộng đồng AutoHub. Tài khoản thành viên của bạn đã sẵn sàng hoạt động.
-            </p>
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-2 text-[var(--text-secondary)]">
+              <Mail className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+              Email đăng ký
+            </span>
+            <span className="font-medium text-[var(--accent)]">{email}</span>
           </div>
+        </div>
 
-          {/* Account Summary Card */}
-          <div className="rounded-[2px] bg-[#060E20] border border-[#2D3449] p-5 text-left space-y-3.5 shadow-inner">
-            {/* Row 1: Full Name */}
-            <div className="flex items-center justify-between pb-3 border-b border-[#2D3449]/70 text-xs">
-              <div className="flex items-center gap-2 text-[#88929B]">
-                <User className="w-4 h-4 text-[#89CEFF]" />
-                <span>Họ và tên</span>
-              </div>
-              <span className="font-bold text-[#DAE2FD]">{fullName}</span>
-            </div>
+        <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+          Thư xác nhận kích hoạt tài khoản đã được gửi đến hộp thư của bạn.
+        </p>
 
-            {/* Row 2: Registered Email */}
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2 text-[#88929B]">
-                <Mail className="w-4 h-4 text-[#89CEFF]" />
-                <span>Email đăng ký</span>
-              </div>
-              <span className="font-mono text-[#89CEFF] font-semibold">{email}</span>
-            </div>
+        {/* Auto-redirect Countdown */}
+        <div className="space-y-2">
+          <div className="w-full bg-[var(--surface-subtle)] h-1.5 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[var(--accent)] transition-all duration-1000 ease-linear"
+              style={{ width: `${(countdown / 3) * 100}%` }}
+            />
           </div>
-
-          {/* Info Notification Footnote */}
-          <div className="p-3.5 rounded-[2px] bg-[#171F33] border border-[#2D3449] text-left text-xs text-[#88929B] leading-relaxed space-y-1">
-            <p>
-              Thư xác nhận kích hoạt tài khoản đã được gửi đến hộp thư của bạn qua Gmail SMTP. Giỏ hàng tạm thời sẽ tự động được hợp nhất khi đăng nhập.
-            </p>
+          <div className="text-xs text-[var(--text-muted)] tabular-nums">
+            Tự động chuyển sang Đăng nhập sau <strong className="text-[var(--text)]">{countdown}s</strong>...
           </div>
+        </div>
 
-          {/* Auto-redirect Countdown Indicator */}
-          <div className="space-y-2 pt-2">
-            {/* Visual Animated Progress Bar */}
-            <div className="w-full bg-[#060E20] h-1.5 rounded-full overflow-hidden border border-[#2D3449]">
-              <div
-                className="h-full bg-gradient-to-r from-[#0EA5E9] to-[#89CEFF] transition-all duration-1000 ease-linear"
-                style={{ width: `${(countdown / 3) * 100}%` }}
-              />
-            </div>
+        <div className="space-y-2.5 pt-1">
+          <button
+            type="button"
+            onClick={() => navigate('/auth/login')}
+            className="w-full h-10 px-4 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-medium text-sm transition-colors cursor-pointer flex items-center justify-center gap-2"
+          >
+            <span>Đăng nhập ngay</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
 
-            <div className="text-xs text-[#88929B]">
-              Đang tự động chuyển hướng đến màn hình Đăng nhập sau{' '}
-              <span className="font-mono text-sm font-bold text-[#89CEFF]">{countdown}</span> s...
-            </div>
-          </div>
-
-          {/* Action Buttons Cluster */}
-          <div className="pt-2 space-y-3">
-            <button
-              type="button"
-              onClick={() => navigate('/auth/login')}
-              className="w-full py-3.5 px-4 rounded-[2px] bg-[#0EA5E9] hover:bg-[#89CEFF] text-[#003751] font-bold text-xs tracking-wider uppercase transition-all shadow-xl active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2"
-            >
-              <span>Chuyển đến Đăng nhập ngay</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-
-            <div className="text-center">
-              <Link to="/" className="text-xs text-[#88929B] hover:text-[#DAE2FD] transition-colors">
-                Hoặc quay về trang chủ
-              </Link>
-            </div>
-          </div>
-
-          {/* Monospace Security & Encryption Seal */}
-          <div className="pt-2 border-t border-[#2D3449] flex items-center justify-center gap-1.5 font-mono text-[10px] text-[#88929B]">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#89CEFF]" />
-            <span>AUTOHUB-IDENTITY-V2 // ENCRYPTED VIA ED25519 // SSL 256-BIT</span>
-          </div>
+          <Link
+            to="/"
+            className="block text-xs text-[var(--text-secondary)] hover:text-[var(--text)] transition-colors"
+          >
+            Quay về trang chủ
+          </Link>
         </div>
       </div>
     </div>

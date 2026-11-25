@@ -68,14 +68,14 @@ export const ChangePasswordForm: React.FC = () => {
       </div>
 
       {passwordSuccess && (
-        <div className="p-3 rounded bg-emerald-500/15 border border-emerald-500/40 text-xs text-emerald-300 flex items-center gap-2 animate-fadeIn">
-          <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+        <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
+          <Check className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>{passwordSuccess}</span>
         </div>
       )}
       {passwordError && (
-        <div className="p-3 rounded bg-rose-500/15 border border-rose-500/40 text-xs text-rose-300 flex items-center gap-2 animate-fadeIn">
-          <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+        <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
           <span>{passwordError}</span>
         </div>
       )}

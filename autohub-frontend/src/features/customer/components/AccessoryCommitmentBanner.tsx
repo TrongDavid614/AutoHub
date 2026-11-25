@@ -30,49 +30,42 @@ export const AccessoryCommitmentBanner: React.FC = () => {
   ];
 
   return (
-    <section className="w-full bg-[#131B2E] border-t border-[#2D3449] py-12 px-4 md:px-8 mt-16">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Title Header */}
-        <div className="space-y-1.5 max-w-xl">
-          <div className="text-[10px] font-mono font-bold tracking-[1.5px] text-[#89CEFF] uppercase">
-            ĐẶC QUYỀN HẬU MÃI VIP
-          </div>
-          <h2 className="text-2xl md:text-3xl font-bold text-[#DAE2FD] tracking-tight">
+    <section className="w-full bg-[var(--surface-subtle)] border-t border-[var(--line)] py-12 px-4 md:px-8 mt-14">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="space-y-1 max-w-xl">
+          <h2 className="text-xl md:text-2xl font-bold text-[var(--text)] tracking-tight">
             Cam kết dịch vụ chính hãng AutoHub
           </h2>
+          <p className="text-sm text-[var(--text-secondary)]">
+            Hỗ trợ lắp đặt tại nhà, bảo hành đổi mới và đảm bảo điều kiện bảo hành xe.
+          </p>
         </div>
 
-        {/* 3 Grid Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {commitments.map((item) => {
             const Icon = item.icon;
             return (
               <div
                 key={item.id}
-                className="rounded-[2px] bg-[#171F33] border border-[#2D3449] p-6 shadow-xl space-y-4 hover:border-[#89CEFF]/50 transition-all flex flex-col justify-between"
+                className="rounded-lg bg-[var(--surface)] border border-[var(--line)] p-6 space-y-4 flex flex-col justify-between"
               >
-                <div className="space-y-4">
-                  {/* Icon Box */}
-                  <div className="w-12 h-12 rounded-[2px] bg-[#2D3449] flex items-center justify-center text-[#89CEFF]">
-                    <Icon className="w-6 h-6 text-[#89CEFF]" />
+                <div className="space-y-3">
+                  <div className="w-10 h-10 rounded-lg bg-[var(--accent-soft)] flex items-center justify-center text-[var(--accent)]">
+                    <Icon className="w-5 h-5" />
                   </div>
 
-                  {/* Title & Desc */}
-                  <div className="space-y-2">
-                    <h3 className="text-base font-semibold text-[#DAE2FD] leading-snug">
+                  <div className="space-y-1.5">
+                    <h3 className="text-base font-semibold text-[var(--text)] leading-snug">
                       {item.title}
                     </h3>
-                    <p className="text-xs text-[#88929B] leading-relaxed">
+                    <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
                       {item.description}
                     </p>
                   </div>
                 </div>
 
-                {/* Bottom Tag */}
-                <div className="pt-4 border-t border-[#2D3449]/60">
-                  <span className="inline-block px-2.5 py-1 rounded-[2px] bg-[#222A3D] text-[#89CEFF] font-mono text-[9px] font-bold tracking-wider uppercase border border-[#2D3449]">
-                    {item.tag}
-                  </span>
+                <div className="pt-3 border-t border-[var(--line)] text-xs font-medium text-[var(--text-muted)]">
+                  {item.tag}
                 </div>
               </div>
             );

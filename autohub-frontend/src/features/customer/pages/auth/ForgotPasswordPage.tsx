@@ -238,32 +238,27 @@ export const ForgotPasswordPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#070D18] flex items-center justify-center p-4 relative overflow-hidden font-sans text-slate-100">
-      {/* Background Neon Halo */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-blue-600/10 rounded-full blur-[130px] pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
-
-      {/* Main Glass Card */}
-      <div className="w-full max-w-md bg-[#0D1527]/90 border border-[#1E293B] shadow-2xl rounded-2xl p-6 sm:p-8 backdrop-blur-md relative z-10">
-        {/* Brand Header */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-600/20 border border-blue-500/30 text-blue-400 mb-3 shadow-inner">
-            <KeyRound className="w-6 h-6" />
+    <div className="min-h-screen bg-[var(--bg)] flex flex-col items-center justify-center p-4 font-sans text-[var(--text)]">
+      <div className="w-full max-w-md bg-[var(--surface)] border border-[var(--line)] shadow-xs rounded-lg p-6 sm:p-8 space-y-5">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <div className="inline-flex items-center justify-center w-11 h-11 rounded-lg bg-[var(--accent-soft)] text-[var(--accent)] mx-auto">
+            <KeyRound className="w-5 h-5" />
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-            Khôi Phục Mật Khẩu
+          <h1 className="text-xl sm:text-2xl font-bold text-[var(--text)] tracking-tight">
+            Khôi phục mật khẩu
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            {step === 'EMAIL' && 'Nhập email để nhận mã xác thực OTP 6 số'}
-            {step === 'OTP' && 'Nhập mã OTP 6 số đã được gửi qua email'}
+          <p className="text-xs sm:text-sm text-[var(--text-secondary)]">
+            {step === 'EMAIL' && 'Nhập email để nhận mã xác thực OTP gồm 6 chữ số'}
+            {step === 'OTP' && 'Nhập mã OTP gồm 6 chữ số đã được gửi qua email'}
             {step === 'NEW_PASSWORD' && 'Thiết lập mật khẩu mới cho tài khoản của bạn'}
-            {step === 'SUCCESS' && 'Cập nhật mật khẩu thành công'}
+            {step === 'SUCCESS' && 'Mật khẩu mới đã được cập nhật'}
           </p>
         </div>
 
         {/* Global Error Banner */}
         {errorMessage && (
-          <div className="mb-5 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-start gap-2.5 animate-in fade-in">
+          <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2">
             <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <span>{errorMessage}</span>
           </div>
@@ -271,7 +266,7 @@ export const ForgotPasswordPage: React.FC = () => {
 
         {/* Global Success Banner */}
         {successMessage && step !== 'SUCCESS' && (
-          <div className="mb-5 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-start gap-2.5 animate-in fade-in">
+          <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-start gap-2">
             <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <span>{successMessage}</span>
           </div>
@@ -281,41 +276,41 @@ export const ForgotPasswordPage: React.FC = () => {
         {step === 'EMAIL' && (
           <form onSubmit={handleRequestOtp} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Địa chỉ Email đã đăng ký <span className="text-rose-500">*</span>
+              <label className="block text-[13px] font-medium text-[var(--text)] mb-1.5">
+                Địa chỉ email đã đăng ký
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Mail className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="nhap.email@example.com"
-                  className="w-full bg-[#131D33] border border-[#23334F] rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                  className="w-full bg-[var(--surface)] border border-[var(--line-strong)] rounded-lg pl-9 pr-3 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] transition-colors"
                 />
               </div>
-              <p className="text-[11px] text-slate-500 mt-1.5">
-                Hệ thống sẽ gửi mã OTP gồm 6 chữ số có hiệu lực trong 5 phút.
+              <p className="text-xs text-[var(--text-muted)] mt-1.5">
+                Mã OTP gồm 6 chữ số có hiệu lực trong 5 phút.
               </p>
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white transition-all cursor-pointer shadow-lg shadow-blue-600/30 disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
+              className="w-full h-10 rounded-lg text-sm font-medium bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
-              <span>{isLoading ? 'Đang gửi mã OTP...' : 'Gửi Mã Xác Thực OTP'}</span>
+              <span>{isLoading ? 'Đang gửi mã OTP...' : 'Gửi mã xác thực OTP'}</span>
             </button>
 
             <div className="pt-2 text-center">
               <Link
                 to="/login"
-                className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text)] transition-colors"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Quay lại trang Đăng nhập</span>
+                <span>Quay lại đăng nhập</span>
               </Link>
             </div>
           </form>
@@ -325,53 +320,49 @@ export const ForgotPasswordPage: React.FC = () => {
         {step === 'OTP' && (
           <form onSubmit={handleVerifyOtp} className="space-y-5">
             <div className="text-center">
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-[var(--text-secondary)]">
                 Mã xác thực đã được gửi tới email:
               </p>
-              <p className="text-xs font-mono font-bold text-blue-400 mt-0.5">{email}</p>
+              <p className="text-xs font-semibold text-[var(--accent)] mt-0.5">{email}</p>
             </div>
 
-            {/* 6 Digit Input Group */}
-            <div>
-              <div
-                className="flex items-center justify-center gap-2 sm:gap-2.5 my-2"
-                onPaste={handleOtpPaste}
-              >
-                {otpDigits.map((digit, idx) => (
-                  <input
-                    key={idx}
-                    ref={(el) => {
-                      otpInputRefs.current[idx] = el;
-                    }}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleOtpChange(idx, e.target.value)}
-                    onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                    onPaste={handleOtpPaste}
-                    className="w-10 sm:w-12 h-12 text-center text-lg sm:text-xl font-mono font-bold bg-[#131D33] border border-[#23334F] rounded-xl text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/40 transition-all"
-                  />
-                ))}
-              </div>
+            <div
+              className="flex items-center justify-center gap-2 sm:gap-2.5 my-2"
+              onPaste={handleOtpPaste}
+            >
+              {otpDigits.map((digit, idx) => (
+                <input
+                  key={idx}
+                  ref={(el) => {
+                    otpInputRefs.current[idx] = el;
+                  }}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleOtpChange(idx, e.target.value)}
+                  onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                  onPaste={handleOtpPaste}
+                  className="w-10 sm:w-12 h-12 text-center text-lg sm:text-xl font-bold tabular-nums bg-[var(--surface)] border border-[var(--line-strong)] rounded-lg text-[var(--text)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] transition-colors"
+                />
+              ))}
             </div>
 
-            {/* Timer & Resend */}
             <div className="flex items-center justify-between text-xs pt-1">
-              <div className="flex items-center gap-1.5 text-slate-400">
-                <Clock className="w-3.5 h-3.5 text-amber-400" />
+              <div className="flex items-center gap-1.5 text-[var(--text-secondary)]">
+                <Clock className="w-3.5 h-3.5 text-amber-600" />
                 <span>Hiệu lực còn:</span>
-                <span className="font-mono font-bold text-amber-400">{formatTime(countdown)}</span>
+                <span className="font-semibold text-amber-700 tabular-nums">{formatTime(countdown)}</span>
               </div>
 
               <button
                 type="button"
                 onClick={handleResendOtp}
                 disabled={!canResend || isLoading}
-                className={`font-semibold transition-colors cursor-pointer ${
+                className={`font-medium transition-colors cursor-pointer ${
                   canResend
-                    ? 'text-blue-400 hover:text-blue-300 underline'
-                    : 'text-slate-600 cursor-not-allowed'
+                    ? 'text-[var(--accent)] hover:underline'
+                    : 'text-[var(--text-muted)] cursor-not-allowed'
                 }`}
               >
                 Gửi lại OTP
@@ -381,21 +372,21 @@ export const ForgotPasswordPage: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading || otpDigits.join('').length !== 6}
-              className="w-full py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white transition-all cursor-pointer shadow-lg shadow-blue-600/30 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full h-10 rounded-lg text-sm font-medium bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
-              <span>{isLoading ? 'Đang xác thực...' : 'Xác Nhận Mã OTP'}</span>
+              <span>{isLoading ? 'Đang xác thực...' : 'Xác nhận mã OTP'}</span>
             </button>
 
             <div className="flex items-center justify-between pt-2 text-xs">
               <button
                 type="button"
                 onClick={() => setStep('EMAIL')}
-                className="text-slate-400 hover:text-white transition-colors cursor-pointer"
+                className="text-[var(--text-secondary)] hover:text-[var(--text)] transition-colors cursor-pointer"
               >
                 Đổi email khác
               </button>
-              <Link to="/login" className="text-slate-400 hover:text-white transition-colors">
+              <Link to="/login" className="text-[var(--text-secondary)] hover:text-[var(--text)] transition-colors">
                 Đăng nhập
               </Link>
             </div>
@@ -406,23 +397,23 @@ export const ForgotPasswordPage: React.FC = () => {
         {step === 'NEW_PASSWORD' && (
           <form onSubmit={handleResetPassword} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Mật khẩu mới <span className="text-rose-500">*</span>
+              <label className="block text-[13px] font-medium text-[var(--text)] mb-1.5">
+                Mật khẩu mới
               </label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Lock className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Tối thiểu 8 ký tự"
-                  className="w-full bg-[#131D33] border border-[#23334F] rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                  className="w-full bg-[var(--surface)] border border-[var(--line-strong)] rounded-lg pl-9 pr-10 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text)] cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -430,23 +421,23 @@ export const ForgotPasswordPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Xác nhận mật khẩu mới <span className="text-rose-500">*</span>
+              <label className="block text-[13px] font-medium text-[var(--text)] mb-1.5">
+                Xác nhận mật khẩu mới
               </label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Lock className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Nhập lại mật khẩu mới"
-                  className="w-full bg-[#131D33] border border-[#23334F] rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                  className="w-full bg-[var(--surface)] border border-[var(--line-strong)] rounded-lg pl-9 pr-10 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text)] cursor-pointer"
                 >
                   {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -456,34 +447,34 @@ export const ForgotPasswordPage: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition-all cursor-pointer shadow-lg shadow-emerald-600/30 disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
+              className="w-full h-10 rounded-lg text-sm font-medium bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isLoading && <RefreshCw className="w-4 h-4 animate-spin" />}
-              <span>{isLoading ? 'Đang cập nhật...' : 'Cập Nhật Mật Khẩu Mới'}</span>
+              <span>{isLoading ? 'Đang cập nhật...' : 'Cập nhật mật khẩu mới'}</span>
             </button>
           </form>
         )}
 
         {/* STEP 4: SUCCESS STATE */}
         {step === 'SUCCESS' && (
-          <div className="text-center py-4 space-y-4 animate-in zoom-in-95">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg shadow-emerald-500/20">
-              <ShieldCheck className="w-8 h-8" />
+          <div className="text-center py-4 space-y-4">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">
+              <ShieldCheck className="w-7 h-7" />
             </div>
 
             <div>
-              <h2 className="text-lg font-bold text-white">Đặt Lại Mật Khẩu Thành Công!</h2>
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                Mật khẩu cho tài khoản <strong className="text-slate-200">{email}</strong> đã được thay đổi an toàn. Bạn có thể đăng nhập ngay với mật khẩu mới.
+              <h2 className="text-lg font-bold text-[var(--text)]">Đặt lại mật khẩu thành công</h2>
+              <p className="text-xs text-[var(--text-secondary)] mt-1 leading-relaxed">
+                Mật khẩu cho tài khoản <strong className="text-[var(--text)]">{email}</strong> đã được thay đổi. Bạn có thể đăng nhập ngay.
               </p>
             </div>
 
             <button
               type="button"
               onClick={() => navigate('/login')}
-              className="w-full py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white transition-all cursor-pointer shadow-lg shadow-blue-600/30"
+              className="w-full h-10 rounded-lg text-sm font-medium bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white transition-colors cursor-pointer"
             >
-              Đăng Nhập Ngay
+              Đăng nhập ngay
             </button>
           </div>
         )}

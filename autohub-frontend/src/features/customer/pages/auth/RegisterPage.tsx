@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User as UserIcon, Mail, Phone, Lock, Eye, EyeOff, X, ShieldCheck, Check } from 'lucide-react';
+import { User as UserIcon, Mail, Phone, Lock, Eye, EyeOff, X, Check } from 'lucide-react';
 import { PasswordStrengthMeter } from '@/features/customer/components/PasswordStrengthMeter';
 import { authService } from '@/features/customer/services/auth.service';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -102,235 +102,191 @@ export const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center p-4 bg-[#060E20] overflow-hidden">
-      {/* 1. Atmospheric Background Visual Layer matching Figma Frame 20:14405 */}
-      <div className="absolute inset-0 z-0">
-        <img
-          src="https://api.builder.io/api/v1/image/assets/TEMP/a4e599e935e4de5485bb5c63599144d10a0fbd57?width=2560"
-          alt="AutoHub EV Background"
-          className="w-full h-full object-cover opacity-25 filter blur-[2px]"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#060E20] via-[#060E20]/85 to-[#060E20]/90" />
-      </div>
-
-      {/* Ambient Glow Orbs */}
-      <div className="pointer-events-none absolute -top-32 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full bg-[#0EA5E9]/15 blur-[120px] z-0" />
-
-      {/* 2. Main Registration Card (520px standard) */}
-      <div className="relative z-10 w-full max-w-[520px] rounded-[4px] bg-[#131B2E] border border-[#2D3449] shadow-2xl overflow-hidden my-8">
-        {/* Specular ambient top glow bar */}
-        <div className="h-1 w-full bg-gradient-to-r from-[#0EA5E9] via-[#89CEFF] to-[#0EA5E9]" />
-
-        <div className="p-6 md:p-8 space-y-6">
-          {/* Modal Header Section */}
-          <div className="flex items-start justify-between gap-4">
-            <div className="space-y-1">
-              <h1 className="text-2xl font-bold text-[#DAE2FD] tracking-tight">
-                Đăng ký tài khoản
-              </h1>
-              <p className="text-xs text-[#BEC8D2] leading-relaxed">
-                Thiết lập danh tính số trong 30 giây để kích hoạt đặc quyền lái thử, đặt cọc và ưu đãi độc quyền.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => navigate('/')}
-              className="p-1.5 rounded-[2px] bg-[#222A3D] hover:bg-[#2D3449] text-[#88929B] hover:text-[#DAE2FD] transition-colors cursor-pointer shrink-0"
-              title="Đóng cửa sổ"
-            >
-              <X className="w-4 h-4" />
-            </button>
+    <div className="min-h-screen w-full flex flex-col items-center justify-center py-10 px-4 bg-[var(--bg)] text-[var(--text)]">
+      <div className="w-full max-w-[480px] rounded-lg bg-[var(--surface)] border border-[var(--line)] shadow-xs p-6 md:p-8 space-y-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold text-[var(--text)] tracking-tight">
+              Đăng ký tài khoản
+            </h1>
+            <p className="text-sm text-[var(--text-secondary)]">
+              Tạo tài khoản AutoHub để đặt lịch lái thử, theo dõi cọc xe và mua phụ kiện.
+            </p>
           </div>
 
-          {/* Error notice */}
-          {error && (
-            <div className="p-3 rounded-[2px] bg-rose-950/40 border border-rose-500/50 text-rose-300 text-xs">
-              {error}
-            </div>
-          )}
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="p-1.5 rounded-md hover:bg-[var(--surface-subtle)] text-[var(--text-muted)] hover:text-[var(--text)] transition-colors cursor-pointer shrink-0"
+            title="Về trang chủ"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
 
-          {/* Registration Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* 1. Họ và tên */}
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-[#BEC8D2] flex items-center gap-1">
-                <span>Họ và tên</span>
-                <span className="text-[#89CEFF]">*</span>
-              </label>
-              <div className="relative">
-                <UserIcon className="w-4 h-4 text-[#88929B] absolute left-3 top-1/2 -translate-y-1/2" />
+        {error && (
+          <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="block text-[13px] font-medium text-[var(--text)]">
+              Họ và tên <span className="text-red-600">*</span>
+            </label>
+            <div className="relative">
+              <UserIcon className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                required
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Nguyễn Văn An"
+                className="w-full pl-9 pr-3 py-2 bg-[var(--surface)] border border-[var(--line-strong)] rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] transition-colors"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-[13px] font-medium text-[var(--text)]">
+              Số điện thoại <span className="text-red-600">*</span>
+            </label>
+            <div className="flex items-center gap-2">
+              <div className="px-3 py-2 rounded-lg bg-[var(--surface-subtle)] border border-[var(--line-strong)] text-sm font-medium text-[var(--text-secondary)] shrink-0 tabular-nums">
+                +84
+              </div>
+              <div className="relative flex-1">
+                <Phone className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
-                  type="text"
+                  type="tel"
                   required
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Ví dụ: Nguyễn Văn An"
-                  className="w-full pl-9 pr-4 py-2.5 bg-[#060E20] border border-[#2D3449] rounded-[2px] text-xs text-[#DAE2FD] placeholder-[#88929B] focus:outline-none focus:border-[#89CEFF] focus:ring-1 focus:ring-[#89CEFF] transition-all"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="0912 345 678"
+                  className="w-full pl-9 pr-3 py-2 bg-[var(--surface)] border border-[var(--line-strong)] rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] transition-colors tabular-nums"
                 />
               </div>
             </div>
+          </div>
 
-            {/* 2. Số điện thoại di động */}
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-[#BEC8D2] flex items-center gap-1">
-                <span>Số điện thoại di động</span>
-                <span className="text-[#89CEFF]">*</span>
-              </label>
-              <div className="flex items-center gap-2">
-                <div className="px-3 py-2.5 rounded-[2px] bg-[#222A3D] border border-[#2D3449] text-xs font-mono font-bold text-[#89CEFF] shrink-0">
-                  +84
-                </div>
-                <div className="relative flex-1">
-                  <Phone className="w-4 h-4 text-[#88929B] absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="tel"
-                    required
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="0912 345 678"
-                    className="w-full pl-9 pr-4 py-2.5 bg-[#060E20] border border-[#2D3449] rounded-[2px] text-xs font-mono text-[#DAE2FD] placeholder-[#88929B] focus:outline-none focus:border-[#89CEFF] focus:ring-1 focus:ring-[#89CEFF] transition-all"
-                  />
-                </div>
-              </div>
+          <div className="space-y-1.5">
+            <label className="block text-[13px] font-medium text-[var(--text)]">
+              Địa chỉ email <span className="text-red-600">*</span>
+            </label>
+            <div className="relative">
+              <Mail className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="an.nguyen@autohub.vn"
+                className="w-full pl-9 pr-3 py-2 bg-[var(--surface)] border border-[var(--line-strong)] rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] transition-colors"
+              />
             </div>
+          </div>
 
-            {/* 3. Email định danh */}
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-[#BEC8D2] flex items-center gap-1">
-                <span>Email định danh</span>
-                <span className="text-[#89CEFF]">*</span>
-              </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-[#88929B] absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="an.nguyen@autohub.vn"
-                  className="w-full pl-9 pr-4 py-2.5 bg-[#060E20] border border-[#2D3449] rounded-[2px] text-xs text-[#DAE2FD] placeholder-[#88929B] focus:outline-none focus:border-[#89CEFF] focus:ring-1 focus:ring-[#89CEFF] transition-all"
-                />
-              </div>
-            </div>
-
-            {/* 4. Mật khẩu & Strength Meter */}
-            <div className="space-y-1">
-              <label className="text-xs font-semibold text-[#BEC8D2] flex items-center gap-1">
-                <span>Mật khẩu tài khoản</span>
-                <span className="text-[#89CEFF]">*</span>
-              </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-[#88929B] absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Tối thiểu 8 ký tự kèm số & ký hiệu"
-                  className="w-full pl-9 pr-10 py-2.5 bg-[#060E20] border border-[#2D3449] rounded-[2px] text-xs text-[#DAE2FD] placeholder-[#88929B] focus:outline-none focus:border-[#89CEFF] focus:ring-1 focus:ring-[#89CEFF] transition-all"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#88929B] hover:text-[#DAE2FD] cursor-pointer"
-                  title={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-
-              {/* Strength Meter matching Figma Frame 20:14537 */}
-              <PasswordStrengthMeter score={passwordScore} />
-            </div>
-
-            {/* 5. Xác nhận mật khẩu */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-[#BEC8D2] flex items-center gap-1">
-                  <span>Xác nhận mật khẩu</span>
-                  <span className="text-[#89CEFF]">*</span>
-                </label>
-                {isPasswordMatch && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-[#34D399]">
-                    <Check className="w-3 h-3 stroke-[3]" />
-                    <span>KHỚP</span>
-                  </span>
-                )}
-              </div>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-[#88929B] absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Nhập lại chính xác mật khẩu"
-                  className="w-full pl-9 pr-4 py-2.5 bg-[#060E20] border border-[#2D3449] rounded-[2px] text-xs text-[#DAE2FD] placeholder-[#88929B] focus:outline-none focus:border-[#89CEFF] focus:ring-1 focus:ring-[#89CEFF] transition-all"
-                />
-              </div>
-            </div>
-
-            {/* Legal Checkboxes */}
-            <div className="space-y-2.5 pt-2">
-              <label className="flex items-start gap-2.5 cursor-pointer text-xs text-[#BEC8D2] select-none">
-                <input
-                  type="checkbox"
-                  checked={agreeTerms}
-                  onChange={(e) => setAgreeTerms(e.target.checked)}
-                  className="mt-0.5 rounded-[2px] bg-[#060E20] border-[#3E4850] text-[#0EA5E9] focus:ring-0 cursor-pointer"
-                />
-                <span className="leading-relaxed">
-                  Tôi đồng ý với{' '}
-                  <Link to="#" className="text-[#89CEFF] hover:underline">
-                    Điều khoản Dịch vụ
-                  </Link>{' '}
-                  và{' '}
-                  <Link to="#" className="text-[#89CEFF] hover:underline">
-                    Chính sách Bảo mật
-                  </Link>{' '}
-                  của AutoHub.
-                </span>
-              </label>
-
-              <label className="flex items-start gap-2.5 cursor-pointer text-[11px] text-[#88929B] select-none">
-                <input
-                  type="checkbox"
-                  checked={receiveMarketing}
-                  onChange={(e) => setReceiveMarketing(e.target.checked)}
-                  className="mt-0.5 rounded-[2px] bg-[#060E20] border-[#3E4850] text-[#0EA5E9] focus:ring-0 cursor-pointer"
-                />
-                <span className="leading-relaxed">
-                  Nhận thông báo lịch mở lái thử dòng xe điện mới, phụ kiện độc quyền và cập nhật phần mềm OTA.
-                </span>
-              </label>
-            </div>
-
-            {/* Submit Action Button */}
-            <div className="pt-2">
+          <div className="space-y-1.5">
+            <label className="block text-[13px] font-medium text-[var(--text)]">
+              Mật khẩu <span className="text-red-600">*</span>
+            </label>
+            <div className="relative">
+              <Lock className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Tối thiểu 8 ký tự"
+                className="w-full pl-9 pr-10 py-2 bg-[var(--surface)] border border-[var(--line-strong)] rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] transition-colors"
+              />
               <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full py-3.5 px-4 rounded-[2px] bg-[#0EA5E9] hover:bg-[#89CEFF] text-[#003751] font-bold text-xs tracking-wider uppercase transition-all shadow-xl active:scale-[0.98] cursor-pointer disabled:opacity-50"
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text)] cursor-pointer"
+                title={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
               >
-                {isSubmitting ? 'ĐANG KHỞI TẠO TÀI KHOẢN...' : 'Tạo Tài Khoản & Kích Hoạt'}
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
-          </form>
 
-          {/* Bottom Account Switcher */}
-          <div className="pt-2 text-center text-xs text-[#88929B] border-t border-[#2D3449]">
-            <span>Đã sở hữu tài khoản AutoHub? </span>
-            <Link to="/auth/login" className="text-[#89CEFF] hover:underline font-semibold">
-              Đăng nhập ngay
-            </Link>
+            <PasswordStrengthMeter score={passwordScore} />
           </div>
 
-          {/* Security & Encryption Badge */}
-          <div className="pt-2 flex items-center justify-center gap-1.5 text-[10px] font-mono text-[#88929B]">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#89CEFF]" />
-            <span>BẢO MẬT SSL 256-BIT • CHUẨN ĐỊNH DANH AN TOÀN</span>
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-[13px] font-medium text-[var(--text)]">
+                Xác nhận mật khẩu <span className="text-red-600">*</span>
+              </label>
+              {isPasswordMatch && (
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700">
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Khớp</span>
+                </span>
+              )}
+            </div>
+            <div className="relative">
+              <Lock className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Nhập lại mật khẩu"
+                className="w-full pl-9 pr-3 py-2 bg-[var(--surface)] border border-[var(--line-strong)] rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] transition-colors"
+              />
+            </div>
           </div>
+
+          <div className="space-y-2.5 pt-1">
+            <label className="flex items-start gap-2.5 cursor-pointer text-xs text-[var(--text-secondary)] select-none">
+              <input
+                type="checkbox"
+                checked={agreeTerms}
+                onChange={(e) => setAgreeTerms(e.target.checked)}
+                className="mt-0.5 rounded border-[var(--line-strong)] accent-[var(--accent)] cursor-pointer"
+              />
+              <span className="leading-relaxed">
+                Tôi đồng ý với{' '}
+                <Link to="#" className="text-[var(--accent)] hover:underline">
+                  Điều khoản dịch vụ
+                </Link>{' '}
+                và{' '}
+                <Link to="#" className="text-[var(--accent)] hover:underline">
+                  Chính sách bảo mật
+                </Link>{' '}
+                của AutoHub.
+              </span>
+            </label>
+
+            <label className="flex items-start gap-2.5 cursor-pointer text-xs text-[var(--text-muted)] select-none">
+              <input
+                type="checkbox"
+                checked={receiveMarketing}
+                onChange={(e) => setReceiveMarketing(e.target.checked)}
+                className="mt-0.5 rounded border-[var(--line-strong)] accent-[var(--accent)] cursor-pointer"
+              />
+              <span className="leading-relaxed">
+                Nhận thông báo lịch mở lái thử dòng xe mới và ưu đãi phụ kiện.
+              </span>
+            </label>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full h-10 px-4 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-medium text-sm transition-colors cursor-pointer disabled:opacity-50"
+          >
+            {isSubmitting ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}
+          </button>
+        </form>
+
+        <div className="pt-4 text-center text-xs text-[var(--text-secondary)] border-t border-[var(--line)]">
+          <span>Đã có tài khoản AutoHub? </span>
+          <Link to="/auth/login" className="text-[var(--accent)] hover:underline font-medium">
+            Đăng nhập ngay
+          </Link>
         </div>
       </div>
     </div>

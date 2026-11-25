@@ -23,9 +23,9 @@ export const ComparisonActionBar: React.FC<ComparisonActionBarProps> = ({
   return (
     <div className="no-print flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-lg bg-surface-container border border-surface-highlight shadow-sm">
       <div className="flex items-center gap-2">
-        <span className="w-2 h-2 rounded-full bg-accent-primary animate-pulse" />
-        <span className="text-xs font-mono font-bold text-text-primary uppercase tracking-wider">
-          {carCount}/3 Phiên Bản Đang So Sánh Trực Diện
+        <span className="w-2 h-2 rounded-full bg-accent-primary" />
+        <span className="text-xs font-semibold text-text-primary">
+          {carCount}/3 phiên bản đang so sánh trực diện
         </span>
         <span className="text-xs text-text-muted font-mono hidden md:inline">
           ({totalSpecsCount} thông số chuẩn hóa)
@@ -50,7 +50,7 @@ export const ComparisonActionBar: React.FC<ComparisonActionBarProps> = ({
           onClick={onToggleDifferences}
           className={`py-2 px-3.5 rounded text-xs font-semibold flex items-center gap-2 border transition-all cursor-pointer ${
             onlyDifferences
-              ? 'bg-accent-action text-accent-contrast border-accent-primary shadow-[0_0_15px_rgba(14,165,233,0.3)]'
+              ? 'bg-accent-action text-accent-contrast border-accent-primary'
               : 'bg-surface-elevated text-text-secondary hover:text-text-primary border-surface-highlight hover:border-surface-interactive'
           }`}
         >

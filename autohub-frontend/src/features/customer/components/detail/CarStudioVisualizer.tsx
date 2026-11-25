@@ -78,21 +78,21 @@ export const CarStudioVisualizer: React.FC<CarStudioVisualizerProps> = ({
 
   const dynamicPerspectives = (carImages && carImages.length > 0)
     ? carImages.map((img, idx) => {
-        const labels = [
-          { label: '3/4 TRƯỚC SANG TRỌNG', subLabel: 'Góc 3/4 trước thể thao' },
-          { label: 'HÔNG KHÍ ĐỘNG HỌC', subLabel: 'Góc hông khí động học' },
-          { label: 'BUỒNG LÁI DIGITAL HUD', subLabel: 'Buồng lái kỹ thuật số' },
-          { label: 'GÓC CHI TIẾT ĐÈN LED', subLabel: 'Cụm đèn pha ma trận' },
-        ];
-        const item = labels[idx % labels.length];
-        return {
-          id: idx,
-          label: item.label,
-          subLabel: item.subLabel,
-          image: img,
-          mainImage: img,
-        };
-      })
+      const labels = [
+        { label: '3/4 TRƯỚC SANG TRỌNG', subLabel: 'Góc 3/4 trước thể thao' },
+        { label: 'HÔNG KHÍ ĐỘNG HỌC', subLabel: 'Góc hông khí động học' },
+        { label: 'BUỒNG LÁI DIGITAL HUD', subLabel: 'Buồng lái kỹ thuật số' },
+        { label: 'GÓC CHI TIẾT ĐÈN LED', subLabel: 'Cụm đèn pha ma trận' },
+      ];
+      const item = labels[idx % labels.length];
+      return {
+        id: idx,
+        label: item.label,
+        subLabel: item.subLabel,
+        image: img,
+        mainImage: img,
+      };
+    })
     : PERSPECTIVES;
 
   const currentMainImage =
@@ -105,21 +105,17 @@ export const CarStudioVisualizer: React.FC<CarStudioVisualizerProps> = ({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* 1. Main Stage Container (3D Virtual Studio) */}
-      <div className="relative aspect-[16/10] w-full rounded-lg bg-canvas-deep border border-surface-highlight overflow-hidden shadow-2xl group">
-        {/* Main Car Image */}
-        <img
-          src={currentMainImage}
-          alt={`${carName} - ${activeTrim}`}
-          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-        />
+      {/* 1. Main Stage Photo + View Angle Tabs */}
+      <div className="rounded-lg bg-[var(--surface)] border border-[var(--line)] overflow-hidden">
+        <div className="relative aspect-[16/10] w-full bg-[var(--surface-subtle)] overflow-hidden">
+          <img
+            src={currentMainImage}
+            alt={`${carName} - ${activeTrim}`}
+            className="w-full h-full object-cover object-center"
+          />
 
-        {/* Ambient Studio Lighting Scrims */}
-        <div className="absolute inset-0 bg-gradient-to-t from-canvas-deep via-transparent to-canvas-deep/40 pointer-events-none" />
-
-        {/* Top Camera & View Angle Switcher Pills */}
-        <div className="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none z-10">
-          <div className="flex items-center gap-1.5 p-1 rounded-full bg-canvas-deep/80 backdrop-blur-md border border-surface-highlight pointer-events-auto shadow-lg">
+          {/* Top View Angle Tabs */}
+          <div className="absolute top-3 left-3 flex items-center gap-1 p-1 rounded-lg bg-[var(--surface)]/95 border border-[var(--line)] shadow-xs flex-wrap">
             {VIEW_TABS.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -141,11 +137,10 @@ export const CarStudioVisualizer: React.FC<CarStudioVisualizerProps> = ({
                       },
                     });
                   }}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all cursor-pointer ${
-                    isActive
-                      ? 'bg-accent-action text-accent-contrast shadow-[0_0_12px_rgba(14,165,233,0.4)]'
-                      : 'text-text-secondary hover:text-text-primary hover:bg-surface-elevated/60'
-                  }`}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${isActive
+                    ? 'bg-[var(--accent)] text-white'
+                    : 'text-[var(--text-secondary)] hover:text-[var(--text)] hover:bg-[var(--surface-subtle)]'
+                    }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
                   <span>{tab.label}</span>
@@ -153,53 +148,43 @@ export const CarStudioVisualizer: React.FC<CarStudioVisualizerProps> = ({
               );
             })}
           </div>
-
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-canvas-deep/80 backdrop-blur-md border border-surface-highlight text-[10px] font-mono font-bold text-accent-primary pointer-events-auto">
-            <span className="w-2 h-2 rounded-full bg-accent-primary animate-pulse" />
-            <span>INTERACTIVE 3D ENGINE</span>
-          </div>
         </div>
 
-        {/* Bottom Overlay: Floating Key Performance Metrics */}
-        <div className="absolute bottom-4 left-4 right-4 p-3.5 rounded-lg bg-surface-container/85 backdrop-blur-md border border-surface-highlight/80 z-10 shadow-xl">
-          <div className="grid grid-cols-3 divide-x divide-surface-highlight text-center">
-            {/* Metric 1: 0-100 */}
-            <div className="px-2 sm:px-4">
-              <div className="text-[10px] font-mono text-text-muted flex items-center justify-center gap-1 uppercase">
-                <Gauge className="w-3.5 h-3.5 text-accent-primary" />
-                <span>TĂNG TỐC 0-100</span>
-              </div>
-              <div className="flex items-baseline justify-center gap-1 mt-0.5">
-                <span className="text-lg sm:text-2xl font-black font-mono text-text-primary">{accelVal}</span>
-              </div>
-            </div>
-
-            {/* Metric 2: Range */}
-            <div className="px-2 sm:px-4">
-              <div className="text-[10px] font-mono text-text-muted flex items-center justify-center gap-1 uppercase">
-                <Zap className="w-3.5 h-3.5 text-accent-primary" />
-                <span>TẦM HOẠT ĐỘNG</span>
-              </div>
-              <div className="flex items-baseline justify-center gap-1 mt-0.5">
-                <span className="text-lg sm:text-2xl font-black font-mono text-text-primary">{rangeVal}</span>
-              </div>
-            </div>
-
-            {/* Metric 3: Charging */}
-            <div className="px-2 sm:px-4">
-              <div className="text-[10px] font-mono text-text-muted flex items-center justify-center gap-1 uppercase">
-                <BatteryCharging className="w-3.5 h-3.5 text-accent-primary" />
-                <span>SẠC / NHIÊN LIỆU</span>
-              </div>
-              <div className="flex items-baseline justify-center gap-1 mt-0.5">
-                <span className="text-xs sm:text-lg font-black font-mono text-text-primary truncate">{chargeVal}</span>
-              </div>
-            </div>
+        {/* Key Performance Summary Row (below image, clean dividers) */}
+        <dl className="grid grid-cols-3 divide-x divide-[var(--line)] border-t border-[var(--line)] bg-[var(--surface)] text-center py-3.5">
+          <div className="px-3">
+            <dt className="text-xs text-[var(--text-muted)] flex items-center justify-center gap-1">
+              <Gauge className="w-3.5 h-3.5 text-[var(--accent)]" />
+              <span>Tăng tốc 0–100</span>
+            </dt>
+            <dd className="text-base sm:text-lg font-bold text-[var(--text)] tabular-nums mt-0.5">
+              {accelVal}
+            </dd>
           </div>
-        </div>
+
+          <div className="px-3">
+            <dt className="text-xs text-[var(--text-muted)] flex items-center justify-center gap-1">
+              <Zap className="w-3.5 h-3.5 text-[var(--accent)]" />
+              <span>Tầm hoạt động</span>
+            </dt>
+            <dd className="text-base sm:text-lg font-bold text-[var(--text)] tabular-nums mt-0.5">
+              {rangeVal}
+            </dd>
+          </div>
+
+          <div className="px-3">
+            <dt className="text-xs text-[var(--text-muted)] flex items-center justify-center gap-1">
+              <BatteryCharging className="w-3.5 h-3.5 text-[var(--accent)]" />
+              <span>Sạc / nhiên liệu</span>
+            </dt>
+            <dd className="text-sm sm:text-base font-bold text-[var(--text)] tabular-nums mt-0.5 truncate">
+              {chargeVal}
+            </dd>
+          </div>
+        </dl>
       </div>
 
-      {/* 2. Thumbnails Array (4 Camera Perspectives) */}
+      {/* 2. Thumbnails Array */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
         {dynamicPerspectives.map((item, index) => {
           const isSelected = activePerspective === index;
@@ -221,61 +206,38 @@ export const CarStudioVisualizer: React.FC<CarStudioVisualizerProps> = ({
                   },
                 });
               }}
-              className={`group relative rounded-[4px] p-2 text-left bg-surface-elevated/70 border transition-all cursor-pointer overflow-hidden ${
-                isSelected
-                  ? 'border-accent-primary bg-surface-container shadow-[0_0_15px_rgba(137,206,255,0.2)]'
-                  : 'border-surface-highlight hover:border-border-subtle hover:bg-surface-elevated'
-              }`}
+              className={`rounded-lg p-2 text-left bg-[var(--surface)] border transition-colors cursor-pointer overflow-hidden ${isSelected
+                ? 'border-[var(--accent)] ring-1 ring-[var(--accent)]'
+                : 'border-[var(--line)] hover:border-[var(--line-strong)]'
+                }`}
             >
-              <div className="aspect-[16/9] w-full rounded-[2px] bg-canvas-deep overflow-hidden mb-1.5 border border-surface-highlight/50">
+              <div className="aspect-[16/9] w-full rounded bg-[var(--surface-subtle)] overflow-hidden mb-1.5">
                 <img
                   src={item.image}
                   alt={item.subLabel}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                  className="w-full h-full object-cover"
                 />
               </div>
-              <div className="space-y-0.5">
-                <div className={`text-[10px] font-mono font-bold tracking-tight uppercase ${
-                  isSelected ? 'text-accent-primary' : 'text-text-primary'
-                }`}>
-                  {item.label}
-                </div>
-                <div className="text-[9px] text-text-muted truncate">
-                  {item.subLabel}
-                </div>
+              <div className="text-xs font-medium text-[var(--text)] truncate">
+                {item.subLabel}
               </div>
-              {isSelected && (
-                <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-accent-primary" />
-              )}
             </button>
           );
         })}
       </div>
 
-      {/* 3. Quick Aerodynamic & Performance Visual Callout */}
-      <div className="p-4 rounded-lg bg-surface-elevated/50 border border-surface-highlight flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <div className="w-9 h-9 rounded bg-accent-action/15 border border-accent-primary/30 flex items-center justify-center text-accent-primary shrink-0 mt-0.5">
-            <Wind className="w-5 h-5 text-accent-primary" />
-          </div>
-          <div className="space-y-1">
-            <div className="text-xs font-bold text-text-primary flex items-center gap-2">
-              <span>Hệ số cản gió tối ưu Cd 0.205</span>
-              <span className="px-1.5 py-0.5 rounded-[2px] bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono text-[9px] font-bold">
-                TOP 1 PHÂN KHÚC
-              </span>
-            </div>
-            <p className="text-[11px] text-text-muted leading-relaxed">
-              Thiết kế thân xe dòng chảy khí động lưu thông minh với cánh gió thích ứng điện tử tự động nâng hạ theo dải tốc độ.
-            </p>
-          </div>
+      {/* 3. Concise Technical Highlight */}
+      <div className="p-4 rounded-lg bg-[var(--surface)] border border-[var(--line)] flex items-start gap-3">
+        <div className="w-9 h-9 rounded-lg bg-[var(--accent-soft)] flex items-center justify-center text-[var(--accent)] shrink-0">
+          <Wind className="w-4 h-4" />
         </div>
-
-        <div className="flex items-center gap-3 shrink-0 sm:border-l sm:border-surface-highlight sm:pl-4">
-          <div className="text-right">
-            <div className="text-[10px] font-mono text-text-muted uppercase">AIRFLOW EFFICIENCY</div>
-            <div className="text-sm font-black font-mono text-accent-primary">AERO DYNAMICS 98.4%</div>
+        <div className="space-y-0.5">
+          <div className="text-xs font-semibold text-[var(--text)]">
+            Thiết kế khí động học (Cd 0.205)
           </div>
+          <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+            Thân xe tối ưu luồng gió giúp giảm lực cản ở tốc độ cao và tăng hiệu quả vận hành.
+          </p>
         </div>
       </div>
     </div>

@@ -8,17 +8,17 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant = 'default', ...props }, ref) => {
     const variants = {
-      default: 'bg-slate-900/90 border border-slate-800 text-slate-100 shadow-sm',
-      elevated: 'bg-slate-900 border border-slate-700/80 text-slate-100 shadow-lg shadow-black/30',
-      glass: 'bg-slate-900/60 backdrop-blur-md border border-slate-800/80 text-slate-100',
-      subtle: 'bg-slate-950/60 border border-slate-800/60 text-slate-200',
+      default: 'bg-[var(--surface)] border border-[var(--line)] text-[var(--text)]',
+      elevated: 'bg-[var(--surface)] border border-[var(--line-strong)] text-[var(--text)] shadow-sm',
+      glass: 'bg-[var(--surface)] border border-[var(--line)] text-[var(--text)]',
+      subtle: 'bg-[var(--surface-subtle)] border border-[var(--line)] text-[var(--text-secondary)]',
     };
 
     return (
       <div
         ref={ref}
         className={cn(
-          'rounded-xl overflow-hidden transition-all duration-200',
+          'rounded-lg overflow-hidden transition-colors duration-200',
           variants[variant],
           className
         )}
@@ -37,7 +37,7 @@ export const CardHeader = React.forwardRef<HTMLDivElement, CardHeaderProps>(
   ({ className, action, children, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn('flex items-center justify-between p-5 pb-3 border-b border-slate-800/60 gap-4', className)}
+      className={cn('flex items-center justify-between p-5 pb-3 border-b border-[var(--line)] gap-4', className)}
       {...props}
     >
       <div className="space-y-1">{children}</div>
@@ -51,7 +51,7 @@ export const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttribut
   ({ className, ...props }, ref) => (
     <h3
       ref={ref}
-      className={cn('text-base font-bold text-white tracking-tight flex items-center gap-2', className)}
+      className={cn('text-base font-semibold text-[var(--text)] tracking-tight flex items-center gap-2', className)}
       {...props}
     />
   )
@@ -62,7 +62,7 @@ export const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTML
   ({ className, ...props }, ref) => (
     <p
       ref={ref}
-      className={cn('text-xs text-slate-400 font-normal', className)}
+      className={cn('text-xs text-[var(--text-muted)] font-normal', className)}
       {...props}
     />
   )
@@ -80,7 +80,7 @@ export const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn('flex items-center justify-between p-5 pt-3 border-t border-slate-800/60 text-xs text-slate-400', className)}
+      className={cn('flex items-center justify-between p-5 pt-3 border-t border-[var(--line)] text-xs text-[var(--text-secondary)]', className)}
       {...props}
     />
   )

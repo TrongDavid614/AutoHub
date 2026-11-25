@@ -8,9 +8,9 @@ export interface ComparisonRadarBenchmarkProps {
 }
 
 const TRIM_COLORS = [
-  { bar: 'bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.7)]', dot: 'bg-sky-400', text: 'text-sky-400' },
-  { bar: 'bg-accent-action shadow-[0_0_8px_rgba(14,165,233,0.8)]', dot: 'bg-accent-action', text: 'text-accent-primary' },
-  { bar: 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.7)]', dot: 'bg-amber-400', text: 'text-amber-400' },
+  { bar: 'bg-sky-600', dot: 'bg-sky-600', text: 'text-sky-700' },
+  { bar: 'bg-[var(--accent)]', dot: 'bg-[var(--accent)]', text: 'text-[var(--accent)]' },
+  { bar: 'bg-amber-600', dot: 'bg-amber-600', text: 'text-amber-700' },
 ];
 
 export const ComparisonRadarBenchmark: React.FC<ComparisonRadarBenchmarkProps> = ({

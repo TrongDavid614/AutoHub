@@ -300,8 +300,8 @@ export const ShiftHandoverPage: React.FC = () => {
                         {initials}
                       </div>
                     </div>
-                    <span className="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white dark:border-[#0B1326] flex items-center justify-center">
-                      <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                    <span className="w-5 h-5 rounded-full bg-emerald-500 border-2 border-white dark:border-[#0B1326] flex items-center justify-center">
+                      <span className="w-2 h-2 rounded-full bg-white" />
                     </span>
                   </div>
 
@@ -771,7 +771,7 @@ export const ShiftHandoverPage: React.FC = () => {
       {selectedRecordForDetail && (
         <div
           onClick={() => setSelectedRecordForDetail(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
         >
           <div
             onClick={(e) => e.stopPropagation()}
@@ -841,7 +841,7 @@ export const ShiftHandoverPage: React.FC = () => {
       {showPasswordModal && (
         <div
           onClick={() => setShowPasswordModal(false)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
         >
           <div
             onClick={(e) => e.stopPropagation()}

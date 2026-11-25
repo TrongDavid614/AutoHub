@@ -7,7 +7,6 @@ import {
   Copy,
   MapPin,
   FileCheck2,
-  Sparkles,
   RefreshCcw,
   X,
   Building,
@@ -41,58 +40,58 @@ export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
     switch (status) {
       case 'PAID':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 font-mono text-[11px] font-bold uppercase tracking-wider">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>ĐÃ ĐẶT CỌC (GIỮ SUẤT 72H)</span>
+            <span>Đã đặt cọc (Giữ suất 72h)</span>
           </span>
         );
       case 'RESERVED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-accent-action/15 border border-accent-action/40 text-accent-primary font-mono text-[11px] font-bold uppercase tracking-wider">
-            <Check className="w-3.5 h-3.5 stroke-[3]" />
-            <span>ĐÃ GÁN SỐ KHUNG VIN (RESERVED)</span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--accent-soft)] border border-[var(--accent)]/25 text-[var(--accent)] text-xs font-semibold">
+            <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span>Đã gán số khung VIN</span>
           </span>
         );
       case 'COMPLETED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-purple-500/15 border border-purple-500/40 text-purple-300 font-mono text-[11px] font-bold uppercase tracking-wider">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-violet-50 border border-violet-200 text-violet-700 text-xs font-semibold">
             <FileCheck2 className="w-3.5 h-3.5" />
-            <span>ĐÃ KÝ HỢP ĐỒNG (COMPLETED)</span>
+            <span>Đã ký hợp đồng</span>
           </span>
         );
       case 'PENDING_PAYMENT':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-sky-500/15 border border-sky-500/40 text-sky-300 font-mono text-[11px] font-bold uppercase tracking-wider">
-            <Clock className="w-3.5 h-3.5 animate-spin" />
-            <span>CHỜ THANH TOÁN (15 PHÚT)</span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-sky-50 border border-sky-200 text-sky-700 text-xs font-semibold">
+            <Clock className="w-3.5 h-3.5" />
+            <span>Chờ thanh toán (15 phút)</span>
           </span>
         );
       case 'REFUND_REQUESTED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-sky-500/15 border border-sky-500/40 text-sky-300 font-mono text-[11px] font-bold uppercase tracking-wider">
-            <RefreshCcw className="w-3.5 h-3.5 animate-spin" />
-            <span>ĐANG THẨM ĐỊNH HOÀN CỌC</span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold">
+            <RefreshCcw className="w-3.5 h-3.5" />
+            <span>Đang thẩm định hoàn cọc</span>
           </span>
         );
       case 'REFUNDED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-slate-500/15 border border-slate-500/40 text-slate-300 font-mono text-[11px] font-bold uppercase tracking-wider">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold">
             <Check className="w-3.5 h-3.5" />
-            <span>ĐÃ HOÀN TIỀN CỌC (REFUNDED)</span>
+            <span>Đã hoàn tiền cọc</span>
           </span>
         );
       case 'EXPIRED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-rose-500/15 border border-rose-500/40 text-rose-300 font-mono text-[11px] font-bold uppercase tracking-wider">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
             <AlertCircle className="w-3.5 h-3.5" />
-            <span>HẾT HẠN 72H (ĐÃ NHẢ SUẤT)</span>
+            <span>Hết hạn 72h</span>
           </span>
         );
       case 'CANCELLED':
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-rose-500/15 border border-rose-500/40 text-rose-300 font-mono text-[11px] font-bold uppercase tracking-wider">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-50 border border-red-200 text-red-700 text-xs font-semibold">
             <X className="w-3.5 h-3.5" />
-            <span>ĐÃ HỦY (CANCELLED)</span>
+            <span>Đã hủy</span>
           </span>
         );
     }
@@ -113,7 +112,7 @@ export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
               title="Sao chép mã phiếu cọc"
             >
               {copiedCode === item.depositCode ? (
-                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                <Check className="w-3.5 h-3.5 text-emerald-600" />
               ) : (
                 <Copy className="w-3.5 h-3.5" />
               )}
@@ -145,20 +144,19 @@ export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
             className="w-28 h-20 rounded-[4px] bg-canvas-deep border border-surface-highlight object-cover shrink-0"
           />
           <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[2px] bg-accent-action/15 text-accent-primary font-mono text-[10px] font-bold">
-              <Sparkles className="w-3 h-3" />
-              <span>SUẤT GIỮ XE ĐIỆN 72H LIÊN TỤC</span>
+            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[var(--accent-soft)] text-[var(--accent)] text-xs font-medium">
+              <span>Suất giữ xe điện 72h liên tục</span>
             </div>
             <h3
               onClick={() => onSelectReceipt(item)}
-              className="text-lg font-bold text-text-primary hover:text-[#89CEFF] cursor-pointer transition-colors"
+              className="text-lg font-bold text-text-primary hover:text-[var(--accent)] cursor-pointer transition-colors"
             >
               {item.carModelName}
             </h3>
             <p className="text-xs text-text-secondary">{item.carVariant}</p>
             <div className="flex items-center gap-2 pt-1">
               <span
-                className="w-3 h-3 rounded-full border border-white/20"
+                className="w-3 h-3 rounded-full border border-black/15"
                 style={{ backgroundColor: item.colorHex }}
               />
               <span className="text-xs text-text-muted">Màu sơn: {item.exteriorColor}</span>
@@ -170,17 +168,17 @@ export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
         <div className="space-y-2 text-xs text-text-secondary border-l border-surface-highlight/80 pl-4 min-w-[300px]">
           {/* Số khung VIN nếu đã được Staff gán sau đối soát */}
           {item.vinNumber ? (
-            <div className="p-2 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-mono text-xs">
-              <div className="text-[10px] uppercase font-bold text-emerald-400">Số khung (VIN) gán giữ chỗ:</div>
-              <div className="font-bold text-sm tracking-wider">{item.vinNumber}</div>
+            <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono text-xs">
+              <div className="text-xs font-sans font-semibold text-emerald-700">Số khung (VIN) gán giữ chỗ:</div>
+              <div className="font-bold text-sm tracking-wider tabular-nums">{item.vinNumber}</div>
             </div>
           ) : item.status === 'PAID' ? (
-            <div className="p-2 rounded bg-accent-action/10 border border-accent-primary/30 text-accent-primary font-mono text-xs">
-              <div className="text-[10px] uppercase font-bold text-accent-primary flex items-center gap-1">
-                <Clock className="w-3 h-3 animate-pulse text-accent-primary" />
+            <div className="p-2.5 rounded-lg bg-[var(--accent-soft)] border border-[var(--accent)]/25 text-[var(--accent)] text-xs">
+              <div className="text-xs font-semibold flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5" />
                 <span>Thời hạn giữ chỗ 72h còn lại:</span>
               </div>
-              <div className="font-bold text-sm tracking-wide mt-0.5 text-accent-primary">
+              <div className="font-mono font-bold text-sm tabular-nums mt-0.5">
                 {format72hCountdown(remainingSeconds)}
               </div>
             </div>
@@ -222,9 +220,9 @@ export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
           <button
             type="button"
             onClick={() => onSelectReceipt(item)}
-            className="px-3.5 py-2 rounded-[2px] bg-[#0EA5E9]/15 hover:bg-[#0EA5E9]/25 border border-[#0EA5E9]/30 text-xs font-semibold text-[#89CEFF] flex items-center gap-1.5 cursor-pointer transition-colors"
+            className="px-3.5 py-2 rounded-lg bg-[var(--accent-soft)] hover:bg-[var(--accent)]/15 border border-[var(--accent)]/25 text-xs font-semibold text-[var(--accent)] flex items-center gap-1.5 cursor-pointer transition-colors"
           >
-            <FileText className="w-3.5 h-3.5 text-[#89CEFF]" />
+            <FileText className="w-3.5 h-3.5" />
             <span>Chi tiết & Biên nhận</span>
           </button>
 

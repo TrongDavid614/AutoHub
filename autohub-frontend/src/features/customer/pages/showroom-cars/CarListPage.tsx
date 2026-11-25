@@ -1,868 +1,809 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { 
-  Filter, 
-  ArrowRight,
-  Shield,
-  Layers,
-  Sparkles,
-  Lock,
-  ChevronRight,
-  LayoutGrid,
-  List,
+import React, { useMemo, useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import {
+  Search,
+  SlidersHorizontal,
+  X,
   Scale,
-  CheckCircle2
+  ArrowRight,
+  RotateCcw,
+  AlertCircle,
+  Car,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
-import type { MockCar } from '@/features/customer/mocks/car.mock';
-import type { CarVariant } from '@/types/car.types';
 import { carService } from '@/features/customer/services/car.service';
 import { useCompareStore } from '@/store/useCompareStore';
-import { useStickySidebar } from '@/hooks/useStickySidebar';
+import { MAX_COMPARE_CARS } from '@/config/constants';
+import { cn } from '@/lib/utils';
+import type { MockCar } from '@/features/customer/mocks/car.mock';
+import type { CarVariant } from '@/types/car.types';
+
+type SortOption = 'PRICE_ASC' | 'PRICE_DESC' | 'POWER_DESC' | 'RANGE_DESC';
+type PriceRangeOption = 'ALL' | 'UNDER_1B' | 'FROM_1B_TO_2B' | 'OVER_2B';
+
+const ITEMS_PER_PAGE = 6;
+
+const PRICE_RANGES: { value: PriceRangeOption; label: string }[] = [
+  { value: 'ALL', label: 'Tất cả mức giá' },
+  { value: 'UNDER_1B', label: 'Dưới 1 tỷ' },
+  { value: 'FROM_1B_TO_2B', label: 'Từ 1 – 2 tỷ' },
+  { value: 'OVER_2B', label: 'Trên 2 tỷ' },
+];
+
+const POWERTRAIN_OPTIONS = [
+  { value: 'ALL', label: 'Tất cả hệ truyền động' },
+  { value: 'EV', label: 'Thuần điện (EV)' },
+  { value: 'HYBRID', label: 'Hybrid / Plug-in Hybrid' },
+  { value: 'ICE', label: 'Động cơ xăng / dầu' },
+];
+
+const mapMockCarToVariant = (car: MockCar): CarVariant => ({
+  id: Number(car.id) || 1,
+  modelId: Number(car.id) || 1,
+  variantName: car.name,
+  engineSpecs: car.powertrain,
+  horsepower: parseInt(car.power, 10) || undefined,
+  fuelType: car.powertrain,
+  listedPrice: car.listedPrice,
+  depositPrice: car.depositAmount,
+  images: [
+    {
+      id: 1,
+      imageUrl: car.image,
+      viewType: 'THUMBNAIL',
+      displayOrder: 1,
+    },
+  ],
+});
+
+const getPowertrainCategory = (powertrain: string): 'EV' | 'HYBRID' | 'ICE' => {
+  const normalized = powertrain.toLowerCase();
+  if (normalized.includes('hybrid') || normalized.includes('phev')) return 'HYBRID';
+  if (normalized.includes('điện') || normalized.includes('ev')) return 'EV';
+  return 'ICE';
+};
+
+interface CarFilterPanelProps {
+  segments: string[];
+  selectedSegment: string;
+  onSelectSegment: (segment: string) => void;
+  selectedPowertrain: string;
+  onSelectPowertrain: (powertrain: string) => void;
+  selectedPriceRange: PriceRangeOption;
+  onSelectPriceRange: (range: PriceRangeOption) => void;
+  selectedSeats: string;
+  onSelectSeats: (seats: string) => void;
+  seatOptions: string[];
+  hasActiveFilters: boolean;
+  onResetFilters: () => void;
+}
+
+const CarFilterPanel: React.FC<CarFilterPanelProps> = ({
+  segments,
+  selectedSegment,
+  onSelectSegment,
+  selectedPowertrain,
+  onSelectPowertrain,
+  selectedPriceRange,
+  onSelectPriceRange,
+  selectedSeats,
+  onSelectSeats,
+  seatOptions,
+  hasActiveFilters,
+  onResetFilters,
+}) => {
+  return (
+    <div className="bg-[var(--surface)] border border-[var(--line)] rounded-lg p-5 space-y-5">
+      <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
+        <h2 className="text-sm font-semibold text-[var(--text)]">Bộ lọc xe</h2>
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={onResetFilters}
+            className="inline-flex items-center gap-1 text-xs font-medium text-[var(--accent)] hover:underline cursor-pointer"
+          >
+            <RotateCcw className="w-3 h-3" />
+            Xóa bộ lọc
+          </button>
+        )}
+      </div>
+
+      {/* Kiểu dáng / Phân khúc */}
+      <div className="space-y-2.5">
+        <h3 className="text-xs font-semibold text-[var(--text-secondary)]">Kiểu dáng</h3>
+        <div className="space-y-1">
+          <button
+            type="button"
+            onClick={() => onSelectSegment('ALL')}
+            className={cn(
+              'w-full text-left px-2.5 py-1.5 rounded-md text-[13px] transition-colors cursor-pointer',
+              selectedSegment === 'ALL'
+                ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-medium'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text)]'
+            )}
+          >
+            Tất cả kiểu dáng
+          </button>
+          {segments.map((seg) => (
+            <button
+              key={seg}
+              type="button"
+              onClick={() => onSelectSegment(seg)}
+              className={cn(
+                'w-full text-left px-2.5 py-1.5 rounded-md text-[13px] transition-colors cursor-pointer',
+                selectedSegment === seg
+                  ? 'bg-[var(--accent-soft)] text-[var(--accent)] font-medium'
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)] hover:text-[var(--text)]'
+              )}
+            >
+              {seg}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Hệ truyền động */}
+      <div className="space-y-2.5 pt-4 border-t border-[var(--line)]">
+        <h3 className="text-xs font-semibold text-[var(--text-secondary)]">Hệ truyền động</h3>
+        <div className="space-y-1.5">
+          {POWERTRAIN_OPTIONS.map((opt) => (
+            <label
+              key={opt.value}
+              className="flex items-center gap-2.5 py-1 text-[13px] text-[var(--text)] cursor-pointer select-none"
+            >
+              <input
+                type="radio"
+                name="powertrain"
+                checked={selectedPowertrain === opt.value}
+                onChange={() => onSelectPowertrain(opt.value)}
+                className="w-3.5 h-3.5 accent-[var(--accent)] cursor-pointer"
+              />
+              <span>{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Khoảng giá */}
+      <div className="space-y-2.5 pt-4 border-t border-[var(--line)]">
+        <h3 className="text-xs font-semibold text-[var(--text-secondary)]">Khoảng giá niêm yết</h3>
+        <div className="space-y-1.5">
+          {PRICE_RANGES.map((opt) => (
+            <label
+              key={opt.value}
+              className="flex items-center gap-2.5 py-1 text-[13px] text-[var(--text)] cursor-pointer select-none"
+            >
+              <input
+                type="radio"
+                name="priceRange"
+                checked={selectedPriceRange === opt.value}
+                onChange={() => onSelectPriceRange(opt.value)}
+                className="w-3.5 h-3.5 accent-[var(--accent)] cursor-pointer"
+              />
+              <span>{opt.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Số chỗ ngồi */}
+      {seatOptions.length > 0 && (
+        <div className="space-y-2.5 pt-4 border-t border-[var(--line)]">
+          <h3 className="text-xs font-semibold text-[var(--text-secondary)]">Số chỗ ngồi</h3>
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              type="button"
+              onClick={() => onSelectSeats('ALL')}
+              className={cn(
+                'px-2.5 py-1 rounded-md text-xs border transition-colors cursor-pointer',
+                selectedSeats === 'ALL'
+                  ? 'bg-[var(--accent-soft)] border-[var(--accent)] text-[var(--accent)] font-medium'
+                  : 'bg-[var(--surface)] border-[var(--line)] text-[var(--text-secondary)] hover:border-[var(--line-strong)]'
+              )}
+            >
+              Tất cả
+            </button>
+            {seatOptions.map((seat) => (
+              <button
+                key={seat}
+                type="button"
+                onClick={() => onSelectSeats(seat)}
+                className={cn(
+                  'px-2.5 py-1 rounded-md text-xs border transition-colors cursor-pointer',
+                  selectedSeats === seat
+                    ? 'bg-[var(--accent-soft)] border-[var(--accent)] text-[var(--accent)] font-medium'
+                    : 'bg-[var(--surface)] border-[var(--line)] text-[var(--text-secondary)] hover:border-[var(--line-strong)]'
+                )}
+              >
+                {seat}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const CarListPage: React.FC = () => {
-  const navigate = useNavigate();
-  const { addVariantToCompare } = useCompareStore();
-  const filterSidebarRef = useStickySidebar<HTMLElement>({ headerOffset: 80, bottomOffset: 24 });
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialSearch = searchParams.get('search') || '';
 
-  // View Mode: 'row' (Bộ Sưu tập dòng xe dạng row) vs 'grid' (Bộ Sưu tập dòng xe)
-  const [viewMode, setViewMode] = useState<'row' | 'grid'>('row');
-
-  // Real Database Cars state
   const [cars, setCars] = useState<MockCar[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchCars = () => {
-    setLoading(true);
+  const [searchQuery, setSearchQuery] = useState<string>(initialSearch);
+  const [selectedSegment, setSelectedSegment] = useState<string>('ALL');
+  const [selectedPowertrain, setSelectedPowertrain] = useState<string>('ALL');
+  const [selectedPriceRange, setSelectedPriceRange] = useState<PriceRangeOption>('ALL');
+  const [selectedSeats, setSelectedSeats] = useState<string>('ALL');
+  const [sortBy, setSortBy] = useState<SortOption>('PRICE_ASC');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState<boolean>(false);
+
+  const selectedVariants = useCompareStore((s) => s.selectedVariants);
+  const addVariantToCompare = useCompareStore((s) => s.addVariantToCompare);
+  const removeVariantFromCompare = useCompareStore((s) => s.removeVariantFromCompare);
+  const clearCompareList = useCompareStore((s) => s.clearCompareList);
+
+  const fetchCars = async () => {
+    setIsLoading(true);
     setError(null);
-    carService.getAllCars()
-      .then((data) => {
-        setCars(data || []);
-      })
-      .catch((err) => {
-        setError(err instanceof Error ? err.message : 'Không thể kết nối đến máy chủ cơ sở dữ liệu xe.');
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    try {
+      const data = await carService.getAllCars();
+      setCars(data || []);
+    } catch {
+      setError('Không thể tải danh sách xe lúc này. Vui lòng thử lại sau.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
     fetchCars();
   }, []);
 
-  // Filters state
-  const [selectedSegment, setSelectedSegment] = useState<string>('all');
-  const [priceRange, setPriceRange] = useState<string>('all');
-  const [selectedPowertrains, setSelectedPowertrains] = useState<string[]>([]);
-  const [selectedSeats, setSelectedSeats] = useState<string>('all');
-  const [selectedColor, setSelectedColor] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<string>('recommended');
+  useEffect(() => {
+    const paramSearch = searchParams.get('search') || '';
+    if (paramSearch !== searchQuery) {
+      setSearchQuery(paramSearch);
+    }
+    // Only sync when URL query changes externally (e.g., from header search)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
-  const activeFilterCount = useMemo(() => {
-    return (
-      (selectedSegment !== 'all' ? 1 : 0) +
-      (priceRange !== 'all' ? 1 : 0) +
-      selectedPowertrains.length +
-      (selectedSeats !== 'all' ? 1 : 0) +
-      (selectedColor !== 'all' ? 1 : 0)
-    );
-  }, [selectedSegment, priceRange, selectedPowertrains, selectedSeats, selectedColor]);
-
-  const filterSegments = useMemo(() => {
-    const map = new Map<string, number>();
-    cars.forEach((car) => {
-      map.set(car.segment, (map.get(car.segment) || 0) + 1);
-    });
-    return Array.from(map.entries()).map(([label, count]) => ({ label, count }));
+  const segments = useMemo(() => {
+    return Array.from(new Set(cars.map((c) => c.segment).filter(Boolean)));
   }, [cars]);
 
-  const powertrains = useMemo(() => {
-    return Array.from(new Set(cars.map((c) => c.powertrain)));
+  const seatOptions = useMemo(() => {
+    const extracted = cars
+      .map((c) => {
+        const match = c.seats.match(/\d+\s*chỗ/i);
+        return match ? match[0] : c.seats;
+      })
+      .filter(Boolean);
+    return Array.from(new Set(extracted));
   }, [cars]);
-
-  const colors = [
-    { name: 'Xanh Phantom', hex: '#00A6E0' },
-    { name: 'Đen Obsidian', hex: '#060E20' },
-    { name: 'Trắng Ngọc Trai', hex: '#DAE2FD' },
-    { name: 'Bạc Titanium', hex: '#88929B' },
-  ];
-
-  const handleResetFilters = () => {
-    setSelectedSegment('all');
-    setPriceRange('all');
-    setSelectedPowertrains([]);
-    setSelectedSeats('all');
-    setSelectedColor('all');
-  };
-
-  const togglePowertrain = (pt: string) => {
-    setSelectedPowertrains((prev) =>
-      prev.includes(pt) ? prev.filter((p) => p !== pt) : [...prev, pt]
-    );
-  };
 
   const filteredCars = useMemo(() => {
-    return cars.filter((car) => {
-      if (selectedSegment !== 'all' && car.segment !== selectedSegment) return false;
-      if (selectedPowertrains.length > 0 && !selectedPowertrains.includes(car.powertrain)) return false;
-      if (selectedSeats !== 'all') {
-        const seatsNum = car.seats.match(/\d+/)?.[0];
-        if (seatsNum !== selectedSeats) return false;
-      }
-      if (selectedColor !== 'all') {
-        const hasColor = car.availableColors.some((c) =>
-          c.name.toLowerCase().includes(selectedColor.toLowerCase())
-        );
-        if (!hasColor) return false;
-      }
-      if (priceRange === '< 2 tỷ' && car.listedPrice >= 2000000000) return false;
-      if (priceRange === '2 - 3 tỷ' && (car.listedPrice < 2000000000 || car.listedPrice > 3000000000)) return false;
-      if (priceRange === '> 3 tỷ' && car.listedPrice <= 3000000000) return false;
-      return true;
-    }).sort((a, b) => {
-      if (sortBy === 'price-asc') return a.listedPrice - b.listedPrice;
-      if (sortBy === 'price-desc') return b.listedPrice - a.listedPrice;
-      return 0;
-    });
-  }, [cars, selectedSegment, selectedPowertrains, selectedSeats, selectedColor, priceRange, sortBy]);
+    const query = searchQuery.trim().toLowerCase();
 
-  const handleCompare = (car: MockCar) => {
-    const realId = Number(car.id) || 1;
-    const newVariant: CarVariant = {
-      id: realId,
-      modelId: 1,
-      variantName: car.name,
-      engineSpecs: car.powertrain,
-      horsepower: parseInt(car.power.replace(/\D/g, ''), 10) || 500,
-      transmission: 'AUTOMATIC',
-      fuelType: 'ELECTRIC',
-      listedPrice: car.listedPrice,
-      depositPrice: car.depositAmount,
-      colors: car.availableColors.map((c, i) => ({ id: i + 1, colorName: c.name, colorCodeHex: c.hex })),
-      images: [{ id: 1, imageUrl: car.image, viewType: 'THUMBNAIL', displayOrder: 1 }],
-    };
+    return cars
+      .filter((car) => {
+        if (query) {
+          const matchesQuery =
+            car.name.toLowerCase().includes(query) ||
+            car.segment.toLowerCase().includes(query) ||
+            car.powertrain.toLowerCase().includes(query) ||
+            car.subtitle.toLowerCase().includes(query);
+          if (!matchesQuery) return false;
+        }
 
-    addVariantToCompare(newVariant);
+        if (selectedSegment !== 'ALL' && car.segment !== selectedSegment) {
+          return false;
+        }
 
-    // Ensure the clicked car is definitively included in the navigate URL and store
-    const currentVariants = useCompareStore.getState().selectedVariants;
-    let nextVariants = currentVariants;
-    if (!nextVariants.some((v) => Number(v.id) === realId)) {
-      if (nextVariants.length >= 3) {
-        nextVariants = [...nextVariants.slice(0, 2), newVariant];
-      } else {
-        nextVariants = [...nextVariants, newVariant];
-      }
-      useCompareStore.getState().setVariantsToCompare(nextVariants);
+        if (selectedPowertrain !== 'ALL' && getPowertrainCategory(car.powertrain) !== selectedPowertrain) {
+          return false;
+        }
+
+        if (selectedPriceRange === 'UNDER_1B' && car.listedPrice >= 1_000_000_000) return false;
+        if (
+          selectedPriceRange === 'FROM_1B_TO_2B' &&
+          (car.listedPrice < 1_000_000_000 || car.listedPrice > 2_000_000_000)
+        ) {
+          return false;
+        }
+        if (selectedPriceRange === 'OVER_2B' && car.listedPrice <= 2_000_000_000) return false;
+
+        if (
+          selectedSeats !== 'ALL' &&
+          !car.seats.toLowerCase().includes(selectedSeats.toLowerCase())
+        ) {
+          return false;
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortBy === 'PRICE_ASC') return a.listedPrice - b.listedPrice;
+        if (sortBy === 'PRICE_DESC') return b.listedPrice - a.listedPrice;
+        if (sortBy === 'POWER_DESC') {
+          return (parseInt(b.power, 10) || 0) - (parseInt(a.power, 10) || 0);
+        }
+        if (sortBy === 'RANGE_DESC') {
+          return (parseInt(b.range, 10) || 0) - (parseInt(a.range, 10) || 0);
+        }
+        return 0;
+      });
+  }, [
+    cars,
+    searchQuery,
+    selectedSegment,
+    selectedPowertrain,
+    selectedPriceRange,
+    selectedSeats,
+    sortBy,
+  ]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedSegment, selectedPowertrain, selectedPriceRange, selectedSeats, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredCars.length / ITEMS_PER_PAGE));
+  const paginatedCars = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredCars.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredCars, currentPage]);
+
+  const activeFilterCount =
+    (selectedSegment !== 'ALL' ? 1 : 0) +
+    (selectedPowertrain !== 'ALL' ? 1 : 0) +
+    (selectedPriceRange !== 'ALL' ? 1 : 0) +
+    (selectedSeats !== 'ALL' ? 1 : 0) +
+    (searchQuery.trim() ? 1 : 0);
+
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setSelectedSegment('ALL');
+    setSelectedPowertrain('ALL');
+    setSelectedPriceRange('ALL');
+    setSelectedSeats('ALL');
+    if (searchParams.has('search')) {
+      setSearchParams({});
     }
-    const ids = nextVariants.map((v) => v.id).join(',');
-    navigate(`/car-comparison?ids=${ids}`);
+  };
+
+  const handleToggleCompare = (car: MockCar) => {
+    const idNum = Number(car.id) || 1;
+    const exists = selectedVariants.some((v) => Number(v.id) === idNum);
+    if (exists) {
+      removeVariantFromCompare(idNum);
+    } else {
+      addVariantToCompare(mapMockCarToVariant(car));
+    }
   };
 
   return (
-    <div className="w-full space-y-6 text-[#DAE2FD] antialiased animate-fadeIn">
-      {/* BREADCRUMB & HEADER SECTION */}
-      <div className="space-y-3 pb-4 border-b border-[#3E4850]/40">
-        <nav className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-[#88929B] uppercase tracking-wider">
-          <Link to="/" className="hover:text-[#89CEFF] transition-colors">TRANG CHỦ</Link>
-          <span className="text-[#2D3449]">/</span>
-          <span className="text-[#88929B]">DÒNG XE</span>
-          <span className="text-[#2D3449]">/</span>
-          <span className="text-[#89CEFF]">
-            {viewMode === 'row' ? 'DANH MỤC XE ĐIỆN AUTOHUB' : 'BỘ SƯU TẬP DÒNG XE'}
-          </span>
-        </nav>
+    <div className="min-h-screen bg-[var(--bg)] pb-20">
+      {/* Page Header */}
+      <div className="bg-[var(--surface)] border-b border-[var(--line)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-[28px] font-bold text-[var(--text)] tracking-tight">
+                Xe sẵn sàng giao{' '}
+                {!isLoading && (
+                  <span className="text-lg font-medium text-[var(--text-muted)] tabular-nums">
+                    ({filteredCars.length})
+                  </span>
+                )}
+              </h1>
+              <p className="text-sm text-[var(--text-secondary)] mt-1">
+                Giá niêm yết minh bạch, ước tính lăn bánh theo tỉnh thành và hỗ trợ đặt cọc giữ xe trong 72 giờ.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 text-xs">
+              <Link
+                to="/car-estimator"
+                className="px-3.5 py-2 rounded-lg border border-[var(--line-strong)] bg-[var(--surface)] hover:bg-[var(--surface-subtle)] text-[var(--text)] font-medium transition-colors"
+              >
+                Dự toán lăn bánh
+              </Link>
+              <Link
+                to="/car-comparison"
+                className="px-3.5 py-2 rounded-lg border border-[var(--line-strong)] bg-[var(--surface)] hover:bg-[var(--surface-subtle)] text-[var(--text)] font-medium transition-colors inline-flex items-center gap-1.5"
+              >
+                <Scale className="w-3.5 h-3.5 text-[var(--accent)]" />
+                So sánh xe ({selectedVariants.length}/{MAX_COMPARE_CARS})
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            {viewMode === 'row' ? (
-              <>
-                <h1 className="text-xl md:text-2xl font-bold text-[#DAE2FD] tracking-tight">
-                  Bộ Sưu Tập Xe Hiệu Năng <span className="text-[#89CEFF] drop-shadow-[0_0_16px_rgba(14,165,233,0.35)]">Cao Cấp AutoHub</span>
-                </h1>
-                <p className="text-sm text-[#BEC8D2] mt-0.5">Khám phá dải sản phẩm xe điện thông minh thuần điện thế hệ mới với công nghệ sạc 800V SiC và hệ sinh thái AutoHub.</p>
-              </>
-            ) : (
-              <>
-                <h1 className="text-xl md:text-2xl font-bold text-[#DAE2FD] tracking-tight">
-                  Bộ Sưu Tập Xe Hiệu Năng <span className="text-[#89CEFF] drop-shadow-[0_0_16px_rgba(14,165,233,0.35)]">Cao Cấp AutoHub</span>
-                </h1>
-                <p className="text-sm text-[#BEC8D2] mt-0.5">Khám phá dải sản phẩm xe điện thông minh thuần điện thế hệ mới với công nghệ sạc 800V SiC và hệ sinh thái AutoHub.</p>
-              </>
+      {/* Main Content Layout */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
+          {/* Desktop Sidebar Filter */}
+          <aside className="hidden lg:block w-64 shrink-0 sticky top-20">
+            <CarFilterPanel
+              segments={segments}
+              selectedSegment={selectedSegment}
+              onSelectSegment={setSelectedSegment}
+              selectedPowertrain={selectedPowertrain}
+              onSelectPowertrain={setSelectedPowertrain}
+              selectedPriceRange={selectedPriceRange}
+              onSelectPriceRange={setSelectedPriceRange}
+              selectedSeats={selectedSeats}
+              onSelectSeats={setSelectedSeats}
+              seatOptions={seatOptions}
+              hasActiveFilters={activeFilterCount > 0}
+              onResetFilters={handleResetFilters}
+            />
+          </aside>
+
+          {/* Catalog Column */}
+          <div className="flex-1 min-w-0 w-full space-y-5">
+            {/* Search & Sort Toolbar */}
+            <div className="bg-[var(--surface)] border border-[var(--line)] rounded-lg p-3.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 flex-1">
+                <button
+                  type="button"
+                  onClick={() => setIsMobileFilterOpen(true)}
+                  className="lg:hidden inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[var(--line-strong)] text-xs font-medium text-[var(--text)] hover:bg-[var(--surface-subtle)] cursor-pointer shrink-0"
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5" />
+                  Bộ lọc
+                  {activeFilterCount > 0 && (
+                    <span className="px-1.5 py-0.5 rounded-full bg-[var(--accent)] text-white text-[10px] tabular-nums">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
+
+                <div className="relative flex-1 max-w-md">
+                  <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Tìm theo tên xe, kiểu dáng, loại động cơ..."
+                    className="w-full pl-9 pr-8 py-2 rounded-lg bg-[var(--surface)] border border-[var(--line-strong)] text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] transition-colors"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      aria-label="Xóa từ khóa tìm kiếm"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text)] cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                <span className="text-xs text-[var(--text-muted)] tabular-nums">
+                  {filteredCars.length} kết quả
+                </span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortOption)}
+                  aria-label="Sắp xếp danh sách xe"
+                  className="px-3 py-2 rounded-lg bg-[var(--surface)] border border-[var(--line-strong)] text-xs font-medium text-[var(--text)] focus:outline-none focus:border-[var(--accent)] cursor-pointer"
+                >
+                  <option value="PRICE_ASC">Giá từ thấp đến cao</option>
+                  <option value="PRICE_DESC">Giá từ cao đến thấp</option>
+                  <option value="POWER_DESC">Công suất cao nhất</option>
+                  <option value="RANGE_DESC">Tầm hoạt động xa nhất</option>
+                </select>
+              </div>
+            </div>
+
+            {/* State 1: Loading */}
+            {isLoading && (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                {Array.from({ length: 6 }).map((_, idx) => (
+                  <div
+                    key={idx}
+                    className="rounded-lg bg-[var(--surface)] border border-[var(--line)] overflow-hidden"
+                  >
+                    <div className="aspect-[16/10] bg-[var(--surface-subtle)]" />
+                    <div className="p-5 space-y-3">
+                      <div className="h-3 w-20 bg-[var(--surface-subtle)] rounded" />
+                      <div className="h-5 w-3/4 bg-[var(--surface-subtle)] rounded" />
+                      <div className="grid grid-cols-2 gap-2 pt-2">
+                        <div className="h-8 bg-[var(--surface-subtle)] rounded" />
+                        <div className="h-8 bg-[var(--surface-subtle)] rounded" />
+                      </div>
+                      <div className="h-6 w-1/2 bg-[var(--surface-subtle)] rounded pt-2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* State 2: Error */}
+            {!isLoading && error && (
+              <div className="bg-[var(--surface)] border border-[var(--line)] rounded-lg p-10 text-center space-y-3">
+                <AlertCircle className="w-8 h-8 text-[var(--danger)] mx-auto" />
+                <p className="text-sm font-semibold text-[var(--text)]">{error}</p>
+                <button
+                  type="button"
+                  onClick={fetchCars}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-sm font-medium text-white transition-colors cursor-pointer"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Thử lại
+                </button>
+              </div>
+            )}
+
+            {/* State 3: Empty */}
+            {!isLoading && !error && filteredCars.length === 0 && (
+              <div className="bg-[var(--surface)] border border-[var(--line)] rounded-lg p-12 text-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-[var(--surface-subtle)] border border-[var(--line)] flex items-center justify-center mx-auto text-[var(--text-muted)]">
+                  <Car className="w-6 h-6" />
+                </div>
+                <h3 className="text-base font-semibold text-[var(--text)]">
+                  Không tìm thấy mẫu xe phù hợp
+                </h3>
+                <p className="text-sm text-[var(--text-secondary)] max-w-md mx-auto">
+                  Thử điều chỉnh lại mức giá, kiểu dáng hoặc xóa bớt bộ lọc để xem thêm xe tại showroom.
+                </p>
+                {activeFilterCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleResetFilters}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-[var(--line-strong)] bg-[var(--surface)] hover:bg-[var(--surface-subtle)] text-sm font-medium text-[var(--text)] transition-colors cursor-pointer"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    Xóa toàn bộ bộ lọc
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* State 4: Car Grid */}
+            {!isLoading && !error && paginatedCars.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                {paginatedCars.map((car) => {
+                  const isInCompare = selectedVariants.some(
+                    (v) => Number(v.id) === (Number(car.id) || 1)
+                  );
+                  const shortRange = car.range ? car.range.split(' ')[0] + ' km' : '—';
+                  const shortPower = car.power ? car.power.split('(')[0].trim() : '—';
+
+                  return (
+                    <article
+                      key={car.id}
+                      className="group bg-[var(--surface)] border border-[var(--line)] hover:border-[var(--line-strong)] rounded-lg overflow-hidden transition-colors flex flex-col"
+                    >
+                      {/* Clean 16:10 Car Photo */}
+                      <Link
+                        to={`/cars/${car.id}`}
+                        className="relative aspect-[16/10] bg-[var(--surface-subtle)] overflow-hidden block"
+                      >
+                        <img
+                          src={car.image}
+                          alt={car.name}
+                          loading="lazy"
+                          className="w-full h-full object-cover object-center group-hover:scale-[1.02] transition-transform duration-300"
+                        />
+                        {car.isUpcoming && (
+                          <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded bg-[var(--surface)]/95 border border-[var(--line)] text-[11px] font-medium text-[var(--text)]">
+                            Sắp mở bán
+                          </span>
+                        )}
+                      </Link>
+
+                      {/* Card Body */}
+                      <div className="p-5 flex-1 flex flex-col justify-between gap-4">
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-xs text-[var(--text-muted)]">{car.segment}</p>
+                            <Link to={`/cars/${car.id}`} className="block mt-0.5">
+                              <h3 className="text-[17px] font-semibold text-[var(--text)] group-hover:text-[var(--accent)] transition-colors line-clamp-1">
+                                {car.name}
+                              </h3>
+                            </Link>
+                          </div>
+
+                          {/* 4 Plain Specs without nested boxes */}
+                          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs pt-2 border-t border-[var(--line)]">
+                            <div>
+                              <dt className="text-[var(--text-muted)]">Truyền động</dt>
+                              <dd className="text-[var(--text)] font-medium mt-0.5 truncate">
+                                {car.powertrain}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-[var(--text-muted)]">Công suất</dt>
+                              <dd className="text-[var(--text)] font-medium tabular-nums mt-0.5 truncate">
+                                {shortPower}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-[var(--text-muted)]">Tầm hoạt động</dt>
+                              <dd className="text-[var(--text)] font-medium tabular-nums mt-0.5">
+                                {shortRange}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-[var(--text-muted)]">Số chỗ</dt>
+                              <dd className="text-[var(--text)] font-medium mt-0.5 truncate">
+                                {car.seats}
+                              </dd>
+                            </div>
+                          </dl>
+                        </div>
+
+                        {/* Price & Single Primary CTA */}
+                        <div className="pt-3 border-t border-[var(--line)] space-y-3">
+                          <div>
+                            <p className="text-xl font-bold text-[var(--text)] tabular-nums">
+                              {car.listedPrice.toLocaleString('vi-VN')} ₫
+                            </p>
+                            <p className="text-xs text-[var(--text-secondary)] mt-0.5 tabular-nums">
+                              {car.depositNote || `Cọc giữ xe 72h: ${car.depositAmount.toLocaleString('vi-VN')} ₫`}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center justify-between gap-3">
+                            <Link
+                              to={`/cars/${car.id}`}
+                              className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-sm font-medium text-white transition-colors"
+                            >
+                              <span>Xem chi tiết</span>
+                              <ArrowRight className="w-4 h-4" />
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleCompare(car)}
+                              className={cn(
+                                'inline-flex items-center gap-1 py-2 px-2.5 rounded-lg text-xs font-medium transition-colors cursor-pointer',
+                                isInCompare
+                                  ? 'text-[var(--accent)] bg-[var(--accent-soft)]'
+                                  : 'text-[var(--text-secondary)] hover:text-[var(--text)]'
+                              )}
+                            >
+                              <Scale className="w-3.5 h-3.5" />
+                              <span>{isInCompare ? 'Đã chọn' : 'So sánh'}</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Pagination */}
+            {!isLoading && !error && totalPages > 1 && (
+              <div className="flex items-center justify-between pt-4 border-t border-[var(--line)] text-xs text-[var(--text-secondary)]">
+                <span className="tabular-nums">
+                  Trang <strong className="text-[var(--text)]">{currentPage}</strong> / {totalPages}
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    disabled={currentPage <= 1}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-subtle)] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                    Trước
+                  </button>
+                  {Array.from({ length: totalPages }).map((_, idx) => {
+                    const page = idx + 1;
+                    return (
+                      <button
+                        key={page}
+                        type="button"
+                        onClick={() => setCurrentPage(page)}
+                        className={cn(
+                          'w-8 h-8 rounded-lg text-xs font-medium tabular-nums border cursor-pointer transition-colors',
+                          currentPage === page
+                            ? 'bg-[var(--accent)] border-[var(--accent)] text-white'
+                            : 'bg-[var(--surface)] border-[var(--line)] text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)]'
+                        )}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-subtle)] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    Sau
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* MAIN 2-COLUMN CATALOG CONTAINER */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* LEFT COLUMN: MULTI-FACET FILTER SIDEBAR (Col 3) */}
-        <aside ref={filterSidebarRef} style={{ position: 'sticky', top: '5rem' }} className="lg:col-span-3 bg-[#131B2E] border border-[#3E4850]/50 rounded-[4px] p-4 shadow-xl space-y-4 sticky text-xs">
-          {/* Header */}
-          <div className="flex items-center justify-between pb-3 border-b border-[#3E4850]/50">
-            <div className="flex items-center gap-2 font-bold uppercase tracking-wider text-[#DAE2FD]">
-              <Filter className="w-4 h-4 text-[#89CEFF]" />
-              <span className="font-mono text-xs">BỘ LỌC TÌM KIẾM</span>
-            </div>
-            {activeFilterCount > 0 ? (
+      {/* Mobile Filter Drawer */}
+      {isMobileFilterOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden flex">
+          <div
+            className="fixed inset-0 bg-black/40"
+            onClick={() => setIsMobileFilterOpen(false)}
+          />
+          <div className="relative z-10 w-80 max-w-full h-full bg-[var(--bg)] border-r border-[var(--line)] p-4 overflow-y-auto space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-[var(--text)]">Lọc danh sách xe</span>
               <button
                 type="button"
-                onClick={handleResetFilters}
-                className="text-[10px] font-mono font-bold text-[#89CEFF] underline hover:text-white transition-colors cursor-pointer"
+                onClick={() => setIsMobileFilterOpen(false)}
+                className="p-1.5 rounded-md hover:bg-[var(--surface-subtle)] text-[var(--text-secondary)] cursor-pointer"
               >
-                Xóa bộ lọc ({activeFilterCount})
-              </button>
-            ) : (
-              <span className="text-[10px] font-mono text-[#88929B]">Tất cả</span>
-            )}
-          </div>
-
-          {/* Section 1: Phân khúc xe (Segment) */}
-          <div className="space-y-1.5">
-            <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-[#88929B]">
-              PHÂN KHÚC XE (SEGMENT)
-            </label>
-            <div className="space-y-1">
-              {filterSegments.map((seg) => {
-                const isSelected = selectedSegment === seg.label;
-                return (
-                  <div
-                    key={seg.label}
-                    onClick={() => setSelectedSegment(isSelected ? 'all' : seg.label)}
-                    className={`flex items-center justify-between p-2 rounded-[2px] cursor-pointer transition-colors ${
-                      isSelected
-                        ? 'bg-[#171F33] text-[#89CEFF] border border-[#89CEFF]/30'
-                        : 'hover:bg-[#171F33]/60 text-[#BEC8D2]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`w-3.5 h-3.5 rounded-[2px] flex items-center justify-center border transition-all ${
-                          isSelected ? 'bg-[#89CEFF] border-[#89CEFF]' : 'border-[#3E4850] bg-[#0B1326]'
-                        }`}
-                      >
-                        {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-[#00344D]" />}
-                      </div>
-                      <span className="text-xs font-medium">{seg.label}</span>
-                    </div>
-                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#2D3449] text-[#BEC8D2]">
-                      {seg.count}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Section 2: Khoảng giá dự toán VNĐ */}
-          <div className="space-y-1.5 p-2 rounded-[2px] bg-[#171F33]/40 border border-[#3E4850]/30">
-            <div className="flex justify-between items-center text-[10px] font-mono font-bold uppercase tracking-wider">
-              <span className="text-[#88929B]">KHOẢNG GIÁ DỰ TOÁN</span>
-              <span className="text-[#89CEFF]">VNĐ</span>
-            </div>
-            <div className="text-sm font-mono font-bold text-[#89CEFF]">
-              {priceRange === 'all' ? 'Toàn bộ khoảng giá' : priceRange}
-            </div>
-            <div className="grid grid-cols-3 gap-1 pt-1">
-              {['< 2 tỷ', '2 - 3 tỷ', '> 3 tỷ'].map((pr) => (
-                <button
-                  key={pr}
-                  type="button"
-                  onClick={() => setPriceRange(priceRange === pr ? 'all' : pr)}
-                  className={`py-1.5 px-1 rounded-[2px] text-[10px] font-mono font-bold transition-all text-center cursor-pointer ${
-                    priceRange === pr
-                      ? 'bg-[#89CEFF] text-[#00344D] shadow-[0_0_8px_rgba(14,165,233,0.4)]'
-                      : 'bg-[#171F33] text-[#BEC8D2] hover:bg-[#222A3D]'
-                  }`}
-                >
-                  {pr}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Section 3: Hệ truyền động & Pin */}
-          <div className="space-y-1.5">
-            <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-[#88929B]">
-              HỆ TRUYỀN ĐỘNG & PIN
-            </label>
-            <div className="space-y-1">
-              {powertrains.map((pt) => {
-                const checked = selectedPowertrains.includes(pt);
-                return (
-                  <div
-                    key={pt}
-                    onClick={() => togglePowertrain(pt)}
-                    className={`flex items-center gap-2 p-2 rounded-[2px] cursor-pointer transition-colors ${
-                      checked
-                        ? 'bg-[#171F33] text-[#89CEFF] border border-[#89CEFF]/30'
-                        : 'hover:bg-[#171F33]/60 text-[#BEC8D2]'
-                    }`}
-                  >
-                    <div
-                      className={`w-3.5 h-3.5 rounded-[2px] flex items-center justify-center border transition-all ${
-                        checked ? 'bg-[#89CEFF] border-[#89CEFF]' : 'border-[#3E4850] bg-[#0B1326]'
-                      }`}
-                    >
-                      {checked && <span className="w-1.5 h-1.5 rounded-full bg-[#00344D]" />}
-                    </div>
-                    <span className="text-xs font-medium">{pt}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Section 4: Số chỗ ngồi (Seats) */}
-          <div className="space-y-1.5">
-            <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-[#88929B]">
-              SỐ CHỖ NGỒI (SEATS)
-            </label>
-            <div className="grid grid-cols-3 gap-1.5">
-              {[
-                { val: '4', label: '4 chỗ VIP' },
-                { val: '5', label: '5 chỗ' },
-                { val: '7', label: '7 chỗ' },
-              ].map((s) => {
-                const isSelected = selectedSeats === s.val;
-                return (
-                  <button
-                    key={s.val}
-                    type="button"
-                    onClick={() => setSelectedSeats(isSelected ? 'all' : s.val)}
-                    className={`py-2 px-1 rounded-[2px] text-center text-xs font-semibold transition-all cursor-pointer ${
-                      isSelected
-                        ? 'bg-[#171F33] text-[#89CEFF] border border-[#89CEFF]/50 shadow-sm'
-                        : 'bg-[#2D3449]/40 text-[#BEC8D2] hover:bg-[#2D3449]/70'
-                    }`}
-                  >
-                    {s.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Section 5: Màu ngoại thất đề xuất */}
-          <div className="space-y-1.5">
-            <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-[#88929B]">
-              MÀU NGOẠI THẤT ĐỀ XUẤT
-            </label>
-            <div className="flex items-center gap-2.5">
-              {colors.map((c) => (
-                <button
-                  key={c.name}
-                  type="button"
-                  title={c.name}
-                  style={{ backgroundColor: c.hex }}
-                  onClick={() => setSelectedColor(selectedColor === c.name ? 'all' : c.name)}
-                  className={`w-6 h-6 rounded-full transition-all cursor-pointer ${
-                    selectedColor === c.name
-                      ? 'ring-2 ring-[#89CEFF] ring-offset-2 ring-offset-[#131B2E] scale-110'
-                      : 'border border-[#3E4850] hover:scale-105'
-                  }`}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Apply Filter Button */}
-          <button
-            type="button"
-            className="w-full py-2.5 px-3 rounded-[4px] bg-[#0EA5E9] hover:bg-[#0EA5E9]/90 text-[#00344D] font-bold text-xs uppercase tracking-wider shadow-[0_0_18px_rgba(14,165,233,0.35)] transition-all flex items-center justify-center gap-2"
-          >
-            <span>ÁP DỤNG BỘ LỌC ({filteredCars.length} XE)</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </aside>
-
-        {/* RIGHT COLUMN: MAIN CATALOG CONTENT (Col 9) */}
-        <section className="lg:col-span-9 space-y-4">
-          {/* Top Control Bar matching Figma */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-[#131B2E] border border-[#3E4850]/50 rounded-[4px] shadow-sm text-xs">
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center gap-2 px-2.5 py-1 rounded-[2px] bg-[#171F33]">
-                <div className={`w-2 h-2 rounded-full ${loading ? 'bg-amber-400 animate-ping' : 'bg-[#00A6E0]'}`} />
-                <span className="font-semibold text-[#DAE2FD]">
-                  {loading ? 'Đang đồng bộ dữ liệu từ cơ sở dữ liệu...' : `Hiển thị ${filteredCars.length} mẫu xe sẵn sàng giao`}
-                </span>
-              </div>
-              {selectedSegment !== 'all' && (
-                <span className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#89CEFF] text-[10px] font-mono font-bold flex items-center gap-1.5">
-                  {selectedSegment}{' '}
-                  <span
-                    onClick={() => setSelectedSegment('all')}
-                    className="cursor-pointer hover:text-white"
-                  >
-                    ✕
-                  </span>
-                </span>
-              )}
-              {priceRange !== 'all' && (
-                <span className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#89CEFF] text-[10px] font-mono font-bold flex items-center gap-1.5">
-                  {priceRange}{' '}
-                  <span
-                    onClick={() => setPriceRange('all')}
-                    className="cursor-pointer hover:text-white"
-                  >
-                    ✕
-                  </span>
-                </span>
-              )}
-              {selectedPowertrains.map((pt) => (
-                <span
-                  key={pt}
-                  className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#89CEFF] text-[10px] font-mono font-bold flex items-center gap-1.5"
-                >
-                  {pt}{' '}
-                  <span
-                    onClick={() => togglePowertrain(pt)}
-                    className="cursor-pointer hover:text-white"
-                  >
-                    ✕
-                  </span>
-                </span>
-              ))}
-              {selectedSeats !== 'all' && (
-                <span className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#89CEFF] text-[10px] font-mono font-bold flex items-center gap-1.5">
-                  {selectedSeats} chỗ{' '}
-                  <span
-                    onClick={() => setSelectedSeats('all')}
-                    className="cursor-pointer hover:text-white"
-                  >
-                    ✕
-                  </span>
-                </span>
-              )}
-              {selectedColor !== 'all' && (
-                <span className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#89CEFF] text-[10px] font-mono font-bold flex items-center gap-1.5">
-                  {selectedColor}{' '}
-                  <span
-                    onClick={() => setSelectedColor('all')}
-                    className="cursor-pointer hover:text-white"
-                  >
-                    ✕
-                  </span>
-                </span>
-              )}
-              {activeFilterCount === 0 && (
-                <span className="px-2 py-0.5 rounded-[2px] bg-[#171F33] text-[#88929B] text-[10px] font-mono">
-                  Đang xem toàn bộ xe AutoHub
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2.5 self-end sm:self-auto">
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-[#171F33]">
-                <span className="text-[#88929B] text-[11px]">Sắp xếp:</span>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="bg-transparent text-[#89CEFF] text-xs font-semibold focus:outline-none cursor-pointer"
-                >
-                  <option value="recommended" className="bg-[#171F33] text-[#DAE2FD]">Mới nhất & Khuyên dùng</option>
-                  <option value="price-asc" className="bg-[#171F33] text-[#DAE2FD]">Giá: Thấp đến Cao</option>
-                  <option value="price-desc" className="bg-[#171F33] text-[#DAE2FD]">Giá: Cao đến Thấp</option>
-                </select>
-              </div>
-
-              {/* View Switcher Toggle */}
-              <div className="flex items-center gap-1 bg-[#171F33] p-1 rounded-[2px] border border-[#3E4850]/40">
-                <button
-                  type="button"
-                  onClick={() => setViewMode('grid')}
-                  className={`p-1.5 rounded-[2px] transition-all ${
-                    viewMode === 'grid'
-                      ? 'bg-[#0EA5E9] text-[#00344D] shadow-[0_0_12px_rgba(14,165,233,0.5)]'
-                      : 'text-[#BEC8D2] hover:text-white'
-                  }`}
-                  title="Chế độ lưới (Grid View)"
-                >
-                  <LayoutGrid className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode('row')}
-                  className={`p-1.5 rounded-[2px] transition-all ${
-                    viewMode === 'row'
-                      ? 'bg-[#0EA5E9] text-[#00344D] shadow-[0_0_12px_rgba(14,165,233,0.5)]'
-                      : 'text-[#BEC8D2] hover:text-white'
-                  }`}
-                  title="Chế độ hàng ngang (Row View)"
-                >
-                  <List className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* LOADING SKELETON */}
-          {loading && (
-            <div className="space-y-4">
-              {[1, 2, 3].map((idx) => (
-                <div key={idx} className="bg-[#131B2E] border border-[#3E4850]/50 rounded-[4px] p-4 shadow-xl animate-pulse">
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch">
-                    <div className="md:col-span-4 bg-[#060E20] h-44 rounded" />
-                    <div className="md:col-span-5 space-y-3">
-                      <div className="h-6 w-3/4 bg-[#171F33] rounded" />
-                      <div className="h-4 w-1/2 bg-[#171F33] rounded" />
-                      <div className="h-20 bg-[rgba(34,42,61,0.3)] rounded" />
-                    </div>
-                    <div className="md:col-span-3 space-y-3">
-                      <div className="h-8 bg-[#171F33] rounded" />
-                      <div className="h-10 bg-[#171F33] rounded" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* ERROR STATE */}
-          {error && (
-            <div className="p-8 text-center bg-rose-950/20 border border-rose-500/30 rounded-[4px] space-y-3">
-              <p className="text-rose-300 text-sm">{error}</p>
-              <button
-                type="button"
-                onClick={fetchCars}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded transition-colors cursor-pointer"
-              >
-                Thử lại
+                <X className="w-4 h-4" />
               </button>
             </div>
-          )}
-
-          {/* VIEW MODE 1: ROW VIEW (BỘ SƯU TẬP DÒNG XE DẠNG ROW) */}
-          {!loading && !error && viewMode === 'row' && (
-            <div className="space-y-4">
-              {filteredCars.map((car) => {
-                return (
-                  <div
-                    key={car.id}
-                    className="bg-[#131B2E] border border-[#3E4850]/50 hover:border-[#89CEFF]/50 rounded-[4px] p-4 shadow-xl transition-all group"
-                  >
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch">
-                      {/* Col 4: Image & Badges */}
-                      <div className="md:col-span-4 relative rounded-[4px] overflow-hidden bg-[#060E20] border border-[#3E4850]/40 flex flex-col justify-between p-3 min-h-[190px]">
-                        <span className="self-start px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-[rgba(137,206,255,0.2)] text-[#89CEFF] backdrop-blur-sm border border-[#89CEFF]/30">
-                          ● {car.badge}
-                        </span>
-
-                        <img
-                          src={car.image}
-                          alt={car.name}
-                          className="w-full h-32 object-cover rounded my-auto group-hover:scale-105 transition-transform duration-500"
-                        />
-
-                        {/* Color Dots */}
-                        <div className="flex items-center justify-center gap-1.5 pt-1">
-                          <span className="w-2.5 h-2.5 rounded-full bg-[#00A6E0] ring-1 ring-[#89CEFF]" />
-                          <span className="w-2 h-2 rounded-full bg-[#1E293B]" />
-                          <span className="w-2 h-2 rounded-full bg-[#E2E8F0]" />
-                          <span className="w-2 h-2 rounded-full bg-[#94A3B8]" />
-                        </div>
-                      </div>
-
-                      {/* Col 5: Car Name & 2x2 Specs Grid */}
-                      <div className="md:col-span-5 flex flex-col justify-between space-y-3">
-                        <div>
-                          <h3 className="text-xl font-bold text-[#DAE2FD] tracking-tight group-hover:text-[#89CEFF] transition-colors">
-                            {car.name}
-                          </h3>
-                          <p className="text-xs text-[#BEC8D2] mt-0.5">{car.subtitle}</p>
-                        </div>
-
-                        {/* 2x2 Specs Matrix */}
-                        <div className="grid grid-cols-2 gap-2.5 p-3 bg-[rgba(34,42,61,0.3)] border border-[#3E4850]/40 rounded-[4px] text-xs">
-                          <div>
-                            <div className="text-[10px] font-mono font-bold uppercase text-[#88929B]">TĂNG TỐC 0-100</div>
-                            <div className="text-sm font-mono font-bold text-[#89CEFF] mt-0.5">{car.acceleration}</div>
-                          </div>
-                          <div>
-                            <div className="text-[10px] font-mono font-bold uppercase text-[#88929B]">CÔNG SUẤT CỰC ĐẠI</div>
-                            <div className="text-xs font-mono font-bold text-[#DAE2FD] mt-0.5">{car.power}</div>
-                          </div>
-                          <div>
-                            <div className="text-[10px] font-mono font-bold uppercase text-[#88929B]">TẦM HOẠT ĐỘNG</div>
-                            <div className="text-xs font-mono font-bold text-[#DAE2FD] mt-0.5">{car.range}</div>
-                          </div>
-                          <div>
-                            <div className="text-[10px] font-mono font-bold uppercase text-[#88929B]">SẠC NHANH 800V</div>
-                            <div className="text-xs font-mono font-bold text-[#DAE2FD] mt-0.5">{car.charging}</div>
-                          </div>
-                        </div>
-
-                        {/* 2 Feature Badges */}
-                        <div className="flex items-center gap-3 text-[11px] text-[#89CEFF]">
-                          <span className="flex items-center gap-1">
-                            <Shield className="w-3.5 h-3.5" />
-                            <span>{car.feature1}</span>
-                          </span>
-                          <span>•</span>
-                          <span className="flex items-center gap-1">
-                            <Layers className="w-3.5 h-3.5" />
-                            <span>{car.feature2}</span>
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Col 3: Pricing & Action Buttons */}
-                      <div className="md:col-span-3 flex flex-col justify-between border-t md:border-t-0 md:border-l border-[#3E4850]/50 pt-3 md:pt-0 md:pl-5 space-y-3">
-                        <div>
-                          <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#88929B]">
-                            GIÁ NIÊM YẾT CHÍNH THỨC
-                          </div>
-                          <div className="text-xl font-mono font-bold text-white tracking-tight mt-0.5">
-                            {car.listedPrice.toLocaleString('vi-VN')} <span className="text-xs font-normal text-[#88929B]">VND</span>
-                          </div>
-                        </div>
-
-                        {/* 72H Deposit Callout Box */}
-                        <div className="p-2.5 bg-[#171F33] border border-[#3E4850]/60 rounded-[4px] space-y-1">
-                          <div className="flex items-center gap-1 text-[11px] font-mono font-bold text-[#89CEFF]">
-                            <Lock className="w-3 h-3 flex-shrink-0" />
-                            <span>Cọc giữ xe 72h: {car.depositAmount.toLocaleString('vi-VN')} đ</span>
-                          </div>
-                          {car.depositNote ? (
-                            <p className="text-[10px] text-[#BEC8D2] leading-tight">
-                              {car.depositNote}
-                            </p>
-                          ) : null}
-                        </div>
-
-                        {/* Link to Cost Estimator */}
-                        <Link
-                          to="/car-estimator"
-                          className="text-xs text-[#89CEFF] hover:underline flex items-center justify-between font-medium"
-                        >
-                          <span>Dự toán lăn bánh từ {car.estimatedOnRoad.toLocaleString('vi-VN')} đ</span>
-                          <ChevronRight className="w-3.5 h-3.5" />
-                        </Link>
-
-                        {/* Action Buttons */}
-                        <div className="space-y-2 pt-1">
-                          <Link
-                            to={`/cars/${car.id}`}
-                            className="w-full py-2.5 px-3 rounded-[2px] bg-[#0EA5E9] hover:bg-[#0EA5E9]/90 text-[#00344D] font-bold text-xs uppercase tracking-wider shadow-[0_0_14px_rgba(14,165,233,0.35)] transition-all flex items-center justify-center gap-1.5 text-center"
-                          >
-                            <span>Xem chi tiết & Cọc ngay</span>
-                            <ArrowRight className="w-4 h-4" />
-                          </Link>
-
-                          <button
-                            type="button"
-                            onClick={() => handleCompare(car)}
-                            className="w-full py-2 px-3 rounded-[2px] bg-[#171F33] hover:bg-[#222A3D] border border-[#3E4850]/60 text-[#BEC8D2] hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
-                          >
-                            <Sparkles className="w-3.5 h-3.5 text-[#89CEFF]" />
-                            <span>+ So sánh đối đầu</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* VIEW MODE 2: GRID VIEW (BỘ SƯU TẬP DÒNG XE 3 CỘT) */}
-          {!loading && !error && viewMode === 'grid' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {filteredCars.map((car) => {
-                return (
-                  <div
-                    key={car.id}
-                    className="bg-[#131B2E] border border-[#3E4850]/50 hover:border-[#89CEFF]/50 rounded-[4px] overflow-hidden shadow-xl transition-all group flex flex-col justify-between"
-                  >
-                    <div>
-                      {/* Top Image & Overlay Badges */}
-                      <div className="relative h-48 bg-[#060E20] overflow-hidden p-3 flex flex-col justify-between">
-                        <div className="flex items-center justify-between z-10">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-[#131B2E]/90 text-[#89CEFF] border border-[#89CEFF]/30">
-                            ● {car.badge}
-                          </span>
-
-                          
-                        </div>
-
-                        <img
-                          src={car.image}
-                          alt={car.name}
-                          className="w-full h-32 object-cover rounded my-auto group-hover:scale-105 transition-transform duration-500"
-                        />
-
-                        {/* Carousel Dots */}
-                        <div className="flex items-center justify-center gap-1.5 z-10">
-                          <span className="w-2 h-2 rounded-full bg-[#89CEFF]" />
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#3E4850]" />
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#3E4850]" />
-                        </div>
-                      </div>
-
-                      {/* Card Content */}
-                      <div className="p-4 space-y-3">
-                        <div>
-                          <h4 className="text-base font-bold text-[#DAE2FD] tracking-tight group-hover:text-[#89CEFF] transition-colors">
-                            {car.name}
-                          </h4>
-                          <p className="text-[11px] text-[#BEC8D2] mt-0.5 line-clamp-1">{car.subtitle}</p>
-                        </div>
-
-                        {/* 3 Metric Boxes */}
-                        <div className="grid grid-cols-3 gap-2 py-1 text-center font-mono">
-                          <div className="p-2 rounded-[2px] bg-[#060E20] border border-[#3E4850]/40">
-                            <div className="text-[9px] uppercase text-[#88929B]">0-100 KM/H</div>
-                            <div className="text-sm font-bold text-[#89CEFF] mt-0.5">
-                              {car.gridSpecs?.s1Val || car.acceleration}
-                            </div>
-                          </div>
-
-                          <div className="p-2 rounded-[2px] bg-[#060E20] border border-[#3E4850]/40">
-                            <div className="text-[9px] uppercase text-[#88929B] truncate">
-                              {car.gridSpecs?.s2Label.replace(' (WLTP)', '') || 'TẦM CHẠY'}
-                            </div>
-                            <div className="text-xs font-bold text-[#DAE2FD] mt-0.5">
-                              {car.gridSpecs?.s2Val || car.range}
-                            </div>
-                          </div>
-
-                          <div className="p-2 rounded-[2px] bg-[#060E20] border border-[#3E4850]/40">
-                            <div className="text-[9px] uppercase text-[#88929B] truncate">
-                              {car.gridSpecs?.s3Label || 'SẠC 800V'}
-                            </div>
-                            <div className="text-xs font-bold text-[#DAE2FD] mt-0.5 truncate">
-                              {car.gridSpecs?.s3Val || '15 phút'}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Price Details */}
-                        <div className="pt-2 border-t border-[#3E4850]/40">
-                          <div className="flex items-baseline justify-between font-mono">
-                            <span className="text-[10px] uppercase text-[#88929B]">
-                              {car.isUpcoming ? 'GIÁ DỰ KIẾN' : 'GIÁ NIÊM YẾT'}
-                            </span>
-                            <div className="text-base font-bold text-white">
-                              <span className="text-xs font-normal text-[#88929B] mr-1">Từ</span>
-                              {car.listedPrice.toLocaleString('vi-VN')} <span className="text-xs text-[#88929B]">đ</span>
-                            </div>
-                          </div>
-
-                          {car.depositNote ? (
-                            <div className="flex items-center gap-1.5 mt-1.5 text-[10px] text-[#89CEFF]">
-                              <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
-                              <span className="truncate">{car.depositNote}</span>
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Bottom Action Buttons in Grid View */}
-                    <div className="p-4 pt-0 grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleCompare(car)}
-                        className="py-2 px-2 rounded-[2px] bg-[#171F33] hover:bg-[#222A3D] border border-[#3E4850]/60 text-[#BEC8D2] font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors"
-                      >
-                        <Scale className="w-3.5 h-3.5 text-[#89CEFF]" />
-                        <span>So sánh xe</span>
-                      </button>
-
-                      {car.isUpcoming ? (
-                        <Link
-                          to="/test-drive"
-                          className="py-2 px-2 rounded-[2px] bg-[#171F33] hover:bg-[#222A3D] border border-[#89CEFF]/40 text-[#89CEFF] font-semibold text-xs flex items-center justify-center gap-1 transition-colors text-center"
-                        >
-                          <span>Đăng ký lái thử</span>
-                        </Link>
-                      ) : (
-                        <Link
-                          to={`/cars/${car.id}`}
-                          className="py-2 px-2 rounded-[2px] bg-[#0EA5E9] hover:bg-[#0EA5E9]/90 text-[#00344D] font-bold text-xs uppercase tracking-wider shadow-[0_0_12px_rgba(14,165,233,0.35)] transition-all flex items-center justify-center gap-1 text-center"
-                        >
-                          <span>Xem chi tiết & Cọc</span>
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* EMPTY STATE WHEN NO CARS MATCH FILTER */}
-          {filteredCars.length === 0 && !loading && (
-            <div className="p-12 text-center bg-[#131B2E] border border-[#3E4850]/50 rounded-[4px] space-y-4">
-              <div className="w-12 h-12 rounded-full bg-[#171F33] border border-[#3E4850]/60 mx-auto flex items-center justify-center text-[#89CEFF]">
-                <Filter className="w-6 h-6" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="text-base font-bold text-[#DAE2FD]">
-                  Không tìm thấy mẫu xe phù hợp
-                </h4>
-                <p className="text-xs text-[#88929B] max-w-md mx-auto">
-                  Hiện không có xe nào khớp với tất cả các tiêu chí lọc đã chọn. Hãy thử nới lỏng bộ lọc hoặc bấm nút bên dưới để xem toàn bộ danh mục xe.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleResetFilters}
-                className="py-2.5 px-5 rounded-[2px] bg-[#0EA5E9] hover:bg-[#0EA5E9]/90 text-[#00344D] font-bold text-xs uppercase tracking-wider shadow-[0_0_15px_rgba(14,165,233,0.35)] transition-all cursor-pointer"
-              >
-                Xóa tất cả bộ lọc ({activeFilterCount})
-              </button>
-            </div>
-          )}
-
-          {/* PAGINATION BAR MATCHING FIGMA */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-[#131B2E] border border-[#3E4850]/50 rounded-[4px] text-xs text-[#88929B]">
-            <div>
-              {filteredCars.length === 0 ? (
-                <span>Không có mẫu xe nào hiển thị</span>
-              ) : (
-                <>
-                  Hiển thị <strong className="text-[#DAE2FD]">1 - {Math.min(6, filteredCars.length)}</strong> trên tổng số{' '}
-                  <strong className="text-[#DAE2FD]">{filteredCars.length}</strong> mẫu xe
-                </>
-              )}
-            </div>
-
-            <div className="flex items-center gap-1.5 font-mono">
-              <button
-                type="button"
-                className="w-8 h-8 rounded-[2px] bg-[#171F33] border border-[#3E4850]/50 flex items-center justify-center text-[#BEC8D2] hover:text-white transition-colors"
-              >
-                ‹
-              </button>
-              <button
-                type="button"
-                className="w-8 h-8 rounded-[2px] bg-[#0EA5E9] text-[#00344D] font-bold flex items-center justify-center shadow-[0_0_10px_rgba(14,165,233,0.4)]"
-              >
-                1
-              </button>
-              <button
-                type="button"
-                className="w-8 h-8 rounded-[2px] bg-[#171F33] border border-[#3E4850]/50 flex items-center justify-center text-[#BEC8D2] hover:text-white transition-colors"
-              >
-                2
-              </button>
-              <button
-                type="button"
-                className="w-8 h-8 rounded-[2px] bg-[#171F33] border border-[#3E4850]/50 flex items-center justify-center text-[#BEC8D2] hover:text-white transition-colors"
-              >
-                ›
-              </button>
-            </div>
-
-            <div className="text-[11px] font-mono">
-              SỐ LƯỢNG: <span className="font-semibold text-[#DAE2FD]">Hiển thị 6 / trang</span>
-            </div>
+            <CarFilterPanel
+              segments={segments}
+              selectedSegment={selectedSegment}
+              onSelectSegment={setSelectedSegment}
+              selectedPowertrain={selectedPowertrain}
+              onSelectPowertrain={setSelectedPowertrain}
+              selectedPriceRange={selectedPriceRange}
+              onSelectPriceRange={setSelectedPriceRange}
+              selectedSeats={selectedSeats}
+              onSelectSeats={setSelectedSeats}
+              seatOptions={seatOptions}
+              hasActiveFilters={activeFilterCount > 0}
+              onResetFilters={handleResetFilters}
+            />
           </div>
-        </section>
-      </div>
-      </div>
+        </div>
+      )}
+
+      {/* Compare Bar (visible only when user added at least 1 car) */}
+      {selectedVariants.length > 0 && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-2rem)] max-w-3xl bg-[var(--surface)] border border-[var(--line-strong)] rounded-lg shadow-lg px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs text-[var(--text)]">
+            <Scale className="w-4 h-4 text-[var(--accent)]" />
+            <span>
+              Đang chọn{' '}
+              <strong className="tabular-nums">
+                {selectedVariants.length}/{MAX_COMPARE_CARS}
+              </strong>{' '}
+              xe để so sánh:
+            </span>
+            <span className="text-[var(--text-secondary)] truncate max-w-[260px] sm:max-w-sm">
+              {selectedVariants.map((v) => v.variantName).join(', ')}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={clearCompareList}
+              className="px-2.5 py-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text)] cursor-pointer"
+            >
+              Xóa hết
+            </button>
+            <Link
+              to="/car-comparison"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-xs font-medium text-white transition-colors"
+            >
+              So sánh ngay
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };

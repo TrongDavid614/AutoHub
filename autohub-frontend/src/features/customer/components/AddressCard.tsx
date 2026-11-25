@@ -32,7 +32,7 @@ export const AddressCard: React.FC<AddressCardProps> = ({
     <div
       className={`rounded-[6px] p-5 border transition-all duration-200 flex flex-col justify-between space-y-4 ${
         addr.isDefault
-          ? 'bg-surface-elevated border-accent-primary shadow-[0_0_20px_rgba(137,206,255,0.15)]'
+          ? 'bg-surface-elevated border-accent-primary ring-1 ring-accent-primary/20'
           : 'bg-surface-container border-surface-highlight hover:border-border-subtle'
       }`}
     >
@@ -57,9 +57,9 @@ export const AddressCard: React.FC<AddressCardProps> = ({
           </div>
 
           {addr.isDefault && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[2px] bg-emerald-500/20 text-[10px] font-mono font-bold text-emerald-400 border border-emerald-500/40">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-xs font-medium text-emerald-700 border border-emerald-200">
               <Check className="w-3 h-3" />
-              <span>MẶC ĐỊNH</span>
+              <span>Mặc định</span>
             </span>
           )}
         </div>
@@ -108,7 +108,7 @@ export const AddressCard: React.FC<AddressCardProps> = ({
           <button
             type="button"
             onClick={() => onDelete(addr.id)}
-            className="p-1.5 rounded-[2px] bg-surface-elevated hover:bg-rose-950/40 text-text-secondary hover:text-rose-400 border border-surface-highlight hover:border-rose-500/40 transition-colors cursor-pointer"
+            className="p-1.5 rounded bg-surface-elevated hover:bg-red-50 text-text-secondary hover:text-red-700 border border-surface-highlight hover:border-red-200 transition-colors cursor-pointer"
             title="Xóa địa chỉ"
           >
             <Trash2 className="w-3.5 h-3.5" />

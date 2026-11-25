@@ -126,7 +126,7 @@ export const ShowroomDetailModal: React.FC<ShowroomDetailModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-xs animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/50"
     >
       <div
         className={cn(
@@ -444,7 +444,7 @@ export const ShowroomDetailModal: React.FC<ShowroomDetailModalProps> = ({
                     <form
                       onSubmit={handleSaveDemoCar}
                       className={cn(
-                        'p-4 rounded-xl border space-y-4 animate-fade-in',
+                        'p-4 rounded-xl border space-y-4',
                         isDarkMode ? 'bg-[#171F33] border-blue-500/40' : 'bg-blue-50/50 border-blue-200'
                       )}
                     >

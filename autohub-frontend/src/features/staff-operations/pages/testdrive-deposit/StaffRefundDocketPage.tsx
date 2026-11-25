@@ -271,7 +271,7 @@ export const StaffRefundDocketPage: React.FC = () => {
 
       {/* Modal chi tiết thẩm định */}
       {selectedDocket && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <div className={cn('w-full max-w-lg p-6 rounded-2xl border space-y-4 shadow-2xl', isDarkMode ? 'bg-[#0B1326] border-[#3E4850]' : 'bg-white border-slate-200')}>
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#3E4850]/40">
               <div>
@@ -339,7 +339,7 @@ export const StaffRefundDocketPage: React.FC = () => {
       )}
       {/* Reject Reason Modal */}
       {rejectModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <div
             className={cn(
               'w-full max-w-md rounded-2xl border p-6 shadow-2xl space-y-4',

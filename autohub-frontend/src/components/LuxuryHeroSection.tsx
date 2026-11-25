@@ -123,15 +123,15 @@ export const LuxuryHeroSection: React.FC<LuxuryHeroSectionProps> = ({
         }}
       />
 
-      {/* 2.1. CINEMATIC SPEED-TUNNEL TRANSITION CURTAIN */}
+      {/* 2.1. TRANSITION CURTAIN */}
       <div
         className={`absolute inset-0 pointer-events-none z-[4] transition-all duration-700 ease-in-out ${
-          isExiting ? 'opacity-100 bg-[#0B1326]/95 backdrop-blur-md' : 'opacity-0 bg-transparent'
+          isExiting ? 'opacity-100 bg-[#111317]/95' : 'opacity-0 bg-transparent'
         }`}
       >
-        {/* Glowing Horizon Accent Line */}
+        {/* Horizon Accent Line */}
         <div
-          className={`absolute top-1/2 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#89CEFF] to-transparent transform -translate-y-1/2 transition-all duration-700 ${
+          className={`absolute top-1/2 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#1D5BD6] to-transparent transform -translate-y-1/2 transition-all duration-700 ${
             isExiting ? 'scale-x-100 opacity-90' : 'scale-x-0 opacity-0'
           }`}
         />
@@ -161,7 +161,7 @@ export const LuxuryHeroSection: React.FC<LuxuryHeroSectionProps> = ({
             disabled={isExiting}
             className={`group inline-flex items-center gap-[10px] px-[20px] py-[11px] rounded-[10px] bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.2)] text-[#FAF9F5] text-[14px] font-[600] cursor-pointer hover:bg-[#e9e9ec] hover:text-[#0a0a0b] hover:border-[#e9e9ec] transition-all duration-300 shadow-sm ${
               isExiting
-                ? 'scale-95 bg-white text-[#0a0a0b] border-white shadow-[0_0_25px_rgba(255,255,255,0.7)]'
+                ? 'scale-95 bg-white text-[#0a0a0b] border-white'
                 : ''
             }`}
           >

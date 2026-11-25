@@ -6,8 +6,10 @@ export interface AdminThemeContextType {
   setTheme: (dark: boolean) => void;
 }
 
+const STORAGE_KEY = 'autohub_admin_theme_v2';
+
 const AdminThemeContext = createContext<AdminThemeContextType>({
-  isDarkMode: true,
+  isDarkMode: false,
   toggleTheme: () => {},
   setTheme: () => {},
 });
@@ -15,30 +17,35 @@ const AdminThemeContext = createContext<AdminThemeContextType>({
 export const AdminThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     try {
-      const saved = localStorage.getItem('autohub_admin_theme');
-      return saved !== null ? saved === 'dark' : true;
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved === 'dark';
     } catch {
-      return true;
+      return false;
     }
   });
 
   useEffect(() => {
     try {
-      localStorage.setItem('autohub_admin_theme', isDarkMode ? 'dark' : 'light');
+      localStorage.setItem(STORAGE_KEY, isDarkMode ? 'dark' : 'light');
       if (isDarkMode) {
         document.documentElement.classList.add('dark');
         document.documentElement.style.colorScheme = 'dark';
-        document.body.style.backgroundColor = '#060E20';
-        document.body.style.color = '#DAE2FD';
       } else {
         document.documentElement.classList.remove('dark');
         document.documentElement.style.colorScheme = 'light';
-        document.body.style.backgroundColor = '#f8fafc';
-        document.body.style.color = '#0f172a';
       }
+      document.body.style.backgroundColor = 'var(--bg)';
+      document.body.style.color = 'var(--text)';
     } catch {
       // Ignore localStorage errors
     }
+
+    return () => {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.style.colorScheme = 'light';
+      document.body.style.backgroundColor = 'var(--bg)';
+      document.body.style.color = 'var(--text)';
+    };
   }, [isDarkMode]);
 
   const toggleTheme = () => setIsDarkMode((prev) => !prev);

@@ -89,7 +89,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
     >
       <div
         className={cn(

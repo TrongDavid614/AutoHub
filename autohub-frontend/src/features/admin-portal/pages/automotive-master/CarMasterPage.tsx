@@ -112,7 +112,7 @@ export const CarMasterPage: React.FC = () => {
       {/* Sync Notification Banner */}
       {syncSuccess && (
         <div className={cn(
-          'p-3.5 rounded-lg border text-xs flex items-center justify-between animate-fade-in',
+          'p-3.5 rounded-lg border text-xs flex items-center justify-between',
           isDarkMode
             ? 'bg-[#0D2818] border-emerald-500/50 text-emerald-300'
             : 'bg-emerald-50 border-emerald-300 text-emerald-800'
@@ -225,7 +225,7 @@ export const CarMasterPage: React.FC = () => {
               {isLoading && (
                 <>
                   {[1, 2, 3, 4].map((i) => (
-                    <tr key={`skeleton-${i}`} className="animate-pulse">
+                    <tr key={`skeleton-${i}`}>
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-2.5">
                           <div className={cn(

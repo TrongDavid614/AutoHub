@@ -1,16 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-  ShieldCheck,
   Lock,
   User,
   Eye,
   EyeOff,
   AlertCircle,
   ArrowRight,
-  KeyRound,
-  Server,
-  Zap,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { authService } from '@/features/customer/services/auth.service';
@@ -63,52 +59,33 @@ export const AdminLoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#060E20] text-[#DAE2FD] flex flex-col justify-center items-center px-4 py-12 relative overflow-hidden select-none">
-      {/* Background Ambient Lighting & Luxury Grid */}
-      <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-[#89CEFF]/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/3 w-[450px] h-[450px] bg-[#0EA5E9]/5 rounded-full blur-3xl pointer-events-none" />
-      <div
-        className="absolute inset-0 pointer-events-none opacity-20"
-        style={{
-          backgroundImage:
-            'radial-gradient(circle at 1px 1px, rgba(137, 206, 255, 0.15) 1px, transparent 0)',
-          backgroundSize: '40px 40px',
-        }}
-      />
-
-      <div className="w-full max-w-md relative z-10 space-y-6">
-        {/* Portal Header & Brand Identity */}
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] flex flex-col justify-center items-center px-4 py-12">
+      <div className="w-full max-w-md space-y-6">
+        {/* Header & Brand */}
         <div className="text-center space-y-3">
-          <div className="inline-flex justify-center mb-1 hover:opacity-90 transition-opacity">
+          <div className="inline-flex justify-center">
             <Link to="/">
               <Logo size="lg" />
             </Link>
           </div>
 
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#131B2E] border border-[#89CEFF]/30 shadow-[0_0_16px_rgba(14,165,233,0.2)]">
-            <ShieldCheck className="w-4 h-4 text-[#89CEFF]" />
-            <span className="text-[11px] font-mono font-bold text-white tracking-wider uppercase">
-              CỔNG QUẢN TRỊ ADMIN MASTER • RBAC F24
-            </span>
-          </div>
-
           <div>
-            <h1 className="text-2xl font-black text-white tracking-tight">
-              Đăng Nhập Quản Trị Viên
+            <p className="text-xs font-medium text-[var(--accent)]">Cổng quản trị hệ thống</p>
+            <h1 className="text-2xl font-bold text-[var(--text)] tracking-tight mt-0.5">
+              Đăng nhập quản trị viên
             </h1>
-            <p className="text-xs text-[#88929B] mt-1 max-w-sm mx-auto">
-              Hệ thống giám sát điều hành doanh nghiệp, Master Data ô tô và cụm trí tuệ nhân tạo AutoHub
+            <p className="text-xs text-[var(--text-secondary)] mt-1 max-w-sm mx-auto">
+              Quản lý dữ liệu xe, phụ kiện, đơn đặt cọc và phân quyền nhân sự AutoHub.
             </p>
           </div>
         </div>
 
         {/* Login Form Card */}
-        <div className="rounded-2xl bg-[#0B1326]/90 border border-[#3E4850]/60 p-7 sm:p-8 shadow-2xl backdrop-blur-xl space-y-5">
-          {/* Error Alert Feedback */}
+        <div className="rounded-lg bg-[var(--surface)] border border-[var(--line)] p-7 shadow-xs space-y-5">
           {errorMessage && (
-            <div className="p-3.5 rounded-lg bg-[#EF4444]/15 border border-[#EF4444]/40 text-[#EF4444] text-xs flex items-start gap-2.5 animate-fade-in">
+            <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2">
               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <span className="leading-relaxed font-medium">{errorMessage}</span>
+              <span className="leading-relaxed">{errorMessage}</span>
             </div>
           )}
 
@@ -119,48 +96,41 @@ export const AdminLoginPage: React.FC = () => {
             }}
             className="space-y-4"
           >
-            {/* Input 1: Admin Account / Email */}
             <div className="space-y-1.5">
-              <label className="block text-xs font-mono font-semibold text-[#88929B] uppercase tracking-wider">
-                Tài khoản / Email Quản Trị
+              <label className="block text-[13px] font-medium text-[var(--text)]">
+                Tài khoản / Email quản trị
               </label>
               <div className="relative">
-                <User className="w-4 h-4 text-[#88929B] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <User className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="admin@autohub.vn"
-                  className="w-full pl-10 pr-4 py-2.5 bg-[#060E20] border border-[#3E4850]/70 rounded-lg text-sm text-[#DAE2FD] placeholder-[#88929B] focus:outline-none focus:border-[#89CEFF] focus:ring-1 focus:ring-[#89CEFF] transition-all font-mono"
+                  className="w-full pl-9 pr-3 py-2 bg-[var(--surface)] border border-[var(--line-strong)] rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] transition-colors"
                   autoComplete="username"
                 />
               </div>
             </div>
 
-            {/* Input 2: Security Password */}
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="block text-xs font-mono font-semibold text-[#88929B] uppercase tracking-wider">
-                  Mật khẩu xác thực
-                </label>
-                <span className="text-[11px] text-[#89CEFF] font-mono">
-                  HMAC-SHA512
-                </span>
-              </div>
+              <label className="block text-[13px] font-medium text-[var(--text)]">
+                Mật khẩu
+              </label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-[#88929B] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Lock className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pl-10 pr-11 py-2.5 bg-[#060E20] border border-[#3E4850]/70 rounded-lg text-sm text-[#DAE2FD] placeholder-[#88929B] focus:outline-none focus:border-[#89CEFF] focus:ring-1 focus:ring-[#89CEFF] transition-all font-mono"
+                  placeholder="Nhập mật khẩu"
+                  className="w-full pl-9 pr-10 py-2 bg-[var(--surface)] border border-[var(--line-strong)] rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] transition-colors"
                   autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#88929B] hover:text-[#DAE2FD] transition-colors cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text)] transition-colors cursor-pointer"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -168,99 +138,61 @@ export const AdminLoginPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Remember Me Checkbox & Security Info */}
-            <div className="flex items-center justify-between text-xs pt-1">
-              <label className="flex items-center gap-2 cursor-pointer text-[#BEC8D2]">
+            <div className="flex items-center justify-between text-xs pt-0.5">
+              <label className="flex items-center gap-2 cursor-pointer text-[var(--text-secondary)]">
                 <input
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded bg-[#060E20] border-[#3E4850] text-[#0EA5E9] focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                  className="w-4 h-4 rounded border-[var(--line-strong)] accent-[var(--accent)] cursor-pointer"
                 />
-                <span className="text-xs">Ghi nhớ phiên đăng nhập (30 ngày)</span>
+                <span>Ghi nhớ phiên đăng nhập</span>
               </label>
-
-              <span className="text-[10px] font-mono text-[#88929B]">
-                2FA Enabled
-              </span>
             </div>
 
-            {/* Submit Action Button */}
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full mt-3 py-3 px-4 rounded-lg bg-gradient-to-r from-[#0EA5E9] to-[#0284C7] hover:from-[#38BDF8] hover:to-[#0EA5E9] text-[#00344D] font-bold text-xs uppercase tracking-wider transition-all duration-300 shadow-[0_0_24px_rgba(14,165,233,0.4)] hover:shadow-[0_0_32px_rgba(14,165,233,0.7)] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full h-10 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-medium text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isLoading ? (
-                <div className="w-4 h-4 border-2 border-[#00344D] border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
-                  <KeyRound className="w-4 h-4" />
-                  <span>Xác Thực & Vào Bảng Điều Khiển</span>
+                  <span>Đăng nhập bảng điều khiển</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
           </form>
 
-          {/* Quick Demo Credentials Panel */}
-          <div className="pt-4 mt-2 border-t border-[#3E4850]/50 space-y-3">
-            <div className="flex items-center justify-between text-[11px] font-mono font-bold text-[#88929B] uppercase tracking-wider">
-              <span>Tài Khoản Kiểm Thử Nhanh (Demo):</span>
-              <span className="text-[#89CEFF] flex items-center gap-1">
-                <Zap className="w-3 h-3 text-[#89CEFF]" />
-                1-Click Login
-              </span>
-            </div>
-
+          {/* Quick Demo Credentials */}
+          <div className="pt-4 border-t border-[var(--line)] space-y-2">
+            <p className="text-xs font-medium text-[var(--text-secondary)]">
+              Tài khoản kiểm thử nhanh (Demo):
+            </p>
             <button
               type="button"
               onClick={fillQuickAdmin}
-              className="w-full p-3 rounded-xl bg-[#131B2E] hover:bg-[#171F33] border border-[#89CEFF]/30 hover:border-[#89CEFF]/70 text-left transition-all duration-300 group cursor-pointer shadow-md"
+              className="w-full px-3 py-2.5 rounded-lg bg-[var(--surface-subtle)] hover:bg-[var(--line)]/50 border border-[var(--line)] text-left transition-colors cursor-pointer flex items-center justify-between text-xs"
             >
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-[#89CEFF]">
-                  <ShieldCheck className="w-4 h-4 text-[#89CEFF]" />
-                  <span>Tài Khoản Admin Master (Toàn Quyền)</span>
-                </div>
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#89CEFF]/15 text-[#89CEFF] font-bold">
-                  Bấm Để Vào Ngay
-                </span>
+              <div>
+                <span className="font-semibold text-[var(--text)] block">Admin Master</span>
+                <span className="text-[var(--text-secondary)]">admin.test@autohub.vn · Test@1234</span>
               </div>
-              <div className="flex items-center justify-between text-[11px] font-mono text-[#88929B] group-hover:text-[#DAE2FD] transition-colors">
-                <span>User: <strong>admin.test@autohub.vn</strong></span>
-                <span>Pass: <strong>Test@1234</strong></span>
-              </div>
+              <span className="text-[var(--accent)] font-medium">Dùng thử →</span>
             </button>
           </div>
         </div>
 
-        {/* Security Audit Trail Warning */}
-        <div className="p-3.5 rounded-xl bg-[#0B1326]/60 border border-[#3E4850]/40 text-center space-y-1.5">
-          <div className="text-[11px] font-mono text-[#88929B] flex items-center justify-center gap-1.5">
-            <Server className="w-3.5 h-3.5 text-[#10B981]" />
-            <span>Audit Trail Active: Ghi nhận địa chỉ IP & Nhật ký kiểm toán UC34</span>
-          </div>
-          <p className="text-[10px] text-[#88929B]">
-            Mọi hành vi đăng nhập trái phép sẽ bị tự động khóa quyền truy cập theo chính sách an toàn thông tin AutoHub.
-          </p>
-        </div>
-
-        {/* Footer Navigation Links */}
-        <div className="flex items-center justify-between text-xs text-[#88929B] pt-2 px-2">
-          <Link
-            to="/cars"
-            className="hover:text-[#89CEFF] transition-colors flex items-center gap-1"
-          >
+        {/* Footer Links */}
+        <div className="flex items-center justify-between text-xs text-[var(--text-secondary)] px-1">
+          <Link to="/cars" className="hover:text-[var(--text)] transition-colors">
             ← Quay lại Showroom
           </Link>
 
-          <Link
-            to="/staff/login"
-            className="hover:text-[#89CEFF] transition-colors flex items-center gap-1 font-medium"
-          >
-            <span>Cổng Nhân Viên Showroom (Staff)</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+          <Link to="/staff/login" className="hover:text-[var(--accent)] transition-colors font-medium">
+            Cổng nhân viên (Staff) →
           </Link>
         </div>
       </div>

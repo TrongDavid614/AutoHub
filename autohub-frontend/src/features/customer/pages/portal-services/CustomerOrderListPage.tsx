@@ -190,8 +190,8 @@ export const CustomerOrderListPage: React.FC = () => {
 
       {/* Toast thông báo */}
       {toastMessage && (
-        <div className="p-3.5 rounded bg-emerald-500/15 border border-emerald-500/40 text-xs text-emerald-300 flex items-center gap-2 animate-fadeIn shadow-lg">
-          <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+        <div className="p-3.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
+          <Check className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
@@ -203,7 +203,7 @@ export const CustomerOrderListPage: React.FC = () => {
             {[1, 2, 3].map((n) => (
               <div
                 key={n}
-                className="rounded-[6px] bg-surface-elevated/70 border border-surface-highlight p-5 space-y-4 animate-pulse"
+                className="rounded-lg bg-[var(--surface)] border border-[var(--line)] p-5 space-y-4"
               >
                 <div className="flex justify-between items-center pb-3 border-b border-surface-highlight">
                   <div className="h-5 w-44 bg-surface-interactive rounded" />
