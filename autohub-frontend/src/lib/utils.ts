@@ -40,3 +40,26 @@ export function calculateTestPaymentAmount(originalAmount: number, isDeposit = t
     return Math.min(10000, Math.max(2000, result));
   }
 }
+
+export function normalizeSearchText(text?: string | null): string {
+  if (!text) return '';
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[đĐ]/g, 'd')
+    .toLowerCase()
+    .trim();
+}
+
+export function matchesSearchTerms(
+  query: string,
+  ...fields: Array<string | number | undefined | null>
+): boolean {
+  const q = normalizeSearchText(query);
+  if (!q) return true;
+  const tokens = q.split(/\s+/).filter(Boolean);
+  const haystack = normalizeSearchText(
+    fields.filter((f) => f !== undefined && f !== null).join(' ')
+  );
+  return tokens.every((token) => haystack.includes(token));
+}

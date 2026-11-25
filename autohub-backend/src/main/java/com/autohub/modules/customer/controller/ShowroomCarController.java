@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.Normalizer;
 import java.util.*;
 
 @Slf4j
@@ -32,10 +33,14 @@ public class ShowroomCarController {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getShowroomCars() {
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getShowroomCars(
+            @RequestParam(value = "search", required = false) String search
+    ) {
         List<MauSac> allColors = mauSacRepository.findAll();
+        String query = normalizeSearch(search);
         List<PhienBanXe> cars = phienBanXeRepository.findAll().stream()
                 .filter(car -> !car.isDeleted() && car.isDangHoatDong())
+                .filter(car -> matchesCarSearch(car, query))
                 .toList();
         List<Map<String, Object>> result = cars.stream()
                 .map(car -> mapCarToDto(car, allColors, false))
@@ -547,5 +552,44 @@ public class ShowroomCarController {
         dto.put("availableColors", formattedColors);
 
         return dto;
+    }
+
+    private boolean matchesCarSearch(PhienBanXe car, String normalizedQuery) {
+        if (normalizedQuery.isEmpty()) {
+            return true;
+        }
+        StringBuilder searchable = new StringBuilder();
+        if (car.getTenPhienBan() != null) searchable.append(car.getTenPhienBan()).append(' ');
+        if (car.getLoaiNhienLieu() != null) searchable.append(car.getLoaiNhienLieu()).append(' ');
+        if (car.getHopSo() != null) searchable.append(car.getHopSo()).append(' ');
+        if (car.getSoChoNgoi() != null) searchable.append(car.getSoChoNgoi()).append(" cho ");
+        if (car.getDongXe() != null) {
+            if (car.getDongXe().getTenDongXe() != null) searchable.append(car.getDongXe().getTenDongXe()).append(' ');
+            if (car.getDongXe().getPhanKhuc() != null) searchable.append(car.getDongXe().getPhanKhuc()).append(' ');
+            if (car.getDongXe().getHangXe() != null && car.getDongXe().getHangXe().getTenHangXe() != null) {
+                searchable.append(car.getDongXe().getHangXe().getTenHangXe()).append(' ');
+            }
+        }
+        if (car.getThongSoKyThuat() != null) searchable.append(car.getThongSoKyThuat());
+
+        String normalizedHaystack = normalizeSearch(searchable.toString());
+        for (String token : normalizedQuery.split("\\s+")) {
+            if (!token.isEmpty() && !normalizedHaystack.contains(token)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private String normalizeSearch(String input) {
+        if (input == null || input.isBlank()) {
+            return "";
+        }
+        return Normalizer.normalize(input, Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
+                .replace('đ', 'd')
+                .replace('Đ', 'D')
+                .toLowerCase(Locale.ROOT)
+                .trim();
     }
 }

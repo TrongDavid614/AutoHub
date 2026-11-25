@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { Accessory, AccessoryCategory, AccessoryFilterParams } from '@/types/accessory.types';
 import { accessoryService } from '../services/accessory.service';
 import type { CarModelInfo } from '../mocks/accessory.mock';
 
 export function useAccessoryFilter() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryCarId = searchParams.get('carModelId') || searchParams.get('carId');
+  const querySearch = searchParams.get('search') || '';
 
   const [selectedCarModel, setSelectedCarModel] = useState<CarModelInfo | null>(null);
   const [isCarModalOpen, setIsCarModalOpen] = useState<boolean>(false);
@@ -23,7 +24,14 @@ export function useAccessoryFilter() {
   const [categories, setCategories] = useState<AccessoryCategory[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | undefined>(undefined);
 
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [draftSearch, setDraftSearch] = useState<{ urlSearch: string; value: string } | null>(null);
+  const searchQuery = draftSearch?.urlSearch === querySearch ? draftSearch.value : querySearch;
+  const setSearchQuery = useCallback(
+    (value: string) => {
+      setDraftSearch({ urlSearch: querySearch, value });
+    },
+    [querySearch]
+  );
   const [selectedPriceRange, setSelectedPriceRange] = useState<string | null>(null);
 
   const [readyInShowroom, setReadyInShowroom] = useState<boolean>(false);
@@ -104,13 +112,18 @@ export function useAccessoryFilter() {
   const clearAllFilters = () => {
     setSelectedCarModel(null);
     setSelectedCategoryId(undefined);
-    setSearchQuery('');
+    setDraftSearch(null);
     setSelectedPriceRange(null);
     setReadyInShowroom(false);
     setHomeInstallation(false);
     setIsGenuine(false);
     setWarrantyYears(undefined);
     setSortBy('popular');
+    if (searchParams.has('search')) {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('search');
+      setSearchParams(nextParams, { replace: true });
+    }
   };
 
   // Pagination calculation
