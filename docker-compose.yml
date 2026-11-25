@@ -1,4 +1,5 @@
 services:
+  # 1. Cơ sở dữ liệu Microsoft SQL Server 2022
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: autohub-sqlserver
@@ -12,7 +13,95 @@ services:
       - autohub_sqlserver_data:/var/opt/mssql
       - ./autohub_erd.sql:/tmp/autohub_erd.sql:ro
       - ./autohub_staff_integration_migration.sql:/tmp/autohub_staff_integration_migration.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Sapassword@123' -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - autohub-network
     restart: unless-stopped
+
+  # 2. Khởi tạo Database AutoHubDB tự động nếu chưa có
+  sqlserver-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: autohub-sqlserver-init
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    volumes:
+      - ./autohub_erd.sql:/tmp/autohub_erd.sql:ro
+      - ./autohub_staff_integration_migration.sql:/tmp/autohub_staff_integration_migration.sql:ro
+    entrypoint: >
+      /bin/bash -c "
+        echo 'Checking if AutoHubDB database exists...'
+        /opt/mssql-tools18/bin/sqlcmd -S sqlserver -U sa -P 'Sapassword@123' -C -Q 'IF NOT EXISTS (SELECT 1 FROM sys.databases WHERE name = \"AutoHubDB\") BEGIN PRINT \"CREATE_DB\"; END' | grep -q 'CREATE_DB'
+        if [ $$? -eq 0 ]; then
+          echo 'Initializing AutoHubDB database from autohub_erd.sql...'
+          /opt/mssql-tools18/bin/sqlcmd -S sqlserver -U sa -P 'Sapassword@123' -C -i /tmp/autohub_erd.sql
+          echo 'Executing autohub_staff_integration_migration.sql...'
+          /opt/mssql-tools18/bin/sqlcmd -S sqlserver -U sa -P 'Sapassword@123' -C -i /tmp/autohub_staff_integration_migration.sql
+          echo 'Database initialization complete!'
+        else
+          echo 'Database AutoHubDB already exists, skipping initialization.'
+        fi
+      "
+    networks:
+      - autohub-network
+    restart: "no"
+
+  # 3. Dịch vụ Backend (Spring Boot 3 + Java 21)
+  backend:
+    build:
+      context: ./autohub-backend
+      dockerfile: Dockerfile
+    container_name: autohub-backend
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      sqlserver-init:
+        condition: service_completed_successfully
+    env_file:
+      - path: ./autohub-backend/.env
+        required: false
+      - path: ./.env
+        required: false
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:sqlserver://sqlserver:1433;databaseName=AutoHubDB;encrypt=true;trustServerCertificate=true;sendStringParametersAsUnicode=true"
+      SPRING_DATASOURCE_USERNAME: "sa"
+      SPRING_DATASOURCE_PASSWORD: "Sapassword@123"
+      SPRING_JPA_HIBERNATE_DDL_AUTO: "none"
+      OPENROUTER_API_KEY: "${OPENROUTER_API_KEY:-}"
+      OPENROUTER_DEFAULT_MODEL: "${OPENROUTER_DEFAULT_MODEL:-liquid/lfm-3-1.7b:free}"
+    ports:
+      - "8080:8080"
+    networks:
+      - autohub-network
+    restart: unless-stopped
+
+  # 4. Giao diện Frontend (React + Vite + Nginx Reverse Proxy)
+  frontend:
+    build:
+      context: ./autohub-frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: "/api"
+        VITE_USE_MOCK: "false"
+    container_name: autohub-frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "3000:80"
+    networks:
+      - autohub-network
+    restart: unless-stopped
+
+networks:
+  autohub-network:
+    driver: bridge
 
 volumes:
   autohub_sqlserver_data:
+    driver: local
