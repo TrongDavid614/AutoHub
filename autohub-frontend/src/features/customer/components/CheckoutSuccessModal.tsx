@@ -47,7 +47,7 @@ export const CheckoutSuccessModal: React.FC<CheckoutSuccessModalProps> = ({
         <div className="rounded-[2px] bg-[#060E20] border border-[#2D3449] p-4 flex items-center justify-between text-xs font-mono">
           <span className="text-[#88929B]">TỔNG THANH TOÁN:</span>
           <span className="text-lg font-bold text-[#89CEFF]">
-            {grandTotal.toLocaleString('vi-VN')} đ
+            {(grandTotal ?? 0).toLocaleString('vi-VN')} đ
           </span>
         </div>
 

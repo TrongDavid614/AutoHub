@@ -37,6 +37,7 @@ export const CheckoutPage: React.FC = () => {
     rawSubtotal,
     shippingFee,
     grandTotal,
+    confirmedGrandTotal,
     isSubmitting,
     isSuccessModalOpen,
     orderCode,
@@ -157,7 +158,7 @@ export const CheckoutPage: React.FC = () => {
       <CheckoutSuccessModal
         isOpen={isSuccessModalOpen}
         orderCode={orderCode}
-        grandTotal={grandTotal}
+        grandTotal={confirmedGrandTotal || grandTotal}
         recipientName={selectedAddress.recipientName}
         paymentMethod={selectedPaymentMethod}
         onClose={handleFinishOrder}

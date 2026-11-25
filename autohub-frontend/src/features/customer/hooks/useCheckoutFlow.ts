@@ -121,6 +121,7 @@ export function useCheckoutFlow() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [orderCode, setOrderCode] = useState('AH-ACC-2026-9952');
+  const [confirmedGrandTotal, setConfirmedGrandTotal] = useState<number>(0);
 
   const applyVoucher = async (code: string) => {
     setVoucherError('');
@@ -160,6 +161,7 @@ export function useCheckoutFlow() {
 
     try {
       const customerId = user?.id || 5;
+      const snapshotTotal = grandTotal;
       const res = await cartService.checkout({
         customerId,
         recipientName: selectedAddress?.recipientName || user?.fullName || 'Khách hàng',
@@ -175,9 +177,12 @@ export function useCheckoutFlow() {
       if (res.orderCode || res.maDonHang) {
         finalCode = res.orderCode || res.maDonHang || finalCode;
       }
+      const finalTotal = Number(res.totalPayable ?? res.grandTotal ?? snapshotTotal);
+      setConfirmedGrandTotal(finalTotal);
       await clearCart(customerId);
     } catch {
       // Offline fallback
+      setConfirmedGrandTotal(grandTotal);
     }
 
     setOrderCode(finalCode);
@@ -187,6 +192,7 @@ export function useCheckoutFlow() {
 
   const handleFinishOrder = () => {
     setIsSuccessModalOpen(false);
+    setConfirmedGrandTotal(0);
     clearCart(user?.id || 5);
   };
 
@@ -215,6 +221,7 @@ export function useCheckoutFlow() {
     rawSubtotal,
     shippingFee,
     grandTotal,
+    confirmedGrandTotal,
     isSubmitting,
     isSuccessModalOpen,
     orderCode,
