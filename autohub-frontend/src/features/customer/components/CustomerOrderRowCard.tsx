@@ -280,7 +280,7 @@ export const CustomerOrderRowCard: React.FC<CustomerOrderRowCardProps> = ({
               </button>
 
               <Link
-                to={`/order-success?orderCode=${order.orderCode}&status=success`}
+                to={`/order-success?orderId=${order.id}&orderCode=${encodeURIComponent(order.orderCode)}&status=success`}
                 className="px-4 py-2 rounded-[4px] bg-accent-action hover:bg-accent-primary text-xs font-bold text-accent-contrast flex items-center gap-1.5 cursor-pointer shadow-sm transition-colors"
                 title="Xem chi tiết đơn hàng dạng E-Receipt & Hóa đơn điện tử tại Order Success Page"
               >

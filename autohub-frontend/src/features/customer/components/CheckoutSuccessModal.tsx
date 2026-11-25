@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
+import { CheckCircle2, ArrowRight, ShieldCheck, Zap, FileCheck2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export interface CheckoutSuccessModalProps {
@@ -65,16 +65,17 @@ export const CheckoutSuccessModal: React.FC<CheckoutSuccessModalProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-3 pt-1">
+        <div className="flex flex-col sm:flex-row items-center gap-3 pt-1">
           <button
             type="button"
             onClick={() => {
               onClose();
-              navigate('/accessories');
+              navigate(`/order-success?orderCode=${encodeURIComponent(orderCode)}`);
             }}
-            className="flex-1 py-2.5 px-4 rounded-lg bg-[var(--surface)] hover:bg-[var(--surface-subtle)] border border-[var(--line)] text-[var(--text)] text-xs font-medium cursor-pointer transition-colors"
+            className="w-full sm:flex-1 py-2.5 px-4 rounded-lg bg-[var(--surface)] hover:bg-[var(--surface-subtle)] border border-[var(--line-strong)] text-[var(--accent)] font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
           >
-            Về Showroom Phụ Kiện
+            <FileCheck2 className="w-4 h-4" />
+            <span>Xem hóa đơn điện tử</span>
           </button>
           <button
             type="button"
@@ -82,7 +83,7 @@ export const CheckoutSuccessModal: React.FC<CheckoutSuccessModalProps> = ({
               onClose();
               navigate('/customer/orders');
             }}
-            className="flex-1 py-2.5 px-4 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+            className="w-full sm:flex-1 py-2.5 px-4 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
           >
             <span>Quản lý đơn hàng</span>
             <ArrowRight className="w-4 h-4" />

@@ -27,6 +27,27 @@ export const orderService = {
     return [];
   },
 
+  async getOrderDetail(identifier: number | string): Promise<AccessoryOrder | null> {
+    try {
+      const cleanId = String(identifier).replace(/^#/, '');
+      const res = await axiosClient.get<unknown, ApiResponse<AccessoryOrder>>(
+        `/customer/orders/${encodeURIComponent(cleanId)}`
+      );
+      const raw = res?.data ?? (res as unknown as AccessoryOrder);
+      if (raw && (raw.id || raw.orderCode)) {
+        const items = raw.orderItems ?? raw.items ?? [];
+        return {
+          ...raw,
+          orderItems: items,
+          items,
+        };
+      }
+    } catch (error) {
+      console.warn(`[orderService.getOrderDetail] Không tìm thấy đơn hàng #${identifier}:`, error);
+    }
+    return null;
+  },
+
   async createOrder(payload: CheckoutOrderRequest): Promise<CheckoutOrderResponse> {
     const res = await axiosClient.post<unknown, ApiResponse<CheckoutOrderResponse>>(
       '/customer/orders/checkout',
