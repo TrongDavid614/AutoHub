@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import {
   ShoppingCart,
   Scale,
@@ -13,12 +13,21 @@ import {
   Shield,
   ShoppingBag,
   ExternalLink,
+  X,
+  Car,
+  Package,
+  ArrowRight,
+  Loader2,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrencyVND, matchesSearchTerms } from '@/lib/utils';
 import { Logo } from '@/components/Logo';
 import { useCartStore } from '@/store/useCartStore';
 import { useCompareStore } from '@/store/useCompareStore';
 import { useAuthStore } from '@/store/useAuthStore';
+import { carService } from '@/features/customer/services/car.service';
+import { accessoryService } from '@/features/customer/services/accessory.service';
+import type { MockCar } from '@/features/customer/mocks/car.mock';
+import type { Accessory } from '@/types/accessory.types';
 
 export interface HeaderProps {
   className?: string;
@@ -26,27 +35,151 @@ export interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ className }) => {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const [searchParams] = useSearchParams();
+  const urlSearchParam = searchParams.get('search') || '';
+
   const totalCartCount = useCartStore((s) => s.getTotalItemsCount());
   const compareCount = useCompareStore((s) => s.selectedVariants.length);
   const { user, isAuthenticated, logout } = useAuthStore();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
+  // Quick search state (draft synced automatically with URL without setState-in-effect)
+  const urlContextKey = `${pathname}::${urlSearchParam}`;
+  const [searchDraft, setSearchDraft] = useState<{ contextKey: string; value: string } | null>(null);
+  const searchQuery = searchDraft?.contextKey === urlContextKey ? searchDraft.value : urlSearchParam;
+  const setSearchQuery = (value: string) => {
+    setSearchDraft({ contextKey: urlContextKey, value });
+  };
+  const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
+  const [isLoadingSearchData, setIsLoadingSearchData] = useState<boolean>(false);
+  const [hasLoadedCatalog, setHasLoadedCatalog] = useState<boolean>(false);
+  const [carsCatalog, setCarsCatalog] = useState<MockCar[]>([]);
+  const [accessoriesCatalog, setAccessoriesCatalog] = useState<Accessory[]>([]);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  const ensureSearchCatalogLoaded = useCallback(async () => {
+    if (hasLoadedCatalog || isLoadingSearchData) return;
+    setIsLoadingSearchData(true);
+    try {
+      const [cars, accessories] = await Promise.all([
+        carService.getAllCars(),
+        accessoryService.getAccessories(),
+      ]);
+      setCarsCatalog(cars || []);
+      setAccessoriesCatalog(accessories || []);
+      setHasLoadedCatalog(true);
+    } finally {
+      setIsLoadingSearchData(false);
+    }
+  }, [hasLoadedCatalog, isLoadingSearchData]);
+
+  // Close dropdowns when clicking outside or pressing Escape
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setShowUserMenu(false);
       }
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setIsSearchOpen(false);
+      }
     };
 
-    if (showUserMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsSearchOpen(false);
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [showUserMenu]);
+  }, []);
+
+  const matchedCars = useMemo(() => {
+    const trimmed = searchQuery.trim();
+    if (!trimmed) return [];
+    return carsCatalog.filter((car) =>
+      matchesSearchTerms(trimmed, car.name, car.subtitle, car.segment, car.powertrain, car.seats)
+    );
+  }, [carsCatalog, searchQuery]);
+
+  const matchedAccessories = useMemo(() => {
+    const trimmed = searchQuery.trim();
+    if (!trimmed) return [];
+    return accessoriesCatalog.filter((acc) =>
+      matchesSearchTerms(trimmed, acc.name, acc.brand, acc.categoryName, acc.sku, acc.description)
+    );
+  }, [accessoriesCatalog, searchQuery]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    if (!hasLoadedCatalog) {
+      void ensureSearchCatalogLoaded();
+    }
+    setIsSearchOpen(value.trim().length > 0);
+
+    // Real-time filtering when already on catalog pages
+    if (pathname === '/cars' || pathname === '/accessories') {
+      const nextParams = new URLSearchParams(searchParams);
+      if (value.trim()) {
+        nextParams.set('search', value);
+      } else {
+        nextParams.delete('search');
+      }
+      const nextSearch = nextParams.toString();
+      navigate(nextSearch ? `${pathname}?${nextSearch}` : pathname, { replace: true });
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setIsSearchOpen(false);
+    if (pathname === '/cars' || pathname === '/accessories') {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('search');
+      const nextSearch = nextParams.toString();
+      navigate(nextSearch ? `${pathname}?${nextSearch}` : pathname, { replace: true });
+    }
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = searchQuery.trim();
+    setIsSearchOpen(false);
+
+    if (!trimmed) {
+      if (pathname === '/cars' || pathname === '/accessories') {
+        const nextParams = new URLSearchParams(searchParams);
+        nextParams.delete('search');
+        const nextSearch = nextParams.toString();
+        navigate(nextSearch ? `${pathname}?${nextSearch}` : pathname);
+      } else {
+        navigate('/cars');
+      }
+      return;
+    }
+
+    const encoded = encodeURIComponent(trimmed);
+    if (pathname.startsWith('/accessories')) {
+      navigate(`/accessories?search=${encoded}`);
+    } else if (matchedCars.length === 0 && matchedAccessories.length > 0 && pathname !== '/cars') {
+      navigate(`/accessories?search=${encoded}`);
+    } else {
+      navigate(`/cars?search=${encoded}`);
+    }
+  };
+
+  const handleSelectSuggestion = (to: string) => {
+    setIsSearchOpen(false);
+    navigate(to);
+  };
 
   const handleLogout = () => {
     setShowUserMenu(false);
@@ -68,13 +201,150 @@ export const Header: React.FC<HeaderProps> = ({ className }) => {
         </Link>
 
         {/* Quick Search */}
-        <div className="flex-1 max-w-md relative hidden md:block">
-          <Search className="w-4 h-4 text-[#88929B] absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Tìm kiếm dòng xe, phụ kiện chính hãng..."
-            className="w-full pl-9 pr-4 py-1.5 bg-[#0B1326] border border-[#3E4850]/60 rounded-full text-xs text-[#DAE2FD] placeholder-[#88929B] focus:outline-none focus:border-[#89CEFF] focus:ring-1 focus:ring-[#89CEFF] transition-all"
-          />
+        <div ref={searchContainerRef} className="flex-1 max-w-md relative hidden md:block">
+          <form onSubmit={handleSearchSubmit} className="relative">
+            <button
+              type="submit"
+              aria-label="Tìm kiếm"
+              className="text-[#88929B] hover:text-[#89CEFF] transition-colors absolute left-3 top-1/2 -translate-y-1/2 cursor-pointer"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onFocus={() => {
+                void ensureSearchCatalogLoaded();
+                if (searchQuery.trim().length > 0) {
+                  setIsSearchOpen(true);
+                }
+              }}
+              placeholder="Tìm kiếm dòng xe, phụ kiện chính hãng..."
+              className="w-full pl-9 pr-8 py-1.5 bg-[#0B1326] border border-[#3E4850]/60 rounded-full text-xs text-[#DAE2FD] placeholder-[#88929B] focus:outline-none focus:border-[#89CEFF] focus:ring-1 focus:ring-[#89CEFF] transition-all"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={handleClearSearch}
+                aria-label="Xóa từ khóa tìm kiếm"
+                className="text-[#88929B] hover:text-white transition-colors absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </form>
+
+          {/* Search Autocomplete Dropdown */}
+          {isSearchOpen && searchQuery.trim().length > 0 && (
+            <div className="absolute left-0 right-0 mt-2 bg-[#0B1326] border border-[#3E4850]/80 rounded-xl shadow-2xl overflow-hidden z-50 text-xs">
+              {isLoadingSearchData && !hasLoadedCatalog ? (
+                <div className="p-4 flex items-center justify-center gap-2 text-[#88929B]">
+                  <Loader2 className="w-4 h-4 animate-spin text-[#89CEFF]" />
+                  <span>Đang tìm kiếm dữ liệu Showroom...</span>
+                </div>
+              ) : matchedCars.length === 0 && matchedAccessories.length === 0 ? (
+                <div className="p-4 text-center space-y-1">
+                  <p className="text-[#DAE2FD] font-medium">
+                    Không tìm thấy kết quả cho &ldquo;{searchQuery.trim()}&rdquo;
+                  </p>
+                  <p className="text-[11px] text-[#88929B]">
+                    Thử tìm theo tên xe (GT-e, VF8, SantaFe, Everest...) hoặc phụ kiện (sạc, thảm, camera...).
+                  </p>
+                </div>
+              ) : (
+                <div className="max-h-96 overflow-y-auto divide-y divide-[#3E4850]/40">
+                  {matchedCars.length > 0 && (
+                    <div className="p-2 space-y-1">
+                      <div className="px-2 py-1 flex items-center justify-between text-[10px] font-mono font-bold uppercase tracking-wider text-[#89CEFF]">
+                        <span className="flex items-center gap-1.5">
+                          <Car className="w-3.5 h-3.5" />
+                          Dòng Xe Showroom ({matchedCars.length})
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleSelectSuggestion(`/cars?search=${encodeURIComponent(searchQuery.trim())}`)}
+                          className="text-[10px] text-[#BEC8D2] hover:text-white flex items-center gap-1 cursor-pointer normal-case font-sans font-semibold"
+                        >
+                          Xem tất cả <ArrowRight className="w-3 h-3" />
+                        </button>
+                      </div>
+                      {matchedCars.slice(0, 5).map((car) => (
+                        <button
+                          key={`search-car-${car.id}`}
+                          type="button"
+                          onClick={() => handleSelectSuggestion(`/cars/${car.id}`)}
+                          className="w-full flex items-center justify-between gap-3 p-2 rounded-lg hover:bg-[#171F33] transition-colors text-left cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <img
+                              src={car.image}
+                              alt={car.name}
+                              className="w-12 h-8 object-cover rounded border border-[#3E4850]/50 flex-shrink-0 bg-[#060E20]"
+                            />
+                            <div className="min-w-0">
+                              <div className="font-semibold text-[#DAE2FD] truncate">{car.name}</div>
+                              <div className="text-[10px] text-[#88929B] truncate">
+                                {car.segment} • {car.powertrain}
+                              </div>
+                            </div>
+                          </div>
+                          <span className="font-mono font-bold text-[#89CEFF] text-[11px] flex-shrink-0">
+                            {formatCurrencyVND(car.listedPrice)}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {matchedAccessories.length > 0 && (
+                    <div className="p-2 space-y-1">
+                      <div className="px-2 py-1 flex items-center justify-between text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400">
+                        <span className="flex items-center gap-1.5">
+                          <Package className="w-3.5 h-3.5" />
+                          Phụ Kiện Chính Hãng ({matchedAccessories.length})
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleSelectSuggestion(`/accessories?search=${encodeURIComponent(searchQuery.trim())}`)
+                          }
+                          className="text-[10px] text-[#BEC8D2] hover:text-white flex items-center gap-1 cursor-pointer normal-case font-sans font-semibold"
+                        >
+                          Xem tất cả <ArrowRight className="w-3 h-3" />
+                        </button>
+                      </div>
+                      {matchedAccessories.slice(0, 5).map((acc) => (
+                        <button
+                          key={`search-acc-${acc.id}`}
+                          type="button"
+                          onClick={() => handleSelectSuggestion(`/accessories/${acc.id}`)}
+                          className="w-full flex items-center justify-between gap-3 p-2 rounded-lg hover:bg-[#171F33] transition-colors text-left cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <img
+                              src={acc.thumbnailUrl || acc.images?.[0] || ''}
+                              alt={acc.name}
+                              className="w-10 h-8 object-cover rounded border border-[#3E4850]/50 flex-shrink-0 bg-[#060E20]"
+                            />
+                            <div className="min-w-0">
+                              <div className="font-semibold text-[#DAE2FD] truncate">{acc.name}</div>
+                              <div className="text-[10px] text-[#88929B] truncate">
+                                {acc.categoryName} • {acc.brand}
+                              </div>
+                            </div>
+                          </div>
+                          <span className="font-mono font-bold text-emerald-400 text-[11px] flex-shrink-0">
+                            {formatCurrencyVND(acc.price)}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Navigation Links */}
