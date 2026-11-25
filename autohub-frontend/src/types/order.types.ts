@@ -26,6 +26,7 @@ export interface AccessoryOrder {
   customerId: number;
   customerName: string;
   customerPhone: string;
+  customerEmail?: string;
   shippingAddress: string;
   customerNote?: string;
   paymentMethod: 'SEPAY' | 'COD' | 'VNPAY';
@@ -39,6 +40,8 @@ export interface AccessoryOrder {
   sepayTransactionId?: string;
   vnpayTransactionId?: string;
   trackingNumber?: string;
+  shippingUnit?: string;
+  donViVanChuyen?: string;
   createdAt: string;
 }
 

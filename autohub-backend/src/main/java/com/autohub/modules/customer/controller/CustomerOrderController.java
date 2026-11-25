@@ -112,11 +112,21 @@ public class CustomerOrderController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getOrderDetail(@PathVariable Long id) {
-        DonHangPhuKien order = donHangRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng ID: " + id));
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getOrderDetail(@PathVariable String id) {
+        DonHangPhuKien order = null;
+        try {
+            Long numericId = Long.parseLong(id);
+            order = donHangRepository.findById(numericId).orElse(null);
+        } catch (NumberFormatException ignored) {}
 
-        List<ChiTietDonHang> items = chiTietDonHangRepository.findByDonHangId(id);
+        if (order == null) {
+            String cleanCode = id.startsWith("#") ? id.substring(1) : id;
+            order = donHangRepository.findByMaDonHang(cleanCode)
+                    .or(() -> donHangRepository.findByMaDonHang(id))
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng: " + id));
+        }
+
+        List<ChiTietDonHang> items = chiTietDonHangRepository.findByDonHangId(order.getId());
         return ResponseEntity.ok(ApiResponse.ok(mapOrderToDto(order, items), "Chi tiết đơn hàng"));
     }
 
@@ -502,9 +512,20 @@ public class CustomerOrderController {
         String code = order.getMaDonHang() != null ? order.getMaDonHang() : "AH-ACC-2026-" + order.getId();
         map.put("orderCode", code.startsWith("#") ? code : "#" + code);
         map.put("customerId", order.getNguoiDung() != null ? order.getNguoiDung().getId() : 1L);
-        map.put("customerName", order.getHoTenNguoiNhan() != null ? order.getHoTenNguoiNhan() : "Nguyễn Văn A");
-        map.put("customerPhone", order.getSoDienThoaiNhan() != null ? order.getSoDienThoaiNhan() : "0912345678");
-        map.put("shippingAddress", order.getDiaChiGiaoHang() != null ? order.getDiaChiGiaoHang() : "TP. Hồ Chí Minh");
+        String customerName = order.getHoTenNguoiNhan();
+        if (customerName == null || customerName.isBlank()) {
+            customerName = order.getNguoiDung() != null ? order.getNguoiDung().getHoTen() : "Khách hàng AutoHub";
+        }
+        map.put("customerName", customerName);
+        String customerPhone = order.getSoDienThoaiNhan();
+        if (customerPhone == null || customerPhone.isBlank()) {
+            customerPhone = order.getNguoiDung() != null ? order.getNguoiDung().getSoDienThoai() : "0912345678";
+        }
+        map.put("customerPhone", customerPhone);
+        map.put("customerEmail", order.getNguoiDung() != null ? order.getNguoiDung().getEmail() : "customer@autohub.vn");
+        map.put("shippingAddress", order.getDiaChiGiaoHang() != null ? order.getDiaChiGiaoHang() : "Showroom AutoHub");
+        map.put("shippingUnit", order.getDonViVanChuyen() != null ? order.getDonViVanChuyen() : "Giao hàng tiêu chuẩn AutoHub Logistics");
+        map.put("donViVanChuyen", order.getDonViVanChuyen() != null ? order.getDonViVanChuyen() : "Giao hàng tiêu chuẩn AutoHub Logistics");
         map.put("customerNote", order.getGhiChuKhachHang());
         map.put("paymentMethod", order.getPhuongThucThanhToan() != null ? order.getPhuongThucThanhToan().name() : "SEPAY");
         map.put("status", order.getTrangThai() != null ? order.getTrangThai().name() : "PAID");

@@ -1,18 +1,83 @@
 import React, { useState } from 'react';
-import { Copy, Check, ShieldCheck, FileCheck2, User, Truck } from 'lucide-react';
+import { Copy, Check, ShieldCheck, FileCheck2, User, Truck, Package, Tag } from 'lucide-react';
+import { formatCurrencyVND } from '@/lib/utils';
+import { useAuthStore } from '@/store/useAuthStore';
+import type { AccessoryOrder, OrderItem } from '@/types/order.types';
 
 export interface DigitalOrderReceiptCardProps {
   orderCode: string;
+  order?: AccessoryOrder | null;
+  isLoading?: boolean;
 }
 
-export const DigitalOrderReceiptCard: React.FC<DigitalOrderReceiptCardProps> = ({ orderCode }) => {
+export const DigitalOrderReceiptCard: React.FC<DigitalOrderReceiptCardProps> = ({
+  orderCode,
+  order,
+  isLoading = false,
+}) => {
   const [copied, setCopied] = useState(false);
+  const { user } = useAuthStore();
+
+  const displayOrderCode = order?.orderCode || orderCode || '#AH-ACC-2026-9952';
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(orderCode);
+    navigator.clipboard.writeText(displayOrderCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  // 1. Phân loại cổng thanh toán & mã đối soát
+  const paymentMethodLabel = (() => {
+    const pm = (order?.paymentMethod || 'SEPAY').toUpperCase();
+    if (pm === 'VNPAY') return 'VNPay-QR Gateway (Thẻ ATM/QR Pay)';
+    if (pm === 'COD') return 'Thanh toán khi nhận hàng (COD)';
+    return 'SePay QR Gateway (Thẻ/TK Nội địa 24/7)';
+  })();
+
+  const transactionCode =
+    order?.sepayTransactionId ||
+    order?.vnpayTransactionId ||
+    (order?.id ? `AH-TXN-${order.id}-VN` : 'VNP-TXN-90291480-VN');
+
+  // 2. Thông tin khách hàng & địa chỉ nhận
+  const customerName = order?.customerName || user?.fullName || 'Khách hàng AutoHub';
+  const customerPhone = order?.customerPhone || user?.phoneNumber || '0912 345 678';
+  const customerEmail = order?.customerEmail || user?.email || 'customer@autohub.vn';
+  const shippingAddress = order?.shippingAddress || 'Trung tâm Dịch vụ AutoHub';
+  const shippingMethod = order?.donViVanChuyen || order?.shippingUnit || 'Giao hàng tiêu chuẩn AutoHub Logistics';
+
+  const memberRank = (() => {
+    if (user?.role === 'ROLE_ADMIN') return 'Quản trị viên Hệ thống';
+    if (user?.role === 'ROLE_STAFF') return 'Chuyên viên AutoHub';
+    return 'Thành viên AutoHub VIP';
+  })();
+
+  // 3. Danh mục sản phẩm bàn giao
+  const orderItems: OrderItem[] = order?.orderItems ?? order?.items ?? [];
+
+  // 4. Các giá trị tính toán chi phí
+  const subtotal = order?.subtotalAmount ?? orderItems.reduce((acc, it) => acc + (it.unitPrice || 0) * (it.quantity || 1), 0);
+  const discount = order?.voucherDiscount ?? 0;
+  const shippingFee = order?.shippingFee ?? 0;
+  const grandTotal = order?.finalTotalAmount ?? Math.max(0, subtotal - discount + shippingFee);
+
+  if (isLoading) {
+    return (
+      <div className="relative rounded-xl bg-[var(--surface)] border border-[var(--line)] overflow-hidden p-6 md:p-8 space-y-6 animate-pulse">
+        <div className="h-1 w-full bg-[var(--accent)]" />
+        <div className="h-16 rounded-lg bg-[var(--surface-subtle)]" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="h-32 rounded-lg bg-[var(--surface-subtle)]" />
+          <div className="h-32 rounded-lg bg-[var(--surface-subtle)]" />
+        </div>
+        <div className="space-y-3">
+          <div className="h-20 rounded-lg bg-[var(--surface-subtle)]" />
+          <div className="h-20 rounded-lg bg-[var(--surface-subtle)]" />
+        </div>
+        <div className="h-24 rounded-lg bg-[var(--surface-subtle)]" />
+      </div>
+    );
+  }
 
   return (
     <div className="relative rounded-xl bg-[var(--surface)] border border-[var(--line)] overflow-hidden">
@@ -30,19 +95,19 @@ export const DigitalOrderReceiptCard: React.FC<DigitalOrderReceiptCardProps> = (
               <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-lg font-bold text-[var(--text)]">Hóa đơn điện tử phụ kiện</h2>
                 <span className="px-2 py-0.5 rounded-md bg-[var(--accent-soft)] text-[var(--accent)] text-xs font-medium">
-                  Hóa đơn điện tử
+                  Phiếu xuất kho điện tử
                 </span>
               </div>
               <div className="text-xs text-[var(--text-muted)] leading-relaxed">
-                Cổng thanh toán: <span className="text-[var(--text)] font-medium">SePay QR Gateway (Thẻ/TK Nội địa)</span> • Mã đối soát:{' '}
-                <span className="font-mono text-[var(--accent)] tabular-nums">VNP-TXN-90291480-VN</span>
+                Cổng thanh toán: <span className="text-[var(--text)] font-medium">{paymentMethodLabel}</span> • Mã đối soát:{' '}
+                <span className="font-mono text-[var(--accent)] tabular-nums">{transactionCode}</span>
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-2 self-start sm:self-center shrink-0">
             <div className="px-3 py-1.5 rounded-lg bg-[var(--surface)] border border-[var(--line)] font-mono text-xs text-[var(--text)] tabular-nums">
-              <span className="font-bold text-[var(--accent)]">{orderCode}</span>
+              <span className="font-bold text-[var(--accent)]">{displayOrderCode}</span>
             </div>
             <button
               type="button"
@@ -66,15 +131,15 @@ export const DigitalOrderReceiptCard: React.FC<DigitalOrderReceiptCardProps> = (
                 <span>Thông tin người đặt hàng</span>
               </div>
               <div>
-                <h4 className="text-base font-semibold text-[var(--text)]">Nguyễn Văn A</h4>
-                <p className="text-xs text-[var(--text-2)] tabular-nums mt-0.5">0912 345 678</p>
-                <p className="text-xs text-[var(--text-muted)]">nguyenvana@gmail.com</p>
+                <h4 className="text-base font-semibold text-[var(--text)]">{customerName}</h4>
+                <p className="text-xs text-[var(--text-2)] tabular-nums mt-0.5">{customerPhone}</p>
+                <p className="text-xs text-[var(--text-muted)]">{customerEmail}</p>
               </div>
             </div>
 
             <div className="pt-2 border-t border-[var(--line)] flex items-center justify-between text-xs">
               <span className="text-[var(--text-muted)]">Hạng thành viên</span>
-              <span className="font-medium text-amber-800">Thành viên AutoHub</span>
+              <span className="font-medium text-amber-800">{memberRank}</span>
             </div>
           </div>
 
@@ -86,21 +151,26 @@ export const DigitalOrderReceiptCard: React.FC<DigitalOrderReceiptCardProps> = (
                 <span>Địa chỉ giao hàng & Kỹ thuật</span>
               </div>
               <p className="text-xs font-semibold text-[var(--text)] leading-relaxed">
-                Tòa Landmark 81, 720A Điện Biên Phủ, Phường 22, Quận Bình Thạnh, TP. Hồ Chí Minh
+                {shippingAddress}
               </p>
               <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
                 <span className="px-2 py-0.5 rounded-md bg-[var(--accent-soft)] text-[var(--accent)] text-xs font-medium">
-                  Giao nhanh 24–48h
+                  {shippingFee > 0 ? 'Giao hỏa tốc & Lắp đặt' : 'Giao hàng tiêu chuẩn 24–48h'}
                 </span>
                 <span className="px-2 py-0.5 rounded-md bg-[var(--surface)] border border-[var(--line)] text-[var(--text-2)] text-xs font-medium">
                   Đóng gói chống sốc SiC
                 </span>
               </div>
+              {order?.customerNote && (
+                <p className="text-[11px] text-[var(--text-muted)] italic pt-1">
+                  Ghi chú: {order.customerNote}
+                </p>
+              )}
             </div>
 
             <div className="pt-2 border-t border-[var(--line)] flex items-center justify-between text-xs">
-              <span className="text-[var(--text-muted)]">Hỗ trợ lắp đặt</span>
-              <span className="font-medium text-emerald-700">Kỹ thuật viên miễn phí</span>
+              <span className="text-[var(--text-muted)]">Đơn vị vận chuyển</span>
+              <span className="font-medium text-emerald-700">{shippingMethod}</span>
             </div>
           </div>
         </div>
@@ -108,71 +178,76 @@ export const DigitalOrderReceiptCard: React.FC<DigitalOrderReceiptCardProps> = (
         {/* Itemized Table / Rows */}
         <div className="space-y-3 pt-1">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-[var(--text-2)]">Danh mục sản phẩm bàn giao (02 mục)</span>
+            <span className="font-semibold text-[var(--text-2)]">
+              Danh mục sản phẩm bàn giao ({orderItems.length.toString().padStart(2, '0')} mục)
+            </span>
             <span className="font-medium text-emerald-700">✓ Bảo hành điện tử kích hoạt</span>
           </div>
 
-          {/* Item 1: Wallbox Charger */}
-          <div className="rounded-lg bg-[var(--surface-subtle)] border border-[var(--line)] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-start gap-3.5 flex-1">
-              <div className="w-16 h-16 rounded-lg bg-[var(--surface)] border border-[var(--line)] overflow-hidden shrink-0 flex items-center justify-center">
-                <img
-                  src="https://api.builder.io/api/v1/image/assets/TEMP/2926b27f7460ecb719ff769117d513328396db2a?width=160"
-                  alt="Bộ sạc treo tường AutoHub Ultra Wallbox 22kW"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="px-2 py-0.5 rounded-md bg-[var(--accent-soft)] text-[var(--accent)] text-xs font-medium tabular-nums">
-                    22kW
-                  </span>
-                  <span className="text-xs text-emerald-700 font-medium">✓ Tương thích: AutoHub GT-e (2026)</span>
-                </div>
-                <h3 className="text-sm font-semibold text-[var(--text)]">
-                  Bộ sạc treo tường AutoHub Ultra Wallbox 22kW
-                </h3>
-                <p className="text-xs text-[var(--text-muted)]">
-                  Kiến trúc bán dẫn SiC, Cáp Type 2 dài 7m, Kết nối HubApp 4G/Wi-Fi tích hợp
-                </p>
-              </div>
+          {orderItems.length === 0 ? (
+            <div className="rounded-lg bg-[var(--surface-subtle)] border border-[var(--line)] p-6 text-center space-y-2">
+              <Package className="w-8 h-8 text-[var(--text-muted)] mx-auto stroke-1" />
+              <p className="text-xs text-[var(--text-muted)]">
+                Đơn hàng đã được lưu trên hệ thống. Đang chuẩn bị đóng gói linh kiện xuất kho.
+              </p>
             </div>
-            <div className="text-left sm:text-right shrink-0">
-              <div className="text-xs text-[var(--text-muted)] tabular-nums">18.500.000 đ × 01</div>
-              <div className="text-base font-bold tabular-nums text-[var(--text)]">18.500.000 ₫</div>
-            </div>
-          </div>
+          ) : (
+            orderItems.map((item, index) => {
+              const acc = item.accessory;
+              const imageUrl =
+                acc?.thumbnailUrl ||
+                acc?.imageUrl ||
+                (acc?.images && acc.images.length > 0 ? acc.images[0] : '') ||
+                'https://api.builder.io/api/v1/image/assets/TEMP/2926b27f7460ecb719ff769117d513328396db2a?width=160';
+              const name = acc?.name || 'Phụ kiện AutoHub';
+              const category = acc?.categoryName || 'Linh Kiện EV';
+              const sku = acc?.sku || `PK-${acc?.id || index + 1}`;
+              const unitPrice = item.unitPrice || acc?.price || 0;
+              const quantity = item.quantity || 1;
+              const lineTotal = item.totalPrice || unitPrice * quantity;
 
-          {/* Item 2: Floor Mats */}
-          <div className="rounded-lg bg-[var(--surface-subtle)] border border-[var(--line)] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-start gap-3.5 flex-1">
-              <div className="w-16 h-16 rounded-lg bg-[var(--surface)] border border-[var(--line)] overflow-hidden shrink-0 flex items-center justify-center">
-                <img
-                  src="https://api.builder.io/api/v1/image/assets/TEMP/a712f51232d9d6c294236dff0fc46ebc4f3faabd?width=160"
-                  alt="Thảm lót sàn đúc TPE nguyên sinh GT-e"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="px-2 py-0.5 rounded-md bg-[var(--surface)] border border-[var(--line)] text-[var(--text-2)] text-xs font-medium tabular-nums">
-                    2 set
-                  </span>
-                  <span className="text-xs text-emerald-700 font-medium">✓ Thiết kế riêng: GT-e Sedan & GT</span>
+              return (
+                <div
+                  key={item.id || index}
+                  className="rounded-lg bg-[var(--surface-subtle)] border border-[var(--line)] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                >
+                  <div className="flex items-start gap-3.5 flex-1 min-w-0">
+                    <div className="w-16 h-16 rounded-lg bg-[var(--surface)] border border-[var(--line)] overflow-hidden shrink-0 flex items-center justify-center p-1">
+                      <img
+                        src={imageUrl}
+                        alt={name}
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                          e.currentTarget.src =
+                            'https://api.builder.io/api/v1/image/assets/TEMP/2926b27f7460ecb719ff769117d513328396db2a?width=160';
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="px-2 py-0.5 rounded-md bg-[var(--accent-soft)] text-[var(--accent)] text-xs font-medium tabular-nums">
+                          {category}
+                        </span>
+                        <span className="text-xs text-emerald-700 font-medium">✓ Mã SKU: {sku}</span>
+                      </div>
+                      <h3 className="text-sm font-semibold text-[var(--text)] truncate">{name}</h3>
+                      <p className="text-xs text-[var(--text-muted)] line-clamp-1">
+                        {acc?.description || 'Linh kiện chính hãng được kiểm định an toàn điện áp cao AutoHub Secured'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-left sm:text-right shrink-0">
+                    <div className="text-xs text-[var(--text-muted)] tabular-nums">
+                      {formatCurrencyVND(unitPrice)} × {quantity.toString().padStart(2, '0')}
+                    </div>
+                    <div className="text-base font-bold tabular-nums text-[var(--text)]">
+                      {formatCurrencyVND(lineTotal)}
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-sm font-semibold text-[var(--text)]">
-                  Thảm lót sàn đúc TPE nguyên sinh GT-e
-                </h3>
-                <p className="text-xs text-[var(--text-muted)]">
-                  Chống nước 100%, không mùi hữu cơ VOC, viền cao chắn bùn tuyết công thái học
-                </p>
-              </div>
-            </div>
-            <div className="text-left sm:text-right shrink-0">
-              <div className="text-xs text-[var(--text-muted)] tabular-nums">3.200.000 đ × 02</div>
-              <div className="text-base font-bold tabular-nums text-[var(--text)]">6.400.000 ₫</div>
-            </div>
-          </div>
+              );
+            })
+          )}
         </div>
 
         {/* Cost Breakdown & Summary */}
@@ -192,27 +267,41 @@ export const DigitalOrderReceiptCard: React.FC<DigitalOrderReceiptCardProps> = (
           <div className="w-full lg:w-80 space-y-2 text-xs">
             <div className="flex items-center justify-between text-[var(--text-2)]">
               <span>Tạm tính linh kiện:</span>
-              <span className="font-medium tabular-nums text-[var(--text)]">24.900.000 VNĐ</span>
+              <span className="font-medium tabular-nums text-[var(--text)]">{formatCurrencyVND(subtotal)}</span>
             </div>
-            <div className="flex items-center justify-between text-emerald-700">
-              <span>Voucher VIP (AUTO500):</span>
-              <span className="font-medium tabular-nums">-500.000 VNĐ</span>
-            </div>
+
+            {discount > 0 && (
+              <div className="flex items-center justify-between text-emerald-700">
+                <span className="flex items-center gap-1">
+                  <Tag className="w-3 h-3" />
+                  <span>Ưu đãi Voucher:</span>
+                </span>
+                <span className="font-medium tabular-nums">- {formatCurrencyVND(discount)}</span>
+              </div>
+            )}
+
             <div className="flex items-center justify-between text-[var(--accent)]">
-              <span>Vận chuyển hỏa tốc:</span>
-              <span className="font-semibold">Miễn phí toàn quốc</span>
+              <span>Phí vận chuyển:</span>
+              <span className="font-semibold">
+                {shippingFee === 0 ? 'Miễn phí toàn quốc' : formatCurrencyVND(shippingFee)}
+              </span>
             </div>
 
             <div className="pt-3 border-t border-[var(--line)] flex items-baseline justify-between">
               <div>
                 <div className="text-sm font-bold text-[var(--text)]">Tổng thanh toán:</div>
                 <div className="text-xs text-emerald-700 font-medium">
-                  Đã quyết toán qua SePay
+                  {order?.status === 'PAID'
+                    ? 'Đã quyết toán thành công'
+                    : order?.status === 'PENDING_PAYMENT'
+                    ? 'Đang chờ quyết toán SePay'
+                    : 'Đã xác nhận đơn hàng'}
                 </div>
               </div>
               <div className="text-right">
-                <span className="text-2xl font-bold tabular-nums text-[var(--accent)]">24.400.000</span>
-                <span className="text-xs font-bold text-[var(--accent)] ml-1">VNĐ</span>
+                <span className="text-2xl font-bold tabular-nums text-[var(--accent)]">
+                  {formatCurrencyVND(grandTotal)}
+                </span>
               </div>
             </div>
           </div>
