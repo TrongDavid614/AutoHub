@@ -10,16 +10,13 @@ export const PublicLayout: React.FC = () => {
   const { pathname } = useLocation();
   const { user } = useAuthStore();
   const fetchCartFromServer = useCartStore((s) => s.fetchCartFromServer);
-  const syncGuestCartWithServer = useCartStore((s) => s.syncGuestCartWithServer);
 
-  // Tự động đồng bộ giỏ hàng từ cơ sở dữ liệu để số lượng badge trên Header luôn chính xác
+  // Tự động tải giỏ hàng từ cơ sở dữ liệu nếu đã đăng nhập để số lượng badge trên Header luôn chính xác
   useEffect(() => {
     if (user?.id) {
-      syncGuestCartWithServer(user.id);
-    } else {
-      fetchCartFromServer(5);
+      fetchCartFromServer(user.id);
     }
-  }, [user?.id, fetchCartFromServer, syncGuestCartWithServer]);
+  }, [user?.id, fetchCartFromServer]);
 
   // Luôn luôn cuộn về đầu trang (0, 0) mỗi khi chuyển trang
   useEffect(() => {

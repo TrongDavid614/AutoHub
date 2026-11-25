@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Accessory } from '@/types/accessory.types';
 import { cartService } from '@/features/customer/services/cart.service';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export interface CartItem {
   accessory: Accessory;
@@ -64,13 +65,16 @@ export const useCartStore = create<CartStore>()(
           };
         });
 
-        // 2. Đồng bộ ngầm lên database nếu có customerId hoặc đang online
-        try {
-          await cartService.addItem(accessory.id, quantity, customerId);
-        } catch (err: unknown) {
-          const msg = err instanceof Error ? err.message : 'Không thể đồng bộ giỏ hàng với máy chủ';
-          console.warn('[CartStore] Lỗi đồng bộ máy chủ khi thêm sản phẩm:', msg);
-          set({ error: msg });
+        // 2. Đồng bộ ngầm lên database nếu có customerId hoặc đang đăng nhập
+        const currentUserId = customerId ?? useAuthStore.getState().user?.id;
+        if (currentUserId) {
+          try {
+            await cartService.addItem(accessory.id, quantity, currentUserId);
+          } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : 'Không thể đồng bộ giỏ hàng với máy chủ';
+            console.warn('[CartStore] Lỗi đồng bộ máy chủ khi thêm sản phẩm:', msg);
+            set({ error: msg });
+          }
         }
       },
 
@@ -80,10 +84,13 @@ export const useCartStore = create<CartStore>()(
           error: null,
         }));
 
-        try {
-          await cartService.removeItem(accessoryId, customerId);
-        } catch (err) {
-          console.warn('[CartStore] Lỗi khi xóa sản phẩm trên máy chủ:', err);
+        const currentUserId = customerId ?? useAuthStore.getState().user?.id;
+        if (currentUserId) {
+          try {
+            await cartService.removeItem(accessoryId, currentUserId);
+          } catch (err) {
+            console.warn('[CartStore] Lỗi khi xóa sản phẩm trên máy chủ:', err);
+          }
         }
       },
 
@@ -105,20 +112,26 @@ export const useCartStore = create<CartStore>()(
           error: null,
         }));
 
-        try {
-          await cartService.updateQuantity(accessoryId, quantity, customerId);
-        } catch (err: unknown) {
-          const msg = err instanceof Error ? err.message : 'Số lượng vượt quá tồn kho thực tế';
-          set({ error: msg });
+        const currentUserId = customerId ?? useAuthStore.getState().user?.id;
+        if (currentUserId) {
+          try {
+            await cartService.updateQuantity(accessoryId, quantity, currentUserId);
+          } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : 'Số lượng vượt quá tồn kho thực tế';
+            set({ error: msg });
+          }
         }
       },
 
       clearCart: async (customerId?: number) => {
         set({ cartItems: [], error: null });
-        try {
-          await cartService.clearCart(customerId);
-        } catch (err) {
-          console.warn('[CartStore] Lỗi khi làm trống giỏ hàng trên máy chủ:', err);
+        const currentUserId = customerId ?? useAuthStore.getState().user?.id;
+        if (currentUserId) {
+          try {
+            await cartService.clearCart(currentUserId);
+          } catch (err) {
+            console.warn('[CartStore] Lỗi khi làm trống giỏ hàng trên máy chủ:', err);
+          }
         }
       },
 
@@ -150,9 +163,12 @@ export const useCartStore = create<CartStore>()(
       },
 
       fetchCartFromServer: async (customerId?: number) => {
+        const currentUserId = customerId ?? useAuthStore.getState().user?.id;
+        if (!currentUserId) return;
+
         set({ isLoading: true, error: null });
         try {
-          const data = await cartService.getCart(customerId);
+          const data = await cartService.getCart(currentUserId);
           if (data && Array.isArray(data.items)) {
             const serverItems: CartItem[] = data.items.map((it) => ({
               accessory: it.accessory,
@@ -169,9 +185,12 @@ export const useCartStore = create<CartStore>()(
       },
 
       syncGuestCartWithServer: async (customerId?: number) => {
+        const currentUserId = customerId ?? useAuthStore.getState().user?.id;
+        if (!currentUserId) return;
+
         const currentItems = get().cartItems;
         if (currentItems.length === 0) {
-          await get().fetchCartFromServer(customerId);
+          await get().fetchCartFromServer(currentUserId);
           return;
         }
 
@@ -181,7 +200,7 @@ export const useCartStore = create<CartStore>()(
         }));
 
         try {
-          const res = await cartService.syncGuestCart(payload, customerId);
+          const res = await cartService.syncGuestCart(payload, currentUserId);
           if (res && Array.isArray(res.items)) {
             const mergedItems: CartItem[] = res.items.map((it) => ({
               accessory: it.accessory,

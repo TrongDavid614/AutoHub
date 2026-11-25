@@ -26,7 +26,6 @@ export function useCartCheckout() {
     moveToCart,
     removeSavedItem,
     fetchCartFromServer,
-    syncGuestCartWithServer,
   } = useCartStore();
 
   const { user } = useAuthStore();
@@ -68,13 +67,11 @@ export function useCartCheckout() {
     }
   }, []);
 
-  // 1. Tự động đồng bộ giỏ hàng từ máy chủ khi vào trang /cart hoặc khi user đổi
+  // 1. Tự động tải giỏ hàng từ máy chủ nếu đã đăng nhập khi vào trang /cart hoặc khi user đổi
   useEffect(() => {
     let isMounted = true;
     if (user?.id) {
-      syncGuestCartWithServer(user.id);
-    } else {
-      fetchCartFromServer(5);
+      fetchCartFromServer(user.id);
     }
 
     // Tải danh sách voucher khả dụng
@@ -101,7 +98,7 @@ export function useCartCheckout() {
     return () => {
       isMounted = false;
     };
-  }, [user?.id, fetchCartFromServer, syncGuestCartWithServer]);
+  }, [user?.id, fetchCartFromServer]);
 
   // 2. Tải sổ địa chỉ của người dùng
   useEffect(() => {
