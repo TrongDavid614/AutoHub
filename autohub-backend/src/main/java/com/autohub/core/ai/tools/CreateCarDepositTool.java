@@ -41,7 +41,7 @@ public class CreateCarDepositTool {
     private final TonKhoXeRepository tonKhoXeRepository;
     private final NguoiDungRepository nguoiDungRepository;
 
-    @Value("${sepay.account-number:5811676579}")
+    @Value("${sepay.account-number:9624767IMG}")
     private String sepayAccountNumber;
 
     @Value("${sepay.bank-brand-name:BIDV}")
@@ -163,12 +163,12 @@ public class CreateCarDepositTool {
             log.info("[Spring AI Tool] Tạo phiếu cọc thành công! Mã: {}", depositCode);
 
             // 7. Sinh link mã QR thanh toán chuẩn VietQR SePay BIDV
-            String bankAcc = (sepayAccountNumber != null && !sepayAccountNumber.isBlank()) ? sepayAccountNumber : "5811676579";
+            String bankAcc = (sepayAccountNumber != null && !sepayAccountNumber.isBlank()) ? sepayAccountNumber : "9624767IMG";
             String bankBrand = (sepayBankBrandName != null && !sepayBankBrandName.isBlank()) ? sepayBankBrandName.toLowerCase() : "bidv";
             String transferContent = "AH DEP " + depositCode;
             String qrUrl;
             try {
-                qrUrl = String.format("https://img.vietqr.io/image/%s-%s-compact2.png?amount=%s&addInfo=%s&accountName=CONG%%20TY%%20CO%%20PHAN%%20AUTOHUB%%20VIETNAM",
+                qrUrl = String.format("https://img.vietqr.io/image/%s-%s-compact2.png?amount=%s&addInfo=%s&accountName=NGUYEN%%20VAN%%20TRONG",
                         bankBrand, bankAcc, depositAmount.longValue(), URLEncoder.encode(transferContent, StandardCharsets.UTF_8));
             } catch (Exception e) {
                 qrUrl = String.format("https://img.vietqr.io/image/%s-%s-compact2.png?amount=%s", bankBrand, bankAcc, depositAmount.longValue());

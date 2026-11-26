@@ -29,7 +29,7 @@ public class CheckDepositPaymentTool {
 
     private final PhieuDatCocRepository phieuDatCocRepository;
 
-    @Value("${sepay.account-number:5811676579}")
+    @Value("${sepay.account-number:9624767IMG}")
     private String sepayAccountNumber;
 
     @Value("${sepay.bank-brand-name:BIDV}")
@@ -132,13 +132,13 @@ public class CheckDepositPaymentTool {
             // Chưa thanh toán -> Sinh VietQR SePay BIDV chuẩn
             String cleanCode = code.startsWith("#") ? code.substring(1) : code;
             String transferContent = "AH DEP " + cleanCode;
-            String bankAcc = (sepayAccountNumber != null && !sepayAccountNumber.isBlank()) ? sepayAccountNumber : "5811676579";
+            String bankAcc = (sepayAccountNumber != null && !sepayAccountNumber.isBlank()) ? sepayAccountNumber : "9624767IMG";
             String bankBrand = (sepayBankBrandName != null && !sepayBankBrandName.isBlank()) ? sepayBankBrandName.toLowerCase() : "bidv";
             String amountDigits = amount.toBigInteger().toString();
 
             String qrUrl;
             try {
-                qrUrl = String.format("https://img.vietqr.io/image/%s-%s-compact2.png?amount=%s&addInfo=%s&accountName=CONG%%20TY%%20CO%%20PHAN%%20AUTOHUB%%20VIETNAM",
+                qrUrl = String.format("https://img.vietqr.io/image/%s-%s-compact2.png?amount=%s&addInfo=%s&accountName=NGUYEN%%20VAN%%20TRONG",
                         bankBrand, bankAcc, amountDigits, URLEncoder.encode(transferContent, StandardCharsets.UTF_8));
             } catch (Exception e) {
                 qrUrl = String.format("https://img.vietqr.io/image/%s-%s-compact2.png?amount=%s", bankBrand, bankAcc, amountDigits);

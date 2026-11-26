@@ -43,7 +43,7 @@ public class CustomerDepositController {
     private final PhienBanXeRepository phienBanXeRepository;
     private final YeuCauHoanCocRepository yeuCauHoanCocRepository;
 
-    @Value("${sepay.account-number:5811676579}")
+    @Value("${sepay.account-number:9624767IMG}")
     private String sepayAccountNumber;
 
     @Value("${sepay.bank-brand-name:BIDV}")
@@ -276,7 +276,7 @@ public class CustomerDepositController {
         // SePay BIDV QR transfer configuration
         String cleanCode = code.startsWith("#") ? code.substring(1) : code;
         String transferContent = "AH DEP " + cleanCode;
-        String bankAcc = (sepayAccountNumber != null && !sepayAccountNumber.isBlank()) ? sepayAccountNumber : "5811676579";
+        String bankAcc = (sepayAccountNumber != null && !sepayAccountNumber.isBlank()) ? sepayAccountNumber : "9624767IMG";
         String bankBrand = (sepayBankBrandName != null && !sepayBankBrandName.isBlank()) ? sepayBankBrandName : "BIDV";
         BigDecimal currentDeposit = p.getSoTienCoc() != null ? p.getSoTienCoc() : BigDecimal.valueOf(20000);
         long paymentAmount = (sandboxMode && currentDeposit.compareTo(BigDecimal.valueOf(100000)) > 0)
@@ -286,7 +286,7 @@ public class CustomerDepositController {
 
         String qrUrl;
         try {
-            qrUrl = String.format("https://img.vietqr.io/image/bidv-%s-compact2.png?amount=%s&addInfo=%s&accountName=CONG%%20TY%%20CO%%20PHAN%%20AUTOHUB%%20VIETNAM",
+            qrUrl = String.format("https://img.vietqr.io/image/bidv-%s-compact2.png?amount=%s&addInfo=%s&accountName=NGUYEN%%20VAN%%20TRONG",
                     bankAcc, amountStr, URLEncoder.encode(transferContent, StandardCharsets.UTF_8));
         } catch (Exception e) {
             qrUrl = String.format("https://img.vietqr.io/image/bidv-%s-compact2.png?amount=%s", bankAcc, amountStr);
@@ -295,7 +295,7 @@ public class CustomerDepositController {
         map.put("transferContent", transferContent);
         map.put("bankAccountNumber", bankAcc);
         map.put("bankBrandName", bankBrand);
-        map.put("bankAccountName", "CONG TY CO PHAN AUTOHUB VIETNAM");
+        map.put("bankAccountName", "NGUYEN VAN TRONG");
         map.put("qrImageUrl", qrUrl);
         map.put("testPaymentAmount", paymentAmount);
         map.put("isSandboxMode", sandboxMode);
