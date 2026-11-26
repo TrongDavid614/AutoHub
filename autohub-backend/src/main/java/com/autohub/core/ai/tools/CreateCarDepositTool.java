@@ -41,7 +41,7 @@ public class CreateCarDepositTool {
     private final TonKhoXeRepository tonKhoXeRepository;
     private final NguoiDungRepository nguoiDungRepository;
 
-    @Value("${sepay.account-number:9624767IMG}")
+    @Value("${sepay.account-number:962470372816614}")
     private String sepayAccountNumber;
 
     @Value("${sepay.bank-brand-name:BIDV}")
@@ -163,7 +163,7 @@ public class CreateCarDepositTool {
             log.info("[Spring AI Tool] Tạo phiếu cọc thành công! Mã: {}", depositCode);
 
             // 7. Sinh link mã QR thanh toán chuẩn VietQR SePay BIDV
-            String bankAcc = (sepayAccountNumber != null && !sepayAccountNumber.isBlank()) ? sepayAccountNumber : "9624767IMG";
+            String bankAcc = (sepayAccountNumber != null && !sepayAccountNumber.isBlank()) ? sepayAccountNumber : "962470372816614";
             String bankBrand = (sepayBankBrandName != null && !sepayBankBrandName.isBlank()) ? sepayBankBrandName.toLowerCase() : "bidv";
             String transferContent = "AH DEP " + depositCode;
             String qrUrl;

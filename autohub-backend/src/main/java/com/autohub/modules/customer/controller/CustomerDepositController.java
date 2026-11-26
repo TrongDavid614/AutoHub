@@ -43,7 +43,7 @@ public class CustomerDepositController {
     private final PhienBanXeRepository phienBanXeRepository;
     private final YeuCauHoanCocRepository yeuCauHoanCocRepository;
 
-    @Value("${sepay.account-number:9624767IMG}")
+    @Value("${sepay.account-number:962470372816614}")
     private String sepayAccountNumber;
 
     @Value("${sepay.bank-brand-name:BIDV}")
@@ -276,7 +276,7 @@ public class CustomerDepositController {
         // SePay BIDV QR transfer configuration
         String cleanCode = code.startsWith("#") ? code.substring(1) : code;
         String transferContent = "AH DEP " + cleanCode;
-        String bankAcc = (sepayAccountNumber != null && !sepayAccountNumber.isBlank()) ? sepayAccountNumber : "9624767IMG";
+        String bankAcc = (sepayAccountNumber != null && !sepayAccountNumber.isBlank()) ? sepayAccountNumber : "962470372816614";
         String bankBrand = (sepayBankBrandName != null && !sepayBankBrandName.isBlank()) ? sepayBankBrandName : "BIDV";
         BigDecimal currentDeposit = p.getSoTienCoc() != null ? p.getSoTienCoc() : BigDecimal.valueOf(20000);
         long paymentAmount = (sandboxMode && currentDeposit.compareTo(BigDecimal.valueOf(100000)) > 0)
