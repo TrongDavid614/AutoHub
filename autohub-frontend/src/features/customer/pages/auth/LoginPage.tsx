@@ -71,9 +71,10 @@ export const LoginPage: React.FC = () => {
       } catch (err: unknown) {
         setIsLoading(false);
         setSocialNotice(null);
-        const errRes = (err as { response?: { data?: { message?: string } } })?.response?.data;
+        const errObj = err as { response?: { data?: { message?: string; error?: string } }; message?: string };
+        const detailedMsg = errObj?.response?.data?.message || errObj?.response?.data?.error;
         setErrorMessage(
-          errRes?.message || 'Đăng nhập bằng tài khoản Google thất bại. Vui lòng thử lại.'
+          detailedMsg || 'Đăng nhập bằng tài khoản Google thất bại. Vui lòng thử lại.'
         );
       }
     };
