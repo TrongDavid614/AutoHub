@@ -13,12 +13,15 @@ import {
   Calculator,
   Compass,
   FileCheck2,
+  MessageSquare,
 } from 'lucide-react';
+import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
 import { Logo } from '@/components/Logo';
 import { carService } from '@/features/customer/services/car.service';
+import { AiConsultantWidget } from '@/features/customer/components/AiConsultantWidget';
 import type { MockCar } from '@/features/customer/mocks/car.mock';
 import { formatCurrencyVND } from '@/lib/utils';
-import { Footer } from '@/components/Footer';
 
 export function Scene() {
   const navigate = useNavigate();
@@ -60,7 +63,7 @@ export function Scene() {
     };
   }, []);
 
-  // 4 Core Functions (gently displayed with animations, including "Vào Showroom")
+  // 4 Core Functions
   const primaryFeatures = [
     {
       id: 'showroom',
@@ -100,16 +103,15 @@ export function Scene() {
     },
   ];
 
-  // Animated Click Handler (tạo độ trễ ~500ms để hiệu ứng animation bùng sáng và sóng lan tỏa hiển thị rõ ràng, trọn vẹn)
+  // Animated Click Handler (tạo độ trễ ~400ms để hiệu ứng animation phản hồi rõ ràng trước khi điều hướng)
   const handleFeatureClick = (e: React.MouseEvent, to: string, id: string) => {
     e.preventDefault();
     setClickedFeatureId(id);
 
-    // Kích hoạt hiệu ứng animation phản hồi rõ ràng trong 500ms trước khi điều hướng mượt mà
     setTimeout(() => {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       navigate(to);
-    }, 500);
+    }, 400);
   };
 
   const handleGeneralNavigate = (to: string) => {
@@ -118,36 +120,14 @@ export function Scene() {
   };
 
   return (
-    <div className="relative w-full min-h-screen text-[#DAE2FD] overflow-x-hidden selection:bg-[#0EA5E9] selection:text-white bg-[#05070a]">
+    <div className="relative w-full min-h-screen text-[var(--text)] overflow-x-hidden selection:bg-[var(--accent)] selection:text-white bg-[var(--bg)] flex flex-col">
       {/* =========================================================================
-          NÚT "VÀO SHOWROOM" NGAY PHÍA TRÊN BÊN PHẢI MÀN HÌNH (TOP-RIGHT FLOATING CTA)
+          STANDARD STICKY HEADER (ĐỒNG NHẤT 100% VỚI CÁC TRANG CUSTOMER)
       ========================================================================== */}
-      <div className="fixed top-6 right-6 lg:right-10 z-40 animate-fade-in">
-        <button
-          onClick={(e) => handleFeatureClick(e, '/cars', 'top-right-showroom')}
-          className={`group relative overflow-hidden flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-gradient-to-r from-[#0EA5E9] to-[#0284C7] text-white text-xs font-bold shadow-[0_0_28px_rgba(14,165,233,0.45)] hover:shadow-[0_0_42px_rgba(14,165,233,0.75)] hover:border-[#89CEFF] border border-white/20 backdrop-blur-xl transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer ${
-            clickedFeatureId === 'top-right-showroom'
-              ? 'scale-95 ring-2 ring-[#89CEFF] shadow-[0_0_60px_rgba(137,206,255,0.9)] bg-[#171F33]'
-              : ''
-          }`}
-        >
-          {/* Light-sweep effect on hover */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none" />
-
-          {/* Shockwave ping when clicked */}
-          {clickedFeatureId === 'top-right-showroom' && (
-            <div className="absolute inset-0 rounded-full border-2 border-[#89CEFF] animate-ping pointer-events-none" />
-          )}
-
-          <span className="w-2 h-2 rounded-full bg-[#89CEFF] animate-pulse" />
-          <Car className="w-4 h-4 text-white transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110" />
-          <span className="tracking-wide">Vào Showroom</span>
-          <ChevronRight className="w-3.5 h-3.5 text-white/90 transition-transform duration-300 group-hover:translate-x-1" />
-        </button>
-      </div>
+      <Header />
 
       {/* =========================================================================
-          FIXED FULL-PAGE VIDEO BACKGROUND (KÉO DÀI XUYÊN SUỐT TOÀN TRANG)
+          FIXED FULL-PAGE VIDEO BACKGROUND (LUMINOUS LUXURY STUDIO OVERLAY)
       ========================================================================== */}
       <div className="fixed inset-0 w-full h-full z-0 pointer-events-none overflow-hidden">
         <video
@@ -158,7 +138,7 @@ export function Scene() {
           playsInline
           preload="auto"
           className={`w-full h-full object-cover transition-opacity duration-1000 ${
-            videoReady ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
+            videoReady ? 'opacity-85 scale-100' : 'opacity-0 scale-105'
           }`}
         >
           <source src="/videos/car.mp4" type="video/mp4" />
@@ -166,60 +146,86 @@ export function Scene() {
           <source src="/car.mp4" type="video/mp4" />
         </video>
 
-        {/* Global Cinematic Dark Vignette & Mesh Gradient (Tông xanh đậm đồng bộ hệ thống) */}
+        {/* Luminous Studio Gradient (Chuyển sang nền sáng sang trọng, tôn xe) */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
             background: [
-              'linear-gradient(to bottom, rgba(5,7,14,0.75) 0%, rgba(5,7,14,0.40) 25%, rgba(11,19,38,0.65) 65%, rgba(5,7,14,0.92) 100%)',
-              'radial-gradient(circle at 50% 45%, transparent 25%, rgba(5,7,14,0.70) 100%)',
+              'linear-gradient(to bottom, rgba(248,250,252,0.85) 0%, rgba(248,250,252,0.50) 25%, rgba(241,245,249,0.88) 70%, var(--bg) 100%)',
+              'radial-gradient(circle at 50% 40%, transparent 20%, rgba(248,250,252,0.75) 100%)',
             ].join(', '),
           }}
         />
 
-        {/* Ambient Cyan / Sky Blue Glow Accent (Thay thế hoàn toàn màu đỏ) */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[1200px] h-[600px] bg-[#0EA5E9]/10 rounded-full blur-[170px] pointer-events-none" />
+        {/* Subtle Ambient Sky Accent Glow */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[1100px] h-[550px] bg-sky-400/10 rounded-full blur-[160px] pointer-events-none" />
       </div>
 
       {/* =========================================================================
-          HERO SECTION (ĐÃ BỎ HEADER, HIỂN THỊ TINH TẾ & NHẸ NHÀNG)
+          HERO SECTION (TƯƠI SÁNG, TINH TẾ & CAO CẤP)
       ========================================================================== */}
-      <section className="relative z-10 w-full min-h-screen flex flex-col justify-center items-center px-6 lg:px-12 py-16">
+      <section className="relative z-10 w-full min-h-[calc(100vh-64px)] flex flex-col justify-center items-center px-4 sm:px-6 lg:px-12 py-12 lg:py-16">
         <div className="max-w-6xl mx-auto w-full flex flex-col items-center text-center">
           
           {/* Logo Brand Center Badge */}
-          <div className="mb-6 flex items-center justify-center transition-transform duration-300 hover:scale-105">
+          <div className="mb-5 flex items-center justify-center transition-transform duration-300 hover:scale-105">
             <Logo size="lg" />
           </div>
 
           {/* Subtitle Pill */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#131B2E]/70 border border-[#3E4850]/50 backdrop-blur-md mb-6 shadow-lg shadow-black/40">
-            <span className="w-2 h-2 rounded-full bg-[#89CEFF] animate-pulse" />
-            <span className="text-[11px] font-bold tracking-[0.2em] text-[#89CEFF] uppercase">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--surface)] border border-sky-200/90 shadow-sm mb-6 backdrop-blur-md">
+            <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse" />
+            <span className="text-[11px] font-bold tracking-[0.2em] text-[var(--accent)] uppercase font-mono">
               HỆ SINH THÁI THƯƠNG MẠI Ô TÔ ĐẲNG CẤP
             </span>
           </div>
 
-          {/* Main Title with AutoHub Theme Colors */}
-          <h1 className="text-white font-extrabold tracking-tight leading-[1.08] mb-6 text-4xl sm:text-6xl lg:text-7xl max-w-4xl drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
+          {/* Main Title with Clean Dark Typography & Blue Gradients */}
+          <h1 className="text-[var(--text)] font-extrabold tracking-tight leading-[1.1] mb-5 text-4xl sm:text-6xl lg:text-7xl max-w-4xl">
             Kỷ Nguyên Di Chuyển{' '}
-            <span className="bg-gradient-to-r from-white via-[#DAE2FD] to-[#BEC8D2] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 bg-clip-text text-transparent">
               Thuần Điện
             </span>
             <br />
-            <span className="bg-gradient-to-r from-[#89CEFF] via-[#0EA5E9] to-[#0284C7] bg-clip-text text-transparent drop-shadow-[0_0_35px_rgba(14,165,233,0.4)]">
+            <span className="bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-700 bg-clip-text text-transparent">
               Đỉnh Cao Công Nghệ
             </span>
           </h1>
 
           {/* Clean Description */}
-          <p className="text-[#BEC8D2] font-light text-sm sm:text-base lg:text-lg max-w-2xl mx-auto mb-12 leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+          <p className="text-[var(--text-secondary)] font-normal text-sm sm:text-base lg:text-lg max-w-2xl mx-auto mb-8 leading-relaxed">
             Nền tảng giao dịch và trải nghiệm xe thế hệ mới. Minh bạch chi phí lăn bánh tại 63 tỉnh thành,
-            cam kết bảo hộ đặt cọc khóa số VIN 72 giờ và hỗ trợ trực tuyến với AI.
+            cam kết bảo hộ đặt cọc khóa số VIN 72 giờ và hỗ trợ tư vấn thông minh cùng AI.
           </p>
 
+          {/* Direct CTA Buttons */}
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-10">
+            <button
+              onClick={() => handleGeneralNavigate('/cars')}
+              className="flex items-center gap-2 px-7 py-3 rounded-xl bg-[var(--accent)] hover:bg-sky-700 text-white text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 cursor-pointer"
+            >
+              <Car className="w-4 h-4" />
+              <span>Khám Phá Showroom</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => handleGeneralNavigate('/car-comparison')}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[var(--surface)] hover:bg-slate-50 text-[var(--text)] border border-[var(--line)] text-sm font-semibold shadow-sm hover:border-[var(--accent)] hover:text-[var(--accent)] transition-all duration-200 active:scale-95 cursor-pointer"
+            >
+              <Scale className="w-4 h-4 text-[var(--accent)]" />
+              <span>Bàn Cân So Sánh</span>
+            </button>
+            <button
+              onClick={() => handleGeneralNavigate('/ai-consultant')}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-sky-50 hover:bg-sky-100 text-[var(--accent)] border border-sky-200/80 text-sm font-semibold shadow-sm transition-all duration-200 active:scale-95 cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Trợ Lý Ảo AI</span>
+            </button>
+          </div>
+
           {/* =========================================================================
-              4 CHỨC NĂNG HIỂN THỊ NHẸ NHÀNG (KÈM HIỆU ỨNG ANIMATION ĐẬM NÉT, RÕ RÀNG TRONG 500MS)
+              4 CHỨC NĂNG CỐT LÕI (CARDS MÀU SÁNG, BO GÓC MỀM MẠI, ĐỒNG BỘ DESIGN SYSTEM)
           ========================================================================== */}
           <div className="w-full max-w-5xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {primaryFeatures.map((feat) => {
@@ -231,75 +237,67 @@ export function Scene() {
                 <button
                   key={feat.id}
                   onClick={(e) => handleFeatureClick(e, feat.to, feat.id)}
-                  className={`group relative overflow-hidden rounded-2xl p-5 text-left transition-all duration-500 backdrop-blur-xl border cursor-pointer flex flex-col justify-between ${
+                  className={`group relative overflow-hidden rounded-2xl p-5 text-left transition-all duration-300 backdrop-blur-md cursor-pointer flex flex-col justify-between ${
                     isClicked
-                      ? 'scale-95 border-[#89CEFF] bg-[#171F33] ring-2 ring-[#89CEFF] shadow-[0_0_65px_rgba(137,206,255,0.85)] z-20'
+                      ? 'scale-95 border-[var(--accent)] bg-sky-50/90 ring-2 ring-[var(--accent)] shadow-md z-20'
                       : hasAnyClicked
-                      ? 'opacity-35 scale-95 blur-[1px] border-white/5 transition-all duration-500'
+                      ? 'opacity-40 scale-98 border-[var(--line)] bg-[var(--surface)]'
                       : feat.isPrimary
-                      ? 'bg-gradient-to-b from-[#131B2E]/90 to-[#0B1326]/90 border-[#0EA5E9]/60 shadow-[0_8px_30px_rgba(14,165,233,0.25)] hover:border-[#89CEFF] hover:shadow-[0_16px_40px_rgba(14,165,233,0.45)] hover:-translate-y-2 active:scale-95'
-                      : 'bg-[#0B1326]/60 hover:bg-[#131B2E]/80 border-white/10 hover:border-[#89CEFF]/60 shadow-[0_8px_30px_rgba(0,0,0,0.4)] hover:shadow-[0_16px_36px_rgba(14,165,233,0.2)] hover:-translate-y-2 active:scale-95'
+                      ? 'bg-gradient-to-b from-sky-50/90 via-white to-white border-2 border-[var(--accent)] shadow-sm hover:shadow-lg hover:border-sky-600 hover:-translate-y-1.5 active:scale-95'
+                      : 'bg-[var(--surface)]/95 hover:bg-white border border-[var(--line)] hover:border-sky-300 shadow-sm hover:shadow-lg hover:-translate-y-1.5 active:scale-95'
                   }`}
                 >
-                  {/* Subtle Light-Sweep Animation Effect on Hover */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none" />
-
-                  {/* Expanding Click Wave Ring on Active (Kéo dài và rõ ràng hơn) */}
-                  {isClicked && (
-                    <div className="absolute inset-0 rounded-2xl border-2 border-[#89CEFF] animate-ping pointer-events-none duration-700" />
-                  )}
-
                   <div>
                     {/* Tag & Icon Row */}
                     <div className="flex items-center justify-between mb-4">
                       <span
-                        className={`text-[10px] font-mono font-bold tracking-wider px-2 py-0.5 rounded-full transition-colors duration-300 ${
+                        className={`text-[10px] font-mono font-bold tracking-wider px-2 py-0.5 rounded-full transition-colors duration-200 ${
                           feat.isPrimary || isClicked
-                            ? 'bg-[#0EA5E9]/20 text-[#89CEFF] border border-[#0EA5E9]/30'
-                            : 'bg-white/5 text-[#88929B] border border-white/10 group-hover:text-[#89CEFF]'
+                            ? 'bg-sky-100 text-sky-800 border border-sky-200'
+                            : 'bg-slate-100 text-slate-600 border border-slate-200 group-hover:bg-sky-50 group-hover:text-sky-700 group-hover:border-sky-200'
                         }`}
                       >
                         {feat.tag}
                       </span>
                       <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-500 ${
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 ${
                           isClicked
-                            ? 'scale-125 bg-[#89CEFF] text-[#00344D] rotate-12 shadow-lg shadow-[#89CEFF]/50'
+                            ? 'scale-110 bg-[var(--accent)] text-white shadow-sm'
                             : feat.isPrimary
-                            ? 'bg-[#0EA5E9] text-white shadow-md shadow-[#0EA5E9]/40 group-hover:scale-110'
-                            : 'bg-[#171F33] text-[#89CEFF] border border-[#3E4850]/50 group-hover:bg-[#0EA5E9] group-hover:text-white group-hover:scale-110'
+                            ? 'bg-[var(--accent)] text-white shadow-sm group-hover:scale-105'
+                            : 'bg-slate-100 text-slate-700 border border-slate-200 group-hover:bg-[var(--accent)] group-hover:text-white group-hover:border-[var(--accent)] group-hover:scale-105'
                         }`}
                       >
-                        <IconComp className="w-4 h-4 transition-transform duration-500 group-hover:rotate-6" />
+                        <IconComp className="w-4 h-4 transition-transform duration-300 group-hover:rotate-6" />
                       </div>
                     </div>
 
                     {/* Title */}
-                    <h3 className={`text-base font-bold mb-1.5 transition-colors duration-300 ${
-                      isClicked ? 'text-[#89CEFF]' : 'text-white group-hover:text-[#89CEFF]'
+                    <h3 className={`text-base font-bold mb-1.5 transition-colors duration-200 ${
+                      isClicked ? 'text-[var(--accent)]' : 'text-[var(--text)] group-hover:text-[var(--accent)]'
                     }`}>
                       {feat.title}
                     </h3>
 
                     {/* Description */}
-                    <p className="text-xs text-[#BEC8D2] leading-relaxed line-clamp-2">
+                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed line-clamp-2">
                       {feat.subtitle}
                     </p>
                   </div>
 
-                  {/* Action Link Arrow with Bounce Transition */}
-                  <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-xs font-semibold w-full">
+                  {/* Action Link Arrow */}
+                  <div className="mt-4 pt-3 border-t border-[var(--line)] flex items-center justify-between text-xs font-semibold w-full">
                     <span
                       className={
                         feat.isPrimary || isClicked
-                          ? 'text-[#89CEFF]'
-                          : 'text-[#88929B] group-hover:text-[#89CEFF]'
+                          ? 'text-[var(--accent)] font-bold'
+                          : 'text-[var(--text-muted)] group-hover:text-[var(--accent)]'
                       }
                     >
                       {feat.isPrimary ? 'Khám phá ngay' : 'Truy cập'}
                     </span>
-                    <ArrowRight className={`w-3.5 h-3.5 text-[#89CEFF] transition-transform duration-300 ${
-                      isClicked ? 'translate-x-2 scale-125' : 'group-hover:translate-x-1.5'
+                    <ArrowRight className={`w-3.5 h-3.5 text-[var(--accent)] transition-transform duration-200 ${
+                      isClicked ? 'translate-x-1.5' : 'group-hover:translate-x-1'
                     }`} />
                   </div>
                 </button>
@@ -308,19 +306,19 @@ export function Scene() {
           </div>
 
           {/* Quick Indicator Below 4 Functions */}
-          <div className="mt-8 flex items-center gap-6 text-xs text-[#88929B]">
+          <div className="mt-8 flex items-center gap-6 text-xs text-[var(--text-secondary)] font-medium">
             <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-[#89CEFF]" />
+              <ShieldCheck className="w-4 h-4 text-[var(--accent)]" />
               <span>Bảo hộ cọc số VIN 72H</span>
             </span>
-            <span className="hidden sm:inline text-white/20">•</span>
+            <span className="hidden sm:inline text-slate-300">•</span>
             <span className="hidden sm:flex items-center gap-1.5">
-              <Cpu className="w-4 h-4 text-[#89CEFF]" />
+              <Cpu className="w-4 h-4 text-[var(--accent)]" />
               <span>Hạ tầng SiC 800V siêu nạp</span>
             </span>
-            <span className="hidden sm:inline text-white/20">•</span>
+            <span className="hidden sm:inline text-slate-300">•</span>
             <span className="hidden sm:flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               <span>Xe giao tận cửa toàn quốc</span>
             </span>
           </div>
@@ -329,54 +327,54 @@ export function Scene() {
       </section>
 
       {/* =========================================================================
-          SECTION 2: BỘ 3 TRỤ CỘT ĐỘT PHÁ CỦA AUTOHUB (CHỈ MÔ TẢ, KHÔNG GẮN LINK SAI)
+          SECTION 2: BỘ 3 TRỤ CỘT ĐỘT PHÁ CỦA AUTOHUB (MÀU SÁNG, CARD TRẮNG SANG TRỌNG)
       ========================================================================== */}
-      <section className="relative z-10 py-24 px-6 lg:px-12 max-w-7xl mx-auto border-t border-white/10">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0EA5E9]/15 border border-[#0EA5E9]/30 text-[#89CEFF] text-xs font-semibold mb-3 backdrop-blur-md">
-            <Sparkles className="w-3.5 h-3.5 text-[#89CEFF]" />
+      <section className="relative z-10 py-20 px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto w-full border-t border-[var(--line)]">
+        <div className="text-center max-w-3xl mx-auto mb-14">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-100 text-sky-800 border border-sky-200 text-xs font-semibold mb-3">
+            <Sparkles className="w-3.5 h-3.5 text-[var(--accent)]" />
             <span>KỸ NGHỆ THƯƠNG MẠI SỐ 4.0</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4 drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--text)] mb-3">
             Đột Phá Trải Nghiệm Mua Xe Trực Tuyến
           </h2>
-          <p className="text-[#BEC8D2] text-sm sm:text-base leading-relaxed">
+          <p className="text-[var(--text-secondary)] text-sm sm:text-base leading-relaxed">
             AutoHub giải quyết triệt để sự mập mờ về giá thành và quy trình mua bán truyền thống bằng các công cụ tính toán tự động và bảo chứng số.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Trụ cột 1: Dự toán chi phí lăn bánh (Chỉ mô tả công nghệ tính toán) */}
-          <div className="p-8 rounded-2xl bg-[#0B1326]/60 backdrop-blur-xl border border-white/10 hover:border-[#89CEFF]/60 shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all duration-300 group hover:-translate-y-1">
-            <div className="w-14 h-14 rounded-2xl bg-[#0EA5E9]/15 border border-[#0EA5E9]/30 flex items-center justify-center text-[#89CEFF] mb-6 group-hover:scale-110 transition-transform">
+          {/* Trụ cột 1: Dự toán chi phí lăn bánh */}
+          <div className="p-8 rounded-2xl bg-[var(--surface)] border border-[var(--line)] hover:border-sky-300 shadow-sm hover:shadow-md transition-all duration-300 group hover:-translate-y-1">
+            <div className="w-14 h-14 rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-center text-[var(--accent)] mb-6 group-hover:scale-105 transition-transform">
               <Calculator className="w-7 h-7" />
             </div>
-            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-[#89CEFF] transition-colors">
+            <h3 className="text-xl font-bold text-[var(--text)] mb-2 group-hover:text-[var(--accent)] transition-colors">
               Dự Toán Lăn Bánh 63 Tỉnh Thành
             </h3>
-            <p className="text-[#BEC8D2] text-sm leading-relaxed mb-4">
+            <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-4">
               Hệ thống thuật toán cập nhật theo biểu thuế trước bạ, phí cấp biển số, phí bảo trì đường bộ và bảo hiểm dân sự của từng địa phương, chuẩn xác từng đồng.
             </p>
-            <div className="inline-flex items-center gap-1.5 text-xs text-[#89CEFF] font-medium">
+            <div className="inline-flex items-center gap-1.5 text-xs text-[var(--accent)] font-medium">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>Tích hợp trực tiếp trong từng dòng xe</span>
             </div>
           </div>
 
           {/* Trụ cột 2: Bàn Cân So Sánh */}
-          <div className="p-8 rounded-2xl bg-[#0B1326]/60 backdrop-blur-xl border border-white/10 hover:border-[#89CEFF]/60 shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all duration-300 group hover:-translate-y-1">
-            <div className="w-14 h-14 rounded-2xl bg-[#0EA5E9]/15 border border-[#0EA5E9]/30 flex items-center justify-center text-[#89CEFF] mb-6 group-hover:scale-110 transition-transform">
+          <div className="p-8 rounded-2xl bg-[var(--surface)] border border-[var(--line)] hover:border-sky-300 shadow-sm hover:shadow-md transition-all duration-300 group hover:-translate-y-1">
+            <div className="w-14 h-14 rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-center text-[var(--accent)] mb-6 group-hover:scale-105 transition-transform">
               <Scale className="w-7 h-7" />
             </div>
-            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-[#89CEFF] transition-colors">
+            <h3 className="text-xl font-bold text-[var(--text)] mb-2 group-hover:text-[var(--accent)] transition-colors">
               Bàn Cân So Sánh Showdown Matrix
             </h3>
-            <p className="text-[#BEC8D2] text-sm leading-relaxed mb-4">
+            <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-4">
               Đặt tối đa 3 xe lên bàn cân để so sánh hơn 40 thông số kỹ thuật, gia tốc, pin, công nghệ lái tự động HubPilot và trang bị tiện nghi.
             </p>
             <button
               onClick={() => handleGeneralNavigate('/car-comparison')}
-              className="inline-flex items-center gap-2 text-xs font-bold text-[#89CEFF] hover:text-white transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 text-xs font-bold text-[var(--accent)] hover:text-sky-700 transition-colors cursor-pointer"
             >
               <span>Vào bàn cân so sánh</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -384,19 +382,19 @@ export function Scene() {
           </div>
 
           {/* Trụ cột 3: AI Consultant */}
-          <div className="p-8 rounded-2xl bg-[#0B1326]/60 backdrop-blur-xl border border-white/10 hover:border-[#89CEFF]/60 shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all duration-300 group hover:-translate-y-1">
-            <div className="w-14 h-14 rounded-2xl bg-[#0EA5E9]/15 border border-[#0EA5E9]/30 flex items-center justify-center text-[#89CEFF] mb-6 group-hover:scale-110 transition-transform">
+          <div className="p-8 rounded-2xl bg-[var(--surface)] border border-[var(--line)] hover:border-sky-300 shadow-sm hover:shadow-md transition-all duration-300 group hover:-translate-y-1">
+            <div className="w-14 h-14 rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-center text-[var(--accent)] mb-6 group-hover:scale-105 transition-transform">
               <Sparkles className="w-7 h-7" />
             </div>
-            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-[#89CEFF] transition-colors">
+            <h3 className="text-xl font-bold text-[var(--text)] mb-2 group-hover:text-[var(--accent)] transition-colors">
               Trợ Lý Ảo AI Độc Bản
             </h3>
-            <p className="text-[#BEC8D2] text-sm leading-relaxed mb-4">
+            <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-4">
               AI am hiểu sâu sắc hệ sinh thái ô tô, gợi ý phiên bản xe phù hợp với ngân sách gia đình, phong thủy bản mệnh và tư vấn phụ kiện đồng bộ.
             </p>
             <button
               onClick={() => handleGeneralNavigate('/ai-consultant')}
-              className="inline-flex items-center gap-2 text-xs font-bold text-[#89CEFF] hover:text-white transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 text-xs font-bold text-[var(--accent)] hover:text-sky-700 transition-colors cursor-pointer"
             >
               <span>Trò chuyện cùng AI ngay</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -406,25 +404,25 @@ export function Scene() {
       </section>
 
       {/* =========================================================================
-          SECTION 3: BỘ SƯU TẬP XE TIÊU BIỂU (SHOWROOM SHOWCASE - CYAN THEME)
+          SECTION 3: BỘ SƯU TẬP XE TIÊU BIỂU (SHOWROOM SHOWCASE - LIGHT CARDS)
       ========================================================================== */}
-      <section className="relative z-10 py-24 px-6 lg:px-12 max-w-7xl mx-auto border-t border-white/10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+      <section className="relative z-10 py-20 px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto w-full border-t border-[var(--line)]">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0EA5E9]/15 border border-[#0EA5E9]/30 text-[#89CEFF] text-xs font-semibold mb-2 backdrop-blur-md">
-              <Car className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-100 text-sky-800 border border-sky-200 text-xs font-semibold mb-2">
+              <Car className="w-3.5 h-3.5 text-[var(--accent)]" />
               <span>BỘ SƯU TẬP SỐ 2025</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--text)]">
               Dòng Xe Nổi Bật Tại AutoHub
             </h2>
           </div>
           <button
             onClick={() => handleGeneralNavigate('/cars')}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-xs font-bold transition-all group shadow-lg shadow-[#0EA5E9]/30 hover:scale-105 active:scale-95 cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[var(--accent)] hover:bg-sky-700 text-white text-xs font-bold transition-all shadow-sm hover:shadow active:scale-95 cursor-pointer"
           >
             <span>Xem tất cả danh mục xe</span>
-            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
 
@@ -432,49 +430,49 @@ export function Scene() {
           {featuredCars.slice(0, 3).map((car) => (
             <div
               key={car.id}
-              className="group bg-[#0B1326]/65 backdrop-blur-xl border border-white/10 hover:border-[#89CEFF]/60 rounded-2xl overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.5)] transition-all duration-300 flex flex-col justify-between hover:-translate-y-1.5"
+              className="group bg-[var(--surface)] border border-[var(--line)] hover:border-sky-300 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between hover:-translate-y-1"
             >
               <div>
                 {/* Vehicle Image Container */}
-                <div className="relative aspect-[16/10] overflow-hidden bg-slate-950">
+                <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
                   <img
                     src={car.image}
                     alt={car.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-[11px] font-bold text-[#89CEFF]">
+                  <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-white/95 backdrop-blur-md border border-slate-200 text-[11px] font-bold text-[var(--text)] shadow-sm">
                     {car.badge}
                   </div>
-                  <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-md bg-black/80 backdrop-blur-md text-[11px] font-mono text-emerald-400 border border-emerald-500/30">
+                  <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-md bg-slate-900/85 backdrop-blur-md text-[11px] font-mono text-emerald-400 border border-emerald-500/20">
                     {car.acceleration} (0-100)
                   </div>
                 </div>
 
                 {/* Vehicle Details */}
                 <div className="p-6">
-                  <div className="text-xs text-[#88929B] font-semibold mb-1 uppercase tracking-wider">
+                  <div className="text-xs text-[var(--text-muted)] font-semibold mb-1 uppercase tracking-wider">
                     {car.segment}
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-3 group-hover:text-[#89CEFF] transition-colors">
+                  <h3 className="text-lg font-bold text-[var(--text)] mb-3 group-hover:text-[var(--accent)] transition-colors">
                     {car.name}
                   </h3>
 
                   {/* Specs Quick Strip */}
-                  <div className="grid grid-cols-2 gap-2 text-xs py-3 border-y border-white/10 mb-4 text-[#DAE2FD]">
+                  <div className="grid grid-cols-2 gap-2 text-xs py-3 px-3.5 rounded-xl bg-[var(--surface-subtle)] border border-[var(--line)] mb-4 text-[var(--text-secondary)]">
                     <div>
-                      <span className="text-[#88929B] block text-[10px]">CÔNG SUẤT:</span>
-                      <span className="font-semibold text-white">{car.power.split('(')[0]}</span>
+                      <span className="text-[var(--text-muted)] block text-[10px] uppercase font-medium">CÔNG SUẤT:</span>
+                      <span className="font-semibold text-[var(--text)]">{car.power.split('(')[0]}</span>
                     </div>
                     <div>
-                      <span className="text-[#88929B] block text-[10px]">TẦM VẬN HÀNH:</span>
-                      <span className="font-semibold text-white">{car.range.split('(')[0]}</span>
+                      <span className="text-[var(--text-muted)] block text-[10px] uppercase font-medium">TẦM VẬN HÀNH:</span>
+                      <span className="font-semibold text-[var(--text)]">{car.range.split('(')[0]}</span>
                     </div>
                   </div>
 
                   {/* Price */}
                   <div>
-                    <span className="text-[#88929B] text-[11px] block">Giá niêm yết chính hãng:</span>
-                    <span className="text-xl font-extrabold text-white font-mono">
+                    <span className="text-[var(--text-muted)] text-[11px] block">Giá niêm yết chính hãng:</span>
+                    <span className="text-xl font-extrabold text-[var(--text)] font-mono">
                       {formatCurrencyVND(car.listedPrice)}
                     </span>
                   </div>
@@ -485,13 +483,13 @@ export function Scene() {
               <div className="p-6 pt-0 flex items-center gap-2">
                 <button
                   onClick={() => handleGeneralNavigate(`/cars/${car.id}`)}
-                  className="flex-1 py-2.5 px-4 rounded-xl bg-black/40 hover:bg-black/60 border border-white/15 hover:border-[#89CEFF] text-xs font-semibold text-center text-[#DAE2FD] hover:text-white transition-all active:scale-95 cursor-pointer"
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-[var(--surface-subtle)] hover:bg-slate-200 border border-[var(--line)] text-xs font-semibold text-center text-[var(--text)] hover:text-[var(--accent)] transition-all active:scale-95 cursor-pointer"
                 >
                   Xem Chi Tiết
                 </button>
                 <button
                   onClick={() => handleGeneralNavigate(`/deposit/${car.id}`)}
-                  className="flex-1 py-2.5 px-4 rounded-xl bg-[#0EA5E9] hover:bg-[#0284C7] text-white text-xs font-bold text-center shadow-lg shadow-[#0EA5E9]/30 hover:shadow-[#0EA5E9]/50 transition-all active:scale-95 cursor-pointer"
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-[var(--accent)] hover:bg-sky-700 text-white text-xs font-bold text-center shadow-sm hover:shadow transition-all active:scale-95 cursor-pointer"
                 >
                   Đặt Cọc 72H
                 </button>
@@ -502,18 +500,18 @@ export function Scene() {
       </section>
 
       {/* =========================================================================
-          SECTION 4: QUY TRÌNH 4 BƯỚC SỞ HỮU XE KHÉP KÍN (CHỈ MÔ TẢ)
+          SECTION 4: QUY TRÌNH 4 BƯỚC SỞ HỮU XE KHÉP KÍN (LIGHT THEME)
       ========================================================================== */}
-      <section className="relative z-10 py-24 px-6 lg:px-12 max-w-7xl mx-auto border-t border-white/10">
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-semibold mb-3 backdrop-blur-md">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+      <section className="relative z-10 py-20 px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto w-full border-t border-[var(--line)]">
+        <div className="text-center max-w-2xl mx-auto mb-14">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold mb-3">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
             <span>QUY TRÌNH THUẦN TIỆN & MINH BẠCH</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4 drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--text)] mb-3">
             Sở Hữu Xe Trong 4 Bước Số Hóa
           </h2>
-          <p className="text-[#BEC8D2] text-sm sm:text-base">
+          <p className="text-[var(--text-secondary)] text-sm sm:text-base">
             Tiết kiệm tối đa thời gian. Từ khâu tư vấn, chọn xe cho đến lúc nhận bàn giao chìa khóa tại nhà.
           </p>
         </div>
@@ -547,44 +545,44 @@ export function Scene() {
           ].map((item) => (
             <div
               key={item.step}
-              className="p-6 rounded-2xl bg-[#0B1326]/60 backdrop-blur-xl border border-white/10 relative shadow-[0_8px_32px_rgba(0,0,0,0.5)] hover:-translate-y-1 transition-all"
+              className="p-6 rounded-2xl bg-[var(--surface)] border border-[var(--line)] relative shadow-sm hover:shadow-md hover:border-sky-300 hover:-translate-y-1 transition-all"
             >
-              <span className="text-4xl font-black text-white/10 font-mono absolute top-4 right-4 select-none">
+              <span className="text-4xl font-black text-slate-200 font-mono absolute top-4 right-4 select-none">
                 {item.step}
               </span>
-              <div className="w-12 h-12 rounded-xl bg-[#171F33] border border-[#3E4850]/50 flex items-center justify-center text-[#89CEFF] mb-6">
+              <div className="w-12 h-12 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-[var(--accent)] mb-6">
                 <item.icon className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-white mb-2">{item.title}</h3>
-              <p className="text-xs text-[#BEC8D2] leading-relaxed">{item.desc}</p>
+              <h3 className="text-base font-bold text-[var(--text)] mb-2">{item.title}</h3>
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{item.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* =========================================================================
-          SECTION 5: BANNER KÊU GỌI HÀNH ĐỘNG (FINAL CALL TO ACTION - CYAN THEME)
+          SECTION 5: BANNER KÊU GỌI HÀNH ĐỘNG (FINAL CALL TO ACTION - LIGHT ELEGANT)
       ========================================================================== */}
-      <section className="relative z-10 py-20 px-6 lg:px-12 max-w-7xl mx-auto">
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-black/75 via-[#0B1326]/85 to-black/75 backdrop-blur-2xl border border-white/15 p-8 sm:p-14 text-center shadow-[0_12px_48px_rgba(0,0,0,0.6)]">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-[#0EA5E9]/15 rounded-full blur-[100px] pointer-events-none" />
+      <section className="relative z-10 py-16 px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto w-full">
+        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-sky-50 via-white to-blue-50/80 border border-sky-200/80 p-8 sm:p-14 text-center shadow-sm">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-sky-400/10 rounded-full blur-[100px] pointer-events-none" />
           <div className="relative z-10 max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4 drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--text)] mb-4">
               Sẵn Sàng Trải Nghiệm Khác Biệt Cùng AutoHub?
             </h2>
-            <p className="text-[#BEC8D2] text-sm sm:text-base leading-relaxed mb-8">
+            <p className="text-[var(--text-secondary)] text-sm sm:text-base leading-relaxed mb-8">
               Khám phá hàng loạt mẫu siêu xe, sedan thể thao và SUV sang trọng đã sẵn sàng tại kho showroom toàn quốc.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4">
               <button
                 onClick={() => handleGeneralNavigate('/cars')}
-                className="px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#0EA5E9] to-[#0284C7] text-white text-sm font-bold shadow-xl shadow-[#0EA5E9]/35 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                className="px-8 py-3.5 rounded-xl bg-[var(--accent)] hover:bg-sky-700 text-white text-sm font-bold shadow-md hover:shadow-lg transition-all active:scale-95 cursor-pointer"
               >
                 Khám Phá Showroom Ngay
               </button>
               <button
                 onClick={() => handleGeneralNavigate('/ai-consultant')}
-                className="px-8 py-3.5 rounded-xl bg-[#171F33] hover:bg-[#222A3D] text-[#89CEFF] text-sm font-semibold border border-[#3E4850]/60 transition-all backdrop-blur-md active:scale-95 hover:border-[#89CEFF] cursor-pointer"
+                className="px-8 py-3.5 rounded-xl bg-white hover:bg-slate-50 text-[var(--accent)] text-sm font-semibold border border-sky-200 shadow-sm hover:border-[var(--accent)] transition-all active:scale-95 cursor-pointer"
               >
                 Trò Chuyện Cùng AI Tư Vấn
               </button>
@@ -594,11 +592,30 @@ export function Scene() {
       </section>
 
       {/* =========================================================================
-          SECTION 6: FOOTER (GLASSMORPHISM OVER VIDEO)
+          SECTION 6: FOOTER (STANDARD CUSTOMER COMPONENT)
       ========================================================================== */}
-      <div className="relative z-10">
-        <Footer className="bg-black/75 backdrop-blur-2xl border-t border-white/10" />
+      <div className="relative z-10 mt-auto">
+        <Footer />
       </div>
+
+      {/* =========================================================================
+          FLOATING AI CONSULTANT BUTTON & WIDGET (ĐỒNG NHẤT VỚI PUBLIC LAYOUT)
+      ========================================================================== */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <button
+          type="button"
+          onClick={() => {
+            const el = document.getElementById('ai-consultant-modal');
+            if (el) el.classList.toggle('hidden');
+          }}
+          className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-[var(--surface)] text-[var(--text)] border border-[var(--line-strong)] font-medium text-sm rounded-[var(--radius)] shadow-md hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors cursor-pointer"
+        >
+          <MessageSquare className="w-4 h-4 text-[var(--accent)]" />
+          <span>Hỏi tư vấn xe</span>
+        </button>
+      </div>
+
+      <AiConsultantWidget />
     </div>
   );
 }
