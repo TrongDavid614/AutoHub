@@ -12,7 +12,6 @@ services:
     volumes:
       - autohub_sqlserver_data:/var/opt/mssql
       - ./autohub_erd.sql:/tmp/autohub_erd.sql:ro
-      - ./autohub_staff_integration_migration.sql:/tmp/autohub_staff_integration_migration.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Sapassword@123' -C -Q 'SELECT 1' || exit 1"]
       interval: 10s
@@ -32,7 +31,6 @@ services:
         condition: service_healthy
     volumes:
       - ./autohub_erd.sql:/tmp/autohub_erd.sql:ro
-      - ./autohub_staff_integration_migration.sql:/tmp/autohub_staff_integration_migration.sql:ro
     entrypoint: >
       /bin/bash -c "
         echo 'Checking if AutoHubDB database exists...'
@@ -40,8 +38,6 @@ services:
         if [ $$? -eq 0 ]; then
           echo 'Initializing AutoHubDB database from autohub_erd.sql...'
           /opt/mssql-tools18/bin/sqlcmd -S sqlserver -U sa -P 'Sapassword@123' -C -i /tmp/autohub_erd.sql
-          echo 'Executing autohub_staff_integration_migration.sql...'
-          /opt/mssql-tools18/bin/sqlcmd -S sqlserver -U sa -P 'Sapassword@123' -C -i /tmp/autohub_staff_integration_migration.sql
           echo 'Database initialization complete!'
         else
           echo 'Database AutoHubDB already exists, skipping initialization.'
