@@ -208,13 +208,13 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
 
   const depositCode = currentDeposit?.depositCode || `#DEP-GTE-2026-${Math.floor(1000 + Math.random() * 9000)}`;
   const transferContent = currentDeposit?.transferContent || `AH DEP ${depositCode.replace('#', '')}`;
-  const bankAccount = currentDeposit?.bankAccountNumber || '5811676579';
+  const bankAccount = currentDeposit?.bankAccountNumber || '9624767IMG';
   const bankBrand = currentDeposit?.bankBrandName || 'BIDV';
-  const bankAccountName = currentDeposit?.bankAccountName || 'CONG TY CO PHAN AUTOHUB VIETNAM';
+  const bankAccountName = currentDeposit?.bankAccountName || 'NGUYEN VAN TRONG';
   const testAmount = currentDeposit?.testPaymentAmount || calculateTestPaymentAmount(depositAmount, true);
-  const qrImageUrl = currentDeposit?.qrImageUrl || `https://img.vietqr.io/image/bidv-5811676579-compact2.png?amount=${testAmount}&addInfo=${encodeURIComponent(
+  const qrImageUrl = currentDeposit?.qrImageUrl || `https://img.vietqr.io/image/bidv-9624767IMG-compact2.png?amount=${testAmount}&addInfo=${encodeURIComponent(
     transferContent
-  )}&accountName=CONG%20TY%20CO%20PHAN%20AUTOHUB%20VIETNAM`;
+  )}&accountName=NGUYEN%20VAN%20TRONG`;
 
   // Auto-polling trạng thái thanh toán từ webhook SePay
   useEffect(() => {
@@ -345,7 +345,7 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
                   className="w-44 h-44 mx-auto object-contain rounded-lg border border-[var(--line)] bg-white p-1"
                 />
                 <div className="space-y-1">
-                  <span className="text-xs text-[var(--text-muted)] block">Quét mã bằng App Ngân Hàng bất kỳ</span>
+                  <span className="text-xs text-[var(--text-muted)] block">Mở app Ngân hàng hoặc MoMo quét mã QR</span>
                   <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[var(--accent-soft)] border border-[var(--accent)]/20 text-xs font-medium tabular-nums text-[var(--accent)]">
                     <span>Mã test: {testAmount.toLocaleString('vi-VN')} ₫</span>
                   </div>

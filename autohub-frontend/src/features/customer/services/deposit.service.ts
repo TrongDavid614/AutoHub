@@ -59,8 +59,8 @@ function mapDtoToDepositItem(dto: RawDepositDto): CarDepositItem {
   const transferContent = dto.transferContent || `AH DEP ${cleanCode}`;
   const amount = Number(dto.depositAmount) || 20000000;
   const testPaymentAmount = dto.testPaymentAmount || calculateTestPaymentAmount(amount, true);
-  const bankAcc = dto.bankAccountNumber || '5811676579';
-  const qrUrl = dto.qrImageUrl || `https://img.vietqr.io/image/bidv-${bankAcc}-compact2.png?amount=${testPaymentAmount}&addInfo=${encodeURIComponent(transferContent)}&accountName=CONG%20TY%20CO%20PHAN%20AUTOHUB%20VIETNAM`;
+  const bankAcc = dto.bankAccountNumber || '9624767IMG';
+  const qrUrl = dto.qrImageUrl || `https://img.vietqr.io/image/bidv-${bankAcc}-compact2.png?amount=${testPaymentAmount}&addInfo=${encodeURIComponent(transferContent)}&accountName=NGUYEN%20VAN%20TRONG`;
 
   return {
     id: dto.id,
