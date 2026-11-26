@@ -27,6 +27,14 @@ export const LoginPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [socialNotice, setSocialNotice] = useState<string | null>(null);
 
+  // Tự động chuyển hướng từ IP thô sang domain sslip.io để đảm bảo bảo mật và tương thích Google OAuth
+  useEffect(() => {
+    if (window.location.hostname === '103.82.25.169') {
+      const newUrl = window.location.href.replace('103.82.25.169', '103.82.25.169.sslip.io');
+      window.location.replace(newUrl);
+    }
+  }, []);
+
   // Lắng nghe mã callback OAuth2 từ Google (khi Google chuyển hướng về kèm query param ?code=...)
   useEffect(() => {
     const code = searchParams.get('code');
@@ -37,7 +45,10 @@ export const LoginPage: React.FC = () => {
         setIsLoading(true);
         setSocialNotice('Đang kết nối xác thực tài khoản Google với hệ thống AutoHub...');
 
-        const currentOrigin = window.location.origin;
+        let currentOrigin = window.location.origin;
+        if (currentOrigin.includes('103.82.25.169') && !currentOrigin.includes('sslip.io')) {
+          currentOrigin = currentOrigin.replace('103.82.25.169', '103.82.25.169.sslip.io');
+        }
         const res = await authService.loginGoogle({
           code,
           redirectUri: `${currentOrigin}/auth/login`,
@@ -72,7 +83,11 @@ export const LoginPage: React.FC = () => {
 
   const handleGoogleRedirect = () => {
     const rootUrl = 'https://accounts.google.com/o/oauth2/v2/auth';
-    const redirectUri = `${window.location.origin}/auth/login`;
+    let currentOrigin = window.location.origin;
+    if (currentOrigin.includes('103.82.25.169') && !currentOrigin.includes('sslip.io')) {
+      currentOrigin = currentOrigin.replace('103.82.25.169', '103.82.25.169.sslip.io');
+    }
+    const redirectUri = `${currentOrigin}/auth/login`;
 
     const options = {
       redirect_uri: redirectUri,
