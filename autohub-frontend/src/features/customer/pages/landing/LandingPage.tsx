@@ -13,13 +13,9 @@ import {
   Calculator,
   Compass,
   FileCheck2,
-  MessageSquare,
 } from 'lucide-react';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
 import { Logo } from '@/components/Logo';
 import { carService } from '@/features/customer/services/car.service';
-import { AiConsultantWidget } from '@/features/customer/components/AiConsultantWidget';
 import type { MockCar } from '@/features/customer/mocks/car.mock';
 import { formatCurrencyVND } from '@/lib/utils';
 
@@ -122,9 +118,31 @@ export function Scene() {
   return (
     <div className="relative w-full min-h-screen text-[var(--text)] overflow-x-hidden selection:bg-[var(--accent)] selection:text-white bg-[var(--bg)] flex flex-col">
       {/* =========================================================================
-          STANDARD STICKY HEADER (ĐỒNG NHẤT 100% VỚI CÁC TRANG CUSTOMER)
+          NÚT "VÀO SHOWROOM" GÓC TRÊN BÊN PHẢI (FLOATING TOP-RIGHT CTA)
       ========================================================================== */}
-      <Header />
+      <div className="fixed top-6 right-6 lg:right-10 z-40 animate-fade-in">
+        <button
+          onClick={(e) => handleFeatureClick(e, '/cars', 'top-right-showroom')}
+          className={`group relative overflow-hidden flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-[var(--accent)] hover:bg-sky-700 text-white text-xs font-bold shadow-md hover:shadow-lg border border-sky-400/30 backdrop-blur-xl transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer ${
+            clickedFeatureId === 'top-right-showroom'
+              ? 'scale-95 ring-2 ring-[var(--accent)] shadow-xl bg-sky-800'
+              : ''
+          }`}
+        >
+          {/* Light-sweep effect on hover */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none" />
+
+          {/* Shockwave ping when clicked */}
+          {clickedFeatureId === 'top-right-showroom' && (
+            <div className="absolute inset-0 rounded-full border-2 border-sky-300 animate-ping pointer-events-none" />
+          )}
+
+          <span className="w-2 h-2 rounded-full bg-sky-200 animate-pulse" />
+          <Car className="w-4 h-4 text-white transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110" />
+          <span className="tracking-wide">Vào Showroom</span>
+          <ChevronRight className="w-3.5 h-3.5 text-white/90 transition-transform duration-300 group-hover:translate-x-1" />
+        </button>
+      </div>
 
       {/* =========================================================================
           FIXED FULL-PAGE VIDEO BACKGROUND (LUMINOUS LUXURY STUDIO OVERLAY)
@@ -164,7 +182,7 @@ export function Scene() {
       {/* =========================================================================
           HERO SECTION (TƯƠI SÁNG, TINH TẾ & CAO CẤP)
       ========================================================================== */}
-      <section className="relative z-10 w-full min-h-[calc(100vh-64px)] flex flex-col justify-center items-center px-4 sm:px-6 lg:px-12 py-12 lg:py-16">
+      <section className="relative z-10 w-full min-h-screen flex flex-col justify-center items-center px-4 sm:px-6 lg:px-12 py-16 lg:py-24">
         <div className="max-w-6xl mx-auto w-full flex flex-col items-center text-center">
           
           {/* Logo Brand Center Badge */}
@@ -592,30 +610,11 @@ export function Scene() {
       </section>
 
       {/* =========================================================================
-          SECTION 6: FOOTER (STANDARD CUSTOMER COMPONENT)
+          CLEAN LIGHT FOOTPRINT / COPYRIGHT (THAY THẾ FOOTER DÀY ĐẶC)
       ========================================================================== */}
-      <div className="relative z-10 mt-auto">
-        <Footer />
+      <div className="relative z-10 py-8 text-center text-xs text-[var(--text-muted)] border-t border-[var(--line)]">
+        © {new Date().getFullYear()} AutoHub. Nền tảng thương mại điện tử ô tô và phụ kiện số thế hệ mới.
       </div>
-
-      {/* =========================================================================
-          FLOATING AI CONSULTANT BUTTON & WIDGET (ĐỒNG NHẤT VỚI PUBLIC LAYOUT)
-      ========================================================================== */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <button
-          type="button"
-          onClick={() => {
-            const el = document.getElementById('ai-consultant-modal');
-            if (el) el.classList.toggle('hidden');
-          }}
-          className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] bg-[var(--surface)] text-[var(--text)] border border-[var(--line-strong)] font-medium text-sm rounded-[var(--radius)] shadow-md hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors cursor-pointer"
-        >
-          <MessageSquare className="w-4 h-4 text-[var(--accent)]" />
-          <span>Hỏi tư vấn xe</span>
-        </button>
-      </div>
-
-      <AiConsultantWidget />
     </div>
   );
 }
