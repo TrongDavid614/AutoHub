@@ -208,11 +208,11 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
 
   const depositCode = currentDeposit?.depositCode || `#DEP-GTE-2026-${Math.floor(1000 + Math.random() * 9000)}`;
   const transferContent = currentDeposit?.transferContent || `AH DEP ${depositCode.replace('#', '')}`;
-  const bankAccount = currentDeposit?.bankAccountNumber || '9624767IMG';
+  const bankAccount = currentDeposit?.bankAccountNumber || '962470372816614';
   const bankBrand = currentDeposit?.bankBrandName || 'BIDV';
   const bankAccountName = currentDeposit?.bankAccountName || 'NGUYEN VAN TRONG';
   const testAmount = currentDeposit?.testPaymentAmount || calculateTestPaymentAmount(depositAmount, true);
-  const qrImageUrl = currentDeposit?.qrImageUrl || `https://img.vietqr.io/image/bidv-9624767IMG-compact2.png?amount=${testAmount}&addInfo=${encodeURIComponent(
+  const qrImageUrl = currentDeposit?.qrImageUrl || `https://img.vietqr.io/image/bidv-962470372816614-compact2.png?amount=${testAmount}&addInfo=${encodeURIComponent(
     transferContent
   )}&accountName=NGUYEN%20VAN%20TRONG`;
 
