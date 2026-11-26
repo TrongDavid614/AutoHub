@@ -98,6 +98,17 @@ services:
       - autohub-network
     restart: unless-stopped
 
+  # 5. Cloudflare Tunnel (Cung cấp HTTPS bảo mật miễn phí cho SePay Webhook & Trình duyệt)
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: autohub-tunnel
+    command: tunnel --no-autoupdate --url http://frontend:80
+    depends_on:
+      - frontend
+    networks:
+      - autohub-network
+    restart: unless-stopped
+
 networks:
   autohub-network:
     driver: bridge
