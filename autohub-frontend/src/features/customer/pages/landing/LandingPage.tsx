@@ -15,6 +15,7 @@ import {
   FileCheck2,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
+import { Footer } from '@/components/Footer';
 import { carService } from '@/features/customer/services/car.service';
 import type { MockCar } from '@/features/customer/mocks/car.mock';
 import { formatCurrencyVND } from '@/lib/utils';
@@ -610,10 +611,10 @@ export function Scene() {
       </section>
 
       {/* =========================================================================
-          CLEAN LIGHT FOOTPRINT / COPYRIGHT (THAY THẾ FOOTER DÀY ĐẶC)
+          SECTION 6: FOOTER (GIAO DIỆN SÁNG ĐỒNG NHẤT VỚI CÁC TRANG CUSTOMER)
       ========================================================================== */}
-      <div className="relative z-10 py-8 text-center text-xs text-[var(--text-muted)] border-t border-[var(--line)]">
-        © {new Date().getFullYear()} AutoHub. Nền tảng thương mại điện tử ô tô và phụ kiện số thế hệ mới.
+      <div className="relative z-10 mt-auto">
+        <Footer />
       </div>
     </div>
   );
