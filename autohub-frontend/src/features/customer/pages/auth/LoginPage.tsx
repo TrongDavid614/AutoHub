@@ -12,7 +12,9 @@ export const LoginPage: React.FC = () => {
 
   const login = useAuthStore((s) => s.login);
 
-  const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+  const GOOGLE_CLIENT_ID =
+    import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+    '833436348399-eka9dmurcvtflggm4fl30aud9sr1snj5.apps.googleusercontent.com';
 
   // Form states
   const [email, setEmail] = useState('');
