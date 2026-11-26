@@ -88,16 +88,10 @@ public class CustomerOrderController {
         List<DonHangPhuKien> orders;
         if (user != null) {
             orders = donHangRepository.findByNguoiDungIdOrderByNgayDatDesc(user.getId());
-            if (orders.isEmpty()) {
-                orders = donHangRepository.findAllByOrderByNgayDatDesc();
-            }
         } else if (customerId != null) {
             orders = donHangRepository.findByNguoiDungIdOrderByNgayDatDesc(customerId);
-            if (orders.isEmpty()) {
-                orders = donHangRepository.findAllByOrderByNgayDatDesc();
-            }
         } else {
-            orders = donHangRepository.findAllByOrderByNgayDatDesc();
+            orders = Collections.emptyList();
         }
 
         if (orders.isEmpty()) {
@@ -341,9 +335,13 @@ public class CustomerOrderController {
             HttpServletRequest servletRequest,
             @RequestBody CreateOrderRequestDto req
     ) {
-        Long customerId = req.getCustomerId() != null ? req.getCustomerId() : 1L;
-        NguoiDung customer = nguoiDungRepository.findById(customerId)
-                .orElseGet(() -> nguoiDungRepository.findAll().stream().findFirst().orElse(null));
+        NguoiDung customer = resolveCurrentUser(req.getCustomerId());
+        if (customer == null && req.getCustomerId() != null) {
+            customer = nguoiDungRepository.findById(req.getCustomerId()).orElse(null);
+        }
+        if (customer == null) {
+            customer = nguoiDungRepository.findAll().stream().findFirst().orElse(null);
+        }
 
         if (customer == null) {
             return ResponseEntity.badRequest().body(ApiResponse.error("Không tìm thấy tài khoản người dùng"));
