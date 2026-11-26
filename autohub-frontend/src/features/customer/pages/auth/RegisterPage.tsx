@@ -96,7 +96,8 @@ export const RegisterPage: React.FC = () => {
       navigate(`/auth/register-success?name=${encodeURIComponent(trimmedFullName)}&email=${encodeURIComponent(trimmedEmail)}`);
     } catch (err: unknown) {
       setIsSubmitting(false);
-      const apiError = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      const errObj = err as { response?: { data?: { message?: string; error?: string } }; message?: string };
+      const apiError = errObj?.response?.data?.message || errObj?.response?.data?.error;
       setError(apiError || 'Có lỗi xảy ra trong quá trình đăng ký. Vui lòng thử lại.');
     }
   };
