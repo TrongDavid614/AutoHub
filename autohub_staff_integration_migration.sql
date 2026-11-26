@@ -1,8 +1,8 @@
 -- ============================================================================
 -- AUTOHUB - SQL SERVER MIGRATION SCRIPT FOR STAFF OPERATIONS INTEGRATION
--- Muc dich: Bo sung 3 bang doc lap phuc vu Module 3 (Tra cuu & Chuyen kho phu kien)
---           va Module 4 (Lich su bao duong xe Demo), KHONG sua/xoa bang hien co.
--- An toan chay lai nhieu lan (Idempotent).
+-- GHI CHU: Toan bo noi dung migration nay da duoc gop truc tiep vao autohub_erd.sql.
+-- Ban chi can chay duy nhat file autohub_erd.sql la da day du 100% cac bang & du lieu.
+-- File nay duoc luu lai lam ban tham chieu doc lap (Idempotent).
 -- ============================================================================
 USE AutoHubDB;
 GO
