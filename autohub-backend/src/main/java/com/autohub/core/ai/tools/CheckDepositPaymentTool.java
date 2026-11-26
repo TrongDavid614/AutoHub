@@ -37,7 +37,7 @@ public class CheckDepositPaymentTool {
 
     private static final NumberFormat VND_FORMAT = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm 'ngày' dd/MM/yyyy");
-    private static final Pattern CODE_PATTERN = Pattern.compile("(?i)(?:AH\\s*DEP\\s*)?#?(DEP-\\d+|\\d{6,10})");
+    private static final Pattern CODE_PATTERN = Pattern.compile("(?i)(?:AH[-_\\s]*DEP[-_\\s]*)?#?(DEP[-_]?\\d+|\\d{4,10})");
 
     @Data
     @Builder
@@ -184,24 +184,27 @@ public class CheckDepositPaymentTool {
         if (codeOrPrompt != null && !codeOrPrompt.isBlank()) {
             Matcher matcher = CODE_PATTERN.matcher(codeOrPrompt);
             if (matcher.find()) {
-                String extracted = matcher.group(1);
+                String extracted = matcher.group(1).trim();
                 Optional<PhieuDatCoc> opt = phieuDatCocRepository.findByMaPhieuCoc(extracted);
                 if (opt.isPresent()) return opt.get();
 
                 opt = phieuDatCocRepository.findByMaPhieuCoc("#" + extracted);
                 if (opt.isPresent()) return opt.get();
 
-                try {
-                    Long id = Long.parseLong(extracted);
-                    opt = phieuDatCocRepository.findById(id);
+                String rawCore = extracted.replaceAll("(?i)^#?DEP[-_]?", "").trim();
+                if (!rawCore.isBlank()) {
+                    opt = phieuDatCocRepository.findByMaPhieuCoc("DEP-" + rawCore);
                     if (opt.isPresent()) return opt.get();
-                } catch (NumberFormatException ignored) {}
+                    opt = phieuDatCocRepository.findByMaPhieuCoc("#DEP-" + rawCore);
+                    if (opt.isPresent()) return opt.get();
+                    opt = phieuDatCocRepository.findByMaPhieuCoc("DEP" + rawCore);
+                    if (opt.isPresent()) return opt.get();
 
-                if (!extracted.startsWith("DEP-")) {
-                    opt = phieuDatCocRepository.findByMaPhieuCoc("DEP-" + extracted);
-                    if (opt.isPresent()) return opt.get();
-                    opt = phieuDatCocRepository.findByMaPhieuCoc("#DEP-" + extracted);
-                    if (opt.isPresent()) return opt.get();
+                    try {
+                        Long id = Long.parseLong(rawCore);
+                        opt = phieuDatCocRepository.findById(id);
+                        if (opt.isPresent()) return opt.get();
+                    } catch (NumberFormatException ignored) {}
                 }
             }
         }
