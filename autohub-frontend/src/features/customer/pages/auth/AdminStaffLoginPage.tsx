@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Shield, Lock, User, Eye, EyeOff, AlertCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Lock, User, Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { authService } from '@/features/customer/services/auth.service';
 import { Logo } from '@/components/Logo';
@@ -44,12 +44,6 @@ export const AdminStaffLoginPage: React.FC = () => {
       const errRes = (err as { response?: { data?: { message?: string } } })?.response?.data;
       setErrorMessage(errRes?.message || 'Thông tin đăng nhập không hợp lệ hoặc tài khoản đã bị khóa bảo mật.');
     }
-  };
-
-  const fillQuickAccount = (user: string, pass: string) => {
-    setUsername(user);
-    setPassword(pass);
-    handleLogin(user, pass);
   };
 
   return (
@@ -141,42 +135,6 @@ export const AdminStaffLoginPage: React.FC = () => {
               )}
             </button>
           </form>
-
-          {/* Quick Demo Access Credentials */}
-          <div className="mt-6 pt-5 border-t border-[var(--line)]">
-            <p className="text-xs font-medium text-[var(--text-secondary)] mb-2.5">
-              Tài khoản kiểm thử nhanh (Demo):
-            </p>
-            <div className="grid grid-cols-2 gap-2.5">
-              <button
-                type="button"
-                onClick={() => fillQuickAccount('admin.test@autohub.vn', 'Test@1234')}
-                className="p-2.5 rounded-lg bg-[var(--surface-subtle)] hover:bg-[var(--line)]/50 border border-[var(--line)] text-left transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--text)] mb-0.5">
-                  <Shield className="w-3.5 h-3.5 text-[var(--accent)]" />
-                  <span>Admin Master</span>
-                </div>
-                <div className="text-[11px] text-[var(--text-secondary)] truncate">
-                  admin.test@autohub.vn
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => fillQuickAccount('staff.test@autohub.vn', 'Test@1234')}
-                className="p-2.5 rounded-lg bg-[var(--surface-subtle)] hover:bg-[var(--line)]/50 border border-[var(--line)] text-left transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-[var(--text)] mb-0.5">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Staff Showroom</span>
-                </div>
-                <div className="text-[11px] text-[var(--text-secondary)] truncate">
-                  staff.test@autohub.vn
-                </div>
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Footer Navigation Links */}

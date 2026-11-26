@@ -52,12 +52,6 @@ export const AdminLoginPage: React.FC = () => {
     }
   };
 
-  const fillQuickAdmin = () => {
-    setUsername('admin.test@autohub.vn');
-    setPassword('Test@1234');
-    handleLogin('admin.test@autohub.vn', 'Test@1234');
-  };
-
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] flex flex-col justify-center items-center px-4 py-12">
       <div className="w-full max-w-md space-y-6">
@@ -165,24 +159,6 @@ export const AdminLoginPage: React.FC = () => {
               )}
             </button>
           </form>
-
-          {/* Quick Demo Credentials */}
-          <div className="pt-4 border-t border-[var(--line)] space-y-2">
-            <p className="text-xs font-medium text-[var(--text-secondary)]">
-              Tài khoản kiểm thử nhanh (Demo):
-            </p>
-            <button
-              type="button"
-              onClick={fillQuickAdmin}
-              className="w-full px-3 py-2.5 rounded-lg bg-[var(--surface-subtle)] hover:bg-[var(--line)]/50 border border-[var(--line)] text-left transition-colors cursor-pointer flex items-center justify-between text-xs"
-            >
-              <div>
-                <span className="font-semibold text-[var(--text)] block">Admin Master</span>
-                <span className="text-[var(--text-secondary)]">admin.test@autohub.vn · Test@1234</span>
-              </div>
-              <span className="text-[var(--accent)] font-medium">Dùng thử →</span>
-            </button>
-          </div>
         </div>
 
         {/* Footer Links */}
