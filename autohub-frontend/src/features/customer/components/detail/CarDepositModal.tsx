@@ -188,11 +188,11 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
 
   const depositCode = currentDeposit?.depositCode || `#DEP-GTE-2026-${Math.floor(1000 + Math.random() * 9000)}`;
   const transferContent = currentDeposit?.transferContent || `AH DEP ${depositCode.replace('#', '')}`;
-  const bankAccount = currentDeposit?.bankAccountNumber || '5811676579';
+  const bankAccount = currentDeposit?.bankAccountNumber || '9624767IMG';
   const bankBrand = currentDeposit?.bankBrandName || 'BIDV';
   const bankAccountName = currentDeposit?.bankAccountName || 'CONG TY CO PHAN AUTOHUB VIETNAM';
   const testAmount = currentDeposit?.testPaymentAmount || calculateTestPaymentAmount(depositAmount, true);
-  const qrImageUrl = currentDeposit?.qrImageUrl || `https://img.vietqr.io/image/bidv-5811676579-compact2.png?amount=${testAmount}&addInfo=${encodeURIComponent(
+  const qrImageUrl = currentDeposit?.qrImageUrl || `https://img.vietqr.io/image/bidv-9624767IMG-compact2.png?amount=${testAmount}&addInfo=${encodeURIComponent(
     transferContent
   )}&accountName=CONG%20TY%20CO%20PHAN%20AUTOHUB%20VIETNAM`;
 

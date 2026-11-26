@@ -115,7 +115,7 @@ public class DepositPolicyExecutor implements AiIntentExecutor {
                                 ![Mã VietQR Thanh Toán SePay](%s)
 
                                 • 🏦 **Ngân hàng thụ hưởng:** BIDV (Ngân hàng TMCP Đầu tư và Phát triển VN)
-                                • 💳 **Số tài khoản:** **5811676579**
+                                • 💳 **Số tài khoản:** **9624767IMG**
                                 • 👤 **Chủ tài khoản:** CONG TY CO PHAN AUTOHUB VIETNAM
                                 • 💵 **Số tiền cọc chính xác:** %s
                                 • 📝 **Nội dung chuyển khoản (bắt buộc chính xác):** `AH DEP %s`

@@ -29,7 +29,7 @@ public class CheckDepositPaymentTool {
 
     private final PhieuDatCocRepository phieuDatCocRepository;
 
-    @Value("${sepay.account-number:5811676579}")
+    @Value("${sepay.account-number:9624767IMG}")
     private String sepayAccountNumber;
 
     @Value("${sepay.bank-brand-name:BIDV}")
@@ -132,7 +132,7 @@ public class CheckDepositPaymentTool {
             // Chưa thanh toán -> Sinh VietQR SePay BIDV chuẩn
             String cleanCode = code.startsWith("#") ? code.substring(1) : code;
             String transferContent = "AH DEP " + cleanCode;
-            String bankAcc = (sepayAccountNumber != null && !sepayAccountNumber.isBlank()) ? sepayAccountNumber : "5811676579";
+            String bankAcc = (sepayAccountNumber != null && !sepayAccountNumber.isBlank()) ? sepayAccountNumber : "9624767IMG";
             String bankBrand = (sepayBankBrandName != null && !sepayBankBrandName.isBlank()) ? sepayBankBrandName.toLowerCase() : "bidv";
             String amountDigits = amount.toBigInteger().toString();
 

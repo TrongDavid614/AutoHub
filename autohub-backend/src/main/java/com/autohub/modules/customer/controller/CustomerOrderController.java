@@ -56,7 +56,7 @@ public class CustomerOrderController {
     private final PhuongThucVanChuyenRepository phuongThucVanChuyenRepository;
     private final YeuCauDoiTraRepository yeuCauDoiTraRepository;
 
-    @Value("${sepay.account-number:5811676579}")
+    @Value("${sepay.account-number:9624767IMG}")
     private String sepayAccountNumber;
 
     @Value("${sepay.bank-brand-name:BIDV}")
@@ -485,7 +485,7 @@ public class CustomerOrderController {
         responseData.put("totalPayable", grandTotal);
 
         if (isOnlinePayment) {
-            String accNum = sepayAccountNumber != null ? sepayAccountNumber : "5811676579";
+            String accNum = sepayAccountNumber != null ? sepayAccountNumber : "9624767IMG";
             String bankBrand = sepayBankBrandName != null ? sepayBankBrandName : "BIDV";
             long paymentAmount = sandboxMode ? PaymentSandboxHelper.calculateSandboxTestAmount(grandTotal, false) : grandTotal.longValue();
 

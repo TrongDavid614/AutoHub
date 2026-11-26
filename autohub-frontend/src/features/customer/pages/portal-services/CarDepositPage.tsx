@@ -315,7 +315,7 @@ export const CarDepositPage: React.FC = () => {
     const activeTransferContent = activeDeposit?.transferContent || `AH DEP ${cleanDepositCode}`;
     const activeQrUrl =
       activeDeposit?.qrImageUrl ||
-      `https://img.vietqr.io/image/bidv-5811676579-compact2.png?amount=${testDepositAmount}&addInfo=${encodeURIComponent(
+      `https://img.vietqr.io/image/bidv-9624767IMG-compact2.png?amount=${testDepositAmount}&addInfo=${encodeURIComponent(
         activeTransferContent
       )}&accountName=CONG%20TY%20CO%20PHAN%20AUTOHUB%20VIETNAM`;
 
@@ -611,12 +611,12 @@ export const CarDepositPage: React.FC = () => {
 
                 <div className="p-3.5 rounded bg-canvas-deep/80 border border-surface-highlight flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] font-mono text-text-muted uppercase block">SỐ TÀI KHOẢN THỤ HƯỞNG</span>
-                    <span className="font-mono font-bold text-base text-accent-primary">5811676579</span>
+                    <span className="text-[10px] font-mono text-text-muted uppercase block">SỐ TÀI KHOẢN THỤ HƯỞNG (VA)</span>
+                    <span className="font-mono font-bold text-base text-accent-primary">9624767IMG</span>
                   </div>
                   <button
                     type="button"
-                    onClick={() => handleCopy('5811676579', 'accNum')}
+                    onClick={() => handleCopy('9624767IMG', 'accNum')}
                     className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight text-xs text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
                   >
                     {copiedField === 'accNum' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
@@ -924,7 +924,7 @@ export const CarDepositPage: React.FC = () => {
                     <img
                       src={
                         qrModalDeposit.qrImageUrl ||
-                        `https://img.vietqr.io/image/bidv-5811676579-compact2.png?amount=${modalTestAmount}&addInfo=${encodeURIComponent(
+                        `https://img.vietqr.io/image/bidv-9624767IMG-compact2.png?amount=${modalTestAmount}&addInfo=${encodeURIComponent(
                           qrModalDeposit.transferContent || `AH DEP ${qrModalDeposit.depositCode.replace('#', '')}`
                         )}&accountName=CONG%20TY%20CO%20PHAN%20AUTOHUB%20VIETNAM`
                       }
@@ -947,7 +947,7 @@ export const CarDepositPage: React.FC = () => {
             <div className="space-y-2 text-xs">
               <div className="p-2.5 rounded-lg bg-[var(--surface-subtle)] border border-[var(--line)] flex justify-between">
                 <span className="text-text-muted">Ngân hàng:</span>
-                <span className="font-bold text-text-primary">BIDV (5811676579)</span>
+                <span className="font-bold text-text-primary">BIDV (9624767IMG)</span>
               </div>
               <div className="p-2.5 rounded-lg bg-[var(--surface-subtle)] border border-[var(--line)] flex justify-between items-center">
                 <div>
