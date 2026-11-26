@@ -59,7 +59,7 @@ function mapDtoToDepositItem(dto: RawDepositDto): CarDepositItem {
   const transferContent = dto.transferContent || `AH DEP ${cleanCode}`;
   const amount = Number(dto.depositAmount) || 20000000;
   const testPaymentAmount = dto.testPaymentAmount || calculateTestPaymentAmount(amount, true);
-  const bankAcc = dto.bankAccountNumber || '9624767IMG';
+  const bankAcc = dto.bankAccountNumber || '5811676579';
   const qrUrl = dto.qrImageUrl || `https://img.vietqr.io/image/bidv-${bankAcc}-compact2.png?amount=${testPaymentAmount}&addInfo=${encodeURIComponent(transferContent)}&accountName=CONG%20TY%20CO%20PHAN%20AUTOHUB%20VIETNAM`;
 
   return {
@@ -155,5 +155,17 @@ export const depositService = {
       // Offline fallback
     }
     return null;
+  },
+
+  async confirmPayment(depositCode: string): Promise<boolean> {
+    try {
+      const cleanCode = depositCode.replace('#', '');
+      const res = await axiosClient.post<unknown, ApiResponse<Record<string, unknown>>>(
+        `/payment/simulate-pay?code=${encodeURIComponent(cleanCode)}`
+      );
+      return res?.success === true;
+    } catch {
+      return false;
+    }
   },
 };
