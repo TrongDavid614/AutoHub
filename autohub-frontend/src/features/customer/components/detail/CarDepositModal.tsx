@@ -55,6 +55,7 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
   const [paymentPendingMsg, setPaymentPendingMsg] = useState<string | null>(null);
 
   // Flow states: 1. Form -> 2. Pending Payment (QR 15p) -> 3. Paid Success (72h)
@@ -186,13 +187,32 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
     }
   };
 
+  const handleManualConfirm = async () => {
+    if (!currentDeposit) return;
+    setIsConfirming(true);
+    setPaymentPendingMsg(null);
+    try {
+      const ok = await depositService.confirmPayment(currentDeposit.depositCode);
+      if (ok) {
+        setIsPendingPayment(false);
+        setDepositSuccess(true);
+      } else {
+        setPaymentPendingMsg('Không thể xác nhận giao dịch lúc này. Vui lòng kiểm tra lại kết nối.');
+      }
+    } catch {
+      setPaymentPendingMsg('Lỗi kết nối khi xác nhận giao dịch.');
+    } finally {
+      setIsConfirming(false);
+    }
+  };
+
   const depositCode = currentDeposit?.depositCode || `#DEP-GTE-2026-${Math.floor(1000 + Math.random() * 9000)}`;
   const transferContent = currentDeposit?.transferContent || `AH DEP ${depositCode.replace('#', '')}`;
-  const bankAccount = currentDeposit?.bankAccountNumber || '9624767IMG';
+  const bankAccount = currentDeposit?.bankAccountNumber || '5811676579';
   const bankBrand = currentDeposit?.bankBrandName || 'BIDV';
   const bankAccountName = currentDeposit?.bankAccountName || 'CONG TY CO PHAN AUTOHUB VIETNAM';
   const testAmount = currentDeposit?.testPaymentAmount || calculateTestPaymentAmount(depositAmount, true);
-  const qrImageUrl = currentDeposit?.qrImageUrl || `https://img.vietqr.io/image/bidv-9624767IMG-compact2.png?amount=${testAmount}&addInfo=${encodeURIComponent(
+  const qrImageUrl = currentDeposit?.qrImageUrl || `https://img.vietqr.io/image/bidv-5811676579-compact2.png?amount=${testAmount}&addInfo=${encodeURIComponent(
     transferContent
   )}&accountName=CONG%20TY%20CO%20PHAN%20AUTOHUB%20VIETNAM`;
 
@@ -381,9 +401,29 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
             </div>
 
             {paymentPendingMsg && (
-              <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-                <span>{paymentPendingMsg}</span>
+              <div className="p-3.5 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-2.5">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                  <span className="leading-relaxed">{paymentPendingMsg}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleManualConfirm}
+                  disabled={isConfirming}
+                  className="w-full py-2.5 px-4 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {isConfirming ? (
+                    <>
+                      <RotateCw className="w-4 h-4 animate-spin" />
+                      <span>Đang kích hoạt giữ chỗ xe 72h...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Tôi đã chuyển khoản thành công — Kích hoạt ngay</span>
+                    </>
+                  )}
+                </button>
               </div>
             )}
 

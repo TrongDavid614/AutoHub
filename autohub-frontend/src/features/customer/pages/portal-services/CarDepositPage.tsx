@@ -276,7 +276,21 @@ export const CarDepositPage: React.FC = () => {
           loadDeposits();
         }
       } else {
-        showToast('Hệ thống chưa ghi nhận giao dịch chuyển khoản. Vui lòng chờ 10–30 giây sau khi chuyển hoặc kiểm tra lại nội dung chuyển khoản.');
+        // Thử kích hoạt đối soát thanh toán trực tiếp
+        const confirmed = await depositService.confirmPayment(item.depositCode);
+        if (confirmed) {
+          if (checkoutStep === 'PAYMENT_QR') {
+            setCheckoutStep('SUCCESS');
+            setActiveDeposit((prev) => (prev ? { ...prev, status: 'PAID', paidAt: new Date().toISOString() } : null));
+          }
+          if (qrModalDeposit) {
+            setQrModalDeposit(null);
+            showToast(`Đã xác nhận thanh toán thành công cho phiếu cọc ${item.depositCode}! Suất giữ xe 72h đã kích hoạt.`);
+            loadDeposits();
+          }
+        } else {
+          showToast('Hệ thống chưa ghi nhận giao dịch chuyển khoản. Vui lòng chờ 10–30 giây sau khi chuyển hoặc kiểm tra lại nội dung chuyển khoản.');
+        }
       }
     } catch {
       showToast('Không thể kiểm tra trạng thái thanh toán lúc này. Vui lòng thử lại sau.');
@@ -315,7 +329,7 @@ export const CarDepositPage: React.FC = () => {
     const activeTransferContent = activeDeposit?.transferContent || `AH DEP ${cleanDepositCode}`;
     const activeQrUrl =
       activeDeposit?.qrImageUrl ||
-      `https://img.vietqr.io/image/bidv-9624767IMG-compact2.png?amount=${testDepositAmount}&addInfo=${encodeURIComponent(
+      `https://img.vietqr.io/image/bidv-5811676579-compact2.png?amount=${testDepositAmount}&addInfo=${encodeURIComponent(
         activeTransferContent
       )}&accountName=CONG%20TY%20CO%20PHAN%20AUTOHUB%20VIETNAM`;
 
@@ -611,12 +625,12 @@ export const CarDepositPage: React.FC = () => {
 
                 <div className="p-3.5 rounded bg-canvas-deep/80 border border-surface-highlight flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] font-mono text-text-muted uppercase block">SỐ TÀI KHOẢN THỤ HƯỞNG (VA)</span>
-                    <span className="font-mono font-bold text-base text-accent-primary">9624767IMG</span>
+                    <span className="text-[10px] font-mono text-text-muted uppercase block">SỐ TÀI KHOẢN THỤ HƯỞNG</span>
+                    <span className="font-mono font-bold text-base text-accent-primary">5811676579</span>
                   </div>
                   <button
                     type="button"
-                    onClick={() => handleCopy('9624767IMG', 'accNum')}
+                    onClick={() => handleCopy('5811676579', 'accNum')}
                     className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight text-xs text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
                   >
                     {copiedField === 'accNum' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
@@ -924,7 +938,7 @@ export const CarDepositPage: React.FC = () => {
                     <img
                       src={
                         qrModalDeposit.qrImageUrl ||
-                        `https://img.vietqr.io/image/bidv-9624767IMG-compact2.png?amount=${modalTestAmount}&addInfo=${encodeURIComponent(
+                        `https://img.vietqr.io/image/bidv-5811676579-compact2.png?amount=${modalTestAmount}&addInfo=${encodeURIComponent(
                           qrModalDeposit.transferContent || `AH DEP ${qrModalDeposit.depositCode.replace('#', '')}`
                         )}&accountName=CONG%20TY%20CO%20PHAN%20AUTOHUB%20VIETNAM`
                       }
@@ -947,7 +961,7 @@ export const CarDepositPage: React.FC = () => {
             <div className="space-y-2 text-xs">
               <div className="p-2.5 rounded-lg bg-[var(--surface-subtle)] border border-[var(--line)] flex justify-between">
                 <span className="text-text-muted">Ngân hàng:</span>
-                <span className="font-bold text-text-primary">BIDV (9624767IMG)</span>
+                <span className="font-bold text-text-primary">BIDV (5811676579)</span>
               </div>
               <div className="p-2.5 rounded-lg bg-[var(--surface-subtle)] border border-[var(--line)] flex justify-between items-center">
                 <div>
