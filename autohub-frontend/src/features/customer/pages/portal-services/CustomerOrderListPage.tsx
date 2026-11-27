@@ -17,6 +17,7 @@ import { OrderReturnModal } from '@/features/customer/components/OrderReturnModa
 import { OrderTrackingModal } from '@/features/customer/components/OrderTrackingModal';
 import { OrderCancelModal } from '@/features/customer/components/OrderCancelModal';
 import { OrderTimelineModal } from '@/features/customer/components/OrderTimelineModal';
+import { OrderSuccessModal } from '@/features/customer/components/OrderSuccessModal';
 
 export const CustomerOrderListPage: React.FC = () => {
   const addToCart = useCartStore((s) => s.addToCart);
@@ -37,6 +38,8 @@ export const CustomerOrderListPage: React.FC = () => {
   const [showTrackingModal, setShowTrackingModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showProgressModal, setShowProgressModal] = useState(false);
+  const [paymentOrder, setPaymentOrder] = useState<AccessoryOrder | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // Countdown timer cho đơn PENDING_PAYMENT (15 phút)
   const [timeLeft, setTimeLeft] = useState(12 * 60 + 45);
@@ -265,6 +268,10 @@ export const CustomerOrderListPage: React.FC = () => {
                 setSelectedOrder(o);
                 setShowProgressModal(true);
               }}
+              onOpenPayment={(o) => {
+                setPaymentOrder(o);
+                setShowPaymentModal(true);
+              }}
             />
           ))
         )}
@@ -318,6 +325,39 @@ export const CustomerOrderListPage: React.FC = () => {
           setSelectedOrder(null);
         }}
       />
+
+      {/* Modal Quét mã VietQR SePay & Kiểm tra trạng thái thanh toán */}
+      {paymentOrder && (
+        <OrderSuccessModal
+          isOpen={showPaymentModal}
+          orderId={paymentOrder.orderCode}
+          totalPayable={paymentOrder.finalTotalAmount || 0}
+          recipientName={paymentOrder.customerName || user?.fullName || 'Khách hàng'}
+          sepayData={{
+            accountNumber: '962470372816614',
+            bankBrandName: 'BIDV',
+            accountName: 'NGUYEN VAN TRONG',
+            transferAmount: 4000,
+            transferContent: paymentOrder.orderCode.replace(/^#/, ''),
+            qrUrl: `https://qr.sepay.vn/img?acc=962470372816614&bank=BIDV&amount=4000&des=${encodeURIComponent(
+              paymentOrder.orderCode.replace(/^#/, '')
+            )}`,
+          }}
+          onClose={() => {
+            setShowPaymentModal(false);
+            setPaymentOrder(null);
+          }}
+          onPaymentSuccess={() => {
+            const paidId = paymentOrder.id;
+            setOrders((prev) =>
+              prev.map((o) =>
+                o.id === paidId ? { ...o, status: 'PAID' as AccessoryOrderStatus } : o
+              )
+            );
+            showToast(`Đơn hàng ${paymentOrder.orderCode} đã xác nhận thanh toán SePay thành công!`);
+          }}
+        />
+      )}
     </div>
   );
 };

@@ -31,6 +31,7 @@ interface CustomerOrderRowCardProps {
   onOpenTracking: (order: AccessoryOrder) => void;
   onOpenCancel: (order: AccessoryOrder) => void;
   onOpenProgress: (order: AccessoryOrder) => void;
+  onOpenPayment?: (order: AccessoryOrder) => void;
 }
 
 export const CustomerOrderRowCard: React.FC<CustomerOrderRowCardProps> = ({
@@ -46,6 +47,7 @@ export const CustomerOrderRowCard: React.FC<CustomerOrderRowCardProps> = ({
   onOpenTracking,
   onOpenCancel,
   onOpenProgress,
+  onOpenPayment,
 }) => {
   const renderStatusBadge = (status: AccessoryOrderStatus) => {
     switch (status) {
@@ -302,13 +304,14 @@ export const CustomerOrderRowCard: React.FC<CustomerOrderRowCardProps> = ({
                 <XCircle className="w-3.5 h-3.5" />
                 <span>Hủy đơn</span>
               </button>
-              <Link
-                to={`/checkout?orderCode=${order.orderCode}&retryPayment=true`}
-                className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer transition-colors tabular-nums"
+              <button
+                type="button"
+                onClick={() => onOpenPayment?.(order)}
+                className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer transition-colors tabular-nums shadow-sm"
               >
                 <CreditCard className="w-3.5 h-3.5" />
                 <span>Thanh toán ngay ({formatCountdown(timeLeft)})</span>
-              </Link>
+              </button>
             </>
           )}
 

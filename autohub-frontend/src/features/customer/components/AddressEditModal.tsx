@@ -7,7 +7,7 @@ export interface AddressEditModalProps {
   isOpen: boolean;
   onClose: () => void;
   addresses: ShippingAddress[];
-  selectedAddress: ShippingAddress;
+  selectedAddress?: ShippingAddress | null;
   onSelectAddress: (address: ShippingAddress) => void;
   onAddNewAddress: (newAddr: ShippingAddress) => void;
 }
@@ -85,49 +85,64 @@ export const AddressEditModal: React.FC<AddressEditModalProps> = ({
         {/* Address Selection List */}
         {!isAddingNew ? (
           <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
-            {addresses.map((addr) => {
-              const isSelected = selectedAddress.id === addr.id;
-              return (
-                <div
-                  key={addr.id}
-                  onClick={() => {
-                    onSelectAddress(addr);
-                    onClose();
-                  }}
-                  className={`p-4 rounded-lg border cursor-pointer transition-colors space-y-1.5 ${
-                    isSelected
-                      ? 'bg-[var(--accent-soft)]/50 border-[var(--accent)] ring-1 ring-[var(--accent)]/20'
-                      : 'bg-[var(--surface)] border-[var(--line)] hover:bg-[var(--surface-subtle)]'
-                  }`}
+            {addresses.length === 0 ? (
+              <div className="p-6 text-center rounded-lg border border-dashed border-[var(--line)] bg-[var(--surface-subtle)] space-y-2">
+                <p className="text-xs text-[var(--text-muted)]">
+                  Chưa có địa chỉ nào trong sổ địa chỉ của bạn.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsAddingNew(true)}
+                  className="px-3.5 py-1.5 rounded-lg bg-[var(--accent)] text-white text-xs font-semibold cursor-pointer"
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm text-[var(--text)]">{addr.recipientName}</span>
-                      {addr.tag && (
-                        <span className="px-2 py-0.5 rounded-md bg-[var(--accent-soft)] text-xs font-medium text-[var(--accent)]">
-                          {addr.tag}
-                        </span>
-                      )}
+                  Thêm địa chỉ ngay
+                </button>
+              </div>
+            ) : (
+              addresses.map((addr) => {
+                const isSelected = selectedAddress?.id === addr.id;
+                return (
+                  <div
+                    key={addr.id}
+                    onClick={() => {
+                      onSelectAddress(addr);
+                      onClose();
+                    }}
+                    className={`p-4 rounded-lg border cursor-pointer transition-colors space-y-1.5 ${
+                      isSelected
+                        ? 'bg-[var(--accent-soft)]/50 border-[var(--accent)] ring-1 ring-[var(--accent)]/20'
+                        : 'bg-[var(--surface)] border-[var(--line)] hover:bg-[var(--surface-subtle)]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-sm text-[var(--text)]">{addr.recipientName}</span>
+                        {addr.tag && (
+                          <span className="px-2 py-0.5 rounded-md bg-[var(--accent-soft)] text-xs font-medium text-[var(--accent)]">
+                            {addr.tag}
+                          </span>
+                        )}
+                      </div>
+                      <div
+                        className={`w-4 h-4 rounded flex items-center justify-center border ${
+                          isSelected
+                            ? 'bg-[var(--accent)] border-[var(--accent)] text-white'
+                            : 'border-[var(--line)] bg-[var(--surface)]'
+                        }`}
+                      >
+                        {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                      </div>
                     </div>
-                    <div
-                      className={`w-4 h-4 rounded flex items-center justify-center border ${
-                        isSelected
-                          ? 'bg-[var(--accent)] border-[var(--accent)] text-white'
-                          : 'border-[var(--line)] bg-[var(--surface)]'
-                      }`}
-                    >
-                      {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                    </div>
-                  </div>
 
-                  <p className="text-xs font-medium tabular-nums text-[var(--accent)]">{addr.phone}</p>
-                  <p className="text-xs text-[var(--text-2)] leading-relaxed">{addr.fullAddress}</p>
-                  {addr.technicalNote && (
-                    <p className="text-xs text-[var(--text-muted)] italic">Ghi chú: {addr.technicalNote}</p>
-                  )}
-                </div>
-              );
-            })}
+                    <p className="text-xs font-medium tabular-nums text-[var(--accent)]">{addr.phone}</p>
+                    <p className="text-xs text-[var(--text-2)] leading-relaxed">{addr.fullAddress}</p>
+                    {addr.technicalNote && (
+                      <p className="text-xs text-[var(--text-muted)] italic">Ghi chú: {addr.technicalNote}</p>
+                    )}
+                  </div>
+                );
+              })
+            )}
 
             <button
               type="button"

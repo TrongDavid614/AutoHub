@@ -156,6 +156,21 @@ export function useCheckoutFlow() {
   const selectedAddress = addresses.find((a) => a.id === selectedAddressId) || addresses[0];
 
   const handleProcessCheckout = async () => {
+    const hasValidAddress = Boolean(
+      selectedAddress &&
+        selectedAddress.id &&
+        selectedAddress.fullAddress &&
+        selectedAddress.fullAddress.trim() !== '' &&
+        selectedAddress.fullAddress !== 'Chưa có địa chỉ nhận hàng' &&
+        selectedAddress.recipientName?.trim() &&
+        selectedAddress.phone?.trim()
+    );
+
+    if (!hasValidAddress) {
+      setVoucherError('Vui lòng thêm hoặc chọn địa chỉ nhận hàng trước khi thanh toán.');
+      return;
+    }
+
     setIsSubmitting(true);
     let finalCode = `AH-ACC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
 

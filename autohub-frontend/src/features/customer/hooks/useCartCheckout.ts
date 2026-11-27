@@ -195,6 +195,23 @@ export function useCartCheckout() {
       return;
     }
 
+    const hasValidAddress = Boolean(
+      selectedAddress &&
+        selectedAddress.id &&
+        selectedAddress.id.trim() !== '' &&
+        selectedAddress.fullAddress &&
+        selectedAddress.fullAddress.trim() !== '' &&
+        selectedAddress.fullAddress !== 'Chưa có địa chỉ nhận hàng' &&
+        selectedAddress.recipientName?.trim() &&
+        selectedAddress.phone?.trim()
+    );
+
+    if (!hasValidAddress) {
+      setCheckoutError('Vui lòng thêm hoặc chọn địa chỉ nhận hàng trước khi xác nhận đặt hàng.');
+      setIsAddressModalOpen(true);
+      return;
+    }
+
     setIsSubmitting(true);
     setCheckoutError('');
 
@@ -203,9 +220,9 @@ export function useCartCheckout() {
       const snapshotTotal = totalPayable;
       const res = await cartService.checkout({
         customerId,
-        recipientName: selectedAddress.recipientName || user?.fullName || 'Khách hàng AutoHub',
-        phone: selectedAddress.phone || user?.phoneNumber || '0912345678',
-        shippingAddress: selectedAddress.fullAddress || 'Showroom AutoHub TP.HCM',
+        recipientName: selectedAddress.recipientName,
+        phone: selectedAddress.phone,
+        shippingAddress: selectedAddress.fullAddress,
         paymentMethod: paymentMethod.toUpperCase() as 'COD' | 'SEPAY' | 'VNPAY',
         voucherCode: isVoucherApplied ? voucherCode : undefined,
         shippingMethodId: currentShippingMethod?.code || currentShippingMethod?.methodId || selectedShippingId,
