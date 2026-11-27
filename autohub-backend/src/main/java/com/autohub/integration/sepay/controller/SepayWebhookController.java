@@ -85,9 +85,10 @@ public class SepayWebhookController {
 
                 BigDecimal originalAmount = order.getTongTien() != null ? order.getTongTien() : BigDecimal.ZERO;
                 long testAmount = PaymentSandboxHelper.calculateSandboxTestAmount(originalAmount, false);
-                BigDecimal minRequired = sandboxMode ? BigDecimal.valueOf(testAmount) : originalAmount;
+                // Trong chế độ Sandbox, chấp nhận mọi số tiền chuyển khoản thử nghiệm từ 2.000 đ trở lên
+                BigDecimal minRequired = sandboxMode ? BigDecimal.valueOf(Math.min(2000L, testAmount)) : originalAmount;
 
-                // Cho phép nếu chuyển đủ số tiền test (>= testAmount) HOẶC chuyển đủ số tiền gốc (>= originalAmount)
+                // Cho phép nếu chuyển đủ số tiền test (>= minRequired) HOẶC chuyển đủ số tiền gốc (>= originalAmount)
                 if (transferAmount != null && transferAmount.compareTo(minRequired) < 0 && transferAmount.compareTo(originalAmount) < 0) {
                     log.warn("[SePay Webhook] Underpaid order {}: transferred={}, minRequired={}",
                             order.getMaDonHang(), transferAmount, minRequired);
@@ -138,7 +139,7 @@ public class SepayWebhookController {
         long testAmount = PaymentSandboxHelper.calculateSandboxTestAmount(originalAmount, true);
         BigDecimal scaledAmount = calculateScaledPaymentAmount(originalAmount);
         BigDecimal minRequired = sandboxMode
-                ? BigDecimal.valueOf(Math.min(testAmount, scaledAmount.longValue()))
+                ? BigDecimal.valueOf(Math.min(2000L, Math.min(testAmount, scaledAmount.longValue())))
                 : originalAmount;
 
         // Chấp nhận nếu người dùng chuyển tiền test (>= testAmount/scaled) HOẶC chuyển tiền thật (>= originalAmount)

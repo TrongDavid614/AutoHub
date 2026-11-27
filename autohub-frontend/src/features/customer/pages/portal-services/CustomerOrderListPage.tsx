@@ -18,6 +18,7 @@ import { OrderTrackingModal } from '@/features/customer/components/OrderTracking
 import { OrderCancelModal } from '@/features/customer/components/OrderCancelModal';
 import { OrderTimelineModal } from '@/features/customer/components/OrderTimelineModal';
 import { OrderSuccessModal } from '@/features/customer/components/OrderSuccessModal';
+import { calculateTestPaymentAmount } from '@/lib/utils';
 
 export const CustomerOrderListPage: React.FC = () => {
   const addToCart = useCartStore((s) => s.addToCart);
@@ -337,11 +338,12 @@ export const CustomerOrderListPage: React.FC = () => {
             accountNumber: '962470372816614',
             bankBrandName: 'BIDV',
             accountName: 'NGUYEN VAN TRONG',
-            transferAmount: 4000,
+            transferAmount: calculateTestPaymentAmount(paymentOrder.finalTotalAmount || 0, false),
             transferContent: paymentOrder.orderCode.replace(/^#/, ''),
-            qrUrl: `https://qr.sepay.vn/img?acc=962470372816614&bank=BIDV&amount=4000&des=${encodeURIComponent(
-              paymentOrder.orderCode.replace(/^#/, '')
-            )}`,
+            qrUrl: `https://qr.sepay.vn/img?acc=962470372816614&bank=BIDV&amount=${calculateTestPaymentAmount(
+              paymentOrder.finalTotalAmount || 0,
+              false
+            )}&des=${encodeURIComponent(paymentOrder.orderCode.replace(/^#/, ''))}`,
           }}
           onClose={() => {
             setShowPaymentModal(false);
