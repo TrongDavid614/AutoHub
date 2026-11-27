@@ -29,6 +29,7 @@ export const CheckoutPage: React.FC = () => {
     selectedAddressId,
     setSelectedAddressId,
     selectedAddress,
+    hasValidAddress,
     shippingMethods,
     selectedShippingId,
     setSelectedShippingId,
@@ -121,8 +122,14 @@ export const CheckoutPage: React.FC = () => {
             onVoucherCodeChange={setVoucherCode}
             onApplyVoucher={() => applyVoucher(voucherCode)}
             onRemoveVoucher={removeVoucher}
-            onProcessCheckout={handleProcessCheckout}
+            onProcessCheckout={() => {
+              if (!hasValidAddress) {
+                setIsAddAddressModalOpen(true);
+              }
+              handleProcessCheckout();
+            }}
             isSubmitting={isSubmitting}
+            hasAddress={hasValidAddress}
           />
         </div>
       </div>
