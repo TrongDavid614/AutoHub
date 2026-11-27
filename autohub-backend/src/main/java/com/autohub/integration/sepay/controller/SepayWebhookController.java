@@ -44,7 +44,8 @@ public class SepayWebhookController {
 
     private static final Pattern AH_DEP_PATTERN = Pattern.compile("(?i)AH[-_\\s]*DEP[-_\\s]*([A-Za-z0-9\\-_]+)");
     private static final Pattern DEP_CODE_PATTERN = Pattern.compile("(?i)(DEP[-_]?[0-9A-Za-z]+)");
-    private static final Pattern AH_ACC_PATTERN = Pattern.compile("(?i)(AH[-_\\s]*ACC[-_\\s]*[A-Za-z0-9\\-_]+)");
+    private static final Pattern AH_ACC_PATTERN = Pattern.compile("(?i)(#?AH[-_\\s]*ACC[-_\\s]*[A-Za-z0-9\\-_]+)");
+    private static final Pattern ACC_ONLY_PATTERN = Pattern.compile("(?i)(#?ACC[-_\\s]*[A-Za-z0-9\\-_]+)");
 
     @PostMapping("/sepay-webhook")
     @Transactional
@@ -257,6 +258,68 @@ public class SepayWebhookController {
         return ResponseEntity.ok(ApiResponse.ok(result, "Thanh toán thử nghiệm thành công! Phiếu cọc đã chuyển sang trạng thái PAID."));
     }
 
+    /**
+     * API thực hiện thanh toán thử nghiệm cho đơn hàng phụ kiện (Test / Simulate Accessory Order Payment)
+     *
+     * @param code Mã đơn hàng (ví dụ: AH-ACC-2026-8067, AHACC20268067 hoặc null sẽ lấy đơn PENDING_PAYMENT mới nhất)
+     * @param amount Số tiền thanh toán truyền vào (tùy chọn)
+     * @return Kết quả đối soát và chuyển trạng thái đơn hàng sang PAID
+     */
+    @RequestMapping(value = {"/test-pay-order", "/simulate-pay-order"}, method = {RequestMethod.GET, RequestMethod.POST})
+    @Transactional
+    public ResponseEntity<ApiResponse<Map<String, Object>>> testPayOrder(
+            @RequestParam(value = "code", required = false) String code,
+            @RequestParam(value = "amount", required = false) BigDecimal amount
+    ) {
+        log.info("[Payment Test Order] Yêu cầu kiểm tra thanh toán đơn phụ kiện: code={}, amount={}", code, amount);
+
+        DonHangPhuKien order = null;
+        if (code != null && !code.isBlank()) {
+            order = findOrderByCode(code.trim()).orElse(null);
+            if (order == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.error("Không tìm thấy đơn hàng phụ kiện với mã: " + code));
+            }
+        } else {
+            List<DonHangPhuKien> allOrders = donHangRepository.findAll();
+            order = allOrders.stream()
+                    .filter(o -> TrangThaiDonHang.PENDING_PAYMENT.equals(o.getTrangThai()))
+                    .reduce((first, second) -> second)
+                    .orElse(null);
+
+            if (order == null && !allOrders.isEmpty()) {
+                order = allOrders.get(allOrders.size() - 1);
+            }
+
+            if (order == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.error("Hệ thống chưa có đơn hàng nào để thanh toán thử nghiệm."));
+            }
+        }
+
+        BigDecimal originalAmount = order.getTongTien() != null ? order.getTongTien() : BigDecimal.valueOf(950000);
+        BigDecimal finalPaidAmount = (amount != null && amount.compareTo(BigDecimal.ZERO) > 0)
+                ? amount
+                : BigDecimal.valueOf(PaymentSandboxHelper.calculateSandboxTestAmount(originalAmount, false));
+
+        LocalDateTime now = LocalDateTime.now();
+        order.setTrangThai(TrangThaiDonHang.PAID);
+        order.setThoiGianThanhToan(now);
+        donHangRepository.save(order);
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("orderCode", order.getMaDonHang());
+        result.put("originalAmount", originalAmount);
+        result.put("paidAmount", finalPaidAmount);
+        result.put("status", order.getTrangThai().name());
+        result.put("paymentTime", now.toString());
+        result.put("message", "Thanh toán thành công! Đơn hàng đã chuyển sang trạng thái PAID.");
+
+        log.info("[Payment Test Order] Đã thanh toán thành công đơn: {}, số tiền: {} đ", order.getMaDonHang(), finalPaidAmount);
+
+        return ResponseEntity.ok(ApiResponse.ok(result, "Thanh toán thử nghiệm thành công! Đơn hàng đã chuyển sang trạng thái PAID."));
+    }
+
     private boolean isAuthorized(String header) {
         if (sandboxMode && (header == null || header.isBlank())) {
             log.info("[SePay Webhook] Sandbox mode active: Allowing webhook request without Authorization header");
@@ -281,23 +344,85 @@ public class SepayWebhookController {
     }
 
     private String extractOrderCode(String content) {
-        Matcher m = AH_ACC_PATTERN.matcher(content);
-        if (m.find()) {
-            return m.group(1).trim().replaceAll("\\s+", "-");
+        if (content == null || content.isBlank()) {
+            return null;
+        }
+        Matcher m1 = AH_ACC_PATTERN.matcher(content);
+        if (m1.find()) {
+            return m1.group(1).trim().replaceAll("\\s+", "-");
+        }
+        Matcher m2 = ACC_ONLY_PATTERN.matcher(content);
+        if (m2.find()) {
+            return m2.group(1).trim().replaceAll("\\s+", "-");
         }
         return null;
     }
 
     private Optional<DonHangPhuKien> findOrderByCode(String code) {
-        Optional<DonHangPhuKien> opt = donHangRepository.findByMaDonHang(code);
+        if (code == null || code.isBlank()) {
+            return Optional.empty();
+        }
+        String clean = code.trim();
+
+        // 1. Tìm trực tiếp theo mã nguyên bản hoặc có/không có #
+        Optional<DonHangPhuKien> opt = donHangRepository.findByMaDonHang(clean);
         if (opt.isPresent()) return opt;
 
-        opt = donHangRepository.findByMaDonHang("#" + code);
-        if (opt.isPresent()) return opt;
-
-        if (code.startsWith("#")) {
-            opt = donHangRepository.findByMaDonHang(code.substring(1));
+        if (!clean.startsWith("#")) {
+            opt = donHangRepository.findByMaDonHang("#" + clean);
             if (opt.isPresent()) return opt;
+        } else {
+            opt = donHangRepository.findByMaDonHang(clean.substring(1));
+            if (opt.isPresent()) return opt;
+        }
+
+        // 2. Tái tạo định dạng chuẩn AH-ACC-YYYY-XXXX từ chuỗi không dấu gạch nối (Ví dụ MoMo bỏ dấu: AHACC20268067 -> AH-ACC-2026-8067)
+        String alphaNum = clean.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
+        if (alphaNum.startsWith("AHACC")) {
+            String rest = alphaNum.substring(5); // e.g. 20268067 hoặc 8067
+            if (rest.length() > 4) {
+                String year = rest.substring(0, 4);
+                String num = rest.substring(4);
+                String reconstructed = "AH-ACC-" + year + "-" + num;
+                opt = donHangRepository.findByMaDonHang(reconstructed);
+                if (opt.isPresent()) return opt;
+                opt = donHangRepository.findByMaDonHang("#" + reconstructed);
+                if (opt.isPresent()) return opt;
+            } else if (!rest.isBlank()) {
+                String reconstructed = "AH-ACC-2026-" + rest;
+                opt = donHangRepository.findByMaDonHang(reconstructed);
+                if (opt.isPresent()) return opt;
+                opt = donHangRepository.findByMaDonHang("#" + reconstructed);
+                if (opt.isPresent()) return opt;
+            }
+        } else if (alphaNum.startsWith("ACC")) {
+            String rest = alphaNum.substring(3);
+            if (rest.length() > 4) {
+                String year = rest.substring(0, 4);
+                String num = rest.substring(4);
+                String reconstructed = "AH-ACC-" + year + "-" + num;
+                opt = donHangRepository.findByMaDonHang(reconstructed);
+                if (opt.isPresent()) return opt;
+                opt = donHangRepository.findByMaDonHang("#" + reconstructed);
+                if (opt.isPresent()) return opt;
+            } else if (!rest.isBlank()) {
+                String reconstructed = "AH-ACC-2026-" + rest;
+                opt = donHangRepository.findByMaDonHang(reconstructed);
+                if (opt.isPresent()) return opt;
+                opt = donHangRepository.findByMaDonHang("#" + reconstructed);
+                if (opt.isPresent()) return opt;
+            }
+        }
+
+        // 3. Quét đối soát linh hoạt toàn bộ đơn hàng trong Database
+        List<DonHangPhuKien> allOrders = donHangRepository.findAll();
+        for (DonHangPhuKien order : allOrders) {
+            if (order.getMaDonHang() != null) {
+                String orderAlphaNum = order.getMaDonHang().replaceAll("[^A-Za-z0-9]", "").toUpperCase();
+                if (orderAlphaNum.equals(alphaNum) || orderAlphaNum.endsWith(alphaNum) || alphaNum.endsWith(orderAlphaNum)) {
+                    return Optional.of(order);
+                }
+            }
         }
 
         return Optional.empty();

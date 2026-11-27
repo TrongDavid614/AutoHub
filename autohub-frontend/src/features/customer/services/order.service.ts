@@ -48,6 +48,27 @@ export const orderService = {
     return null;
   },
 
+  async verifyPayment(identifier: number | string): Promise<AccessoryOrder | null> {
+    try {
+      const cleanId = String(identifier).replace(/^#/, '');
+      const res = await axiosClient.post<unknown, ApiResponse<AccessoryOrder>>(
+        `/customer/orders/${encodeURIComponent(cleanId)}/verify-payment`
+      );
+      const raw = res?.data ?? (res as unknown as AccessoryOrder);
+      if (raw && (raw.id || raw.orderCode)) {
+        const items = raw.orderItems ?? raw.items ?? [];
+        return {
+          ...raw,
+          orderItems: items,
+          items,
+        };
+      }
+    } catch (error) {
+      console.warn(`[orderService.verifyPayment] Không thể xác nhận thanh toán đơn #${identifier}:`, error);
+    }
+    return null;
+  },
+
   async createOrder(payload: CheckoutOrderRequest): Promise<CheckoutOrderResponse> {
     const res = await axiosClient.post<unknown, ApiResponse<CheckoutOrderResponse>>(
       '/customer/orders/checkout',
