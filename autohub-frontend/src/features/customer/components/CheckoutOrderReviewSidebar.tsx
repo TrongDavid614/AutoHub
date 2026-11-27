@@ -181,10 +181,19 @@ export const CheckoutOrderReviewSidebar: React.FC<CheckoutOrderReviewSidebarProp
             type="button"
             onClick={onProcessCheckout}
             disabled={isSubmitting || items.length === 0}
-            className="w-full py-3.5 px-4 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`w-full py-3.5 px-4 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+              !hasAddress
+                ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-sm'
+                : 'bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white'
+            }`}
           >
             {isSubmitting ? (
               <span>Đang xử lý giao dịch...</span>
+            ) : !hasAddress ? (
+              <>
+                <MapPin className="w-4 h-4" />
+                <span>Thêm địa chỉ để thanh toán</span>
+              </>
             ) : (
               <>
                 <span className="tabular-nums">Thanh toán đơn hàng ({formatPrice(grandTotal)} đ)</span>
