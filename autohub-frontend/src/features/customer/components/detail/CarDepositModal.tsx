@@ -406,24 +406,26 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
                   <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
                   <span className="leading-relaxed">{paymentPendingMsg}</span>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleManualConfirm}
-                  disabled={isConfirming}
-                  className="w-full py-2.5 px-4 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  {isConfirming ? (
-                    <>
-                      <RotateCw className="w-4 h-4 animate-spin" />
-                      <span>Đang kích hoạt giữ chỗ xe 72h...</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>Tôi đã chuyển khoản thành công — Kích hoạt ngay</span>
-                    </>
-                  )}
-                </button>
+                {import.meta.env.DEV && (
+                  <button
+                    type="button"
+                    onClick={handleManualConfirm}
+                    disabled={isConfirming}
+                    className="w-full py-2.5 px-4 rounded-md bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {isConfirming ? (
+                      <>
+                        <RotateCw className="w-4 h-4 animate-spin" />
+                        <span>Đang kích hoạt thử nghiệm...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>[DEV Sandbox] Giả lập thanh toán thành công</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             )}
 
