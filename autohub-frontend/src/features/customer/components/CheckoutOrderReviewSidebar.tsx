@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, Check, ArrowRight } from 'lucide-react';
+import { Phone, Check, ArrowRight, MapPin } from 'lucide-react';
 import type { CheckoutOrderItem } from '@/features/customer/mocks/checkout.mock';
 
 export interface CheckoutOrderReviewSidebarProps {
@@ -16,6 +16,7 @@ export interface CheckoutOrderReviewSidebarProps {
   onRemoveVoucher: () => void;
   onProcessCheckout: () => void;
   isSubmitting: boolean;
+  hasAddress?: boolean;
 }
 
 export const CheckoutOrderReviewSidebar: React.FC<CheckoutOrderReviewSidebarProps> = ({
@@ -32,6 +33,7 @@ export const CheckoutOrderReviewSidebar: React.FC<CheckoutOrderReviewSidebarProp
   onRemoveVoucher,
   onProcessCheckout,
   isSubmitting,
+  hasAddress = true,
 }) => {
   const formatPrice = (val: number) => val.toLocaleString('vi-VN');
   const safeItems = items ?? [];
