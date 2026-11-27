@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useCompareStore } from '@/store/useCompareStore';
 import type { Role, User } from '@/types/auth.types';
 
 interface AuthStore {
@@ -28,13 +29,15 @@ export const useAuthStore = create<AuthStore>()(
           isAuthenticated: true,
         }),
 
-      logout: () =>
+      logout: () => {
+        useCompareStore.getState().clearCompareList();
         set({
           accessToken: null,
           user: null,
           role: null,
           isAuthenticated: false,
-        }),
+        });
+      },
 
       updateUser: (updatedData) =>
         set((state) => ({
