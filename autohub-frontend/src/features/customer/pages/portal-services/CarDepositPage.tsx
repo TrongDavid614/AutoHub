@@ -261,7 +261,7 @@ export const CarDepositPage: React.FC = () => {
   };
 
   // Kiểm tra trạng thái thanh toán từ DB (chỉ đọc qua GET, không tự ghi PAID)
-  const handleManualConfirm = async (item: CarDepositItem) => {
+  const handleCheckPaymentStatus = async (item: CarDepositItem) => {
     setIsCheckingPayment(true);
     try {
       const statusRes = await depositService.getDepositStatus(item.id);
@@ -276,24 +276,35 @@ export const CarDepositPage: React.FC = () => {
           loadDeposits();
         }
       } else {
-        // Thử kích hoạt đối soát thanh toán trực tiếp
-        const confirmed = await depositService.confirmPayment(item.depositCode);
-        if (confirmed) {
-          if (checkoutStep === 'PAYMENT_QR') {
-            setCheckoutStep('SUCCESS');
-            setActiveDeposit((prev) => (prev ? { ...prev, status: 'PAID', paidAt: new Date().toISOString() } : null));
-          }
-          if (qrModalDeposit) {
-            setQrModalDeposit(null);
-            showToast(`Đã xác nhận thanh toán thành công cho phiếu cọc ${item.depositCode}! Suất giữ xe 72h đã kích hoạt.`);
-            loadDeposits();
-          }
-        } else {
-          showToast('Hệ thống chưa ghi nhận giao dịch chuyển khoản. Vui lòng chờ 10–30 giây sau khi chuyển hoặc kiểm tra lại nội dung chuyển khoản.');
-        }
+        showToast('Hệ thống chưa ghi nhận giao dịch chuyển khoản. Vui lòng chờ 10–30 giây sau khi chuyển hoặc kiểm tra lại nội dung chuyển khoản.');
       }
     } catch {
       showToast('Không thể kiểm tra trạng thái thanh toán lúc này. Vui lòng thử lại sau.');
+    } finally {
+      setIsCheckingPayment(false);
+    }
+  };
+
+  // Dành riêng cho môi trường Sandbox / Dev thử nghiệm thanh toán giả lập
+  const handleSimulatePayment = async (item: CarDepositItem) => {
+    setIsCheckingPayment(true);
+    try {
+      const confirmed = await depositService.confirmPayment(item.depositCode);
+      if (confirmed) {
+        if (checkoutStep === 'PAYMENT_QR') {
+          setCheckoutStep('SUCCESS');
+          setActiveDeposit((prev) => (prev ? { ...prev, status: 'PAID', paidAt: new Date().toISOString() } : null));
+        }
+        if (qrModalDeposit) {
+          setQrModalDeposit(null);
+          showToast(`[DEV Sandbox] Đã giả lập thanh toán thành công cho phiếu cọc ${item.depositCode}!`);
+          loadDeposits();
+        }
+      } else {
+        showToast('Không thể kích hoạt thanh toán thử nghiệm.');
+      }
+    } catch {
+      showToast('Lỗi khi gửi yêu cầu thanh toán thử nghiệm.');
     } finally {
       setIsCheckingPayment(false);
     }
@@ -698,7 +709,7 @@ export const CarDepositPage: React.FC = () => {
               <div className="flex items-center gap-3 w-full sm:w-auto">
                 <button
                   type="button"
-                  onClick={() => activeDeposit && handleManualConfirm(activeDeposit)}
+                  onClick={() => activeDeposit && handleCheckPaymentStatus(activeDeposit)}
                   disabled={isCheckingPayment}
                   className="w-full sm:w-auto px-5 py-2.5 rounded-[2px] bg-accent-action hover:bg-accent-primary text-accent-contrast font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer disabled:opacity-50"
                 >
@@ -714,6 +725,18 @@ export const CarDepositPage: React.FC = () => {
                     </>
                   )}
                 </button>
+
+                {import.meta.env.DEV && (
+                  <button
+                    type="button"
+                    onClick={() => activeDeposit && handleSimulatePayment(activeDeposit)}
+                    disabled={isCheckingPayment}
+                    className="w-full sm:w-auto px-3.5 py-2.5 rounded-[2px] bg-amber-600/20 hover:bg-amber-600/30 text-amber-500 border border-amber-500/40 font-mono text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                    title="Chỉ hiển thị trong môi trường DEV để kiểm thử giao diện"
+                  >
+                    <span>[DEV] Giả lập thanh toán</span>
+                  </button>
+                )}
 
                 <button
                   type="button"
@@ -1002,7 +1025,7 @@ export const CarDepositPage: React.FC = () => {
             <div className="pt-2 flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => handleManualConfirm(qrModalDeposit)}
+                onClick={() => handleCheckPaymentStatus(qrModalDeposit)}
                 disabled={isCheckingPayment}
                 className="flex-1 py-2.5 px-4 rounded-[2px] bg-accent-action hover:bg-accent-primary text-accent-contrast font-bold text-xs uppercase flex items-center justify-center gap-2 cursor-pointer shadow-sm disabled:opacity-50"
               >
