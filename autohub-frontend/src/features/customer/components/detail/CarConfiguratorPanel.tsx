@@ -135,7 +135,13 @@ export const CarConfiguratorPanel: React.FC<CarConfiguratorPanelProps> = ({
 
             <button
               type="button"
-              onClick={() => navigate(car?.id ? `/car-estimator?carId=${car.id}` : '/car-estimator')}
+              onClick={() => {
+                const targetTrimId = selectedTrimObj?.id;
+                const url = car?.id
+                  ? `/car-estimator?carId=${car.id}${targetTrimId ? `&trimId=${targetTrimId}` : ''}`
+                  : '/car-estimator';
+                navigate(url);
+              }}
               className="inline-flex items-center gap-1 text-xs text-[var(--accent)] hover:underline font-medium cursor-pointer"
             >
               <Calculator className="w-3.5 h-3.5" />

@@ -413,26 +413,47 @@ export const Header: React.FC<HeaderProps> = ({ className }) => {
                 title={`Tài khoản: ${user?.fullName || 'Người dùng'}`}
                 aria-label="Tài khoản cá nhân"
               >
-                <span className="w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--line)]">
-                  {(user?.fullName || 'A').charAt(0).toUpperCase()}
-                </span>
+                {user?.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.fullName || 'User'}
+                    className="w-8 h-8 rounded-full object-cover border border-[var(--line)] shadow-sm"
+                  />
+                ) : (
+                  <span className="w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--line)]">
+                    {(user?.fullName || 'A').charAt(0).toUpperCase()}
+                  </span>
+                )}
               </button>
 
               {showUserMenu && (
                 <div className="absolute right-0 mt-2 w-64 border border-[var(--line)] rounded-[var(--radius)] shadow-lg p-3 space-y-2 z-50 bg-[var(--surface)] text-[var(--text)] text-[13px] animate-fadeIn">
-                  <div className="border-b border-[var(--line)] pb-2.5">
-                    <div className="font-semibold text-[var(--text)] text-sm">{user?.fullName || 'Khách hàng'}</div>
-                    <div className="text-[13px] text-[var(--text-muted)] truncate">
-                      {user?.email || 'customer@autohub.vn'}
-                    </div>
-                    <div className="mt-1.5">
-                      <span className="inline-block px-2 py-0.5 rounded-[var(--radius-sm)] text-[12px] font-medium bg-[var(--surface-subtle)] text-[var(--text-secondary)] border border-[var(--line)]">
-                        {user?.role === 'ROLE_ADMIN'
-                          ? 'Quản trị viên'
-                          : user?.role === 'ROLE_STAFF'
-                          ? 'Nhân viên showroom'
-                          : 'Thành viên AutoHub'}
-                      </span>
+                  <div className="border-b border-[var(--line)] pb-2.5 flex items-center gap-3">
+                    {user?.avatarUrl ? (
+                      <img
+                        src={user.avatarUrl}
+                        alt={user.fullName || 'User'}
+                        className="w-10 h-10 rounded-full object-cover border border-red-500/30 shrink-0"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-[var(--accent-soft)] text-[var(--accent)] border border-[var(--line)] flex items-center justify-center font-bold text-sm shrink-0">
+                        {(user?.fullName || 'A').charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="font-semibold text-[var(--text)] text-sm truncate">{user?.fullName || 'Khách hàng'}</div>
+                      <div className="text-[12px] text-[var(--text-muted)] truncate">
+                        {user?.email || 'customer@autohub.vn'}
+                      </div>
+                      <div className="mt-1">
+                        <span className="inline-block px-2 py-0.5 rounded-[var(--radius-sm)] text-[11px] font-medium bg-[var(--surface-subtle)] text-[var(--text-secondary)] border border-[var(--line)]">
+                          {user?.role === 'ROLE_ADMIN'
+                            ? 'Quản trị viên'
+                            : user?.role === 'ROLE_STAFF'
+                            ? 'Nhân viên showroom'
+                            : 'Thành viên AutoHub'}
+                        </span>
+                      </div>
                     </div>
                   </div>
 

@@ -108,9 +108,17 @@ export const CustomerLayout: React.FC = () => {
       >
         <div className="p-5 border-b border-[var(--line)] flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-full bg-[var(--accent-soft)] border border-[var(--line)] flex items-center justify-center text-[var(--accent)] font-semibold text-sm shrink-0">
-              {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'A'}
-            </div>
+            {user?.avatarUrl ? (
+              <img
+                src={user.avatarUrl}
+                alt={user.fullName || 'User'}
+                className="w-10 h-10 rounded-full object-cover border border-red-500/30 shadow-sm shrink-0"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-[var(--accent-soft)] border border-[var(--line)] flex items-center justify-center text-[var(--accent)] font-semibold text-sm shrink-0">
+                {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'A'}
+              </div>
+            )}
             <div className="min-w-0">
               <h3 className="text-sm font-semibold text-[var(--text)] truncate">
                 {user?.fullName || 'Khách hàng'}

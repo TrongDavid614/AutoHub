@@ -8,6 +8,7 @@ export interface UpdateProfileRequest {
   fullName: string;
   phoneNumber: string;
   identityCardNumber?: string;
+  avatarUrl?: string;
 }
 
 export interface ChangePasswordRequest {
@@ -55,6 +56,49 @@ export const profileService = {
       return true;
     } catch (err) {
       console.error('[ProfileService] Lỗi khi cập nhật hồ sơ:', err);
+      return false;
+    }
+  },
+
+  /**
+   * Tải ảnh đại diện lên máy chủ (multipart/form-data)
+   */
+  async uploadAvatar(file: File, customerId?: number): Promise<string | null> {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      if (customerId) {
+        formData.append('customerId', String(customerId));
+      }
+
+      const res = await axiosClient.post<unknown, ApiResponse<{ avatarUrl: string }>>(
+        `${API_CONFIG.ENDPOINTS.PROFILE.BASE}/avatar`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+      return res?.data?.avatarUrl ?? null;
+    } catch (err) {
+      console.error('[ProfileService] Lỗi khi tải lên ảnh đại diện:', err);
+      return null;
+    }
+  },
+
+  /**
+   * Cập nhật URL ảnh đại diện trực tiếp
+   */
+  async updateAvatar(avatarUrl: string, customerId?: number): Promise<boolean> {
+    try {
+      await axiosClient.put<unknown, ApiResponse<{ avatarUrl: string }>>(
+        `${API_CONFIG.ENDPOINTS.PROFILE.BASE}/avatar`,
+        { avatarUrl, customerId }
+      );
+      return true;
+    } catch (err) {
+      console.error('[ProfileService] Lỗi cập nhật avatar URL:', err);
       return false;
     }
   },

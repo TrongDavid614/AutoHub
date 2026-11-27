@@ -74,6 +74,8 @@ services:
       OPENROUTER_API_KEY: "${OPENROUTER_API_KEY:-}"
       OPENROUTER_DEFAULT_MODEL: "${OPENROUTER_DEFAULT_MODEL:-liquid/lfm-3-1.7b:free}"
       SEPAY_ACCOUNT_NUMBER: "${SEPAY_ACCOUNT_NUMBER:-962470372816614}"
+    volumes:
+      - autohub_uploads:/app/uploads
     ports:
       - "8080:8080"
     networks:
@@ -119,4 +121,6 @@ networks:
 
 volumes:
   autohub_sqlserver_data:
+    driver: local
+  autohub_uploads:
     driver: local

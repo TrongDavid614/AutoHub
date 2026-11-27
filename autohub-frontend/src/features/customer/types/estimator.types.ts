@@ -8,6 +8,7 @@ export interface TrimOption {
   priceFormatted: string;
   wltp: string;
   isRecommended?: boolean;
+  imageUrl?: string;
 }
 
 export interface CityOption {
