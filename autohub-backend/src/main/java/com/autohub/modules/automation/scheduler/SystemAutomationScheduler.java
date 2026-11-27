@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -63,17 +64,10 @@ public class SystemAutomationScheduler {
         // 1. Quét và giải phóng các phiếu đặt cọc quá hạn 15m và 72h (DepositExpirationScheduler)
         int expiredDeposits = depositExpirationScheduler.scanAndExpireOverdueDeposits();
 
-        // 2. Quét đơn hàng phụ kiện PENDING_PAYMENT quá hạn thanh toán 15 phút
+        // 2. Quét đơn hàng phụ kiện PENDING_PAYMENT quá hạn thanh toán 15 phút -> Xóa biến mất khỏi hệ thống (không để lại trạng thái đã hủy)
         List<DonHangPhuKien> pendingPaymentOrders = donHangPhuKienRepository
                 .findByTrangThaiAndHanThanhToanBefore(TrangThaiDonHang.PENDING_PAYMENT, now);
         for (DonHangPhuKien order : pendingPaymentOrders) {
-            order.setTrangThai(TrangThaiDonHang.CANCELLED);
-            String autoNote = "[Hệ thống tự động hủy: Quá hạn thanh toán 15 phút]";
-            order.setGhiChuKhachHang(order.getGhiChuKhachHang() != null
-                    ? autoNote + " " + order.getGhiChuKhachHang()
-                    : autoNote);
-            donHangPhuKienRepository.save(order);
-
             // Hoàn trả số lượng tồn kho phụ kiện đã tạm trừ
             List<ChiTietDonHang> items = chiTietDonHangRepository.findByDonHangId(order.getId());
             for (ChiTietDonHang item : items) {
@@ -84,8 +78,25 @@ public class SystemAutomationScheduler {
                     phuKienRepository.save(pk);
                 }
             }
+            chiTietDonHangRepository.deleteAll(items);
+            donHangPhuKienRepository.delete(order);
             orders15m++;
-            log.info("[UC34] Tự động hủy đơn hàng phụ kiện quá hạn thanh toán 15 phút: #{}", order.getMaDonHang());
+            log.info("[UC34] Tự động xóa vĩnh viễn đơn hàng phụ kiện quá hạn thanh toán 15 phút: #{}", order.getMaDonHang());
+        }
+
+        // 3. Dọn sạch các đơn hàng cũ đã từng bị lưu trạng thái CANCELLED do quá hạn thanh toán 15 phút
+        List<DonHangPhuKien> legacyExpiredOrders = donHangPhuKienRepository.findAll().stream()
+                .filter(o -> o.getTrangThai() == TrangThaiDonHang.CANCELLED
+                        && o.getGhiChuKhachHang() != null
+                        && o.getGhiChuKhachHang().contains("Quá hạn thanh toán 15 phút"))
+                .collect(Collectors.toList());
+        for (DonHangPhuKien order : legacyExpiredOrders) {
+            try {
+                List<ChiTietDonHang> items = chiTietDonHangRepository.findByDonHangId(order.getId());
+                chiTietDonHangRepository.deleteAll(items);
+                donHangPhuKienRepository.delete(order);
+                log.info("[Cleanup] Đã dọn sạch đơn hàng cũ tự động hủy quá hạn 15m: #{}", order.getMaDonHang());
+            } catch (Exception ignored) {}
         }
 
         return AutomationSweepResult.builder()
