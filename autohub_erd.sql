@@ -4932,3 +4932,16 @@ BEGIN
     FROM dbo.xe_demo d;
 END
 GO
+
+-- 6. Bang quan ly khoa phan tan ShedLock (Distributed Task Scheduler Locking)
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[shedlock]') AND type in (N'U'))
+BEGIN
+    CREATE TABLE [dbo].[shedlock](
+        [name] [varchar](64) NOT NULL,
+        [lock_until] [datetime2](3) NOT NULL,
+        [locked_at] [datetime2](3) NOT NULL,
+        [locked_by] [varchar](255) NOT NULL,
+        PRIMARY KEY CLUSTERED ([name] ASC)
+    );
+END
+GO
