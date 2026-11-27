@@ -28,6 +28,7 @@ export interface CarDepositItem {
   vnpayTransactionId?: string;
   paidAt?: string;
   expireAt?: string; // 72 giờ tính từ paidAt
+  paymentDeadline?: string; // 15 phút chờ thanh toán từ ngày tạo
   refundReason?: string;
   createdAt: string;
   transferContent?: string;

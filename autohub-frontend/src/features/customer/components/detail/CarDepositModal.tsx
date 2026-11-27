@@ -20,7 +20,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
-import { calculateTestPaymentAmount } from '@/lib/utils';
+import { calculateTestPaymentAmount, getRemainingSeconds } from '@/lib/utils';
 import { depositService } from '@/features/customer/services/deposit.service';
 import type { CarDepositItem } from '@/features/customer/types/car-deposit.types';
 
@@ -63,17 +63,30 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
   const [isPendingPayment, setIsPendingPayment] = useState(false);
   const [depositSuccess, setDepositSuccess] = useState(false);
 
-  // 15-minute reservation timer (14:59 downwards)
+  // 15-minute reservation timer synced to server paymentDeadline once created
   const [remainingSeconds, setRemainingSeconds] = useState(14 * 60 + 59);
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
+    setNowMs(Date.now());
     const interval = setInterval(() => {
       setRemainingSeconds((prev) => (prev > 0 ? prev - 1 : 0));
+      setNowMs(Date.now());
     }, 1000);
     return () => clearInterval(interval);
   }, [isOpen]);
+
+  const pendingRemainingSeconds =
+    isPendingPayment && currentDeposit
+      ? getRemainingSeconds(
+          currentDeposit.paymentDeadline || currentDeposit.expireAt,
+          nowMs,
+          currentDeposit.createdAt,
+          15 * 60
+        )
+      : remainingSeconds;
 
   const formatTimer = (totalSecs: number) => {
     const mins = Math.floor(totalSecs / 60);
@@ -333,7 +346,7 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
                 <Clock className="w-4 h-4" />
                 <span>Thời hạn giữ suất thanh toán (15 phút):</span>
               </div>
-              <span className="font-mono font-bold text-sm tabular-nums text-[var(--accent)]">{formatTimer(remainingSeconds)}</span>
+              <span className="font-mono font-bold text-sm tabular-nums text-[var(--accent)]">{formatTimer(pendingRemainingSeconds)}</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">

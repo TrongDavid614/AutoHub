@@ -15,7 +15,7 @@ import {
   RotateCw,
   X,
 } from 'lucide-react';
-import { calculateTestPaymentAmount } from '@/lib/utils';
+import { calculateTestPaymentAmount, getRemainingSeconds } from '@/lib/utils';
 import type { CarDepositStatus, CarDepositItem } from '@/features/customer/types/car-deposit.types';
 import { CarDepositFilterTabs } from '@/features/customer/components/CarDepositFilterTabs';
 import { CarDepositRowCard } from '@/features/customer/components/CarDepositRowCard';
@@ -57,9 +57,9 @@ export const CarDepositPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Quản lý sao chép & đếm ngược QR (15 phút)
+  // Quản lý sao chép & đồng hồ thời gian thực dùng chung cho 15p và 72h
   const [copiedField, setCopiedField] = useState<string | null>(null);
-  const [qrCountdown, setQrCountdown] = useState(14 * 60 + 59);
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
 
   // Polling thanh toán SePay
   const [isCheckingPayment, setIsCheckingPayment] = useState(false);
@@ -80,15 +80,26 @@ export const CarDepositPage: React.FC = () => {
   // Modal QR SePay cho phiếu cọc PENDING từ danh sách
   const [qrModalDeposit, setQrModalDeposit] = useState<CarDepositItem | null>(null);
 
-  // Đồng hồ đếm ngược 72 giờ cho phiếu đã cọc
-  const [remainingSeconds, setRemainingSeconds] = useState(57 * 3600 + 42 * 60 + 15);
-
+  // Cập nhật mốc thời gian thực mỗi giây để tính đếm ngược 15p & 72h chính xác từ hạn của DB
   useEffect(() => {
     const timer = setInterval(() => {
-      setRemainingSeconds((prev) => (prev > 0 ? prev - 1 : 0));
+      setNowMs(Date.now());
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const directQrRemainingSeconds = getRemainingSeconds(
+    activeDeposit?.paymentDeadline || activeDeposit?.expireAt,
+    nowMs,
+    activeDeposit?.createdAt,
+    15 * 60
+  );
+  const modalQrRemainingSeconds = getRemainingSeconds(
+    qrModalDeposit?.paymentDeadline || qrModalDeposit?.expireAt,
+    nowMs,
+    qrModalDeposit?.createdAt,
+    15 * 60
+  );
 
   // Fetch chi tiết xe nếu ở chế độ DIRECT_CHECKOUT
   useEffect(() => {
@@ -135,15 +146,6 @@ export const CarDepositPage: React.FC = () => {
   useEffect(() => {
     loadDeposits();
   }, [user?.id]);
-
-  // Đếm ngược 15 phút cho mã QR SePay
-  useEffect(() => {
-    if (checkoutStep !== 'PAYMENT_QR' && !qrModalDeposit) return;
-    const interval = setInterval(() => {
-      setQrCountdown((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [checkoutStep, qrModalDeposit]);
 
   // Cơ chế Polling tự động kiểm tra trạng thái thanh toán từ SePay Webhook
   useEffect(() => {
@@ -254,7 +256,6 @@ export const CarDepositPage: React.FC = () => {
       if (created) {
         setActiveDeposit(created);
         setCheckoutStep('PAYMENT_QR');
-        setQrCountdown(14 * 60 + 59);
       } else {
         setErrorMessage('Không thể tạo phiếu đặt cọc trên máy chủ vào lúc này. Vui lòng kiểm tra lại thông tin và thử lại!');
       }
@@ -600,7 +601,7 @@ export const CarDepositPage: React.FC = () => {
               </div>
               <div className="flex items-center gap-1.5 font-mono text-base font-bold text-accent-primary">
                 <Clock className="w-4 h-4" />
-                <span>{formatCountdown(qrCountdown)}</span>
+                <span>{formatCountdown(directQrRemainingSeconds)}</span>
               </div>
             </div>
 
@@ -914,7 +915,8 @@ export const CarDepositPage: React.FC = () => {
               key={item.id}
               item={item}
               copiedCode={copiedCode}
-              remainingSeconds={remainingSeconds}
+              nowMs={nowMs}
+              formatCountdown={formatCountdown}
               format72hCountdown={format72hCountdown}
               onCopy={(code) => {
                 navigator.clipboard.writeText(code);
@@ -928,7 +930,6 @@ export const CarDepositPage: React.FC = () => {
               }}
               onPayDeposit={(target) => {
                 setQrModalDeposit(target);
-                setQrCountdown(14 * 60 + 59);
               }}
             />
           ))
@@ -955,7 +956,11 @@ export const CarDepositPage: React.FC = () => {
 
             <div className="p-3 rounded bg-accent-action/10 border border-accent-primary/30 flex items-center justify-between text-xs font-mono text-accent-primary font-bold">
               <span>HIỆU LỰC MÃ QR:</span>
-              <span>{formatCountdown(qrCountdown)}</span>
+              <span className="tabular-nums">
+                {modalQrRemainingSeconds > 0
+                  ? formatCountdown(modalQrRemainingSeconds)
+                  : '00:00 (Hết hạn)'}
+              </span>
             </div>
 
             <div className="p-4 rounded-lg bg-canvas-deep border border-surface-highlight text-center space-y-3">

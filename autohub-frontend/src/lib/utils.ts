@@ -63,3 +63,34 @@ export function matchesSearchTerms(
   );
   return tokens.every((token) => haystack.includes(token));
 }
+
+const parseIsoTimestampMs = (raw?: string | null): number | null => {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  const normalized = trimmed.includes('T') ? trimmed : trimmed.replace(' ', 'T');
+  const ms = Date.parse(normalized);
+  return Number.isNaN(ms) ? null : ms;
+};
+
+/**
+ * Computes remaining whole seconds until an ISO deadline timestamp using wall-clock time.
+ */
+export function getRemainingSeconds(
+  deadlineIso?: string | null,
+  nowMs: number = Date.now(),
+  createdAtIso?: string | null,
+  fallbackDurationSeconds = 0
+): number {
+  let targetMs = parseIsoTimestampMs(deadlineIso);
+
+  if (targetMs === null && fallbackDurationSeconds > 0) {
+    const createdMs = parseIsoTimestampMs(createdAtIso);
+    if (createdMs !== null) {
+      targetMs = createdMs + fallbackDurationSeconds * 1000;
+    }
+  }
+
+  if (targetMs === null) return fallbackDurationSeconds;
+  return Math.max(0, Math.floor((targetMs - nowMs) / 1000));
+}

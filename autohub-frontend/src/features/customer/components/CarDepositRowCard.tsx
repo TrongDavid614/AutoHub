@@ -13,12 +13,15 @@ import {
   CreditCard,
   FileText,
 } from 'lucide-react';
+import { getRemainingSeconds } from '@/lib/utils';
+
 import type { CarDepositItem, CarDepositStatus } from '@/features/customer/types/car-deposit.types';
 
 interface CarDepositRowCardProps {
   item: CarDepositItem;
   copiedCode: string | null;
-  remainingSeconds: number;
+  nowMs: number;
+  formatCountdown: (secs: number) => string;
   format72hCountdown: (secs: number) => string;
   onCopy: (code: string) => void;
   onSelectReceipt: (item: CarDepositItem) => void;
@@ -29,13 +32,27 @@ interface CarDepositRowCardProps {
 export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
   item,
   copiedCode,
-  remainingSeconds,
+  nowMs,
+  formatCountdown,
   format72hCountdown,
   onCopy,
   onSelectReceipt,
   onRequestRefund,
   onPayDeposit,
 }) => {
+  const paymentRemainingSeconds = getRemainingSeconds(
+    item.paymentDeadline || item.expireAt,
+    nowMs,
+    item.createdAt,
+    15 * 60
+  );
+  const holdingRemainingSeconds = getRemainingSeconds(
+    item.expireAt,
+    nowMs,
+    item.paidAt || item.createdAt,
+    72 * 3600
+  );
+
   const renderStatusBadge = (status: CarDepositStatus) => {
     switch (status) {
       case 'PAID':
@@ -60,10 +77,18 @@ export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
           </span>
         );
       case 'PENDING_PAYMENT':
+        if (paymentRemainingSeconds <= 0) {
+          return (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-50 border border-red-200 text-red-700 text-xs font-semibold tabular-nums">
+              <AlertCircle className="w-3.5 h-3.5" />
+              <span>Hết hạn thanh toán (00:00)</span>
+            </span>
+          );
+        }
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-sky-50 border border-sky-200 text-sky-700 text-xs font-semibold">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-sky-50 border border-sky-200 text-sky-700 text-xs font-semibold tabular-nums">
             <Clock className="w-3.5 h-3.5" />
-            <span>Chờ thanh toán (15 phút)</span>
+            <span>Chờ thanh toán ({formatCountdown(paymentRemainingSeconds)})</span>
           </span>
         );
       case 'REFUND_REQUESTED':
@@ -179,7 +204,9 @@ export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
                 <span>Thời hạn giữ chỗ 72h còn lại:</span>
               </div>
               <div className="font-mono font-bold text-sm tabular-nums mt-0.5">
-                {format72hCountdown(remainingSeconds)}
+                {holdingRemainingSeconds > 0
+                  ? format72hCountdown(holdingRemainingSeconds)
+                  : 'Đã hết hạn 72h'}
               </div>
             </div>
           ) : null}
@@ -209,10 +236,16 @@ export const CarDepositRowCard: React.FC<CarDepositRowCardProps> = ({
             <button
               type="button"
               onClick={() => onPayDeposit(item)}
-              className="px-4 py-2 rounded-[2px] bg-accent-action hover:bg-accent-primary text-xs font-bold text-accent-contrast flex items-center gap-1.5 cursor-pointer shadow-sm transition-colors"
+              disabled={paymentRemainingSeconds <= 0}
+              title={
+                paymentRemainingSeconds <= 0
+                  ? 'Phiếu cọc đã quá thời hạn thanh toán 15 phút'
+                  : 'Mở mã QR thanh toán SePay'
+              }
+              className="px-4 py-2 rounded-[2px] bg-accent-action hover:bg-accent-primary text-xs font-bold text-accent-contrast flex items-center gap-1.5 cursor-pointer shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <CreditCard className="w-3.5 h-3.5 text-accent-contrast" />
-              <span>Thanh toán SePay VietQR</span>
+              <span>{paymentRemainingSeconds <= 0 ? 'Đã quá hạn thanh toán' : 'Thanh toán SePay VietQR'}</span>
             </button>
           )}
 
