@@ -24,7 +24,7 @@ import { CarDepositRefundModal } from '@/features/customer/components/CarDeposit
 import { depositService } from '@/features/customer/services/deposit.service';
 import { carService } from '@/features/customer/services/car.service';
 import { useAuthStore } from '@/store/useAuthStore';
-import type { MockCar } from '@/features/customer/mocks/car.mock';
+import type { MockCar } from '@/types/car.types';
 
 export const CarDepositPage: React.FC = () => {
   const { variantId } = useParams<{ variantId?: string }>();
@@ -93,15 +93,20 @@ export const CarDepositPage: React.FC = () => {
   // Fetch chi tiết xe nếu ở chế độ DIRECT_CHECKOUT
   useEffect(() => {
     if (queryVariantId) {
-      carService.getCarById(queryVariantId).then((car) => {
-        if (car) {
-          setTargetCar(car);
-          if (!queryColor && car.availableColors && car.availableColors.length > 0) {
-            setSelectedColor(car.availableColors[0].name);
-            setSelectedColorHex(car.availableColors[0].hex);
+      carService
+        .getCarById(queryVariantId)
+        .then((car) => {
+          if (car) {
+            setTargetCar(car);
+            if (!queryColor && car.availableColors && car.availableColors.length > 0) {
+              setSelectedColor(car.availableColors[0].name);
+              setSelectedColorHex(car.availableColors[0].hex);
+            }
           }
-        }
-      });
+        })
+        .catch(() => {
+          setErrorMessage('Chưa kết nối được Backend để tải thông tin xe đặt cọc.');
+        });
     }
   }, [queryVariantId, queryColor]);
 

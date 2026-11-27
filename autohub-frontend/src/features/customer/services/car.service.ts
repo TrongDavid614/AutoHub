@@ -1,7 +1,7 @@
 import { axiosClient } from '@/lib/axios';
 import type { ApiResponse } from '@/types/api.types';
 import type { CarComparisonData } from '../types/comparison.types';
-import { MOCK_CARS, type MockCar } from '../mocks/car.mock';
+import type { MockCar } from '@/types/car.types';
 
 export interface ProvinceDto {
   id: number;
@@ -230,57 +230,36 @@ function mapDtoToMockCar(dto: RawCarDto): MockCar {
 
 export const carService = {
   async getAllCars(): Promise<MockCar[]> {
-    try {
-      const res = await axiosClient.get<unknown, ApiResponse<RawCarDto[]>>('/customer/cars');
-      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
-        const mapped = res.data.map((dto, idx) => {
+    const res = await axiosClient.get<unknown, ApiResponse<RawCarDto[]>>('/customer/cars');
+    if (res?.data && Array.isArray(res.data)) {
+      return res.data
+        .map((dto, idx) => {
           try {
             return mapDtoToMockCar(dto);
           } catch (e) {
             console.error(`[carService] mapDtoToMockCar failed at index ${idx}:`, e, dto);
             return null;
           }
-        }).filter((c): c is MockCar => c !== null);
-        if (mapped.length > 0) return mapped;
-      }
-    } catch (err) {
-      console.error('[carService] getAllCars network error:', err);
+        })
+        .filter((c): c is MockCar => c !== null);
     }
-    return MOCK_CARS;
+    return [];
   },
 
   async getCarById(id: string): Promise<MockCar | null> {
-    try {
-      const res = await axiosClient.get<unknown, ApiResponse<RawCarDto>>(`/customer/cars/${id}`);
-      if (res?.data) {
-        return mapDtoToMockCar(res.data);
-      }
-    } catch {
-      // Network error - fallback to mock car
+    const res = await axiosClient.get<unknown, ApiResponse<RawCarDto>>(`/customer/cars/${id}`);
+    if (res?.data) {
+      return mapDtoToMockCar(res.data);
     }
-
-    return MOCK_CARS.find((c) => c.id === String(id)) || null;
+    return null;
   },
 
   async getProvinces(): Promise<ProvinceDto[]> {
-    try {
-      const res = await axiosClient.get<unknown, ApiResponse<ProvinceDto[]>>('/customer/estimator/provinces');
-      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
-        return res.data;
-      }
-    } catch {
-      // Fallback
+    const res = await axiosClient.get<unknown, ApiResponse<ProvinceDto[]>>('/customer/estimator/provinces');
+    if (res?.data && Array.isArray(res.data)) {
+      return res.data;
     }
-    return [
-      { id: 1, tenTinh: 'Hà Nội', phanVungBienSo: 'Vùng 1' },
-      { id: 2, tenTinh: 'TP. Hồ Chí Minh', phanVungBienSo: 'Vùng 1' },
-      { id: 3, tenTinh: 'Đà Nẵng', phanVungBienSo: 'Vùng 2' },
-      { id: 4, tenTinh: 'Hải Phòng', phanVungBienSo: 'Vùng 2' },
-      { id: 5, tenTinh: 'Cần Thơ', phanVungBienSo: 'Vùng 2' },
-      { id: 6, tenTinh: 'Bình Dương', phanVungBienSo: 'Vùng 2' },
-      { id: 7, tenTinh: 'Đồng Nai', phanVungBienSo: 'Vùng 2' },
-      { id: 8, tenTinh: 'Quảng Ninh', phanVungBienSo: 'Vùng 3' },
-    ];
+    return [];
   },
 
   async calculateEstimator(variantId: number, tinhThanhId: number): Promise<EstimatorCalculationDto | null> {
@@ -292,20 +271,16 @@ export const carService = {
         return res.data;
       }
     } catch {
-      // Fallback
+      return null;
     }
     return null;
   },
 
   async getCarComparison(ids?: (number | string)[]): Promise<CarComparisonData | null> {
-    try {
-      const query = ids && ids.length > 0 ? `?ids=${ids.join(',')}` : '';
-      const res = await axiosClient.get<unknown, ApiResponse<CarComparisonData>>(`/customer/cars/compare${query}`);
-      if (res?.data && res.data.trims && res.data.trims.length > 0) {
-        return res.data;
-      }
-    } catch (err) {
-      console.error('[carService] getCarComparison network error:', err);
+    const query = ids && ids.length > 0 ? `?ids=${ids.join(',')}` : '';
+    const res = await axiosClient.get<unknown, ApiResponse<CarComparisonData>>(`/customer/cars/compare${query}`);
+    if (res?.data && res.data.trims && res.data.trims.length > 0) {
+      return res.data;
     }
     return null;
   },

@@ -1,6 +1,6 @@
 import React from 'react';
 import { MapPin, Plus, Edit2 } from 'lucide-react';
-import type { CheckoutAddress } from '@/features/customer/mocks/checkout.mock';
+import type { CheckoutAddress } from '@/types/cart.types';
 
 export interface StepAddressSelectionProps {
   addresses: CheckoutAddress[];

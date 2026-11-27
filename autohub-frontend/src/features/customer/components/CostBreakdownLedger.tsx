@@ -9,7 +9,7 @@ import {
   Percent,
 } from 'lucide-react';
 import type { TrimOption, CityOption, CostBreakdown } from '@/features/customer/types/estimator.types';
-import type { MockCar } from '../mocks/car.mock';
+import type { MockCar } from '@/types/car.types';
 
 interface CostBreakdownLedgerProps {
   selectedTrim: TrimOption;

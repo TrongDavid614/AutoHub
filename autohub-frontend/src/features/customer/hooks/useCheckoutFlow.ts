@@ -3,9 +3,8 @@ import { useCartStore } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { addressService } from '../services/address.service';
 import { cartService } from '../services/cart.service';
-import type { CheckoutAddress, CheckoutOrderItem } from '../mocks/checkout.mock';
 import type { ExtendedAddress } from '../components/AddressCard';
-import type { ShippingMethod } from '@/types/cart.types';
+import type { CheckoutAddress, CheckoutOrderItem, ShippingMethod } from '@/types/cart.types';
 
 export function useCheckoutFlow() {
   const { cartItems, clearCart } = useCartStore();
@@ -16,9 +15,16 @@ export function useCheckoutFlow() {
   const [selectedAddressId, setSelectedAddressId] = useState<string>('');
 
   useEffect(() => {
+    if (!user?.id) {
+      setAddresses([]);
+      setSelectedAddressId('');
+      return;
+    }
+
     let isMounted = true;
-    addressService.getMyAddresses(user?.id).then((list) => {
-      if (isMounted && list && list.length > 0) {
+    addressService.getMyAddresses(user.id).then((list) => {
+      if (!isMounted) return;
+      if (list && list.length > 0) {
         const mapped: CheckoutAddress[] = list.map((a: ExtendedAddress) => {
           const parts = [a.detailedAddress, a.ward, a.district, a.provinceCity]
             .map((p) => p?.trim())
@@ -28,8 +34,8 @@ export function useCheckoutFlow() {
 
           return {
             id: String(a.id),
-            recipientName: a.recipientName || user?.fullName || 'Khách hàng',
-            phone: a.phoneNumber || user?.phoneNumber || '0912345678',
+            recipientName: a.recipientName || user.fullName || 'Khách hàng',
+            phone: a.phoneNumber || user.phoneNumber || '0912345678',
             fullAddress: fullAddr,
             tag: a.tag || (a.isDefault ? 'MẶC ĐỊNH' : 'ĐỊA CHỈ'),
             isDefault: !!a.isDefault,
@@ -40,6 +46,9 @@ export function useCheckoutFlow() {
         if (defaultAddr) {
           setSelectedAddressId(defaultAddr.id);
         }
+      } else {
+        setAddresses([]);
+        setSelectedAddressId('');
       }
     });
     return () => {
@@ -176,6 +185,11 @@ export function useCheckoutFlow() {
   );
 
   const handleProcessCheckout = async () => {
+    if (!user?.id) {
+      setVoucherError('Vui lòng đăng nhập để tiến hành đặt hàng và thanh toán.');
+      return;
+    }
+
     if (!hasValidAddress) {
       setVoucherError('Vui lòng thêm hoặc chọn địa chỉ nhận hàng trước khi thanh toán.');
       return;
@@ -185,12 +199,12 @@ export function useCheckoutFlow() {
     let finalCode = `AH-ACC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
 
     try {
-      const customerId = user?.id || 5;
+      const customerId = user.id;
       const snapshotTotal = grandTotal;
       const res = await cartService.checkout({
         customerId,
-        recipientName: selectedAddress?.recipientName || user?.fullName || 'Khách hàng',
-        phone: selectedAddress?.phone || user?.phoneNumber || '0912345678',
+        recipientName: selectedAddress?.recipientName || user.fullName || 'Khách hàng',
+        phone: selectedAddress?.phone || user.phoneNumber || '0912345678',
         shippingAddress: selectedAddress?.fullAddress || 'Showroom AutoHub',
         paymentMethod: selectedPaymentMethod.toUpperCase() as 'VNPAY' | 'COD',
         voucherCode: isVoucherApplied ? voucherCode : undefined,
@@ -218,7 +232,7 @@ export function useCheckoutFlow() {
   const handleFinishOrder = () => {
     setIsSuccessModalOpen(false);
     setConfirmedGrandTotal(0);
-    clearCart(user?.id || 5);
+    clearCart(user?.id);
   };
 
   return {

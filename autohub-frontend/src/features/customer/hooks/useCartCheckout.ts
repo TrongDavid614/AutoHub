@@ -3,9 +3,8 @@ import { useCartStore } from '@/store/useCartStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { addressService } from '../services/address.service';
 import { cartService } from '../services/cart.service';
-import type { ShippingAddress } from '../mocks/cart.mock';
 import type { ExtendedAddress } from '../components/AddressCard';
-import type { AvailableVoucher, SepayPaymentInfo, ShippingMethod } from '@/types/cart.types';
+import type { AvailableVoucher, SepayPaymentInfo, ShippingAddress, ShippingMethod } from '@/types/cart.types';
 
 const EMPTY_SHIPPING_ADDRESS: ShippingAddress = {
   id: '',
@@ -102,10 +101,17 @@ export function useCartCheckout() {
 
   // 2. Tải sổ địa chỉ của người dùng
   useEffect(() => {
+    if (!user?.id) {
+      setAddressBook([]);
+      setSelectedAddress(EMPTY_SHIPPING_ADDRESS);
+      return;
+    }
+
     let isMounted = true;
-    const customerId = user?.id || 5;
+    const customerId = user.id;
     addressService.getMyAddresses(customerId).then((list) => {
-      if (isMounted && list && list.length > 0) {
+      if (!isMounted) return;
+      if (list && list.length > 0) {
         const mapped: ShippingAddress[] = list.map((a: ExtendedAddress) => {
           const parts = [a.detailedAddress, a.ward, a.district, a.provinceCity]
             .map((p) => p?.trim())
@@ -115,8 +121,8 @@ export function useCartCheckout() {
 
           return {
             id: String(a.id),
-            recipientName: a.recipientName || user?.fullName || 'Nguyễn Văn A',
-            phone: a.phoneNumber || user?.phoneNumber || '0912345678',
+            recipientName: a.recipientName || user.fullName || 'Nguyễn Văn A',
+            phone: a.phoneNumber || user.phoneNumber || '0912345678',
             fullAddress: fullAddr,
             tag: a.tag || (a.isDefault ? 'MẶC ĐỊNH' : 'ĐỊA CHỈ'),
             isDefault: !!a.isDefault,
@@ -124,6 +130,9 @@ export function useCartCheckout() {
         });
         setAddressBook(mapped);
         setSelectedAddress(mapped.find((m) => m.isDefault) || mapped[0] || EMPTY_SHIPPING_ADDRESS);
+      } else {
+        setAddressBook([]);
+        setSelectedAddress(EMPTY_SHIPPING_ADDRESS);
       }
     });
     return () => {
@@ -198,17 +207,22 @@ export function useCartCheckout() {
 
   const hasValidAddress = Boolean(
     selectedAddress &&
-      selectedAddress.id &&
-      selectedAddress.id.trim() !== '' &&
-      selectedAddress.fullAddress &&
-      selectedAddress.fullAddress.trim() !== '' &&
-      selectedAddress.fullAddress !== 'Chưa có địa chỉ nhận hàng' &&
-      selectedAddress.recipientName?.trim() &&
-      selectedAddress.phone?.trim()
+    selectedAddress.id &&
+    selectedAddress.id.trim() !== '' &&
+    selectedAddress.fullAddress &&
+    selectedAddress.fullAddress.trim() !== '' &&
+    selectedAddress.fullAddress !== 'Chưa có địa chỉ nhận hàng' &&
+    selectedAddress.recipientName?.trim() &&
+    selectedAddress.phone?.trim()
   );
 
   // 5. Đặt hàng & Thanh toán (Checkout) thực tế xuống cơ sở dữ liệu
   const handleCheckout = async () => {
+    if (!user?.id) {
+      setCheckoutError('Vui lòng đăng nhập để tiến hành đặt hàng và thanh toán.');
+      return;
+    }
+
     if (cartItems.length === 0) {
       setCheckoutError('Giỏ hàng đang trống. Vui lòng chọn ít nhất 1 phụ kiện.');
       return;
@@ -224,7 +238,7 @@ export function useCartCheckout() {
     setCheckoutError('');
 
     try {
-      const customerId = user?.id || 5;
+      const customerId = user.id;
       const snapshotTotal = totalPayable;
       const res = await cartService.checkout({
         customerId,

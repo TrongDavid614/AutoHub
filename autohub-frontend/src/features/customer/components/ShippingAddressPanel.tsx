@@ -1,6 +1,6 @@
 import React from 'react';
 import { MapPin, Plus, Edit2, CheckCircle2, AlertCircle } from 'lucide-react';
-import type { ShippingAddress } from '@/features/customer/mocks/cart.mock';
+import type { ShippingAddress } from '@/types/cart.types';
 
 export interface ShippingAddressPanelProps {
   address: ShippingAddress;

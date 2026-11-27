@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import type { MockCar } from '../mocks/car.mock';
+import type { MockCar } from '@/types/car.types';
 import { carService } from '../services/car.service';
 import { matchesSearchTerms } from '@/lib/utils';
 
@@ -10,15 +10,26 @@ export const useCarCatalog = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [cars, setCars] = useState<MockCar[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
-    carService.getAllCars().then((data) => {
-      if (isMounted) {
-        setCars(data || []);
-        setLoading(false);
-      }
-    });
+    carService
+      .getAllCars()
+      .then((data) => {
+        if (isMounted) {
+          setCars(data || []);
+          setError(null);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setCars([]);
+          setError('Chưa kết nối được Backend để tải danh sách xe.');
+          setLoading(false);
+        }
+      });
     return () => {
       isMounted = false;
     };
@@ -66,5 +77,6 @@ export const useCarCatalog = () => {
     filteredCars,
     cars,
     loading,
+    error,
   };
 };

@@ -62,6 +62,5 @@ export * from './hooks/useCarEstimator';
 export * from './hooks/useCartCheckout';
 export * from './hooks/useCheckoutFlow';
 export * from './hooks/useAiConsultant';
-export * from './mocks/car.mock';
+export type { MockCar, ShowroomCar } from '@/types/car.types';
 export * from './mocks/accessory.mock';
-export * from './mocks/orders.mock';

@@ -23,6 +23,7 @@ export const orderService = {
       }
     } catch (error) {
       console.error('[orderService.getMyOrders] Lỗi khi tải danh sách đơn hàng:', error);
+      throw error;
     }
     return [];
   },
