@@ -69,6 +69,18 @@ export const orderService = {
     return null;
   },
 
+  async simulatePayOrder(orderCode: string): Promise<boolean> {
+    try {
+      const cleanCode = String(orderCode).replace(/^#/, '');
+      const res = await axiosClient.post<unknown, ApiResponse<Record<string, unknown>>>(
+        `/payment/simulate-pay-order?code=${encodeURIComponent(cleanCode)}`
+      );
+      return res?.success === true;
+    } catch {
+      return false;
+    }
+  },
+
   async createOrder(payload: CheckoutOrderRequest): Promise<CheckoutOrderResponse> {
     const res = await axiosClient.post<unknown, ApiResponse<CheckoutOrderResponse>>(
       '/customer/orders/checkout',

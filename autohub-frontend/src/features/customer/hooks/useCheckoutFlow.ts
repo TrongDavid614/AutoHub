@@ -19,14 +19,22 @@ export function useCheckoutFlow() {
     let isMounted = true;
     addressService.getMyAddresses(user?.id).then((list) => {
       if (isMounted && list && list.length > 0) {
-        const mapped: CheckoutAddress[] = list.map((a: ExtendedAddress) => ({
-          id: String(a.id),
-          recipientName: a.recipientName || user?.fullName || 'Khách hàng',
-          phone: a.phoneNumber || user?.phoneNumber || '0912345678',
-          fullAddress: `${a.detailedAddress || ''}, ${a.ward || ''}, ${a.district || ''}, ${a.provinceCity || ''}`.replace(/^,\s*|,\s*$/g, ''),
-          tag: a.tag || (a.isDefault ? 'MẶC ĐỊNH' : 'ĐỊA CHỈ'),
-          isDefault: !!a.isDefault,
-        }));
+        const mapped: CheckoutAddress[] = list.map((a: ExtendedAddress) => {
+          const parts = [a.detailedAddress, a.ward, a.district, a.provinceCity]
+            .map((p) => p?.trim())
+            .filter((p): p is string => Boolean(p && p.length > 0))
+            .filter((part, idx, arr) => !arr.slice(0, idx).some((prev) => prev.toLowerCase().includes(part.toLowerCase())));
+          const fullAddr = parts.length > 0 ? parts.join(', ') : 'Chưa có địa chỉ nhận hàng';
+
+          return {
+            id: String(a.id),
+            recipientName: a.recipientName || user?.fullName || 'Khách hàng',
+            phone: a.phoneNumber || user?.phoneNumber || '0912345678',
+            fullAddress: fullAddr,
+            tag: a.tag || (a.isDefault ? 'MẶC ĐỊNH' : 'ĐỊA CHỈ'),
+            isDefault: !!a.isDefault,
+          };
+        });
         setAddresses(mapped);
         const defaultAddr = mapped.find((m) => m.isDefault) || mapped[0];
         if (defaultAddr) {

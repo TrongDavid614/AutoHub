@@ -56,8 +56,8 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
 
       try {
         const cleanId = orderId.replace(/^#/, '');
-        // 1. Kiểm tra trạng thái đơn hàng hiện tại
-        let order = await orderService.getOrderDetail(cleanId);
+        // Kiểm tra trạng thái đơn hàng hiện tại từ máy chủ (chỉ đọc)
+        const order = await orderService.getOrderDetail(cleanId);
         if (order && (order.status === 'PAID' || order.status === 'PROCESSING')) {
           setIsPaid(true);
           setCheckStatusMessage('Thanh toán SePay đã được hệ thống ghi nhận thành công!');
@@ -65,15 +65,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
           return;
         }
 
-        // 2. Nếu người dùng chủ động bấm kiểm tra (thủ công) -> gọi verifyPayment đối soát
         if (!isAuto) {
-          order = await orderService.verifyPayment(cleanId);
-          if (order && (order.status === 'PAID' || order.status === 'PROCESSING')) {
-            setIsPaid(true);
-            setCheckStatusMessage('Thanh toán SePay đã được hệ thống ghi nhận thành công!');
-            onPaymentSuccess?.();
-            return;
-          }
           setCheckStatusMessage(
             'Hệ thống chưa ghi nhận tiền vào tài khoản. Quý khách vui lòng kiểm tra lại ngân hàng hoặc chờ 5-10 giây để SePay khớp lệnh tự động.'
           );
@@ -218,15 +210,41 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                     <span>Hệ thống tự động kiểm tra mỗi 4 giây</span>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => checkPaymentStatus(false)}
-                    disabled={isChecking}
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-[var(--surface)] hover:bg-[var(--surface-subtle)] border border-[var(--line-strong)] text-xs font-semibold text-[var(--accent)] transition-all cursor-pointer shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 ${isChecking ? 'animate-spin' : ''}`} />
-                    <span>{isChecking ? 'Đang kiểm tra...' : 'Kiểm tra thanh toán'}</span>
-                  </button>
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => checkPaymentStatus(false)}
+                      disabled={isChecking}
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-[var(--surface)] hover:bg-[var(--surface-subtle)] border border-[var(--line-strong)] text-xs font-semibold text-[var(--accent)] transition-all cursor-pointer shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${isChecking ? 'animate-spin' : ''}`} />
+                      <span>{isChecking ? 'Đang kiểm tra...' : 'Kiểm tra thanh toán'}</span>
+                    </button>
+
+                    {import.meta.env.DEV && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setIsChecking(true);
+                          try {
+                            const ok = await orderService.simulatePayOrder(orderId);
+                            if (ok) {
+                              setIsPaid(true);
+                              setCheckStatusMessage('[DEV Sandbox] Đã giả lập thanh toán đơn hàng thành công!');
+                              onPaymentSuccess?.();
+                            }
+                          } finally {
+                            setIsChecking(false);
+                          }
+                        }}
+                        disabled={isChecking}
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-md bg-amber-600/20 hover:bg-amber-600/30 text-amber-600 border border-amber-500/40 text-[11px] font-mono transition-all cursor-pointer shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                        title="Chỉ hiển thị trong môi trường DEV để kiểm thử"
+                      >
+                        <span>[DEV] Test Pay</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {checkStatusMessage && (

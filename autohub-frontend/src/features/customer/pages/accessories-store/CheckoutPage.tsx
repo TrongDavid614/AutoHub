@@ -153,15 +153,15 @@ export const CheckoutPage: React.FC = () => {
         }
         onSelectAddress={(addr) => setSelectedAddressId(addr.id)}
         onAddNewAddress={(newAddr) => {
-          setAddresses([
-            ...addresses,
+          setAddresses((prev) => [
+            ...prev.filter((a) => a.id !== newAddr.id),
             {
               id: newAddr.id,
               recipientName: newAddr.recipientName,
               phone: newAddr.phone,
               fullAddress: newAddr.fullAddress,
               tag: newAddr.tag || 'TÙY CHỌN',
-              isDefault: false,
+              isDefault: newAddr.isDefault ?? false,
             },
           ]);
           setSelectedAddressId(newAddr.id);
