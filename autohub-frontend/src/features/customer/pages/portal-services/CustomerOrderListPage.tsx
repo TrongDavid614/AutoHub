@@ -49,7 +49,16 @@ export const CustomerOrderListPage: React.FC = () => {
     setIsLoading(true);
     try {
       const data = await orderService.getMyOrders(user?.id);
-      setOrders(Array.isArray(data) ? data : []);
+      const cleanData = (Array.isArray(data) ? data : []).filter((o) => {
+        const isAutoCancelled15m =
+          o.status === 'CANCELLED' &&
+          Boolean(o.customerNote?.includes('Quá hạn thanh toán 15 phút'));
+        const isExpiredPending =
+          o.status === 'PENDING_PAYMENT' &&
+          Boolean(o.paymentDeadline && new Date(o.paymentDeadline).getTime() < Date.now());
+        return !isAutoCancelled15m && !isExpiredPending;
+      });
+      setOrders(cleanData);
     } catch {
       setOrders([]);
     } finally {
@@ -63,7 +72,14 @@ export const CustomerOrderListPage: React.FC = () => {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          // Hết 15 phút thanh toán: tự động loại bỏ hoàn toàn các đơn PENDING_PAYMENT khỏi màn hình
+          setOrders((current) => current.filter((o) => o.status !== 'PENDING_PAYMENT'));
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
     return () => clearInterval(timer);
   }, []);

@@ -43,6 +43,7 @@ export interface AccessoryOrder {
   shippingUnit?: string;
   donViVanChuyen?: string;
   createdAt: string;
+  paymentDeadline?: string;
 }
 
 export interface ReturnRequest {

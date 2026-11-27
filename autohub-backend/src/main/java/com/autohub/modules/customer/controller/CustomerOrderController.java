@@ -85,6 +85,7 @@ public class CustomerOrderController {
     }
 
     @GetMapping({"", "/my-orders"})
+    @Transactional
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getOrders(@RequestParam(required = false) Long customerId) {
         NguoiDung user = resolveCurrentUser(customerId);
         List<DonHangPhuKien> orders;
@@ -100,7 +101,43 @@ public class CustomerOrderController {
             return ResponseEntity.ok(ApiResponse.ok(Collections.emptyList(), "Lấy danh sách đơn hàng thành công"));
         }
 
-        List<Map<String, Object>> result = orders.stream()
+        LocalDateTime now = LocalDateTime.now();
+        List<DonHangPhuKien> validOrders = new ArrayList<>();
+
+        for (DonHangPhuKien order : orders) {
+            boolean isExpiredPending = order.getTrangThai() == TrangThaiDonHang.PENDING_PAYMENT
+                    && order.getHanThanhToan() != null
+                    && order.getHanThanhToan().isBefore(now);
+            boolean isAutoCancelled15m = order.getTrangThai() == TrangThaiDonHang.CANCELLED
+                    && order.getGhiChuKhachHang() != null
+                    && order.getGhiChuKhachHang().contains("Quá hạn thanh toán 15 phút");
+
+            if (isExpiredPending || isAutoCancelled15m) {
+                // Đơn hàng quá hạn thanh toán 15 phút: tự động hoàn tồn kho và xóa vĩnh viễn khỏi hệ thống (không để lại trạng thái đã hủy)
+                try {
+                    List<ChiTietDonHang> items = chiTietDonHangRepository.findByDonHangId(order.getId());
+                    if (isExpiredPending) {
+                        for (ChiTietDonHang item : items) {
+                            if (item.getPhuKien() != null && item.getSoLuong() != null) {
+                                PhuKien pk = item.getPhuKien();
+                                int cur = pk.getSoLuongTon() != null ? pk.getSoLuongTon() : 0;
+                                pk.setSoLuongTon(cur + item.getSoLuong());
+                                phuKienRepository.save(pk);
+                            }
+                        }
+                    }
+                    chiTietDonHangRepository.deleteAll(items);
+                    donHangRepository.delete(order);
+                    log.info("[CustomerOrder] Tự động xóa vĩnh viễn đơn hàng quá hạn thanh toán 15 phút: #{}", order.getMaDonHang());
+                } catch (Exception e) {
+                    log.warn("Không thể xóa đơn hàng quá hạn ID {}: {}", order.getId(), e.getMessage());
+                }
+            } else {
+                validOrders.add(order);
+            }
+        }
+
+        List<Map<String, Object>> result = validOrders.stream()
                 .map(order -> mapOrderToDto(order, chiTietDonHangRepository.findByDonHangId(order.getId())))
                 .collect(Collectors.toList());
 
@@ -604,6 +641,7 @@ public class CustomerOrderController {
         map.put("trackingNumber", order.getMaVanDon() != null ? order.getMaVanDon() : "AH-EXPRESS-" + order.getId());
         map.put("sepayTransactionId", "SP_" + (Math.abs(code.hashCode()) % 10000000));
         map.put("createdAt", order.getNgayDat() != null ? order.getNgayDat().toString() : LocalDateTime.now().toString());
+        map.put("paymentDeadline", order.getHanThanhToan() != null ? order.getHanThanhToan().toString() : null);
 
         List<Map<String, Object>> mappedItems = new ArrayList<>();
         if (items != null && !items.isEmpty()) {
