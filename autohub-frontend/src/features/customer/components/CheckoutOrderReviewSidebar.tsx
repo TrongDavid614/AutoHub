@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, Check, ArrowRight } from 'lucide-react';
+import { Phone, Check, ArrowRight, MapPin } from 'lucide-react';
 import type { CheckoutOrderItem } from '@/features/customer/mocks/checkout.mock';
 
 export interface CheckoutOrderReviewSidebarProps {
@@ -16,6 +16,7 @@ export interface CheckoutOrderReviewSidebarProps {
   onRemoveVoucher: () => void;
   onProcessCheckout: () => void;
   isSubmitting: boolean;
+  hasAddress?: boolean;
 }
 
 export const CheckoutOrderReviewSidebar: React.FC<CheckoutOrderReviewSidebarProps> = ({
@@ -32,6 +33,7 @@ export const CheckoutOrderReviewSidebar: React.FC<CheckoutOrderReviewSidebarProp
   onRemoveVoucher,
   onProcessCheckout,
   isSubmitting,
+  hasAddress = true,
 }) => {
   const formatPrice = (val: number) => val.toLocaleString('vi-VN');
   const safeItems = items ?? [];
@@ -179,10 +181,19 @@ export const CheckoutOrderReviewSidebar: React.FC<CheckoutOrderReviewSidebarProp
             type="button"
             onClick={onProcessCheckout}
             disabled={isSubmitting || items.length === 0}
-            className="w-full py-3.5 px-4 rounded-lg bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`w-full py-3.5 px-4 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+              !hasAddress
+                ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-sm'
+                : 'bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white'
+            }`}
           >
             {isSubmitting ? (
               <span>Đang xử lý giao dịch...</span>
+            ) : !hasAddress ? (
+              <>
+                <MapPin className="w-4 h-4" />
+                <span>Thêm địa chỉ để thanh toán</span>
+              </>
             ) : (
               <>
                 <span className="tabular-nums">Thanh toán đơn hàng ({formatPrice(grandTotal)} đ)</span>
