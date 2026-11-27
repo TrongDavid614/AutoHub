@@ -9,12 +9,14 @@ import {
   Percent,
 } from 'lucide-react';
 import type { TrimOption, CityOption, CostBreakdown } from '@/features/customer/types/estimator.types';
+import type { MockCar } from '../mocks/car.mock';
 
 interface CostBreakdownLedgerProps {
   selectedTrim: TrimOption;
   selectedCity: CityOption;
   breakdown: CostBreakdown;
   onOpenDepositModal: () => void;
+  currentCar?: MockCar | null;
 }
 
 export const CostBreakdownLedger: React.FC<CostBreakdownLedgerProps> = ({
@@ -22,6 +24,7 @@ export const CostBreakdownLedger: React.FC<CostBreakdownLedgerProps> = ({
   selectedCity,
   breakdown,
   onOpenDepositModal,
+  currentCar,
 }) => {
   const navigate = useNavigate();
 
@@ -29,23 +32,26 @@ export const CostBreakdownLedger: React.FC<CostBreakdownLedgerProps> = ({
 
   const taxSavedMillions = (breakdown.taxSaved / 1000000).toFixed(1);
 
+  const carImageUrl = currentCar?.image || selectedTrim.imageUrl || 'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=1200';
+  const displayTitle = selectedTrim.name;
+
   return (
     <div className="space-y-4">
       {/* 1. Car Visual & Designation Header */}
       <div className="rounded-xl bg-[var(--surface)] border border-[var(--line)] overflow-hidden">
         <div className="relative aspect-video w-full bg-[var(--surface-subtle)] flex items-center justify-center overflow-hidden border-b border-[var(--line)]">
           <img
-            src="https://api.builder.io/api/v1/image/assets/TEMP/87dca2c869ce8aeb0822dca506e4f3bd186b3ffa?width=913"
-            alt={`AutoHub GT-e ${selectedTrim.name}`}
+            src={carImageUrl}
+            alt={displayTitle}
             className="w-full h-full object-cover object-center"
           />
 
           {/* Floating Pill Badges on Visual */}
           <div className="absolute top-3 left-3 flex flex-wrap items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-md bg-white/95 border border-[var(--line)] text-xs font-semibold text-[var(--accent)]">
-              AutoHub GT-e Studio
+            <span className="px-2.5 py-0.5 rounded-md bg-white/95 border border-[var(--line)] text-xs font-semibold text-[var(--accent)] shadow-sm">
+              {currentCar?.name || displayTitle} Studio
             </span>
-            <span className="px-2 py-0.5 rounded-md bg-white/95 border border-[var(--line)] text-xs font-medium text-[var(--text-2)] tabular-nums">
+            <span className="px-2 py-0.5 rounded-md bg-white/95 border border-[var(--line)] text-xs font-medium text-[var(--text-2)] tabular-nums shadow-sm">
               VIN 2025
             </span>
           </div>
@@ -53,7 +59,7 @@ export const CostBreakdownLedger: React.FC<CostBreakdownLedgerProps> = ({
 
         <div className="px-5 pt-4 pb-2 border-b border-[var(--line)] bg-[var(--surface-subtle)] flex items-center justify-between gap-2">
           <div className="text-base font-bold text-[var(--text)] tracking-tight">
-            AutoHub GT-e {selectedTrim.name}
+            {displayTitle}
           </div>
           <div className="text-xs text-[var(--text-2)] flex items-center gap-1">
             <span>Khu vực:</span>
@@ -183,7 +189,7 @@ export const CostBreakdownLedger: React.FC<CostBreakdownLedgerProps> = ({
 
             <button
               type="button"
-              onClick={() => navigate('/test-drive')}
+              onClick={() => navigate(currentCar?.id ? `/test-drive?carId=${currentCar.id}` : '/test-drive')}
               className="w-full py-3 px-5 rounded-lg bg-surface-elevated hover:bg-surface-interactive border border-surface-highlight hover:border-accent-primary/40 text-text-primary hover:text-accent-primary font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <Calendar className="w-4 h-4 text-accent-primary" />

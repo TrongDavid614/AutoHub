@@ -56,10 +56,11 @@ public class SecurityConfig {
                 })
             )
             .authorizeHttpRequests(auth -> auth
-                // 1. Công khai các endpoint Authentication & Tra cứu khách vãng lai
+                // 1. Công khai các endpoint Authentication & Tra cứu khách vãng lai & Tải file tĩnh
                 .requestMatchers("/auth/login", "/auth/register", "/auth/forgot-password", "/auth/verify-otp", "/auth/reset-password", "/auth/google").permitAll()
                 .requestMatchers("/customer/cars/**", "/customer/accessories/**", "/accessories/**").permitAll()
                 .requestMatchers("/payment/**", "/sepay/**").permitAll()
+                .requestMatchers("/uploads/**").permitAll()
                 .requestMatchers("/ai/**", "/ai-consultant/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/tracking/**").permitAll()

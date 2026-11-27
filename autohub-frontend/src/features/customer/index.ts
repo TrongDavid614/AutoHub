@@ -38,6 +38,7 @@ export * from './pages/auth/AdminLoginPage';
 export * from './pages/landing/LandingPage';
 
 // Common Modals & Components
+export * from './components/AvatarChangeModal';
 export * from './components/detail/CarDepositModal';
 export * from './components/VNPayQRModal';
 export * from './components/TestDriveBookingModal';

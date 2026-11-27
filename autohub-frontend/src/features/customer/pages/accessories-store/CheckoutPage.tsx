@@ -14,7 +14,7 @@ export const CheckoutPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { isAuthenticated } = useAuthStore();
 
-  const retryOrderCode = searchParams.get('orderCode');
+  const retryOrderCode = searchParams.get('orderCode') || (typeof window !== 'undefined' && window.location.hash.includes('AH-ACC') ? window.location.hash : null);
 
   // Nếu người dùng truy cập /checkout với orderCode (từ đơn hàng cũ hoặc link thử lại thanh toán) -> chuyển về trang đơn hàng
   useEffect(() => {

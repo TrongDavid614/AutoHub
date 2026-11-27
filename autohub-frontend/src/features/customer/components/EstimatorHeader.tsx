@@ -2,7 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 
-export const EstimatorHeader: React.FC = () => {
+export interface EstimatorHeaderProps {
+  carName?: string;
+}
+
+export const EstimatorHeader: React.FC<EstimatorHeaderProps> = ({ carName }) => {
   return (
     <div className="space-y-4 pb-2 border-b border-surface-highlight/40">
       {/* Breadcrumb Bar */}
@@ -18,7 +22,7 @@ export const EstimatorHeader: React.FC = () => {
           to="/cars"
           className="text-text-secondary hover:text-accent-primary transition-colors font-medium uppercase tracking-wider"
         >
-          DÒNG XE GT-E
+          {carName ? `DÒNG XE ${carName.toUpperCase()}` : 'DÒNG XE'}
         </Link>
         <ChevronRight className="w-3.5 h-3.5 text-border-subtle" />
         <span className="text-accent-primary font-bold uppercase tracking-wider">
@@ -29,8 +33,7 @@ export const EstimatorHeader: React.FC = () => {
       {/* Main Title & Subtitle */}
       <div className="space-y-2">
         <h1 className="text-xl md:text-2xl font-bold text-text-primary tracking-tight leading-tight">
-          Dự Toán Chi Phí Lăn Bánh Ô Tô Điện
-          <br className="hidden sm:inline" /> AutoHub
+          Dự Toán Chi Phí Lăn Bánh {carName ? carName : 'Ô Tô Điện AutoHub'}
         </h1>
         <p className="text-sm text-text-secondary max-w-3xl leading-relaxed mt-0.5">
           Minh bạch mọi khoản thuế, phí trước bạ, bảo hiểm bắt buộc và các chương trình ưu đãi độc quyền dành cho khách hàng AutoHub.

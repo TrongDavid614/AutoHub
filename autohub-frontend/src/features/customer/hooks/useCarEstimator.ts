@@ -1,7 +1,8 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { TrimId, TrimOption, CityOption, CostBreakdown } from '../types/estimator.types';
 import { carService, type EstimatorCalculationDto } from '../services/car.service';
+import type { MockCar } from '../mocks/car.mock';
 
 export const DEFAULT_TRIM_OPTIONS: TrimOption[] = [
   {
@@ -69,16 +70,20 @@ export const FIXED_FEES = {
 };
 
 export const useCarEstimator = () => {
-  const [searchParams] = useSearchParams();
-  const initialCarId = searchParams.get('carId') || searchParams.get('trimId') || '1';
+  const [searchParams, setSearchParams] = useSearchParams();
+  const carIdParam = searchParams.get('carId');
+  const trimIdParam = searchParams.get('trimId');
 
+  const [allCars, setAllCars] = useState<MockCar[]>([]);
+  const [currentCar, setCurrentCar] = useState<MockCar | null>(null);
   const [trims, setTrims] = useState<TrimOption[]>(DEFAULT_TRIM_OPTIONS);
   const [cities, setCities] = useState<CityOption[]>(DEFAULT_CITY_OPTIONS);
 
-  const [selectedTrimId, setSelectedTrimId] = useState<TrimId>(initialCarId);
+  const [selectedTrimId, setSelectedTrimId] = useState<TrimId>('1');
   const [selectedCityId, setSelectedCityId] = useState<string>('1');
 
   const [apiCalculation, setApiCalculation] = useState<EstimatorCalculationDto | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   // Promos
   const [isTaxSupportChecked, setIsTaxSupportChecked] = useState<boolean>(true);
@@ -88,32 +93,10 @@ export const useCarEstimator = () => {
   // Modal state
   const [isDepositModalOpen, setIsDepositModalOpen] = useState<boolean>(false);
 
-  // 1. Fetch real cars & provinces on mount
+  // 1. Fetch real provinces on mount
   useEffect(() => {
     let isMounted = true;
 
-    // Load real cars from database
-    carService.getAllCars().then((carList) => {
-      if (isMounted && carList && carList.length > 0) {
-        const mappedTrims: TrimOption[] = carList.slice(0, 6).map((c, index) => ({
-          id: String(c.id),
-          name: c.name,
-          spec: `${c.powertrain} • ${c.power}`,
-          price: c.listedPrice,
-          priceFormatted: `${c.listedPrice.toLocaleString('vi-VN')} đ`,
-          wltp: `${c.range} • ${c.acceleration}`,
-          isRecommended: index === 0 || c.badge.includes('KHUYÊN DÙNG'),
-        }));
-        setTrims(mappedTrims);
-        if (mappedTrims.some((t) => t.id === initialCarId)) {
-          setSelectedTrimId(initialCarId);
-        } else if (!mappedTrims.some((t) => t.id === selectedTrimId)) {
-          setSelectedTrimId(mappedTrims[0].id);
-        }
-      }
-    });
-
-    // Load real provinces from database
     carService.getProvinces().then((provinceList) => {
       if (isMounted && provinceList && provinceList.length > 0) {
         const mappedCities: CityOption[] = provinceList.map((p) => {
@@ -137,22 +120,128 @@ export const useCarEstimator = () => {
     };
   }, []);
 
-  // 2. Fetch calculation when variant or province changes
+  // 2. Fetch all cars (for car switcher dropdown)
   useEffect(() => {
     let isMounted = true;
-    const variantId = parseInt(selectedTrimId, 10) || 1;
-    const tinhThanhId = parseInt(selectedCityId, 10) || 1;
-
-    carService.calculateEstimator(variantId, tinhThanhId).then((calc) => {
-      if (isMounted) {
-        setApiCalculation(calc);
+    carService.getAllCars().then((carList) => {
+      if (isMounted && carList && carList.length > 0) {
+        setAllCars(carList);
       }
     });
 
     return () => {
       isMounted = false;
     };
+  }, []);
+
+  // 3. Fetch target car & its sibling variants/trims
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+
+    const targetCarId = carIdParam || trimIdParam || '1';
+
+    carService.getCarById(targetCarId).then((car) => {
+      if (!isMounted) return;
+
+      if (car) {
+        setCurrentCar(car);
+
+        if (car.variants && car.variants.length > 0) {
+          const mappedTrims: TrimOption[] = car.variants.map((v, index) => {
+            const price = v.listedPrice || v.giaNiemYet || car.listedPrice;
+            return {
+              id: String(v.id),
+              name: v.variantName || v.tenPhienBan || v.name || car.name,
+              spec: v.desc || (v.transmission || `${car.powertrain} • ${car.power}`),
+              price,
+              priceFormatted: `${price.toLocaleString('vi-VN')} đ`,
+              wltp: v.tamHoatDongKm ? `${v.tamHoatDongKm} km` : car.range,
+              isRecommended: Boolean(v.isCurrent) || index === 0,
+              imageUrl: car.image,
+            };
+          });
+          setTrims(mappedTrims);
+
+          if (trimIdParam && mappedTrims.some((t) => t.id === trimIdParam)) {
+            setSelectedTrimId(trimIdParam);
+          } else if (carIdParam && mappedTrims.some((t) => t.id === carIdParam)) {
+            setSelectedTrimId(carIdParam);
+          } else {
+            const currentVariant = car.variants.find((v) => v.isCurrent);
+            setSelectedTrimId(currentVariant ? String(currentVariant.id) : mappedTrims[0].id);
+          }
+        } else {
+          const singleTrim: TrimOption = {
+            id: String(car.id),
+            name: car.name,
+            spec: `${car.powertrain} • ${car.power}`,
+            price: car.listedPrice,
+            priceFormatted: `${car.listedPrice.toLocaleString('vi-VN')} đ`,
+            wltp: `${car.range} • ${car.acceleration}`,
+            isRecommended: true,
+            imageUrl: car.image,
+          };
+          setTrims([singleTrim]);
+          setSelectedTrimId(singleTrim.id);
+        }
+        setLoading(false);
+      } else {
+        // Fallback: If not found, load from getAllCars
+        carService.getAllCars().then((carList) => {
+          if (!isMounted) return;
+          if (carList && carList.length > 0) {
+            const fallbackCar = carList.find((c) => c.id === targetCarId) || carList[0];
+            setCurrentCar(fallbackCar);
+            const mappedTrims: TrimOption[] = carList.map((c, index) => ({
+              id: String(c.id),
+              name: c.name,
+              spec: `${c.powertrain} • ${c.power}`,
+              price: c.listedPrice,
+              priceFormatted: `${c.listedPrice.toLocaleString('vi-VN')} đ`,
+              wltp: `${c.range} • ${c.acceleration}`,
+              isRecommended: index === 0 || c.badge.includes('KHUYÊN DÙNG'),
+              imageUrl: c.image,
+            }));
+            setTrims(mappedTrims);
+            const match = mappedTrims.find((t) => t.id === targetCarId);
+            setSelectedTrimId(match ? match.id : mappedTrims[0].id);
+          }
+          setLoading(false);
+        });
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [carIdParam, trimIdParam]);
+
+  // 4. Fetch calculation when variant or province changes
+  useEffect(() => {
+    let isMounted = true;
+    const variantId = parseInt(selectedTrimId, 10);
+    const tinhThanhId = parseInt(selectedCityId, 10) || 1;
+
+    if (!isNaN(variantId)) {
+      carService.calculateEstimator(variantId, tinhThanhId).then((calc) => {
+        if (isMounted) {
+          setApiCalculation(calc);
+        }
+      });
+    }
+
+    return () => {
+      isMounted = false;
+    };
   }, [selectedTrimId, selectedCityId]);
+
+  const handleSelectCar = useCallback(
+    (newCarId: string) => {
+      setSearchParams({ carId: newCarId });
+    },
+    [setSearchParams]
+  );
 
   const selectedTrim = useMemo(
     () => trims.find((t) => t.id === selectedTrimId) || trims[0] || DEFAULT_TRIM_OPTIONS[0],
@@ -240,6 +329,10 @@ export const useCarEstimator = () => {
   ]);
 
   return {
+    allCars,
+    currentCar,
+    loading,
+    handleSelectCar,
     trims,
     cities,
     selectedTrimId,

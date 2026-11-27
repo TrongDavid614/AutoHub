@@ -24,8 +24,9 @@ RUN ./gradlew bootJar --no-daemon -x test
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-# Run as non-root user for security
+# Run as non-root user for security and prepare uploads directory
 RUN addgroup -S autohub && adduser -S autohub -G autohub
+RUN mkdir -p /app/uploads/avatars && chown -R autohub:autohub /app
 USER autohub
 
 # Copy jar from builder stage

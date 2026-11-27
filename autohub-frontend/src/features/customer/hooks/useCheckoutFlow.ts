@@ -97,15 +97,17 @@ export function useCheckoutFlow() {
   const [voucherError, setVoucherError] = useState('');
 
   // Items
-  const items: CheckoutOrderItem[] = cartItems.map((ci) => ({
-    id: ci.accessory.id,
-    name: ci.accessory.name,
-    subtitle: ci.accessory.description || 'Phụ kiện chính hãng AutoHub OEM',
-    sku: ci.accessory.sku,
-    price: ci.accessory.discountPrice || ci.accessory.price,
-    quantity: ci.quantity,
-    thumbnailUrl: ci.accessory.thumbnailUrl,
-  }));
+  const items: CheckoutOrderItem[] = (cartItems || [])
+    .filter((ci) => Boolean(ci && ci.accessory && ci.accessory.id))
+    .map((ci) => ({
+      id: ci.accessory.id,
+      name: ci.accessory.name || 'Phụ kiện AutoHub',
+      subtitle: ci.accessory.description || 'Phụ kiện chính hãng AutoHub OEM',
+      sku: ci.accessory.sku || 'AH-ACC',
+      price: ci.accessory.discountPrice || ci.accessory.price || 0,
+      quantity: ci.quantity || 1,
+      thumbnailUrl: ci.accessory.thumbnailUrl,
+    }));
 
   // Pricing calculations
   const rawSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
