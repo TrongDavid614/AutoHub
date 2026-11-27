@@ -56,12 +56,24 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
 
       try {
         const cleanId = orderId.replace(/^#/, '');
-        const order = await orderService.getOrderDetail(cleanId);
+        // 1. Kiểm tra trạng thái đơn hàng hiện tại
+        let order = await orderService.getOrderDetail(cleanId);
         if (order && (order.status === 'PAID' || order.status === 'PROCESSING')) {
           setIsPaid(true);
           setCheckStatusMessage('Thanh toán SePay đã được hệ thống ghi nhận thành công!');
           onPaymentSuccess?.();
-        } else if (!isAuto) {
+          return;
+        }
+
+        // 2. Nếu người dùng chủ động bấm kiểm tra (thủ công) -> gọi verifyPayment đối soát
+        if (!isAuto) {
+          order = await orderService.verifyPayment(cleanId);
+          if (order && (order.status === 'PAID' || order.status === 'PROCESSING')) {
+            setIsPaid(true);
+            setCheckStatusMessage('Thanh toán SePay đã được hệ thống ghi nhận thành công!');
+            onPaymentSuccess?.();
+            return;
+          }
           setCheckStatusMessage(
             'Hệ thống chưa ghi nhận tiền vào tài khoản. Quý khách vui lòng kiểm tra lại ngân hàng hoặc chờ 5-10 giây để SePay khớp lệnh tự động.'
           );

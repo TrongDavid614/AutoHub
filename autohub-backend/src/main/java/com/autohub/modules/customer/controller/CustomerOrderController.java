@@ -28,6 +28,7 @@ import com.autohub.core.user.entity.NguoiDung;
 import com.autohub.core.user.repository.NguoiDungRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -40,6 +41,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/customer/orders")
 @RequiredArgsConstructor
@@ -105,8 +107,8 @@ public class CustomerOrderController {
         return ResponseEntity.ok(ApiResponse.ok(result, "Lấy danh sách đơn hàng thành công"));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getOrderDetail(@PathVariable String id) {
+    private DonHangPhuKien resolveOrderByIdOrCode(String id) {
+        if (id == null || id.isBlank()) return null;
         DonHangPhuKien order = null;
         try {
             Long numericId = Long.parseLong(id);
@@ -117,11 +119,75 @@ public class CustomerOrderController {
             String cleanCode = id.startsWith("#") ? id.substring(1) : id;
             order = donHangRepository.findByMaDonHang(cleanCode)
                     .or(() -> donHangRepository.findByMaDonHang(id))
-                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng: " + id));
+                    .orElse(null);
+        }
+
+        if (order == null) {
+            String alphaNum = id.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
+            if (alphaNum.startsWith("AHACC")) {
+                String rest = alphaNum.substring(5);
+                if (rest.length() > 4) {
+                    String reconstructed = "AH-ACC-" + rest.substring(0, 4) + "-" + rest.substring(4);
+                    order = donHangRepository.findByMaDonHang(reconstructed)
+                            .or(() -> donHangRepository.findByMaDonHang("#" + reconstructed))
+                            .orElse(null);
+                }
+            } else if (alphaNum.startsWith("ACC")) {
+                String rest = alphaNum.substring(3);
+                if (rest.length() > 4) {
+                    String reconstructed = "AH-ACC-" + rest.substring(0, 4) + "-" + rest.substring(4);
+                    order = donHangRepository.findByMaDonHang(reconstructed)
+                            .or(() -> donHangRepository.findByMaDonHang("#" + reconstructed))
+                            .orElse(null);
+                }
+            }
+        }
+
+        if (order == null) {
+            String alphaNum = id.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
+            List<DonHangPhuKien> all = donHangRepository.findAll();
+            for (DonHangPhuKien o : all) {
+                if (o.getMaDonHang() != null) {
+                    String oAlpha = o.getMaDonHang().replaceAll("[^A-Za-z0-9]", "").toUpperCase();
+                    if (oAlpha.equals(alphaNum) || oAlpha.endsWith(alphaNum) || alphaNum.endsWith(oAlpha)) {
+                        order = o;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return order;
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getOrderDetail(@PathVariable String id) {
+        DonHangPhuKien order = resolveOrderByIdOrCode(id);
+        if (order == null) {
+            throw new IllegalArgumentException("Không tìm thấy đơn hàng: " + id);
         }
 
         List<ChiTietDonHang> items = chiTietDonHangRepository.findByDonHangId(order.getId());
         return ResponseEntity.ok(ApiResponse.ok(mapOrderToDto(order, items), "Chi tiết đơn hàng"));
+    }
+
+    @PostMapping(value = {"/{id}/verify-payment", "/{id}/confirm-payment"})
+    @Transactional
+    public ResponseEntity<ApiResponse<Map<String, Object>>> verifyPayment(@PathVariable String id) {
+        DonHangPhuKien order = resolveOrderByIdOrCode(id);
+        if (order == null) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Không tìm thấy đơn hàng: " + id));
+        }
+
+        if (order.getTrangThai() == TrangThaiDonHang.PENDING_PAYMENT) {
+            order.setTrangThai(TrangThaiDonHang.PAID);
+            order.setThoiGianThanhToan(LocalDateTime.now());
+            donHangRepository.save(order);
+            log.info("[Payment Verify] Đã xác nhận thanh toán thành công cho đơn hàng: {}", order.getMaDonHang());
+        }
+
+        List<ChiTietDonHang> items = chiTietDonHangRepository.findByDonHangId(order.getId());
+        return ResponseEntity.ok(ApiResponse.ok(mapOrderToDto(order, items), "Xác nhận thanh toán thành công!"));
     }
 
     @PostMapping("/{id}/cancel")
