@@ -172,22 +172,19 @@ public class CustomerOrderController {
     }
 
     @PostMapping(value = {"/{id}/verify-payment", "/{id}/confirm-payment"})
-    @Transactional
+    @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<Map<String, Object>>> verifyPayment(@PathVariable String id) {
         DonHangPhuKien order = resolveOrderByIdOrCode(id);
         if (order == null) {
             return ResponseEntity.badRequest().body(ApiResponse.error("Không tìm thấy đơn hàng: " + id));
         }
 
-        if (order.getTrangThai() == TrangThaiDonHang.PENDING_PAYMENT) {
-            order.setTrangThai(TrangThaiDonHang.PAID);
-            order.setThoiGianThanhToan(LocalDateTime.now());
-            donHangRepository.save(order);
-            log.info("[Payment Verify] Đã xác nhận thanh toán thành công cho đơn hàng: {}", order.getMaDonHang());
+        List<ChiTietDonHang> items = chiTietDonHangRepository.findByDonHangId(order.getId());
+        if (order.getTrangThai() == TrangThaiDonHang.PAID || order.getTrangThai() == TrangThaiDonHang.PROCESSING) {
+            return ResponseEntity.ok(ApiResponse.ok(mapOrderToDto(order, items), "Đơn hàng đã được thanh toán thành công!"));
         }
 
-        List<ChiTietDonHang> items = chiTietDonHangRepository.findByDonHangId(order.getId());
-        return ResponseEntity.ok(ApiResponse.ok(mapOrderToDto(order, items), "Xác nhận thanh toán thành công!"));
+        return ResponseEntity.ok(ApiResponse.ok(mapOrderToDto(order, items), "Đơn hàng đang chờ thanh toán qua cổng SePay."));
     }
 
     @PostMapping("/{id}/cancel")

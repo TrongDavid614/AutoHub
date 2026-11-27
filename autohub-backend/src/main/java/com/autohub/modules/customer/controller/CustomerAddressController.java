@@ -8,6 +8,7 @@ import com.autohub.core.user.repository.SoDiaChiRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/customer/addresses")
 @RequiredArgsConstructor
@@ -73,27 +75,32 @@ public class CustomerAddressController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<Map<String, Object>>> addAddress(@RequestBody AddressRequestDto req) {
-        Long custId = req.getCustomerId() != null ? req.getCustomerId() : 5L;
-        NguoiDung user = nguoiDungRepository.findById(custId)
-                .orElseGet(() -> nguoiDungRepository.findAll().stream().findFirst().orElse(null));
+        NguoiDung user = resolveCurrentUser(req.getCustomerId());
+        if (user == null) {
+            Long custId = req.getCustomerId() != null ? req.getCustomerId() : 5L;
+            user = nguoiDungRepository.findById(custId)
+                    .orElseGet(() -> nguoiDungRepository.findAll().stream().findFirst().orElse(null));
+        }
 
-        boolean isDefault = Boolean.TRUE.equals(req.getIsDefault());
+        Long finalUserId = user != null ? user.getId() : (req.getCustomerId() != null ? req.getCustomerId() : 5L);
+        boolean isDefault = Boolean.TRUE.equals(req.getIsDefault()) || (user != null && soDiaChiRepository.findByNguoiDungId(finalUserId).isEmpty());
         if (isDefault) {
-            unsetDefaultAddresses(custId);
+            unsetDefaultAddresses(finalUserId);
         }
 
         SoDiaChi address = SoDiaChi.builder()
                 .nguoiDung(user)
-                .hoTenNguoiNhan(req.getRecipientName() != null ? req.getRecipientName() : "Khách hàng")
-                .soDienThoai(req.getPhoneNumber() != null ? req.getPhoneNumber() : "0912345678")
-                .tinhThanh(req.getProvinceCity() != null ? req.getProvinceCity() : "TP. Hồ Chí Minh")
-                .quanHuyen(req.getDistrict() != null ? req.getDistrict() : "Quận 1")
-                .phuongXa(req.getWard() != null ? req.getWard() : "Phường Bến Nghé")
-                .diaChiChiTiet(req.getDetailedAddress() != null ? req.getDetailedAddress() : "")
+                .hoTenNguoiNhan(req.getRecipientName() != null && !req.getRecipientName().isBlank() ? req.getRecipientName().trim() : (user != null ? user.getHoTen() : "Khách hàng"))
+                .soDienThoai(req.getPhoneNumber() != null && !req.getPhoneNumber().isBlank() ? req.getPhoneNumber().trim() : (user != null ? user.getSoDienThoai() : "0912345678"))
+                .tinhThanh(req.getProvinceCity() != null ? req.getProvinceCity().trim() : "")
+                .quanHuyen(req.getDistrict() != null ? req.getDistrict().trim() : "")
+                .phuongXa(req.getWard() != null ? req.getWard().trim() : "")
+                .diaChiChiTiet(req.getDetailedAddress() != null ? req.getDetailedAddress().trim() : "")
                 .macDinh(isDefault)
                 .build();
 
         SoDiaChi saved = soDiaChiRepository.save(address);
+        log.info("[Address] Đã lưu địa chỉ mới ID: {} cho khách hàng: {}", saved.getId(), user != null ? user.getEmail() : finalUserId);
         return ResponseEntity.ok(ApiResponse.ok(mapToDto(saved), "Thêm địa chỉ mới vào sổ địa chỉ thành công"));
     }
 

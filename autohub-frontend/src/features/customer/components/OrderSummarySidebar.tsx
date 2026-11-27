@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, ShieldCheck, Check, ArrowRight, Lock, Loader2 } from 'lucide-react';
+import { Phone, ShieldCheck, Check, ArrowRight, Lock, Loader2, MapPin } from 'lucide-react';
 import type { AvailableVoucher } from '@/types/cart.types';
 
 export interface OrderSummarySidebarProps {
@@ -22,6 +22,7 @@ export interface OrderSummarySidebarProps {
   onCheckout: () => void;
   isSubmitting: boolean;
   isAuthenticated?: boolean;
+  hasAddress?: boolean;
 }
 
 export const OrderSummarySidebar: React.FC<OrderSummarySidebarProps> = ({
@@ -44,6 +45,7 @@ export const OrderSummarySidebar: React.FC<OrderSummarySidebarProps> = ({
   onCheckout,
   isSubmitting,
   isAuthenticated = true,
+  hasAddress = true,
 }) => {
   const formatPrice = (val: number) => val.toLocaleString('vi-VN');
 
@@ -205,6 +207,8 @@ export const OrderSummarySidebar: React.FC<OrderSummarySidebarProps> = ({
             className={`w-full py-3 px-4 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
               !isAuthenticated
                 ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                : !hasAddress
+                ? 'bg-amber-600 hover:bg-amber-700 text-white shadow-sm'
                 : 'bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white'
             }`}
           >
@@ -217,6 +221,11 @@ export const OrderSummarySidebar: React.FC<OrderSummarySidebarProps> = ({
               <>
                 <Lock className="w-4 h-4" />
                 <span>Đăng nhập để đặt hàng</span>
+              </>
+            ) : !hasAddress ? (
+              <>
+                <MapPin className="w-4 h-4" />
+                <span>Thêm địa chỉ để đặt hàng</span>
               </>
             ) : (
               <>

@@ -106,14 +106,22 @@ export function useCartCheckout() {
     const customerId = user?.id || 5;
     addressService.getMyAddresses(customerId).then((list) => {
       if (isMounted && list && list.length > 0) {
-        const mapped: ShippingAddress[] = list.map((a: ExtendedAddress) => ({
-          id: String(a.id),
-          recipientName: a.recipientName || user?.fullName || 'Nguyễn Văn A',
-          phone: a.phoneNumber || user?.phoneNumber || '0912345678',
-          fullAddress: `${a.detailedAddress || ''}, ${a.ward || ''}, ${a.district || ''}, ${a.provinceCity || ''}`.replace(/^,\s*|,\s*$/g, ''),
-          tag: a.tag || (a.isDefault ? 'MẶC ĐỊNH' : 'ĐỊA CHỈ'),
-          isDefault: !!a.isDefault,
-        }));
+        const mapped: ShippingAddress[] = list.map((a: ExtendedAddress) => {
+          const parts = [a.detailedAddress, a.ward, a.district, a.provinceCity]
+            .map((p) => p?.trim())
+            .filter((p): p is string => Boolean(p && p.length > 0))
+            .filter((part, idx, arr) => !arr.slice(0, idx).some((prev) => prev.toLowerCase().includes(part.toLowerCase())));
+          const fullAddr = parts.length > 0 ? parts.join(', ') : 'Chưa có địa chỉ nhận hàng';
+
+          return {
+            id: String(a.id),
+            recipientName: a.recipientName || user?.fullName || 'Nguyễn Văn A',
+            phone: a.phoneNumber || user?.phoneNumber || '0912345678',
+            fullAddress: fullAddr,
+            tag: a.tag || (a.isDefault ? 'MẶC ĐỊNH' : 'ĐỊA CHỈ'),
+            isDefault: !!a.isDefault,
+          };
+        });
         setAddressBook(mapped);
         setSelectedAddress(mapped.find((m) => m.isDefault) || mapped[0] || EMPTY_SHIPPING_ADDRESS);
       }
@@ -188,23 +196,23 @@ export function useCartCheckout() {
     setVoucherSuccess('');
   };
 
+  const hasValidAddress = Boolean(
+    selectedAddress &&
+      selectedAddress.id &&
+      selectedAddress.id.trim() !== '' &&
+      selectedAddress.fullAddress &&
+      selectedAddress.fullAddress.trim() !== '' &&
+      selectedAddress.fullAddress !== 'Chưa có địa chỉ nhận hàng' &&
+      selectedAddress.recipientName?.trim() &&
+      selectedAddress.phone?.trim()
+  );
+
   // 5. Đặt hàng & Thanh toán (Checkout) thực tế xuống cơ sở dữ liệu
   const handleCheckout = async () => {
     if (cartItems.length === 0) {
       setCheckoutError('Giỏ hàng đang trống. Vui lòng chọn ít nhất 1 phụ kiện.');
       return;
     }
-
-    const hasValidAddress = Boolean(
-      selectedAddress &&
-        selectedAddress.id &&
-        selectedAddress.id.trim() !== '' &&
-        selectedAddress.fullAddress &&
-        selectedAddress.fullAddress.trim() !== '' &&
-        selectedAddress.fullAddress !== 'Chưa có địa chỉ nhận hàng' &&
-        selectedAddress.recipientName?.trim() &&
-        selectedAddress.phone?.trim()
-    );
 
     if (!hasValidAddress) {
       setCheckoutError('Vui lòng thêm hoặc chọn địa chỉ nhận hàng trước khi xác nhận đặt hàng.');
@@ -265,6 +273,7 @@ export function useCartCheckout() {
     setAddressBook,
     selectedAddress,
     setSelectedAddress,
+    hasValidAddress,
     isAddressModalOpen,
     setIsAddressModalOpen,
     shippingMethods,

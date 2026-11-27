@@ -28,6 +28,7 @@ export const CartPage: React.FC = () => {
     setAddressBook,
     selectedAddress,
     setSelectedAddress,
+    hasValidAddress,
     isAddressModalOpen,
     setIsAddressModalOpen,
     shippingMethods,
@@ -146,6 +147,7 @@ export const CartPage: React.FC = () => {
             onCheckout={handleCheckout}
             isSubmitting={isSubmitting}
             isAuthenticated={isAuthenticated}
+            hasAddress={hasValidAddress}
           />
         </div>
       </div>
@@ -157,7 +159,10 @@ export const CartPage: React.FC = () => {
         addresses={addressBook}
         selectedAddress={selectedAddress}
         onSelectAddress={setSelectedAddress}
-        onAddNewAddress={(newAddr) => setAddressBook([...addressBook, newAddr])}
+        onAddNewAddress={(newAddr) => {
+          setAddressBook((prev) => [...prev.filter((a) => a.id !== newAddr.id), newAddr]);
+          setSelectedAddress(newAddr);
+        }}
       />
 
       {/* 4. MODAL: ORDER SUCCESS CONFIRMATION */}
