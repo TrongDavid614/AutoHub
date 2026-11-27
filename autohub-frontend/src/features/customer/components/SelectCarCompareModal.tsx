@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Search, Check, Plus, RefreshCw, Car as CarIcon } from 'lucide-react';
+import { X, Search, Check, Plus, RefreshCw, Car as CarIcon, AlertCircle } from 'lucide-react';
 import { carService } from '../services/car.service';
-import type { MockCar } from '../mocks/car.mock';
+import type { MockCar } from '@/types/car.types';
 import { formatCurrencyVND, matchesSearchTerms } from '@/lib/utils';
 
 export interface SelectCarCompareModalProps {
@@ -23,6 +23,7 @@ export const SelectCarCompareModal: React.FC<SelectCarCompareModalProps> = ({
 }) => {
   const [cars, setCars] = useState<MockCar[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
@@ -30,12 +31,22 @@ export const SelectCarCompareModal: React.FC<SelectCarCompareModalProps> = ({
     if (!isOpen) return;
     let isMounted = true;
     setLoading(true);
-    carService.getAllCars().then((data) => {
-      if (isMounted) {
-        setCars(data || []);
-        setLoading(false);
-      }
-    });
+    setError(null);
+    carService
+      .getAllCars()
+      .then((data) => {
+        if (isMounted) {
+          setCars(data || []);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setCars([]);
+          setError('Chưa kết nối được Backend để tải danh mục xe.');
+          setLoading(false);
+        }
+      });
     return () => {
       isMounted = false;
     };
@@ -155,6 +166,11 @@ export const SelectCarCompareModal: React.FC<SelectCarCompareModalProps> = ({
             <div className="py-16 flex flex-col items-center justify-center gap-3 text-[var(--text-muted)]">
               <RefreshCw className="w-6 h-6 animate-spin text-[var(--accent)]" />
               <span className="text-sm">Đang tải danh mục xe từ hệ thống...</span>
+            </div>
+          ) : error ? (
+            <div className="py-12 text-center text-red-700 space-y-2">
+              <AlertCircle className="w-8 h-8 mx-auto text-red-600" />
+              <p className="text-sm font-medium">{error}</p>
             </div>
           ) : filteredCars.length === 0 ? (
             <div className="py-16 text-center text-[var(--text-muted)] space-y-2">

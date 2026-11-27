@@ -25,7 +25,7 @@ import { useCompareStore } from '@/store/useCompareStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { carService } from '@/features/customer/services/car.service';
 import { accessoryService } from '@/features/customer/services/accessory.service';
-import type { MockCar } from '@/features/customer/mocks/car.mock';
+import type { MockCar } from '@/types/car.types';
 import type { Accessory } from '@/types/accessory.types';
 
 export interface HeaderProps {
@@ -69,6 +69,8 @@ export const Header: React.FC<HeaderProps> = ({ className }) => {
       setCarsCatalog(cars || []);
       setAccessoriesCatalog(accessories || []);
       setHasLoadedCatalog(true);
+    } catch {
+      setCarsCatalog([]);
     } finally {
       setIsLoadingSearchData(false);
     }

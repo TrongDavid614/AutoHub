@@ -2,66 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { TrimId, TrimOption, CityOption, CostBreakdown } from '../types/estimator.types';
 import { carService, type EstimatorCalculationDto } from '../services/car.service';
-import type { MockCar } from '../mocks/car.mock';
-
-export const DEFAULT_TRIM_OPTIONS: TrimOption[] = [
-  {
-    id: '1',
-    name: 'AutoHub GT-e Grand Touring',
-    spec: 'Dual-Motor AWD • 680 HP',
-    price: 2890000000,
-    priceFormatted: '2.890.000.000 đ',
-    wltp: '680 km WLTP • 3.2s (0-100)',
-    isRecommended: true,
-  },
-  {
-    id: '2',
-    name: 'AutoHub GT-e Track Edition',
-    spec: 'Tri-Motor Hyper AWD • 1.020 HP',
-    price: 3490000000,
-    priceFormatted: '3.490.000.000 đ',
-    wltp: '600 km WLTP • 2.8s Hyper',
-  },
-  {
-    id: '3',
-    name: 'AutoHub GT-e Standard',
-    spec: 'Single-Motor RWD • 450 HP',
-    price: 2490000000,
-    priceFormatted: '2.490.000.000 đ',
-    wltp: '580 km WLTP • 4.5s',
-  },
-];
-
-export const DEFAULT_CITY_OPTIONS: CityOption[] = [
-  {
-    id: '1',
-    name: 'Hà Nội',
-    taxRate: 0.12,
-    plateFee: 20000000,
-    displayLabel: 'Hà Nội (Vùng 1 - Biển số: 20.000.000 đ)',
-  },
-  {
-    id: '2',
-    name: 'TP. Hồ Chí Minh',
-    taxRate: 0.12,
-    plateFee: 20000000,
-    displayLabel: 'TP. Hồ Chí Minh (Vùng 1 - Biển số: 20.000.000 đ)',
-  },
-  {
-    id: '3',
-    name: 'Đà Nẵng',
-    taxRate: 0.10,
-    plateFee: 1000000,
-    displayLabel: 'Đà Nẵng (Vùng 2 - Biển số: 1.000.000 đ)',
-  },
-  {
-    id: '4',
-    name: 'Hải Phòng',
-    taxRate: 0.10,
-    plateFee: 1000000,
-    displayLabel: 'Hải Phòng (Vùng 2 - Biển số: 1.000.000 đ)',
-  },
-];
+import type { MockCar } from '@/types/car.types';
 
 export const FIXED_FEES = {
   inspectionAndRoad: 1900000, // 340k dang kiem + 1560k duong bo
@@ -76,14 +17,15 @@ export const useCarEstimator = () => {
 
   const [allCars, setAllCars] = useState<MockCar[]>([]);
   const [currentCar, setCurrentCar] = useState<MockCar | null>(null);
-  const [trims, setTrims] = useState<TrimOption[]>(DEFAULT_TRIM_OPTIONS);
-  const [cities, setCities] = useState<CityOption[]>(DEFAULT_CITY_OPTIONS);
+  const [trims, setTrims] = useState<TrimOption[]>([]);
+  const [cities, setCities] = useState<CityOption[]>([]);
 
   const [selectedTrimId, setSelectedTrimId] = useState<TrimId>('1');
   const [selectedCityId, setSelectedCityId] = useState<string>('1');
 
   const [apiCalculation, setApiCalculation] = useState<EstimatorCalculationDto | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Promos
   const [isTaxSupportChecked, setIsTaxSupportChecked] = useState<boolean>(true);
@@ -97,23 +39,31 @@ export const useCarEstimator = () => {
   useEffect(() => {
     let isMounted = true;
 
-    carService.getProvinces().then((provinceList) => {
-      if (isMounted && provinceList && provinceList.length > 0) {
-        const mappedCities: CityOption[] = provinceList.map((p) => {
-          const isVung1 = p.phanVungBienSo.includes('1');
-          const taxRate = isVung1 ? 0.12 : 0.10;
-          const plateFee = isVung1 ? 20000000 : 1000000;
-          return {
-            id: String(p.id),
-            name: p.tenTinh,
-            taxRate,
-            plateFee,
-            displayLabel: `${p.tenTinh} (${p.phanVungBienSo} - Biển số: ${plateFee.toLocaleString('vi-VN')} đ)`,
-          };
-        });
-        setCities(mappedCities);
-      }
-    });
+    carService
+      .getProvinces()
+      .then((provinceList) => {
+        if (isMounted && provinceList && provinceList.length > 0) {
+          const mappedCities: CityOption[] = provinceList.map((p) => {
+            const isVung1 = p.phanVungBienSo.includes('1');
+            const taxRate = isVung1 ? 0.12 : 0.10;
+            const plateFee = isVung1 ? 20000000 : 1000000;
+            return {
+              id: String(p.id),
+              name: p.tenTinh,
+              taxRate,
+              plateFee,
+              displayLabel: `${p.tenTinh} (${p.phanVungBienSo} - Biển số: ${plateFee.toLocaleString('vi-VN')} đ)`,
+            };
+          });
+          setCities(mappedCities);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setCities([]);
+          setError('Chưa kết nối được Backend — không thể tải biểu phí tỉnh thành.');
+        }
+      });
 
     return () => {
       isMounted = false;
@@ -123,11 +73,18 @@ export const useCarEstimator = () => {
   // 2. Fetch all cars (for car switcher dropdown)
   useEffect(() => {
     let isMounted = true;
-    carService.getAllCars().then((carList) => {
-      if (isMounted && carList && carList.length > 0) {
-        setAllCars(carList);
-      }
-    });
+    carService
+      .getAllCars()
+      .then((carList) => {
+        if (isMounted && carList && carList.length > 0) {
+          setAllCars(carList);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setAllCars([]);
+        }
+      });
 
     return () => {
       isMounted = false;
@@ -138,79 +95,98 @@ export const useCarEstimator = () => {
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
+    setError(null);
 
     const targetCarId = carIdParam || trimIdParam || '1';
 
-    carService.getCarById(targetCarId).then((car) => {
-      if (!isMounted) return;
+    carService
+      .getCarById(targetCarId)
+      .then((car) => {
+        if (!isMounted) return;
 
-      if (car) {
-        setCurrentCar(car);
+        if (car) {
+          setCurrentCar(car);
 
-        if (car.variants && car.variants.length > 0) {
-          const mappedTrims: TrimOption[] = car.variants.map((v, index) => {
-            const price = v.listedPrice || v.giaNiemYet || car.listedPrice;
-            return {
-              id: String(v.id),
-              name: v.variantName || v.tenPhienBan || v.name || car.name,
-              spec: v.desc || (v.transmission || `${car.powertrain} • ${car.power}`),
-              price,
-              priceFormatted: `${price.toLocaleString('vi-VN')} đ`,
-              wltp: v.tamHoatDongKm ? `${v.tamHoatDongKm} km` : car.range,
-              isRecommended: Boolean(v.isCurrent) || index === 0,
+          if (car.variants && car.variants.length > 0) {
+            const mappedTrims: TrimOption[] = car.variants.map((v, index) => {
+              const price = v.listedPrice || v.giaNiemYet || car.listedPrice;
+              return {
+                id: String(v.id),
+                name: v.variantName || v.tenPhienBan || v.name || car.name,
+                spec: v.desc || (v.transmission || `${car.powertrain} • ${car.power}`),
+                price,
+                priceFormatted: `${price.toLocaleString('vi-VN')} đ`,
+                wltp: v.tamHoatDongKm ? `${v.tamHoatDongKm} km` : car.range,
+                isRecommended: Boolean(v.isCurrent) || index === 0,
+                imageUrl: car.image,
+              };
+            });
+            setTrims(mappedTrims);
+
+            if (trimIdParam && mappedTrims.some((t) => t.id === trimIdParam)) {
+              setSelectedTrimId(trimIdParam);
+            } else if (carIdParam && mappedTrims.some((t) => t.id === carIdParam)) {
+              setSelectedTrimId(carIdParam);
+            } else {
+              const currentVariant = car.variants.find((v) => v.isCurrent);
+              setSelectedTrimId(currentVariant ? String(currentVariant.id) : mappedTrims[0].id);
+            }
+          } else {
+            const singleTrim: TrimOption = {
+              id: String(car.id),
+              name: car.name,
+              spec: `${car.powertrain} • ${car.power}`,
+              price: car.listedPrice,
+              priceFormatted: `${car.listedPrice.toLocaleString('vi-VN')} đ`,
+              wltp: `${car.range} • ${car.acceleration}`,
+              isRecommended: true,
               imageUrl: car.image,
             };
-          });
-          setTrims(mappedTrims);
-
-          if (trimIdParam && mappedTrims.some((t) => t.id === trimIdParam)) {
-            setSelectedTrimId(trimIdParam);
-          } else if (carIdParam && mappedTrims.some((t) => t.id === carIdParam)) {
-            setSelectedTrimId(carIdParam);
-          } else {
-            const currentVariant = car.variants.find((v) => v.isCurrent);
-            setSelectedTrimId(currentVariant ? String(currentVariant.id) : mappedTrims[0].id);
-          }
-        } else {
-          const singleTrim: TrimOption = {
-            id: String(car.id),
-            name: car.name,
-            spec: `${car.powertrain} • ${car.power}`,
-            price: car.listedPrice,
-            priceFormatted: `${car.listedPrice.toLocaleString('vi-VN')} đ`,
-            wltp: `${car.range} • ${car.acceleration}`,
-            isRecommended: true,
-            imageUrl: car.image,
-          };
-          setTrims([singleTrim]);
-          setSelectedTrimId(singleTrim.id);
-        }
-        setLoading(false);
-      } else {
-        // Fallback: If not found, load from getAllCars
-        carService.getAllCars().then((carList) => {
-          if (!isMounted) return;
-          if (carList && carList.length > 0) {
-            const fallbackCar = carList.find((c) => c.id === targetCarId) || carList[0];
-            setCurrentCar(fallbackCar);
-            const mappedTrims: TrimOption[] = carList.map((c, index) => ({
-              id: String(c.id),
-              name: c.name,
-              spec: `${c.powertrain} • ${c.power}`,
-              price: c.listedPrice,
-              priceFormatted: `${c.listedPrice.toLocaleString('vi-VN')} đ`,
-              wltp: `${c.range} • ${c.acceleration}`,
-              isRecommended: index === 0 || c.badge.includes('KHUYÊN DÙNG'),
-              imageUrl: c.image,
-            }));
-            setTrims(mappedTrims);
-            const match = mappedTrims.find((t) => t.id === targetCarId);
-            setSelectedTrimId(match ? match.id : mappedTrims[0].id);
+            setTrims([singleTrim]);
+            setSelectedTrimId(singleTrim.id);
           }
           setLoading(false);
-        });
-      }
-    });
+        } else {
+          // Fallback: If not found, load from getAllCars
+          carService
+            .getAllCars()
+            .then((carList) => {
+              if (!isMounted) return;
+              if (carList && carList.length > 0) {
+                const fallbackCar = carList.find((c) => c.id === targetCarId) || carList[0];
+                setCurrentCar(fallbackCar);
+                const mappedTrims: TrimOption[] = carList.map((c, index) => ({
+                  id: String(c.id),
+                  name: c.name,
+                  spec: `${c.powertrain} • ${c.power}`,
+                  price: c.listedPrice,
+                  priceFormatted: `${c.listedPrice.toLocaleString('vi-VN')} đ`,
+                  wltp: `${c.range} • ${c.acceleration}`,
+                  isRecommended: index === 0 || Boolean(c.badge?.includes('KHUYÊN DÙNG')),
+                  imageUrl: c.image,
+                }));
+                setTrims(mappedTrims);
+                const match = mappedTrims.find((t) => t.id === targetCarId);
+                setSelectedTrimId(match ? match.id : mappedTrims[0].id);
+              }
+              setLoading(false);
+            })
+            .catch(() => {
+              if (isMounted) {
+                setError('Chưa kết nối được Backend — không thể tải danh sách phiên bản xe.');
+                setLoading(false);
+              }
+            });
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setCurrentCar(null);
+          setTrims([]);
+          setError('Chưa kết nối được Backend — không thể tải dữ liệu dự toán xe.');
+          setLoading(false);
+        }
+      });
 
     return () => {
       isMounted = false;
@@ -244,16 +220,31 @@ export const useCarEstimator = () => {
   );
 
   const selectedTrim = useMemo(
-    () => trims.find((t) => t.id === selectedTrimId) || trims[0] || DEFAULT_TRIM_OPTIONS[0],
+    () => trims.find((t) => t.id === selectedTrimId) || trims[0] || null,
     [trims, selectedTrimId]
   );
 
   const selectedCity = useMemo(
-    () => cities.find((c) => c.id === selectedCityId) || cities[0] || DEFAULT_CITY_OPTIONS[0],
+    () => cities.find((c) => c.id === selectedCityId) || cities[0] || null,
     [cities, selectedCityId]
   );
 
   const breakdown: CostBreakdown = useMemo(() => {
+    if (!selectedTrim || !selectedCity) {
+      return {
+        listPrice: 0,
+        cashDiscount: 0,
+        taxRate: 0,
+        rawRegistrationTax: 0,
+        finalRegistrationTax: 0,
+        taxSaved: 0,
+        plateFee: 0,
+        inspectionFee: 0,
+        insuranceFee: 0,
+        totalRolloutCost: 0,
+      };
+    }
+
     const cashDiscount = isCashDiscountChecked ? FIXED_FEES.cashDiscountAmount : 0;
 
     if (apiCalculation) {
@@ -332,6 +323,7 @@ export const useCarEstimator = () => {
     allCars,
     currentCar,
     loading,
+    error,
     handleSelectCar,
     trims,
     cities,

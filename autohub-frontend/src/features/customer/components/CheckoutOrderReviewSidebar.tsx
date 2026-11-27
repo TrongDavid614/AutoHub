@@ -1,6 +1,6 @@
 import React from 'react';
 import { Phone, Check, ArrowRight, MapPin } from 'lucide-react';
-import type { CheckoutOrderItem } from '@/features/customer/mocks/checkout.mock';
+import type { CheckoutOrderItem } from '@/types/cart.types';
 
 export interface CheckoutOrderReviewSidebarProps {
   items: CheckoutOrderItem[];

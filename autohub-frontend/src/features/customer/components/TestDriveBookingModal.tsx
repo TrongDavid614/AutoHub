@@ -9,7 +9,7 @@ import { CustomerInfoForm } from './CustomerInfoForm';
 import { useAuthStore } from '@/store/useAuthStore';
 import { engagementService } from '@/features/customer/services/engagement.service';
 import { carService } from '@/features/customer/services/car.service';
-import type { MockCar } from '@/features/customer/mocks/car.mock';
+import type { MockCar } from '@/types/car.types';
 
 export interface TestDriveBookingModalProps {
   isOpen: boolean;
@@ -53,11 +53,18 @@ export const TestDriveBookingModal: React.FC<TestDriveBookingModalProps> = ({
   useEffect(() => {
     if (!isOpen) return;
     let isMounted = true;
-    carService.getAllCars().then((list) => {
-      if (isMounted && list && list.length > 0) {
-        setCars(list);
-      }
-    });
+    carService
+      .getAllCars()
+      .then((list) => {
+        if (isMounted && list && list.length > 0) {
+          setCars(list);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setErrorMessage('Chưa kết nối được Backend để tải danh sách xe.');
+        }
+      });
     return () => {
       isMounted = false;
     };

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Zap, ShieldCheck, ChevronDown } from 'lucide-react';
-import type { MockCar } from '../mocks/car.mock';
+import type { MockCar } from '@/types/car.types';
 
 export interface ModelRibbonProps {
   currentCar?: MockCar | null;

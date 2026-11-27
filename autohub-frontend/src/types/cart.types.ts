@@ -80,6 +80,35 @@ export interface SepayPaymentInfo {
   qrUrl: string;
 }
 
+export interface ShippingAddress {
+  id: string;
+  recipientName: string;
+  phone: string;
+  fullAddress: string;
+  tag?: string;
+  isDefault: boolean;
+  technicalNote?: string;
+}
+
+export interface CheckoutAddress {
+  id: string;
+  recipientName: string;
+  phone: string;
+  fullAddress: string;
+  tag: string;
+  isDefault: boolean;
+}
+
+export interface CheckoutOrderItem {
+  id: number;
+  name: string;
+  subtitle: string;
+  sku: string;
+  price: number;
+  quantity: number;
+  thumbnailUrl: string;
+}
+
 export interface CheckoutOrderResponse {
   orderId: number;
   maDonHang: string;

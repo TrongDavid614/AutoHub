@@ -14,6 +14,7 @@ export const CarEstimatorPage: React.FC = () => {
     allCars,
     currentCar,
     loading,
+    error,
     handleSelectCar,
     trims,
     cities,
@@ -84,6 +85,18 @@ export const CarEstimatorPage: React.FC = () => {
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-12 flex flex-col items-center justify-center min-h-[400px] space-y-4">
         <div className="w-10 h-10 border-2 border-accent-primary border-t-transparent rounded-full animate-spin" />
         <p className="text-text-muted text-sm font-mono">Đang tải biểu phí và dự toán chi tiết...</p>
+      </div>
+    );
+  }
+
+  if (error || !selectedTrim || !selectedCity) {
+    return (
+      <div className="w-full max-w-2xl mx-auto px-4 py-16 text-center space-y-4">
+        <div className="p-6 rounded-xl bg-red-50 border border-red-200 text-red-700 space-y-3">
+          <p className="font-semibold text-base">
+            {error || 'Chưa kết nối được Backend để tải dữ liệu xe và biểu phí.'}
+          </p>
+        </div>
       </div>
     );
   }

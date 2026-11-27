@@ -11,7 +11,6 @@ import { SelectCarCompareModal } from '@/features/customer/components/SelectCarC
 import { CarDepositModal } from '@/features/customer/components/detail/CarDepositModal';
 import { TestDriveBookingModal } from '@/features/customer/components/TestDriveBookingModal';
 import { carService } from '@/features/customer/services/car.service';
-import { COMPARISON_TRIMS, COMPARISON_SPEC_GROUPS } from '@/features/customer/mocks/comparison.data';
 import { useCompareStore } from '@/store/useCompareStore';
 import { usePageTracking } from '@/hooks/usePageTracking';
 import type {
@@ -93,20 +92,13 @@ export const CarComparisonPage: React.FC = () => {
         }));
         setVariantsToCompare(storeVariants);
       } else {
-        // Fallback to mock data if API returns empty
-        setData({
-          trims: COMPARISON_TRIMS,
-          specGroups: COMPARISON_SPEC_GROUPS,
-        });
+        setData(null);
+        setError('Không có dữ liệu so sánh xe từ Backend.');
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Không thể tải dữ liệu so sánh xe';
+      const msg = err instanceof Error ? err.message : 'Chưa kết nối được Backend — không thể tải dữ liệu so sánh xe.';
       setError(msg);
-      // Resilient fallback to mock data
-      setData({
-        trims: COMPARISON_TRIMS,
-        specGroups: COMPARISON_SPEC_GROUPS,
-      });
+      setData(null);
     } finally {
       setLoading(false);
     }
@@ -233,15 +225,15 @@ export const CarComparisonPage: React.FC = () => {
 
       {/* Error notification banner if any */}
       {error && (
-        <div className="no-print p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 flex items-center justify-between text-xs">
+        <div className="no-print p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-amber-700 shrink-0" />
-            <span>Đang hiển thị dữ liệu dự phòng: {error}</span>
+            <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+            <span>Chưa kết nối được Backend: {error}</span>
           </div>
           <button
             type="button"
             onClick={() => fetchComparison(targetIds)}
-            className="underline font-semibold hover:text-amber-950 transition-colors cursor-pointer"
+            className="underline font-semibold hover:text-red-900 transition-colors cursor-pointer"
           >
             Thử lại
           </button>

@@ -9,7 +9,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { engagementService } from '@/features/customer/services/engagement.service';
 import { carService } from '@/features/customer/services/car.service';
 import { usePageTracking } from '@/hooks/usePageTracking';
-import type { MockCar } from '@/features/customer/mocks/car.mock';
+import type { MockCar } from '@/types/car.types';
 
 export const TestDriveCanvasPage: React.FC = () => {
   const navigate = useNavigate();
@@ -44,16 +44,23 @@ export const TestDriveCanvasPage: React.FC = () => {
   // 1. Tải danh sách xe từ database
   useEffect(() => {
     let isMounted = true;
-    carService.getAllCars().then((list) => {
-      if (isMounted && list && list.length > 0) {
-        setCars(list);
-        if (carIdParam && list.some((c) => String(c.id) === carIdParam)) {
-          setSelectedCarId(carIdParam);
-        } else if (!list.some((c) => String(c.id) === selectedCarId)) {
-          setSelectedCarId(String(list[0].id));
+    carService
+      .getAllCars()
+      .then((list) => {
+        if (isMounted && list && list.length > 0) {
+          setCars(list);
+          if (carIdParam && list.some((c) => String(c.id) === carIdParam)) {
+            setSelectedCarId(carIdParam);
+          } else if (!list.some((c) => String(c.id) === selectedCarId)) {
+            setSelectedCarId(String(list[0].id));
+          }
         }
-      }
-    });
+      })
+      .catch(() => {
+        if (isMounted) {
+          setErrorMessage('Chưa kết nối được Backend để tải danh sách xe lái thử.');
+        }
+      });
     return () => {
       isMounted = false;
     };

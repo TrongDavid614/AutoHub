@@ -16,7 +16,7 @@ import { carService } from '@/features/customer/services/car.service';
 import { useCompareStore } from '@/store/useCompareStore';
 import { MAX_COMPARE_CARS } from '@/config/constants';
 import { cn, matchesSearchTerms } from '@/lib/utils';
-import type { MockCar } from '@/features/customer/mocks/car.mock';
+import type { MockCar } from '@/types/car.types';
 import type { CarVariant } from '@/types/car.types';
 
 type SortOption = 'PRICE_ASC' | 'PRICE_DESC' | 'POWER_DESC' | 'RANGE_DESC';
@@ -255,7 +255,7 @@ export const CarListPage: React.FC = () => {
       const data = await carService.getAllCars();
       setCars(data || []);
     } catch {
-      setError('Không thể tải danh sách xe lúc này. Vui lòng thử lại sau.');
+      setError('Chưa kết nối được Backend — không thể tải danh sách xe lúc này. Vui lòng thử lại sau.');
     } finally {
       setIsLoading(false);
     }

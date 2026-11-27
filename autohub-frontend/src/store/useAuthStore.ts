@@ -28,13 +28,17 @@ export const useAuthStore = create<AuthStore>()(
           isAuthenticated: true,
         }),
 
-      logout: () =>
+      logout: () => {
         set({
           accessToken: null,
           user: null,
           role: null,
           isAuthenticated: false,
-        }),
+        });
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('autohub_guest_cart');
+        }
+      },
 
       updateUser: (updatedData) =>
         set((state) => ({
