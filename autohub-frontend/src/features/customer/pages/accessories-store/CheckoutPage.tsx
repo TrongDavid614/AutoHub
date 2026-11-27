@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useCheckoutFlow } from '@/features/customer/hooks/useCheckoutFlow';
 import { StepAddressSelection } from '@/features/customer/components/StepAddressSelection';
@@ -11,7 +11,17 @@ import { AddressEditModal } from '@/features/customer/components/AddressEditModa
 
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { isAuthenticated } = useAuthStore();
+
+  const retryOrderCode = searchParams.get('orderCode');
+
+  // Nếu người dùng truy cập /checkout với orderCode (từ đơn hàng cũ hoặc link thử lại thanh toán) -> chuyển về trang đơn hàng
+  useEffect(() => {
+    if (retryOrderCode) {
+      navigate('/customer/orders', { replace: true });
+    }
+  }, [retryOrderCode, navigate]);
 
   const {
     addresses,
@@ -129,14 +139,18 @@ export const CheckoutPage: React.FC = () => {
           tag: a.tag,
           isDefault: a.isDefault,
         }))}
-        selectedAddress={{
-          id: selectedAddress.id,
-          recipientName: selectedAddress.recipientName,
-          phone: selectedAddress.phone,
-          fullAddress: selectedAddress.fullAddress,
-          tag: selectedAddress.tag,
-          isDefault: selectedAddress.isDefault,
-        }}
+        selectedAddress={
+          selectedAddress
+            ? {
+                id: selectedAddress.id,
+                recipientName: selectedAddress.recipientName,
+                phone: selectedAddress.phone,
+                fullAddress: selectedAddress.fullAddress,
+                tag: selectedAddress.tag,
+                isDefault: selectedAddress.isDefault,
+              }
+            : undefined
+        }
         onSelectAddress={(addr) => setSelectedAddressId(addr.id)}
         onAddNewAddress={(newAddr) => {
           setAddresses([
