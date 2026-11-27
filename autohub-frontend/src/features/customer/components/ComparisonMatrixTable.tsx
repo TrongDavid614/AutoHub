@@ -1,5 +1,10 @@
 import React from 'react';
 import { Zap, Activity } from 'lucide-react';
+import {
+  getCellSubValue,
+  getCellValue,
+  getWinningTrimIdsForRow,
+} from '@/features/customer/utils/comparisonScoring';
 import type { SpecGroup, VehicleComparisonTrim } from '@/features/customer/types/comparison.types';
 
 export interface ComparisonMatrixTableProps {
@@ -82,80 +87,68 @@ export const ComparisonMatrixTable: React.FC<ComparisonMatrixTableProps> = ({
                     </div>
 
                     {/* Col 4-12: The Columns for each car */}
-                    {trims.map((trim, trimIndex) => {
-                      const isRecommended = trim.badgeVariant === 'accent' || trim.badge === 'KHUYÊN DÙNG';
-                      const trimKey = String(trim.id);
-                      const val =
-                        row.values?.[trimKey] ??
-                        (trimIndex === 0
-                          ? row.standardVal
-                          : trimIndex === 1
-                            ? row.performanceVal
-                            : row.trackVal) ??
-                        '—';
+                    {(() => {
+                      const winningTrimIds = getWinningTrimIdsForRow(row, trims);
 
-                      const sub =
-                        row.subValues?.[trimKey] ??
-                        (trimIndex === 0
-                          ? row.standardSub
-                          : trimIndex === 1
-                            ? row.performanceSub
-                            : row.trackSub) ??
-                        '';
+                      return trims.map((trim, trimIndex) => {
+                        const isWinner = winningTrimIds.has(String(trim.id));
+                        const val = getCellValue(row, trim, trimIndex);
+                        const sub = getCellSubValue(row, trim, trimIndex);
 
-                      return (
-                        <div
-                          key={trim.id}
-                          className={`md:col-span-3 p-3 rounded space-y-1 ${
-                            isRecommended
-                              ? 'bg-accent-primary/5 border border-accent-primary/20'
-                              : 'bg-surface-elevated/50 md:bg-transparent'
-                          }`}
-                        >
-                          {/* Mobile Trim Header */}
-                          <span className="md:hidden text-[10px] font-mono text-text-muted uppercase block font-semibold">
-                            {trim.name}:
-                          </span>
-
-                          <div className="flex items-baseline gap-1.5 flex-wrap">
-                            <span
-                              className={`font-mono font-bold ${
-                                isRecommended
-                                  ? 'text-accent-primary'
-                                  : 'text-text-primary'
-                              } ${
-                                isRowHighlight
-                                  ? 'text-xl sm:text-2xl font-black'
-                                  : 'text-sm sm:text-base'
-                              }`}
-                            >
-                              {val}
+                        return (
+                          <div
+                            key={trim.id}
+                            className={`md:col-span-3 p-3 rounded space-y-1 ${
+                              isWinner
+                                ? 'bg-accent-primary/5 border border-accent-primary/20'
+                                : 'bg-surface-elevated/50 md:bg-transparent'
+                            }`}
+                          >
+                            {/* Mobile Trim Header */}
+                            <span className="md:hidden text-[10px] font-mono text-text-muted uppercase block font-semibold">
+                              {trim.name}:
                             </span>
-                            {row.unit && val !== '—' && (
+
+                            <div className="flex items-baseline gap-1.5 flex-wrap">
                               <span
-                                className={`text-xs font-mono font-bold ${
-                                  isRecommended ? 'text-accent-primary' : 'text-text-muted'
+                                className={`font-mono font-bold ${
+                                  isWinner
+                                    ? 'text-accent-primary'
+                                    : 'text-text-primary'
+                                } ${
+                                  isRowHighlight
+                                    ? 'text-xl sm:text-2xl font-black'
+                                    : 'text-sm sm:text-base'
                                 }`}
                               >
-                                {row.unit}
+                                {val}
                               </span>
+                              {row.unit && val !== '—' && (
+                                <span
+                                  className={`text-xs font-mono font-bold ${
+                                    isWinner ? 'text-accent-primary' : 'text-text-muted'
+                                  }`}
+                                >
+                                  {row.unit}
+                                </span>
+                              )}
+                            </div>
+
+                            {sub && (
+                              <p
+                                className={`text-xs ${
+                                  isWinner
+                                    ? 'text-text-secondary font-medium'
+                                    : 'text-text-muted'
+                                }`}
+                              >
+                                {sub}
+                              </p>
                             )}
                           </div>
-
-                          {sub && (
-                            <p
-                              className={`text-xs ${
-                                isRecommended
-                                  ? 'text-text-secondary font-medium'
-                                  : 'text-text-muted'
-                              }`}
-                            >
-                              {sub}
-                            </p>
-                          )}
-                        </div>
-                      );
-                    })}
+                        );
+                      });
+                    })()}
 
                     {/* Empty slots placeholders */}
                     {Array.from({ length: emptySlotsCount }).map((_, slotIdx) => (

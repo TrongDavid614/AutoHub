@@ -81,12 +81,12 @@ public class ShowroomCarController {
         // If no requested cars match or targetIds was empty, take top 3 active cars from DB
         if (selectedCars.isEmpty()) {
             selectedCars.addAll(allActiveCars.stream().limit(3).toList());
-        } else if (selectedCars.size() < 3) {
-            // Auto-supplement with other active cars from DB so the user always has a meaningful 2-to-3 car comparison
+        } else if (selectedCars.size() < 2) {
+            // Auto-supplement only when fewer than 2 cars so users can compare 2 or 3 cars
             List<Long> existingIds = selectedCars.stream().map(PhienBanXe::getId).toList();
             List<PhienBanXe> extraCars = allActiveCars.stream()
                     .filter(c -> !existingIds.contains(c.getId()))
-                    .limit(3 - selectedCars.size())
+                    .limit(2 - selectedCars.size())
                     .toList();
             selectedCars.addAll(extraCars);
         }

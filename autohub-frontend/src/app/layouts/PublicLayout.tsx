@@ -33,7 +33,7 @@ export const PublicLayout: React.FC = () => {
         </div>
       </main>
 
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="no-print fixed bottom-6 right-6 z-50">
         <button
           type="button"
           onClick={() => {

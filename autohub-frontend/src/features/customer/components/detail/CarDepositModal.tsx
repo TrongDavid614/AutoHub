@@ -46,9 +46,9 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
 
-  const [fullName, setFullName] = useState(() => user?.fullName || '');
-  const [phoneNumber, setPhoneNumber] = useState(() => user?.phoneNumber || '');
-  const [identityCard, setIdentityCard] = useState(() => user?.identityCardNumber || '079201009988');
+  const [fullName, setFullName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [identityCard, setIdentityCard] = useState('');
   const [showroom, setShowroom] = useState('Showroom Flagship Q7, TP.HCM');
   const [isAgreed, setIsAgreed] = useState(true);
 
@@ -68,7 +68,15 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      setIsPendingPayment(false);
+      setDepositSuccess(false);
+      setCurrentDeposit(null);
+      setPaymentPendingMsg(null);
+      setErrorMessage(null);
+      setRemainingSeconds(14 * 60 + 59);
+      return;
+    }
     const interval = setInterval(() => {
       setRemainingSeconds((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
