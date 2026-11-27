@@ -163,17 +163,17 @@ export function useCheckoutFlow() {
 
   const selectedAddress = addresses.find((a) => a.id === selectedAddressId) || addresses[0];
 
-  const handleProcessCheckout = async () => {
-    const hasValidAddress = Boolean(
-      selectedAddress &&
-        selectedAddress.id &&
-        selectedAddress.fullAddress &&
-        selectedAddress.fullAddress.trim() !== '' &&
-        selectedAddress.fullAddress !== 'Chưa có địa chỉ nhận hàng' &&
-        selectedAddress.recipientName?.trim() &&
-        selectedAddress.phone?.trim()
-    );
+  const hasValidAddress = Boolean(
+    selectedAddress &&
+      selectedAddress.id &&
+      selectedAddress.fullAddress &&
+      selectedAddress.fullAddress.trim() !== '' &&
+      selectedAddress.fullAddress !== 'Chưa có địa chỉ nhận hàng' &&
+      selectedAddress.recipientName?.trim() &&
+      selectedAddress.phone?.trim()
+  );
 
+  const handleProcessCheckout = async () => {
     if (!hasValidAddress) {
       setVoucherError('Vui lòng thêm hoặc chọn địa chỉ nhận hàng trước khi thanh toán.');
       return;
@@ -225,6 +225,7 @@ export function useCheckoutFlow() {
     selectedAddressId,
     setSelectedAddressId,
     selectedAddress,
+    hasValidAddress,
     shippingMethods,
     selectedShippingId,
     setSelectedShippingId,
