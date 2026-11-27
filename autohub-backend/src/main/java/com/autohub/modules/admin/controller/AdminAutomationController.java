@@ -49,7 +49,8 @@ public class AdminAutomationController {
      */
     @PostMapping("/sweep-test-drives")
     public ResponseEntity<ApiResponse<Map<String, Object>>> sweepUnconfirmedTestDrives() {
-        int count = automationScheduler.scanAndCancelUnconfirmedTestDrives();
+        Integer countResult = automationScheduler.scanAndCancelUnconfirmedTestDrives();
+        int count = countResult != null ? countResult : 0;
         Map<String, Object> data = new HashMap<>();
         data.put("cancelledTestDrives", count);
         return ResponseEntity.ok(ApiResponse.ok(data, "Đã quét và hủy " + count + " lịch lái thử chưa xác nhận trước 12h"));
@@ -60,7 +61,8 @@ public class AdminAutomationController {
      */
     @PostMapping("/send-reminders")
     public ResponseEntity<ApiResponse<Map<String, Object>>> sendTestDriveReminders() {
-        int count = automationScheduler.scanAndSendTestDriveReminders();
+        Integer countResult = automationScheduler.scanAndSendTestDriveReminders();
+        int count = countResult != null ? countResult : 0;
         Map<String, Object> data = new HashMap<>();
         data.put("remindersSent", count);
         return ResponseEntity.ok(ApiResponse.ok(data, "Đã gửi email nhắc lịch lái thử tới " + count + " khách hàng"));

@@ -330,10 +330,12 @@ public class DefaultAdminSystemMonitorServiceImpl implements AdminSystemMonitorS
             resultMessage = String.format("Đã quét và hủy tự động thành công: %d phiếu cọc quá hạn, %d đơn phụ kiện quá hạn. Đã hoàn trả tồn kho xe về CO_SAN.",
                     res.getExpiredDeposits72h(), res.getCancelledAccessoryOrders());
         } else if ("AutoCancelUnconfirmedTestDrivesDaemon".equalsIgnoreCase(jobName)) {
-            int count = automationScheduler.scanAndCancelUnconfirmedTestDrives();
+            Integer countResult = automationScheduler.scanAndCancelUnconfirmedTestDrives();
+            int count = countResult != null ? countResult : 0;
             resultMessage = String.format("Đã quét và hủy tự động %d lịch lái thử chưa được duyệt trước 12 giờ hẹn. Xe demo đã hoàn trả trạng thái sẵn sàng.", count);
         } else if ("AutoSendTestDriveReminderDaemon".equalsIgnoreCase(jobName)) {
-            int count = automationScheduler.scanAndSendTestDriveReminders();
+            Integer countResult = automationScheduler.scanAndSendTestDriveReminders();
+            int count = countResult != null ? countResult : 0;
             resultMessage = String.format("Đã quét và gửi thành công %d email thông báo nhắc lịch lái thử trước 24 giờ cho khách hàng.", count);
         } else if ("SyncVectorEmbeddingJob".equalsIgnoreCase(jobName)) {
             resultMessage = "Đã lập chỉ mục và đồng bộ thành công 1.250 vector embeddings từ Master Data xe và phụ kiện sang Vector Store RAG.";

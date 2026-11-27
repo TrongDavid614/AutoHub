@@ -37,7 +37,7 @@ public class DepositExpirationScheduler {
     @Scheduled(cron = "${autohub.scheduler.deposit-expiration.cron:0 */15 * * * *}")
     @SchedulerLock(name = "scanAndExpireOverdueDeposits", lockAtMostFor = "10m", lockAtLeastFor = "1m")
     @Transactional
-    public int scanAndExpireOverdueDeposits() {
+    public Integer scanAndExpireOverdueDeposits() {
         LocalDateTime now = LocalDateTime.now();
         log.info("[DepositExpirationScheduler] Bắt đầu quét kiểm tra các phiếu đặt cọc quá hạn...");
 

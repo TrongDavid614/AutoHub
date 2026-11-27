@@ -65,7 +65,8 @@ public class SystemAutomationScheduler {
         int orders15m = 0;
 
         // 1. Quét và giải phóng các phiếu đặt cọc quá hạn 15m và 72h (DepositExpirationScheduler)
-        int expiredDeposits = depositExpirationScheduler.scanAndExpireOverdueDeposits();
+        Integer expiredDepositsResult = depositExpirationScheduler.scanAndExpireOverdueDeposits();
+        int expiredDeposits = expiredDepositsResult != null ? expiredDepositsResult : 0;
 
         // 2. Quét đơn hàng phụ kiện PENDING_PAYMENT quá hạn thanh toán 15 phút -> Xóa biến mất khỏi hệ thống (không để lại trạng thái đã hủy)
         List<DonHangPhuKien> pendingPaymentOrders = donHangPhuKienRepository
@@ -127,7 +128,7 @@ public class SystemAutomationScheduler {
     @Scheduled(cron = "${autohub.scheduler.cron.test-drive-expire:0 */5 * * * *}")
     @SchedulerLock(name = "scanAndCancelUnconfirmedTestDrives", lockAtMostFor = "5m", lockAtLeastFor = "1m")
     @Transactional
-    public int scanAndCancelUnconfirmedTestDrives() {
+    public Integer scanAndCancelUnconfirmedTestDrives() {
         LocalDateTime threshold = LocalDateTime.now().plusHours(12);
         List<LichHenLaiThu> pendingList = lichHenLaiThuRepository
                 .findByTrangThaiAndThoiGianHenLessThanEqual(TrangThaiLichHen.PENDING, threshold);
@@ -180,7 +181,7 @@ public class SystemAutomationScheduler {
     @Scheduled(cron = "${autohub.scheduler.cron.test-drive-reminder:0 */10 * * * *}")
     @SchedulerLock(name = "scanAndSendTestDriveReminders", lockAtMostFor = "8m", lockAtLeastFor = "2m")
     @Transactional
-    public int scanAndSendTestDriveReminders() {
+    public Integer scanAndSendTestDriveReminders() {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime in24Hours = now.plusHours(24);
 
