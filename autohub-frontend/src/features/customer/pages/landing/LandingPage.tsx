@@ -13,11 +13,12 @@ import {
   Calculator,
   Compass,
   FileCheck2,
+  AlertCircle,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { Footer } from '@/components/Footer';
 import { carService } from '@/features/customer/services/car.service';
-import type { MockCar } from '@/features/customer/mocks/car.mock';
+import type { MockCar } from '@/types/car.types';
 import { formatCurrencyVND } from '@/lib/utils';
 
 export function Scene() {
@@ -26,14 +27,24 @@ export function Scene() {
   const [videoReady, setVideoReady] = useState(false);
   const [clickedFeatureId, setClickedFeatureId] = useState<string | null>(null);
   const [featuredCars, setFeaturedCars] = useState<MockCar[]>([]);
+  const [carsError, setCarsError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
-    carService.getAllCars().then((data) => {
-      if (isMounted && data) {
-        setFeaturedCars(data);
-      }
-    });
+    carService
+      .getAllCars()
+      .then((data) => {
+        if (isMounted && data) {
+          setFeaturedCars(data);
+          setCarsError(null);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setFeaturedCars([]);
+          setCarsError('Chưa kết nối được Backend — không tải được danh sách xe nổi bật.');
+        }
+      });
     return () => {
       isMounted = false;
     };
@@ -346,83 +357,6 @@ export function Scene() {
       </section>
 
       {/* =========================================================================
-          SECTION 2: BỘ 3 TRỤ CỘT ĐỘT PHÁ CỦA AUTOHUB (MÀU SÁNG, CARD TRẮNG SANG TRỌNG)
-      ========================================================================== */}
-      <section className="relative z-10 py-20 px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto w-full border-t border-[var(--line)]">
-        <div className="text-center max-w-3xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-100 text-sky-800 border border-sky-200 text-xs font-semibold mb-3">
-            <Sparkles className="w-3.5 h-3.5 text-[var(--accent)]" />
-            <span>KỸ NGHỆ THƯƠNG MẠI SỐ 4.0</span>
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--text)] mb-3">
-            Đột Phá Trải Nghiệm Mua Xe Trực Tuyến
-          </h2>
-          <p className="text-[var(--text-secondary)] text-sm sm:text-base leading-relaxed">
-            AutoHub giải quyết triệt để sự mập mờ về giá thành và quy trình mua bán truyền thống bằng các công cụ tính toán tự động và bảo chứng số.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Trụ cột 1: Dự toán chi phí lăn bánh */}
-          <div className="p-8 rounded-2xl bg-[var(--surface)] border border-[var(--line)] hover:border-sky-300 shadow-sm hover:shadow-md transition-all duration-300 group hover:-translate-y-1">
-            <div className="w-14 h-14 rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-center text-[var(--accent)] mb-6 group-hover:scale-105 transition-transform">
-              <Calculator className="w-7 h-7" />
-            </div>
-            <h3 className="text-xl font-bold text-[var(--text)] mb-2 group-hover:text-[var(--accent)] transition-colors">
-              Dự Toán Lăn Bánh 63 Tỉnh Thành
-            </h3>
-            <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-4">
-              Hệ thống thuật toán cập nhật theo biểu thuế trước bạ, phí cấp biển số, phí bảo trì đường bộ và bảo hiểm dân sự của từng địa phương, chuẩn xác từng đồng.
-            </p>
-            <div className="inline-flex items-center gap-1.5 text-xs text-[var(--accent)] font-medium">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Tích hợp trực tiếp trong từng dòng xe</span>
-            </div>
-          </div>
-
-          {/* Trụ cột 2: Bàn Cân So Sánh */}
-          <div className="p-8 rounded-2xl bg-[var(--surface)] border border-[var(--line)] hover:border-sky-300 shadow-sm hover:shadow-md transition-all duration-300 group hover:-translate-y-1">
-            <div className="w-14 h-14 rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-center text-[var(--accent)] mb-6 group-hover:scale-105 transition-transform">
-              <Scale className="w-7 h-7" />
-            </div>
-            <h3 className="text-xl font-bold text-[var(--text)] mb-2 group-hover:text-[var(--accent)] transition-colors">
-              Bàn Cân So Sánh Showdown Matrix
-            </h3>
-            <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-4">
-              Đặt tối đa 3 xe lên bàn cân để so sánh hơn 40 thông số kỹ thuật, gia tốc, pin, công nghệ lái tự động HubPilot và trang bị tiện nghi.
-            </p>
-            <button
-              onClick={() => handleGeneralNavigate('/car-comparison')}
-              className="inline-flex items-center gap-2 text-xs font-bold text-[var(--accent)] hover:text-sky-700 transition-colors cursor-pointer"
-            >
-              <span>Vào bàn cân so sánh</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </button>
-          </div>
-
-          {/* Trụ cột 3: AI Consultant */}
-          <div className="p-8 rounded-2xl bg-[var(--surface)] border border-[var(--line)] hover:border-sky-300 shadow-sm hover:shadow-md transition-all duration-300 group hover:-translate-y-1">
-            <div className="w-14 h-14 rounded-2xl bg-sky-50 border border-sky-200 flex items-center justify-center text-[var(--accent)] mb-6 group-hover:scale-105 transition-transform">
-              <Sparkles className="w-7 h-7" />
-            </div>
-            <h3 className="text-xl font-bold text-[var(--text)] mb-2 group-hover:text-[var(--accent)] transition-colors">
-              Trợ Lý Ảo AI Độc Bản
-            </h3>
-            <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-4">
-              AI am hiểu sâu sắc hệ sinh thái ô tô, gợi ý phiên bản xe phù hợp với ngân sách gia đình, phong thủy bản mệnh và tư vấn phụ kiện đồng bộ.
-            </p>
-            <button
-              onClick={() => handleGeneralNavigate('/ai-consultant')}
-              className="inline-flex items-center gap-2 text-xs font-bold text-[var(--accent)] hover:text-sky-700 transition-colors cursor-pointer"
-            >
-              <span>Trò chuyện cùng AI ngay</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
           SECTION 3: BỘ SƯU TẬP XE TIÊU BIỂU (SHOWROOM SHOWCASE - LIGHT CARDS)
       ========================================================================== */}
       <section className="relative z-10 py-20 px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto w-full border-t border-[var(--line)]">
@@ -445,6 +379,12 @@ export function Scene() {
           </button>
         </div>
 
+        {carsError ? (
+          <div className="p-6 rounded-2xl bg-red-50 border border-red-200 text-red-700 flex items-center gap-3 text-sm font-medium">
+            <AlertCircle className="w-5 h-5 shrink-0 text-red-600" />
+            <span>{carsError}</span>
+          </div>
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {featuredCars.slice(0, 3).map((car) => (
             <div
@@ -516,6 +456,7 @@ export function Scene() {
             </div>
           ))}
         </div>
+        )}
       </section>
 
       {/* =========================================================================

@@ -17,7 +17,7 @@ import {
 import type { TrimType } from '../../hooks/useCarDetail';
 import { EXTERIOR_COLORS } from '../../types/detail.types';
 import { trackUserEvent } from '@/lib/tracker';
-import type { MockCar } from '../../mocks/car.mock';
+import type { MockCar } from '@/types/car.types';
 
 interface CarConfiguratorPanelProps {
   activeTrim: TrimType;

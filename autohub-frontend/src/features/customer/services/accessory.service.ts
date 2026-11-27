@@ -1,7 +1,7 @@
 import { axiosClient } from '@/lib/axios';
 import type { ApiResponse } from '@/types/api.types';
 import type { Accessory, AccessoryCategory, AccessoryFilterParams } from '@/types/accessory.types';
-import { MOCK_ACCESSORIES, MOCK_ACCESSORY_CATEGORIES, MOCK_CAR_MODELS, type CarModelInfo } from '../mocks/accessory.mock';
+import { MOCK_ACCESSORIES, MOCK_ACCESSORY_CATEGORIES, type CarModelInfo } from '../mocks/accessory.mock';
 import { carService } from './car.service';
 
 interface RawCategoryDto {
@@ -193,6 +193,6 @@ export const accessoryService = {
     } catch {
       // network error
     }
-    return MOCK_CAR_MODELS;
+    return [];
   },
 };

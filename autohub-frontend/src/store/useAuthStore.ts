@@ -28,16 +28,19 @@ export const useAuthStore = create<AuthStore>()(
           role: user.role,
           isAuthenticated: true,
         }),
-
-      logout: () => {
-        useCompareStore.getState().clearCompareList();
-        set({
-          accessToken: null,
-          user: null,
-          role: null,
-          isAuthenticated: false,
-        });
-      },
+      
+    logout: () => {
+     useCompareStore.getState().clearCompareList();
+     set({
+       accessToken: null,
+       user: null,
+       role: null,
+       isAuthenticated: false,
+     });
+     if (typeof window !== 'undefined') {
+       localStorage.removeItem('autohub_guest_cart');
+     }
+   },
 
       updateUser: (updatedData) =>
         set((state) => ({

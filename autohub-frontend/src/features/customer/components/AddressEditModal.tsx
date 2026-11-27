@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Check, MapPin, Plus, Loader2, AlertCircle } from 'lucide-react';
-import type { ShippingAddress } from '@/features/customer/mocks/cart.mock';
+import type { ShippingAddress } from '@/types/cart.types';
 import { addressService } from '@/features/customer/services/address.service';
 import { useAuthStore } from '@/store/useAuthStore';
 

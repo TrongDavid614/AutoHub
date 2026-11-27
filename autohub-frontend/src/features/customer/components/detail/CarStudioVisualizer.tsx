@@ -10,7 +10,7 @@ import {
   Wind,
 } from 'lucide-react';
 import { trackUserEvent } from '@/lib/tracker';
-import type { MockCar } from '../../mocks/car.mock';
+import type { MockCar } from '@/types/car.types';
 
 interface CarStudioVisualizerProps {
   carName: string;

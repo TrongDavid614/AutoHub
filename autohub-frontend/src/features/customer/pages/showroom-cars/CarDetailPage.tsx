@@ -9,7 +9,7 @@ import { EXTERIOR_COLORS } from '@/features/customer/types/detail.types';
 import { CarEngineeringSpecs } from '@/features/customer/components/detail/CarEngineeringSpecs';
 import { carService } from '@/features/customer/services/car.service';
 import { usePageTracking } from '@/hooks/usePageTracking';
-import type { MockCar } from '@/features/customer/mocks/car.mock';
+import type { MockCar } from '@/types/car.types';
 
 export const CarDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();

@@ -5,6 +5,7 @@ import {
   ShoppingBag,
   Check,
   RefreshCw,
+  AlertCircle,
 } from 'lucide-react';
 import type { AccessoryOrder, AccessoryOrderStatus } from '@/types/order.types';
 import { useCartStore } from '@/store/useCartStore';
@@ -26,6 +27,7 @@ export const CustomerOrderListPage: React.FC = () => {
 
   const [orders, setOrders] = useState<AccessoryOrder[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<FilterTab>('ALL');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
@@ -47,6 +49,7 @@ export const CustomerOrderListPage: React.FC = () => {
 
   const loadOrders = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const data = await orderService.getMyOrders(user?.id);
       const cleanData = (Array.isArray(data) ? data : []).filter((o) => {
@@ -60,6 +63,7 @@ export const CustomerOrderListPage: React.FC = () => {
       });
       setOrders(cleanData);
     } catch {
+      setError('Chưa kết nối được Backend để tải danh sách đơn hàng.');
       setOrders([]);
     } finally {
       setIsLoading(false);
@@ -238,6 +242,19 @@ export const CustomerOrderListPage: React.FC = () => {
                 </div>
               </div>
             ))}
+          </div>
+        ) : error ? (
+          <div className="py-12 text-center rounded-lg bg-red-50 border border-red-200 space-y-3">
+            <AlertCircle className="w-10 h-10 text-red-600 mx-auto" />
+            <h3 className="text-base font-semibold text-red-700">{error}</h3>
+            <button
+              type="button"
+              onClick={loadOrders}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-xs font-bold text-white transition-colors cursor-pointer"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Thử lại</span>
+            </button>
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="py-16 text-center rounded-[4px] bg-surface-elevated/30 border border-surface-highlight space-y-3">

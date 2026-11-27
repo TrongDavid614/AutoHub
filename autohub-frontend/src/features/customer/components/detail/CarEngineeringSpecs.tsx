@@ -5,7 +5,7 @@ import {
   ShieldCheck,
   Gauge,
 } from 'lucide-react';
-import type { MockCar } from '../../mocks/car.mock';
+import type { MockCar } from '@/types/car.types';
 
 interface CarEngineeringSpecsProps {
   car?: MockCar | null;

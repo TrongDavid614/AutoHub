@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Scale, Zap } from 'lucide-react';
-import type { MockCar } from '@/features/customer/mocks/car.mock';
+import type { MockCar } from '@/types/car.types';
 
 interface CarCardGridProps {
   car: MockCar;

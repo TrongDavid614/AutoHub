@@ -14,6 +14,7 @@ interface CartStore {
   savedItems: CartItem[];
   isLoading: boolean;
   error: string | null;
+  resetLocalCart: () => void;
 
   // Actions
   addToCart: (accessory: Accessory, quantity?: number, customerId?: number) => Promise<void>;
@@ -224,6 +225,13 @@ export const useCartStore = create<CartStore>()(
         );
       },
 
+      resetLocalCart: () => {
+        set({ cartItems: [], savedItems: [], error: null });
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('autohub_guest_cart');
+        }
+      },
+
       getTotalItemsCount: () => {
         return get().cartItems.reduce((sum, item) => sum + item.quantity, 0);
       },
@@ -238,9 +246,9 @@ export const useCartStore = create<CartStore>()(
   )
 );
 
-// Clear local cart state whenever the authenticated user logs out
+// Clear browser-side cart state on logout while keeping server cart data intact.
 useAuthStore.subscribe((state, prevState) => {
-  if (prevState.isAuthenticated && !state.isAuthenticated) {
+  if ((prevState.isAuthenticated || prevState.user) && !state.isAuthenticated && !state.user) {
     useCartStore.getState().resetLocalCart();
   }
 });

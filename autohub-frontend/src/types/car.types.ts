@@ -1,3 +1,39 @@
+export interface ShowroomCar {
+  id: string;
+  name: string;
+  badge: string;
+  segment: string;
+  subtitle: string;
+  powertrain: string;
+  seats: string;
+  acceleration: string;
+  power: string;
+  range: string;
+  charging: string;
+  feature1: string;
+  feature2: string;
+  listedPrice: number;
+  depositAmount: number;
+  depositNote: string;
+  estimatedOnRoad: number;
+  image: string;
+  images?: string[];
+  availableColors: { id?: number; name: string; hex: string; colorName?: string; colorCodeHex?: string }[];
+  variants?: CarVariantSibling[];
+  specs?: Record<string, string>;
+  gridSpecs?: {
+    s1Label: string;
+    s1Val: string;
+    s2Label: string;
+    s2Val: string;
+    s3Label: string;
+    s3Val: string;
+  };
+  isUpcoming?: boolean;
+}
+
+export type MockCar = ShowroomCar;
+
 export interface CarBrand {
   id: number;
   name: string;
