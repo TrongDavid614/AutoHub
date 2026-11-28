@@ -3,7 +3,18 @@ import { Link, useNavigate } from 'react-router-dom';
 import { User as UserIcon, Mail, Phone, Lock, Eye, EyeOff, X, Check } from 'lucide-react';
 import { PasswordStrengthMeter } from '@/features/customer/components/PasswordStrengthMeter';
 import { authService } from '@/features/customer/services/auth.service';
+import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/useAuthStore';
+
+type RegisterField =
+  | 'fullName'
+  | 'phoneNumber'
+  | 'email'
+  | 'password'
+  | 'confirmPassword'
+  | 'agreeTerms';
+
+type FieldErrors = Partial<Record<RegisterField, string>>;
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -21,7 +32,17 @@ export const RegisterPage: React.FC = () => {
 
   // Form validation / error
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const clearFieldError = (field: RegisterField) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   // Password score calculation (0 - 4)
   const calculateScore = (pwd: string) => {
@@ -40,6 +61,7 @@ export const RegisterPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setFieldErrors({});
 
     const trimmedFullName = fullName.trim();
     const trimmedEmail = email.trim().toLowerCase();
@@ -54,28 +76,44 @@ export const RegisterPage: React.FC = () => {
       cleanPhone = '0' + cleanPhone;
     }
 
-    if (!trimmedFullName || !cleanPhone || !trimmedEmail || !password) {
-      setError('Vui lòng điền đầy đủ các thông tin bắt buộc (*)');
-      return;
+    const nextErrors: FieldErrors = {};
+
+    if (!trimmedFullName) {
+      nextErrors.fullName = 'Vui lòng nhập họ và tên.';
     }
 
-    if (!/^0[35789]\d{8}$/.test(cleanPhone)) {
-      setError('Số điện thoại không hợp lệ. Vui lòng nhập 10 chữ số (đầu số 03, 05, 07, 08, 09).');
-      return;
+    if (!cleanPhone) {
+      nextErrors.phoneNumber = 'Vui lòng nhập số điện thoại.';
+    } else if (!/^0[35789]\d{8}$/.test(cleanPhone)) {
+      nextErrors.phoneNumber =
+        'Số điện thoại không hợp lệ. Vui lòng nhập 10 chữ số (đầu số 03, 05, 07, 08, 09).';
     }
 
-    if (password.length < 8) {
-      setError('Mật khẩu phải có tối thiểu 8 ký tự.');
-      return;
+    if (!trimmedEmail) {
+      nextErrors.email = 'Vui lòng nhập địa chỉ email.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      nextErrors.email = 'Địa chỉ email không hợp lệ (VD: ten@gmail.com).';
     }
 
-    if (password !== confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp.');
-      return;
+    if (!password) {
+      nextErrors.password = 'Vui lòng nhập mật khẩu.';
+    } else if (password.length < 8) {
+      nextErrors.password = 'Mật khẩu phải có tối thiểu 8 ký tự.';
+    }
+
+    if (!confirmPassword) {
+      nextErrors.confirmPassword = 'Vui lòng nhập xác nhận mật khẩu.';
+    } else if (password !== confirmPassword) {
+      nextErrors.confirmPassword = 'Mật khẩu xác nhận không khớp với mật khẩu đã nhập.';
     }
 
     if (!agreeTerms) {
-      setError('Vui lòng đồng ý với Điều khoản dịch vụ và Chính sách bảo mật.');
+      nextErrors.agreeTerms = 'Vui lòng đồng ý với Điều khoản dịch vụ và Chính sách bảo mật.';
+    }
+
+    if (Object.keys(nextErrors).length > 0) {
+      setFieldErrors(nextErrors);
+      setError('Vui lòng kiểm tra lại các thông tin được đánh dấu đỏ bên dưới.');
       return;
     }
 
@@ -96,9 +134,43 @@ export const RegisterPage: React.FC = () => {
       navigate(`/auth/register-success?name=${encodeURIComponent(trimmedFullName)}&email=${encodeURIComponent(trimmedEmail)}`);
     } catch (err: unknown) {
       setIsSubmitting(false);
-      const errObj = err as { response?: { data?: { message?: string; error?: string } }; message?: string };
-      const apiError = errObj?.response?.data?.message || errObj?.response?.data?.error;
-      setError(apiError || 'Có lỗi xảy ra trong quá trình đăng ký. Vui lòng thử lại.');
+      const errObj = err as {
+        code?: string;
+        response?: { data?: { message?: string; error?: string } };
+        message?: string;
+      };
+
+      let resolvedError = errObj?.response?.data?.message || errObj?.response?.data?.error;
+      if (!resolvedError && !errObj?.response) {
+        if (errObj?.code === 'ECONNABORTED' || errObj?.message?.toLowerCase().includes('timeout')) {
+          resolvedError = 'Máy chủ phản hồi quá chậm. Vui lòng thử lại sau.';
+        } else {
+          resolvedError =
+            'Không thể kết nối đến máy chủ AutoHub. Vui lòng kiểm tra kết nối mạng hoặc thử lại sau.';
+        }
+      }
+
+      const finalMsg =
+        resolvedError || 'Có lỗi xảy ra trong quá trình đăng ký. Vui lòng thử lại.';
+      const lowerMsg = finalMsg.toLowerCase();
+      const mappedErrors: FieldErrors = {};
+
+      if (lowerMsg.includes('email')) {
+        mappedErrors.email = finalMsg;
+      } else if (
+        lowerMsg.includes('số điện thoại') ||
+        lowerMsg.includes('điện thoại') ||
+        lowerMsg.includes('phonenumber')
+      ) {
+        mappedErrors.phoneNumber = finalMsg;
+      } else if (lowerMsg.includes('họ và tên') || lowerMsg.includes('fullname')) {
+        mappedErrors.fullName = finalMsg;
+      } else if (lowerMsg.includes('mật khẩu') || lowerMsg.includes('password')) {
+        mappedErrors.password = finalMsg;
+      }
+
+      setFieldErrors(mappedErrors);
+      setError(finalMsg);
     }
   };
 
@@ -131,7 +203,7 @@ export const RegisterPage: React.FC = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} noValidate className="space-y-4">
           <div className="space-y-1.5">
             <label className="block text-[13px] font-medium text-[var(--text)]">
               Họ và tên <span className="text-red-600">*</span>
@@ -142,11 +214,22 @@ export const RegisterPage: React.FC = () => {
                 type="text"
                 required
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                onChange={(e) => {
+                  setFullName(e.target.value);
+                  clearFieldError('fullName');
+                }}
                 placeholder="Nguyễn Văn An"
-                className="w-full pl-9 pr-3 py-2 bg-[var(--surface)] border border-[var(--line-strong)] rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] transition-colors"
+                className={cn(
+                  'w-full pl-9 pr-3 py-2 bg-[var(--surface)] border rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 transition-colors',
+                  fieldErrors.fullName
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-100'
+                    : 'border-[var(--line-strong)] focus:border-[var(--accent)] focus:ring-[var(--accent-soft)]'
+                )}
               />
             </div>
+            {fieldErrors.fullName && (
+              <p className="text-xs text-red-600">{fieldErrors.fullName}</p>
+            )}
           </div>
 
           <div className="space-y-1.5">
@@ -163,12 +246,23 @@ export const RegisterPage: React.FC = () => {
                   type="tel"
                   required
                   value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  onChange={(e) => {
+                    setPhoneNumber(e.target.value);
+                    clearFieldError('phoneNumber');
+                  }}
                   placeholder="0912 345 678"
-                  className="w-full pl-9 pr-3 py-2 bg-[var(--surface)] border border-[var(--line-strong)] rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] transition-colors tabular-nums"
+                  className={cn(
+                    'w-full pl-9 pr-3 py-2 bg-[var(--surface)] border rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 transition-colors tabular-nums',
+                    fieldErrors.phoneNumber
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-100'
+                      : 'border-[var(--line-strong)] focus:border-[var(--accent)] focus:ring-[var(--accent-soft)]'
+                  )}
                 />
               </div>
             </div>
+            {fieldErrors.phoneNumber && (
+              <p className="text-xs text-red-600">{fieldErrors.phoneNumber}</p>
+            )}
           </div>
 
           <div className="space-y-1.5">
@@ -181,11 +275,22 @@ export const RegisterPage: React.FC = () => {
                 type="email"
                 required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  clearFieldError('email');
+                }}
                 placeholder="an.nguyen@autohub.vn"
-                className="w-full pl-9 pr-3 py-2 bg-[var(--surface)] border border-[var(--line-strong)] rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] transition-colors"
+                className={cn(
+                  'w-full pl-9 pr-3 py-2 bg-[var(--surface)] border rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 transition-colors',
+                  fieldErrors.email
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-100'
+                    : 'border-[var(--line-strong)] focus:border-[var(--accent)] focus:ring-[var(--accent-soft)]'
+                )}
               />
             </div>
+            {fieldErrors.email && (
+              <p className="text-xs text-red-600">{fieldErrors.email}</p>
+            )}
           </div>
 
           <div className="space-y-1.5">
@@ -198,9 +303,17 @@ export const RegisterPage: React.FC = () => {
                 type={showPassword ? 'text' : 'password'}
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  clearFieldError('password');
+                }}
                 placeholder="Tối thiểu 8 ký tự"
-                className="w-full pl-9 pr-10 py-2 bg-[var(--surface)] border border-[var(--line-strong)] rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] transition-colors"
+                className={cn(
+                  'w-full pl-9 pr-10 py-2 bg-[var(--surface)] border rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 transition-colors',
+                  fieldErrors.password
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-100'
+                    : 'border-[var(--line-strong)] focus:border-[var(--accent)] focus:ring-[var(--accent-soft)]'
+                )}
               />
               <button
                 type="button"
@@ -211,6 +324,9 @@ export const RegisterPage: React.FC = () => {
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+            {fieldErrors.password && (
+              <p className="text-xs text-red-600">{fieldErrors.password}</p>
+            )}
 
             <PasswordStrengthMeter score={passwordScore} />
           </div>
@@ -233,11 +349,22 @@ export const RegisterPage: React.FC = () => {
                 type={showPassword ? 'text' : 'password'}
                 required
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  clearFieldError('confirmPassword');
+                }}
                 placeholder="Nhập lại mật khẩu"
-                className="w-full pl-9 pr-3 py-2 bg-[var(--surface)] border border-[var(--line-strong)] rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent-soft)] transition-colors"
+                className={cn(
+                  'w-full pl-9 pr-3 py-2 bg-[var(--surface)] border rounded-lg text-sm text-[var(--text)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 transition-colors',
+                  fieldErrors.confirmPassword
+                    ? 'border-red-500 focus:border-red-500 focus:ring-red-100'
+                    : 'border-[var(--line-strong)] focus:border-[var(--accent)] focus:ring-[var(--accent-soft)]'
+                )}
               />
             </div>
+            {fieldErrors.confirmPassword && (
+              <p className="text-xs text-red-600">{fieldErrors.confirmPassword}</p>
+            )}
           </div>
 
           <div className="space-y-2.5 pt-1">
@@ -245,7 +372,10 @@ export const RegisterPage: React.FC = () => {
               <input
                 type="checkbox"
                 checked={agreeTerms}
-                onChange={(e) => setAgreeTerms(e.target.checked)}
+                onChange={(e) => {
+                  setAgreeTerms(e.target.checked);
+                  clearFieldError('agreeTerms');
+                }}
                 className="mt-0.5 rounded border-[var(--line-strong)] accent-[var(--accent)] cursor-pointer"
               />
               <span className="leading-relaxed">
@@ -260,6 +390,9 @@ export const RegisterPage: React.FC = () => {
                 của AutoHub.
               </span>
             </label>
+            {fieldErrors.agreeTerms && (
+              <p className="text-xs text-red-600">{fieldErrors.agreeTerms}</p>
+            )}
 
             <label className="flex items-start gap-2.5 cursor-pointer text-xs text-[var(--text-muted)] select-none">
               <input
