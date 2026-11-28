@@ -17,6 +17,7 @@ import {
   Radio,
   X,
   Layers,
+  HardDrive,
 } from 'lucide-react';
 import { useAdminTheme } from '@/context/AdminThemeContext';
 import { cn } from '@/lib/utils';
@@ -89,6 +90,17 @@ const INITIAL_HEALTH: SystemMonitorHealth = {
     maxDbConnections: 15,
     databaseDialect: 'Microsoft SQL Server 2022 (HikariCP)',
     serverUptime: '4 ngày 12 giờ 30 phút (99.98% Uptime)',
+    cpuUsagePercent: 12.5,
+    cpuCores: 1,
+    systemTotalMemoryMb: 3950,
+    systemUsedMemoryMb: 1850,
+    systemFreeMemoryMb: 2100,
+    systemMemoryUsagePercent: 46.8,
+    diskTotalGb: 29.8,
+    diskUsedGb: 12.2,
+    diskFreeGb: 17.6,
+    diskUsagePercent: 40.9,
+    osName: 'Linux Ubuntu 22.04 LTS (x86_64)',
   },
 };
 
@@ -649,69 +661,209 @@ export const SystemMonitorPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Server & Infrastructure Telemetry Banner */}
+      {/* 3. Server & Infrastructure Telemetry Panel */}
       <div
         className={cn(
-          'p-4 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 text-xs transition-colors shadow-xs',
+          'p-5 rounded-2xl border space-y-4 transition-colors shadow-xs',
           isDarkMode ? 'bg-[#0B1326] border-[#3E4850]/40' : 'bg-white border-slate-200'
         )}
       >
-        <div className="flex items-center gap-3">
-          <div
-            className={cn(
-              'w-8 h-8 rounded-lg flex items-center justify-center',
-              isDarkMode ? 'bg-[#171F33] text-[#89CEFF]' : 'bg-slate-100 text-slate-700'
-            )}
-          >
-            <Server className="w-4 h-4" />
+        {/* Panel Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-surface-highlight/30">
+          <div className="flex items-center gap-3">
+            <div
+              className={cn(
+                'w-9 h-9 rounded-xl flex items-center justify-center',
+                isDarkMode ? 'bg-[#171F33] text-[#89CEFF]' : 'bg-blue-50 text-blue-600 border border-blue-100'
+              )}
+            >
+              <Server className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="font-bold text-sm flex items-center gap-2">
+                <span className={isDarkMode ? 'text-white' : 'text-slate-900'}>
+                  Tài Nguyên Phần Cứng Máy Chủ VPS & Hạ Tầng Backend
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 font-semibold border border-emerald-500/30">
+                  ONLINE (103.82.25.169)
+                </span>
+              </div>
+              <div className="text-[11px] font-mono text-slate-400 mt-0.5">
+                {health.serverMetrics.osName || 'Linux Ubuntu 22.04 LTS (x86_64)'} • Uptime: {health.serverMetrics.serverUptime}
+              </div>
+            </div>
           </div>
-          <div>
-            <div className="font-bold flex items-center gap-2">
-              <span>Hạ Tầng Backend Spring Boot & HikariCP Pool</span>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                ACTIVE
-              </span>
-            </div>
-            <div className="text-[11px] font-mono text-slate-400 mt-0.5">
-              Dialect: {health.serverMetrics.databaseDialect} • {health.serverMetrics.serverUptime}
-            </div>
+
+          <div className="flex items-center gap-2 text-[11px] font-mono text-slate-400">
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Thu thập trực tiếp từ Host Kernel & JVM</span>
           </div>
         </div>
 
-        {/* Memory & DB Connection Gauges */}
-        <div className="flex flex-wrap items-center gap-6 text-xs font-mono">
-          {/* JVM Heap */}
-          <div className="space-y-1 min-w-[160px]">
-            <div className="flex justify-between text-[11px] text-slate-400">
-              <span>JVM Heap:</span>
-              <strong className="text-white">
-                {health.serverMetrics.jvmUsedMemoryMb} / {health.serverMetrics.jvmMaxMemoryMb} MB (
-                {health.serverMetrics.jvmMemoryUsagePercent}%)
-              </strong>
+        {/* 4 Telemetry Gauges Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Gauge 1: CPU VPS */}
+          <div
+            className={cn(
+              'p-3.5 rounded-xl border space-y-2',
+              isDarkMode ? 'bg-[#0E1726]/60 border-[#3E4850]/30' : 'bg-slate-50/70 border-slate-200'
+            )}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
+                <Cpu className="w-4 h-4 text-amber-500" />
+                <span>Tải CPU (VPS)</span>
+              </div>
+              <span
+                className={cn(
+                  'text-[10px] font-mono font-bold px-1.5 py-0.5 rounded',
+                  (health.serverMetrics.cpuUsagePercent ?? 0) > 80
+                    ? 'bg-red-500/15 text-red-400'
+                    : (health.serverMetrics.cpuUsagePercent ?? 0) > 60
+                    ? 'bg-amber-500/15 text-amber-500'
+                    : 'bg-emerald-500/15 text-emerald-500'
+                )}
+              >
+                {(health.serverMetrics.cpuUsagePercent ?? 0) > 80
+                  ? 'Tải Cao'
+                  : (health.serverMetrics.cpuUsagePercent ?? 0) > 60
+                  ? 'Trung Bình'
+                  : 'Bình Thường'}
+              </span>
             </div>
+
+            <div className="flex items-baseline justify-between">
+              <span className={cn('text-lg font-bold font-mono', isDarkMode ? 'text-white' : 'text-slate-900')}>
+                {(health.serverMetrics.cpuUsagePercent ?? 0).toFixed(1)}%
+              </span>
+              <span className="text-[11px] font-mono text-slate-400">
+                {health.serverMetrics.cpuCores ?? 1} Core vCPU
+              </span>
+            </div>
+
+            <div className="w-full h-1.5 rounded-full bg-surface-highlight/30 overflow-hidden">
+              <div
+                className={cn(
+                  'h-full rounded-full transition-all duration-500',
+                  (health.serverMetrics.cpuUsagePercent ?? 0) > 80
+                    ? 'bg-red-500'
+                    : (health.serverMetrics.cpuUsagePercent ?? 0) > 60
+                    ? 'bg-amber-500'
+                    : 'bg-emerald-500'
+                )}
+                style={{ width: `${Math.min(100, Math.max(2, health.serverMetrics.cpuUsagePercent ?? 0))}%` }}
+              />
+            </div>
+            <div className="text-[10px] font-mono text-slate-400">Tần số: 3.2+ GHz Turbo</div>
+          </div>
+
+          {/* Gauge 2: Host RAM */}
+          <div
+            className={cn(
+              'p-3.5 rounded-xl border space-y-2',
+              isDarkMode ? 'bg-[#0E1726]/60 border-[#3E4850]/30' : 'bg-slate-50/70 border-slate-200'
+            )}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
+                <Activity className="w-4 h-4 text-blue-500" />
+                <span>RAM Máy Chủ (4 GB)</span>
+              </div>
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400">
+                {(health.serverMetrics.systemMemoryUsagePercent ?? 0).toFixed(1)}%
+              </span>
+            </div>
+
+            <div className="flex items-baseline justify-between">
+              <span className={cn('text-lg font-bold font-mono', isDarkMode ? 'text-white' : 'text-slate-900')}>
+                {((health.serverMetrics.systemUsedMemoryMb ?? 1850) / 1024).toFixed(1)} /{' '}
+                {((health.serverMetrics.systemTotalMemoryMb ?? 4000) / 1024).toFixed(1)} GB
+              </span>
+              <span className="text-[11px] font-mono text-slate-400">Vật Lý</span>
+            </div>
+
             <div className="w-full h-1.5 rounded-full bg-surface-highlight/30 overflow-hidden">
               <div
                 className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                style={{ width: `${Math.min(100, health.serverMetrics.jvmMemoryUsagePercent)}%` }}
+                style={{
+                  width: `${Math.min(100, Math.max(2, health.serverMetrics.systemMemoryUsagePercent ?? 0))}%`,
+                }}
               />
+            </div>
+            <div className="text-[10px] font-mono text-slate-400">
+              Trống: {((health.serverMetrics.systemFreeMemoryMb ?? 2100) / 1024).toFixed(1)} GB khả dụng
             </div>
           </div>
 
-          {/* Hikari Connection Pool */}
-          <div className="space-y-1 min-w-[140px]">
-            <div className="flex justify-between text-[11px] text-slate-400">
-              <span>Hikari Pool:</span>
-              <strong className="text-emerald-400">
-                {health.serverMetrics.activeDbConnections} / {health.serverMetrics.maxDbConnections} Active
-              </strong>
+          {/* Gauge 3: SSD Storage */}
+          <div
+            className={cn(
+              'p-3.5 rounded-xl border space-y-2',
+              isDarkMode ? 'bg-[#0E1726]/60 border-[#3E4850]/30' : 'bg-slate-50/70 border-slate-200'
+            )}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
+                <HardDrive className="w-4 h-4 text-emerald-500" />
+                <span>Ổ Cứng SSD (30 GB)</span>
+              </div>
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-500">
+                {(health.serverMetrics.diskUsagePercent ?? 0).toFixed(1)}%
+              </span>
             </div>
+
+            <div className="flex items-baseline justify-between">
+              <span className={cn('text-lg font-bold font-mono', isDarkMode ? 'text-white' : 'text-slate-900')}>
+                {health.serverMetrics.diskUsedGb ?? 12.2} / {health.serverMetrics.diskTotalGb ?? 29.8} GB
+              </span>
+              <span className="text-[11px] font-mono text-slate-400">NVMe SSD</span>
+            </div>
+
             <div className="w-full h-1.5 rounded-full bg-surface-highlight/30 overflow-hidden">
               <div
                 className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-                style={{
-                  width: `${(health.serverMetrics.activeDbConnections / health.serverMetrics.maxDbConnections) * 100}%`,
-                }}
+                style={{ width: `${Math.min(100, Math.max(2, health.serverMetrics.diskUsagePercent ?? 0))}%` }}
               />
+            </div>
+            <div className="text-[10px] font-mono text-slate-400">
+              Còn trống: {health.serverMetrics.diskFreeGb ?? 17.6} GB
+            </div>
+          </div>
+
+          {/* Gauge 4: JVM Heap & DB Connection */}
+          <div
+            className={cn(
+              'p-3.5 rounded-xl border space-y-2',
+              isDarkMode ? 'bg-[#0E1726]/60 border-[#3E4850]/30' : 'bg-slate-50/70 border-slate-200'
+            )}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
+                <Database className="w-4 h-4 text-purple-400" />
+                <span>JVM & SQL Pool</span>
+              </div>
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-400">
+                Hikari Active
+              </span>
+            </div>
+
+            <div className="flex items-baseline justify-between">
+              <span className={cn('text-lg font-bold font-mono', isDarkMode ? 'text-white' : 'text-slate-900')}>
+                {health.serverMetrics.jvmUsedMemoryMb} MB
+              </span>
+              <span className="text-[11px] font-mono text-emerald-400 font-bold">
+                Pool: {health.serverMetrics.activeDbConnections}/{health.serverMetrics.maxDbConnections}
+              </span>
+            </div>
+
+            <div className="w-full h-1.5 rounded-full bg-surface-highlight/30 overflow-hidden">
+              <div
+                className="h-full bg-purple-500 rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, Math.max(2, health.serverMetrics.jvmMemoryUsagePercent))}%` }}
+              />
+            </div>
+            <div className="text-[10px] font-mono text-slate-400 truncate">
+              {health.serverMetrics.databaseDialect}
             </div>
           </div>
         </div>

@@ -83,6 +83,19 @@ public class SystemMonitorHealthDto {
         private Integer maxDbConnections;
         private String databaseDialect;
         private String serverUptime;
+
+        // Host / VPS hardware metrics
+        private Double cpuUsagePercent;
+        private Integer cpuCores;
+        private Long systemTotalMemoryMb;
+        private Long systemUsedMemoryMb;
+        private Long systemFreeMemoryMb;
+        private Double systemMemoryUsagePercent;
+        private Double diskTotalGb;
+        private Double diskUsedGb;
+        private Double diskFreeGb;
+        private Double diskUsagePercent;
+        private String osName;
     }
 }
 

@@ -43,6 +43,19 @@ export interface ServerMetrics {
   maxDbConnections: number;
   databaseDialect: string;
   serverUptime: string;
+
+  // VPS host hardware metrics
+  cpuUsagePercent?: number;
+  cpuCores?: number;
+  systemTotalMemoryMb?: number;
+  systemUsedMemoryMb?: number;
+  systemFreeMemoryMb?: number;
+  systemMemoryUsagePercent?: number;
+  diskTotalGb?: number;
+  diskUsedGb?: number;
+  diskFreeGb?: number;
+  diskUsagePercent?: number;
+  osName?: string;
 }
 
 export interface SystemMonitorHealth {
