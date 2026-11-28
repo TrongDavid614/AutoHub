@@ -159,20 +159,16 @@ public class CustomerDepositController {
 
         String maPhieu = "DEP-" + (System.currentTimeMillis() % 1000000);
         BigDecimal rawAmount = (req.getSoTienCoc() != null) ? req.getSoTienCoc() : BigDecimal.valueOf(20000000);
-        // Thuật toán giảm giá 1/1000: nhân giá với 0.001 để thanh toán thử nghiệm
-        BigDecimal amount = rawAmount.multiply(new BigDecimal("0.001")).setScale(0, java.math.RoundingMode.HALF_UP);
-        if (amount.compareTo(BigDecimal.valueOf(10000)) < 0) {
-            amount = BigDecimal.valueOf(10000);
-        }
         LocalDateTime now = LocalDateTime.now();
 
         // Chuẩn hóa quy trình BR01: Vừa tạo ở trạng thái PENDING_PAYMENT (15 phút để quét QR/chuyển khoản)
+        // soTienCoc luôn lưu giá trị thực tế hợp đồng cọc xe (20.000.000 đ). Số tiền test QR do PaymentSandboxHelper xử lý.
         PhieuDatCoc deposit = PhieuDatCoc.builder()
                 .maPhieuCoc(maPhieu)
                 .nguoiDung(customer)
                 .tonKhoXe(tonKho)
                 .soCCCD(req.getSoCCCD() != null && !req.getSoCCCD().isBlank() ? req.getSoCCCD() : "001201009988")
-                .soTienCoc(amount)
+                .soTienCoc(rawAmount)
                 .ngayDatCoc(now)
                 .hanThanhToan(now.plusMinutes(15))
                 .thoiGianThanhToan(null)

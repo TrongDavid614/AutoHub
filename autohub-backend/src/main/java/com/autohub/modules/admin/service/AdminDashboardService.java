@@ -134,8 +134,13 @@ public class AdminDashboardService {
 
         int totalSuat = paidDeposits.size();
         BigDecimal totalAmount = paidDeposits.stream()
-                .map(PhieuDatCoc::getSoTienCoc)
-                .filter(Objects::nonNull)
+                .map(p -> {
+                    BigDecimal amt = p.getSoTienCoc();
+                    if (amt != null && amt.compareTo(BigDecimal.ZERO) > 0 && amt.compareTo(BigDecimal.valueOf(100000)) <= 0) {
+                        return amt.multiply(BigDecimal.valueOf(1000));
+                    }
+                    return amt != null ? amt : BigDecimal.ZERO;
+                })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         long withVinCount = paidDeposits.stream()
@@ -253,8 +258,9 @@ public class AdminDashboardService {
             accMap.put(dt, rev);
         }
 
-        // Fetch daily car deposit cashflow
-        String sqlDep = "SELECT CAST(COALESCE(thoi_gian_thanh_toan, ngay_dat_coc) AS DATE) AS dt, COALESCE(SUM(so_tien_coc), 0) AS flow " +
+        // Fetch daily car deposit cashflow (Quy đổi tự động nếu gặp cọc test <= 100k thành giá trị hợp đồng thực tế)
+        String sqlDep = "SELECT CAST(COALESCE(thoi_gian_thanh_toan, ngay_dat_coc) AS DATE) AS dt, " +
+                "COALESCE(SUM(CASE WHEN so_tien_coc > 0 AND so_tien_coc <= 100000 THEN so_tien_coc * 1000 ELSE so_tien_coc END), 0) AS flow " +
                 "FROM phieu_dat_coc " +
                 "WHERE COALESCE(thoi_gian_thanh_toan, ngay_dat_coc) >= :startDate AND trang_thai IN ('PAID', 'COMPLETED') " +
                 "GROUP BY CAST(COALESCE(thoi_gian_thanh_toan, ngay_dat_coc) AS DATE)";
@@ -312,8 +318,8 @@ public class AdminDashboardService {
                 staffCount = 12;
             }
 
-            // 1. Deposits revenue & count
-            String sqlDep = "SELECT COALESCE(SUM(p.so_tien_coc), 0), COUNT(p.id) " +
+            // 1. Deposits revenue & count (Quy đổi tự động nếu gặp cọc test <= 100k thành giá trị hợp đồng thực tế)
+            String sqlDep = "SELECT COALESCE(SUM(CASE WHEN p.so_tien_coc > 0 AND p.so_tien_coc <= 100000 THEN p.so_tien_coc * 1000 ELSE p.so_tien_coc END), 0), COUNT(p.id) " +
                     "FROM phieu_dat_coc p " +
                     "JOIN ton_kho_xe tk ON p.ton_kho_id = tk.id " +
                     "WHERE tk.showroom_id = :srId AND p.trang_thai IN ('PAID', 'COMPLETED')";
@@ -400,6 +406,11 @@ public class AdminDashboardService {
 
             String txnRef = "SEP-" + p.getMaPhieuCoc().replace("#", "");
 
+            BigDecimal realDepositAmount = p.getSoTienCoc();
+            if (realDepositAmount != null && realDepositAmount.compareTo(BigDecimal.ZERO) > 0 && realDepositAmount.compareTo(BigDecimal.valueOf(100000)) <= 0) {
+                realDepositAmount = realDepositAmount.multiply(BigDecimal.valueOf(1000));
+            }
+
             dtos.add(UrgentDepositDto.builder()
                     .id("dep-" + p.getId())
                     .depositCode(p.getMaPhieuCoc().startsWith("#") ? p.getMaPhieuCoc() : "#" + p.getMaPhieuCoc())
@@ -408,7 +419,7 @@ public class AdminDashboardService {
                     .carModel(p.getTonKhoXe().getPhienBanXe().getDongXe().getTenDongXe())
                     .variant(p.getTonKhoXe().getPhienBanXe().getTenPhienBan())
                     .color(p.getTonKhoXe().getMauSac().getTenMau())
-                    .depositAmount(p.getSoTienCoc())
+                    .depositAmount(realDepositAmount)
                     .remainingSeconds(remSec)
                     .assignedStaff(staffName)
                     .assignedShowroom(p.getTonKhoXe().getShowroom().getTenShowroom())

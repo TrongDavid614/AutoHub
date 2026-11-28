@@ -230,8 +230,12 @@ public class SepayWebhookController {
             }
         }
 
-        BigDecimal originalAmount = deposit.getSoTienCoc() != null ? deposit.getSoTienCoc() : BigDecimal.valueOf(20000000);
-        // Áp dụng thuật toán nhân giá cho 1/1000
+        BigDecimal originalAmount = (deposit.getSoTienCoc() != null && deposit.getSoTienCoc().compareTo(BigDecimal.valueOf(100000)) > 0)
+                ? deposit.getSoTienCoc()
+                : (deposit.getSoTienCoc() != null && deposit.getSoTienCoc().compareTo(BigDecimal.ZERO) > 0
+                        ? deposit.getSoTienCoc().multiply(BigDecimal.valueOf(1000))
+                        : BigDecimal.valueOf(20000000));
+        // Áp dụng thuật toán nhân giá cho 1/1000 (test payment)
         BigDecimal finalPaidAmount = (amount != null && amount.compareTo(BigDecimal.ZERO) > 0)
                 ? amount
                 : calculateScaledPaymentAmount(originalAmount);
@@ -241,7 +245,7 @@ public class SepayWebhookController {
         deposit.setTrangThai(TrangThaiPhieuCoc.PAID);
         deposit.setThoiGianThanhToan(now);
         deposit.setHanGiuXe(now.plusHours(72));
-        deposit.setSoTienCoc(finalPaidAmount);
+        deposit.setSoTienCoc(originalAmount); // Luôn giữ số tiền cọc xe thực tế của hợp đồng (20.000.000 đ)
         depositRepository.save(deposit);
 
         Map<String, Object> result = new LinkedHashMap<>();

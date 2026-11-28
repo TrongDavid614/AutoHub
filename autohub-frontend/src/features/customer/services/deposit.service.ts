@@ -57,7 +57,10 @@ function mapDtoToDepositItem(dto: RawDepositDto): CarDepositItem {
   const depositCode = dto.depositCode || `#DEP-${dto.id}`;
   const cleanCode = depositCode.replace('#', '');
   const transferContent = dto.transferContent || `AH DEP ${cleanCode}`;
-  const amount = Number(dto.depositAmount) || 20000000;
+  let amount = Number(dto.depositAmount) || 20000000;
+  if (amount > 0 && amount <= 100000) {
+    amount = amount * 1000;
+  }
   const testPaymentAmount = dto.testPaymentAmount || calculateTestPaymentAmount(amount, true);
   const bankAcc = dto.bankAccountNumber || '962470372816614';
   const qrUrl = dto.qrImageUrl || `https://img.vietqr.io/image/bidv-${bankAcc}-compact2.png?amount=${testPaymentAmount}&addInfo=${encodeURIComponent(transferContent)}&accountName=NGUYEN%20VAN%20TRONG`;
