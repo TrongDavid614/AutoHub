@@ -49,7 +49,7 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [identityCard, setIdentityCard] = useState('');
-  const [showroom, setShowroom] = useState('Showroom Flagship Q7, TP.HCM');
+  const [showroom, setShowroom] = useState('');
   const [isAgreed, setIsAgreed] = useState(true);
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -76,6 +76,10 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
       setPaymentPendingMsg(null);
       setErrorMessage(null);
       setRemainingSeconds(14 * 60 + 59);
+      setFullName('');
+      setPhoneNumber('');
+      setIdentityCard('');
+      setShowroom('');
       return;
     }
     setNowMs(Date.now());
@@ -108,6 +112,32 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
     setTimeout(() => setCopiedField(null), 2000);
   };
 
+  // Auto-polling trạng thái thanh toán từ webhook SePay
+  useEffect(() => {
+    if (!isOpen || !isPendingPayment || !currentDeposit?.id) return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await depositService.getDepositStatus(currentDeposit.id);
+        if (res?.isPaid) {
+          setIsPendingPayment(false);
+          setDepositSuccess(true);
+        }
+      } catch {
+        // giữ nhịp polling
+      }
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [isOpen, isPendingPayment, currentDeposit?.id]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   // Bước 1: Khởi tạo phiếu cọc xe (Trạng thái PENDING_PAYMENT - 15 phút)
@@ -133,6 +163,11 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
     // CCCD 12 số theo quy chế BR01
     if (!/^[0-9]{12}$/.test(identityCard.trim())) {
       setErrorMessage('Số Căn cước công dân (CCCD) phải bao gồm đúng 12 chữ số theo quy chế BR01.');
+      return;
+    }
+
+    if (!showroom.trim()) {
+      setErrorMessage('Vui lòng chọn showroom nhận bàn giao xe.');
       return;
     }
 
@@ -236,31 +271,6 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
   const qrImageUrl = currentDeposit?.qrImageUrl || `https://img.vietqr.io/image/bidv-962470372816614-compact2.png?amount=${testAmount}&addInfo=${encodeURIComponent(
     transferContent
   )}&accountName=NGUYEN%20VAN%20TRONG`;
-
-  // Auto-polling trạng thái thanh toán từ webhook SePay
-  useEffect(() => {
-    if (!isPendingPayment || !currentDeposit?.id) return;
-    const interval = setInterval(async () => {
-      try {
-        const res = await depositService.getDepositStatus(currentDeposit.id);
-        if (res?.isPaid) {
-          setIsPendingPayment(false);
-          setDepositSuccess(true);
-        }
-      } catch {
-        // giữ nhịp polling
-      }
-    }, 2500);
-    return () => clearInterval(interval);
-  }, [isPendingPayment, currentDeposit?.id]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
 
   return createPortal(
     <div
@@ -616,8 +626,8 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
                       required
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      placeholder="Nguyễn Văn A"
-                      className="w-full h-10 pl-9 pr-3 bg-canvas-deep border border-surface-highlight focus:border-accent-primary rounded text-xs text-text-primary focus:outline-none"
+                      placeholder="Nhập họ và tên theo CCCD (VD: Nguyễn Văn A)"
+                      className="w-full h-10 pl-9 pr-3 bg-canvas-deep border border-surface-highlight focus:border-accent-primary rounded text-xs text-text-primary placeholder:text-[var(--text-muted)] focus:outline-none"
                     />
                   </div>
                 </div>
@@ -633,8 +643,8 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
                       required
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
-                      placeholder="0912 345 678"
-                      className="w-full h-10 pl-9 pr-3 bg-canvas-deep border border-surface-highlight focus:border-accent-primary rounded text-xs text-text-primary font-mono focus:outline-none"
+                      placeholder="Nhập số điện thoại 10 chữ số (VD: 0912345678)"
+                      className="w-full h-10 pl-9 pr-3 bg-canvas-deep border border-surface-highlight focus:border-accent-primary rounded text-xs text-text-primary placeholder:text-[var(--text-muted)] font-mono focus:outline-none"
                     />
                   </div>
                 </div>
@@ -653,8 +663,8 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
                     required
                     value={identityCard}
                     onChange={(e) => setIdentityCard(e.target.value)}
-                    placeholder="001201012345"
-                    className="w-full h-10 pl-9 pr-3 bg-canvas-deep border border-surface-highlight focus:border-accent-primary rounded text-xs text-text-primary font-mono tracking-wider focus:outline-none"
+                    placeholder="Nhập đủ 12 chữ số CCCD (VD: 001201012345)"
+                    className="w-full h-10 pl-9 pr-3 bg-canvas-deep border border-surface-highlight focus:border-accent-primary rounded text-xs text-text-primary placeholder:text-[var(--text-muted)] font-mono tracking-wider focus:outline-none"
                   />
                 </div>
                 <p className="text-[10px] text-text-muted">
@@ -670,10 +680,14 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
                 <div className="relative flex items-center">
                   <Building className="w-3.5 h-3.5 text-text-muted absolute left-3 pointer-events-none" />
                   <select
+                    required
                     value={showroom}
                     onChange={(e) => setShowroom(e.target.value)}
-                    className="w-full h-10 pl-9 pr-3 bg-canvas-deep border border-surface-highlight focus:border-accent-primary rounded text-xs text-text-primary focus:outline-none"
+                    className={`w-full h-10 pl-9 pr-3 bg-canvas-deep border border-surface-highlight focus:border-accent-primary rounded text-xs focus:outline-none ${
+                      showroom ? 'text-text-primary' : 'text-[var(--text-muted)]'
+                    }`}
                   >
+                    <option value="">-- Chọn showroom nhận bàn giao xe --</option>
                     <option value="Showroom Flagship Q7, TP.HCM">Showroom Flagship Q7, TP.HCM (Đại lộ Nguyễn Văn Linh)</option>
                     <option value="Showroom AutoHub Thủ Đức, TP.HCM">Showroom AutoHub Thủ Đức (Đại lộ Mai Chí Thọ)</option>
                     <option value="Showroom AutoHub Quận 1, TP.HCM">Showroom AutoHub Quận 1 (Số 2 Tôn Đức Thắng)</option>
