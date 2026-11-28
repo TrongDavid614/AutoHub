@@ -95,7 +95,7 @@ export const ComparisonVehicleCards: React.FC<ComparisonVehicleCardsProps> = ({
                     <RefreshCw className="w-3.5 h-3.5" />
                   </button>
                 )}
-                {onRemoveTrim && trims.length > 1 && (
+                {onRemoveTrim && trims.length > 2 && (
                   <button
                     type="button"
                     onClick={() => onRemoveTrim(trim.id)}

@@ -5,6 +5,8 @@ import { ComparisonHeader } from '@/features/customer/components/ComparisonHeade
 import { ComparisonActionBar } from '@/features/customer/components/ComparisonActionBar';
 import { ComparisonVehicleCards } from '@/features/customer/components/ComparisonVehicleCards';
 import { ComparisonMatrixTable } from '@/features/customer/components/ComparisonMatrixTable';
+import { ComparisonPrintTable } from '@/features/customer/components/ComparisonPrintTable';
+import { applyRecommendedTrim } from '@/features/customer/utils/comparisonScoring';
 import { ComparisonRadarBenchmark } from '@/features/customer/components/ComparisonRadarBenchmark';
 import { ComparisonBottomCta } from '@/features/customer/components/ComparisonBottomCta';
 import { SelectCarCompareModal } from '@/features/customer/components/SelectCarCompareModal';
@@ -134,7 +136,7 @@ export const CarComparisonPage: React.FC = () => {
   };
 
   const handleRemoveTrim = (trimId: string | number) => {
-    if (!data || data.trims.length <= 1) return;
+    if (!data || data.trims.length <= 2) return;
     const remainingIds = data.trims
       .filter((t) => String(t.id) !== String(trimId))
       .map((t) => Number(t.id));
@@ -183,6 +185,11 @@ export const CarComparisonPage: React.FC = () => {
   const handleExportPdf = () => {
     window.print();
   };
+
+  const scoredTrims = useMemo(() => {
+    if (!data?.trims) return [];
+    return applyRecommendedTrim(data.trims, data.specGroups);
+  }, [data]);
 
   const currentSelectedNumericIds = useMemo(() => {
     return data?.trims.map((t) => Number(t.id)) || [];
@@ -258,27 +265,35 @@ export const CarComparisonPage: React.FC = () => {
         </div>
       ) : data ? (
         <>
-          {/* 3. Sticky Comparison Header Cards (Synchronized Viewport) */}
-          <ComparisonVehicleCards
-            trims={data.trims}
-            onOpenDeposit={handleOpenDeposit}
-            onOpenTestDrive={handleOpenTestDrive}
-            onRemoveTrim={handleRemoveTrim}
-            onChangeTrim={handleOpenChangeTrim}
-            onAddTrim={handleOpenAddTrim}
-          />
+          {/* 3 & 4. Interactive Comparison Cards & Matrix (Screen Only) */}
+          <div className="print:hidden space-y-8">
+            <ComparisonVehicleCards
+              trims={scoredTrims}
+              onOpenDeposit={handleOpenDeposit}
+              onOpenTestDrive={handleOpenTestDrive}
+              onRemoveTrim={handleRemoveTrim}
+              onChangeTrim={handleOpenChangeTrim}
+              onAddTrim={handleOpenAddTrim}
+            />
 
-          {/* 4. Detailed Specs Comparison Matrix */}
-          <ComparisonMatrixTable
-            trims={data.trims}
+            <ComparisonMatrixTable
+              trims={scoredTrims}
+              specGroups={data.specGroups}
+              onlyDifferences={onlyDifferences}
+            />
+          </div>
+
+          {/* Dedicated Table Layout for PDF / Print Export */}
+          <ComparisonPrintTable
+            trims={scoredTrims}
             specGroups={data.specGroups}
             onlyDifferences={onlyDifferences}
           />
 
           {/* 5. Dynamic Benchmark: Telemetry Radar Breakdown */}
-          <div className="no-print">
+          <div className="print:break-inside-avoid">
             <ComparisonRadarBenchmark
-              trims={data.trims}
+              trims={scoredTrims}
               benchmarkMetrics={data.benchmarkMetrics}
             />
           </div>
