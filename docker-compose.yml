@@ -7,7 +7,12 @@ services:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: "Sapassword@123"
       MSSQL_PID: "Express"
+      MSSQL_MEMORY_LIMIT_MB: "1280"
       TZ: "Asia/Ho_Chi_Minh"
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
     ports:
       - "1433:1433"
     volumes:
@@ -76,6 +81,11 @@ services:
       OPENROUTER_API_KEY: "${OPENROUTER_API_KEY:-}"
       OPENROUTER_DEFAULT_MODEL: "${OPENROUTER_DEFAULT_MODEL:-liquid/lfm-3-1.7b:free}"
       SEPAY_ACCOUNT_NUMBER: "${SEPAY_ACCOUNT_NUMBER:-962470372816614}"
+      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx640m -XX:+UseG1GC"
+    deploy:
+      resources:
+        limits:
+          memory: 896M
     volumes:
       - autohub_uploads:/app/uploads
     ports:
@@ -96,6 +106,10 @@ services:
     container_name: autohub-frontend
     environment:
       TZ: "Asia/Ho_Chi_Minh"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
     depends_on:
       - backend
     ports:

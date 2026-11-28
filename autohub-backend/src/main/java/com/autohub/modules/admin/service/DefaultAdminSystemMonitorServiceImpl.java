@@ -278,6 +278,42 @@ public class DefaultAdminSystemMonitorServiceImpl implements AdminSystemMonitorS
                 freePhysMb = freeBytes / (1024 * 1024);
             }
 
+            // On Linux, sunOsBean.getFreeMemorySize() returns MemFree (raw untouched memory),
+            // which ignores Page Cache and Buffers that Linux can instantly reclaim for apps.
+            // Reading MemAvailable from /proc/meminfo gives the true usable memory on Linux hosts!
+            File memInfoFile = new File("/proc/meminfo");
+            if (memInfoFile.exists() && memInfoFile.canRead()) {
+                try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(memInfoFile))) {
+                    String line;
+                    Long memTotalKb = null;
+                    Long memAvailableKb = null;
+                    while ((line = reader.readLine()) != null) {
+                        if (line.startsWith("MemTotal:")) {
+                            String[] parts = line.split("\\s+");
+                            if (parts.length >= 2) {
+                                memTotalKb = Long.parseLong(parts[1]);
+                            }
+                        } else if (line.startsWith("MemAvailable:")) {
+                            String[] parts = line.split("\\s+");
+                            if (parts.length >= 2) {
+                                memAvailableKb = Long.parseLong(parts[1]);
+                            }
+                        }
+                        if (memTotalKb != null && memAvailableKb != null) {
+                            break;
+                        }
+                    }
+                    if (memTotalKb != null && memTotalKb > 0) {
+                        totalPhysMb = memTotalKb / 1024;
+                    }
+                    if (memAvailableKb != null) {
+                        freePhysMb = memAvailableKb / 1024;
+                    }
+                } catch (Exception ignored) {
+                    // Fall back to sunOsBean values
+                }
+            }
+
             long usedPhysMb = Math.max(0L, totalPhysMb - freePhysMb);
             double memPercent = totalPhysMb > 0 ? Math.round(((double) usedPhysMb / totalPhysMb) * 1000.0) / 10.0 : 0.0;
 
