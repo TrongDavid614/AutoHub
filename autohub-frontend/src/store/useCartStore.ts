@@ -21,6 +21,7 @@ interface CartStore {
   removeFromCart: (accessoryId: number, customerId?: number) => Promise<void>;
   updateQuantity: (accessoryId: number, quantity: number, customerId?: number) => Promise<void>;
   clearCart: (customerId?: number) => Promise<void>;
+  resetLocalCart: () => void;
 
   // Wishlist / Save for later
   saveForLater: (accessoryId: number) => void;
@@ -135,6 +136,8 @@ export const useCartStore = create<CartStore>()(
           }
         }
       },
+
+      resetLocalCart: () => set({ cartItems: [], savedItems: [], error: null }),
 
       saveForLater: (accessoryId: number) => {
         const itemToSave = get().cartItems.find((i) => i.accessory.id === accessoryId);

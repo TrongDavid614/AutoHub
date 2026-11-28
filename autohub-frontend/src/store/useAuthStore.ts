@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useCompareStore } from '@/store/useCompareStore';
 import type { Role, User } from '@/types/auth.types';
 
 interface AuthStore {
@@ -27,18 +28,19 @@ export const useAuthStore = create<AuthStore>()(
           role: user.role,
           isAuthenticated: true,
         }),
-
-      logout: () => {
-        set({
-          accessToken: null,
-          user: null,
-          role: null,
-          isAuthenticated: false,
-        });
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('autohub_guest_cart');
-        }
-      },
+      
+    logout: () => {
+     useCompareStore.getState().clearCompareList();
+     set({
+       accessToken: null,
+       user: null,
+       role: null,
+       isAuthenticated: false,
+     });
+     if (typeof window !== 'undefined') {
+       localStorage.removeItem('autohub_guest_cart');
+     }
+   },
 
       updateUser: (updatedData) =>
         set((state) => ({
