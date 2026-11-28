@@ -52,7 +52,7 @@ export const useCarEstimator = () => {
               name: p.tenTinh,
               taxRate,
               plateFee,
-              displayLabel: `${p.tenTinh} (${p.phanVungBienSo} - Biển số: ${plateFee.toLocaleString('vi-VN')} đ)`,
+              displayLabel: `${p.tenTinh} (${p.phanVungBienSo} - ${plateFee.toLocaleString('vi-VN')} đ)`,
             };
           });
           setCities(mappedCities);
