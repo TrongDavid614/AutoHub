@@ -14,7 +14,6 @@ interface CartStore {
   savedItems: CartItem[];
   isLoading: boolean;
   error: string | null;
-  resetLocalCart: () => void;
 
   // Actions
   addToCart: (accessory: Accessory, quantity?: number, customerId?: number) => Promise<void>;
@@ -136,8 +135,6 @@ export const useCartStore = create<CartStore>()(
           }
         }
       },
-
-      resetLocalCart: () => set({ cartItems: [], savedItems: [], error: null }),
 
       saveForLater: (accessoryId: number) => {
         const itemToSave = get().cartItems.find((i) => i.accessory.id === accessoryId);
