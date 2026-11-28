@@ -84,7 +84,11 @@ function mapDtoToDepositItem(dto: RawDepositDto): CarDepositItem {
     vnpayTransactionId: dto.vnpayTransactionId,
     paidAt: dto.paidAt,
     expireAt: dto.expireAt,
-    paymentDeadline: dto.paymentDeadline,
+    paymentDeadline:
+      dto.paymentDeadline ||
+      (dto.status === 'PENDING_PAYMENT'
+        ? new Date(Date.now() + 15 * 60 * 1000).toISOString()
+        : undefined),
     refundReason: dto.refundReason,
     createdAt: dto.createdAt || new Date().toISOString(),
     transferContent,

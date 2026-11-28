@@ -38,6 +38,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -640,8 +642,8 @@ public class CustomerOrderController {
         map.put("finalTotalAmount", total);
         map.put("trackingNumber", order.getMaVanDon() != null ? order.getMaVanDon() : "AH-EXPRESS-" + order.getId());
         map.put("sepayTransactionId", "SP_" + (Math.abs(code.hashCode()) % 10000000));
-        map.put("createdAt", order.getNgayDat() != null ? order.getNgayDat().toString() : LocalDateTime.now().toString());
-        map.put("paymentDeadline", order.getHanThanhToan() != null ? order.getHanThanhToan().toString() : null);
+        map.put("createdAt", formatIsoDateTime(order.getNgayDat() != null ? order.getNgayDat() : LocalDateTime.now()));
+        map.put("paymentDeadline", formatIsoDateTime(order.getHanThanhToan()));
 
         List<Map<String, Object>> mappedItems = new ArrayList<>();
         if (items != null && !items.isEmpty()) {
@@ -685,5 +687,12 @@ public class CustomerOrderController {
         map.put("orderItems", mappedItems);
         map.put("items", mappedItems);
         return map;
+    }
+
+    private static final ZoneId VN_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
+
+    private String formatIsoDateTime(LocalDateTime dt) {
+        if (dt == null) return null;
+        return dt.atZone(VN_ZONE).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     }
 }

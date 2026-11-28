@@ -190,6 +190,7 @@ export const CarDepositModal: React.FC<CarDepositModalProps> = ({
       });
 
       if (created) {
+        setNowMs(Date.now());
         setCurrentDeposit(created);
         setIsPendingPayment(true);
       } else {

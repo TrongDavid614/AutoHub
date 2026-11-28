@@ -28,6 +28,8 @@ import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -268,10 +270,10 @@ public class CustomerDepositController {
         }
 
         map.put("sepayTransactionId", "SP_" + (Math.abs(code.hashCode()) % 10000000));
-        map.put("paidAt", p.getThoiGianThanhToan() != null ? p.getThoiGianThanhToan().toString() : null);
-        map.put("expireAt", p.getHanGiuXe() != null ? p.getHanGiuXe().toString() : (p.getHanThanhToan() != null ? p.getHanThanhToan().toString() : LocalDateTime.now().plusHours(72).toString()));
-        map.put("paymentDeadline", p.getHanThanhToan() != null ? p.getHanThanhToan().toString() : null);
-        map.put("createdAt", p.getNgayDatCoc() != null ? p.getNgayDatCoc().toString() : LocalDateTime.now().toString());
+        map.put("paidAt", formatIsoDateTime(p.getThoiGianThanhToan()));
+        map.put("expireAt", formatIsoDateTime(p.getHanGiuXe() != null ? p.getHanGiuXe() : (p.getHanThanhToan() != null ? p.getHanThanhToan() : LocalDateTime.now().plusHours(72))));
+        map.put("paymentDeadline", formatIsoDateTime(p.getHanThanhToan()));
+        map.put("createdAt", formatIsoDateTime(p.getNgayDatCoc() != null ? p.getNgayDatCoc() : LocalDateTime.now()));
 
         // SePay BIDV QR transfer configuration
         String cleanCode = code.startsWith("#") ? code.substring(1) : code;
@@ -315,9 +317,16 @@ public class CustomerDepositController {
         statusMap.put("depositCode", code.startsWith("#") ? code : "#" + code);
         statusMap.put("status", deposit.getTrangThai() != null ? deposit.getTrangThai().name() : "PENDING_PAYMENT");
         statusMap.put("isPaid", TrangThaiPhieuCoc.PAID.equals(deposit.getTrangThai()));
-        statusMap.put("paidAt", deposit.getThoiGianThanhToan() != null ? deposit.getThoiGianThanhToan().toString() : null);
-        statusMap.put("expireAt", deposit.getHanGiuXe() != null ? deposit.getHanGiuXe().toString() : null);
+        statusMap.put("paidAt", formatIsoDateTime(deposit.getThoiGianThanhToan()));
+        statusMap.put("expireAt", formatIsoDateTime(deposit.getHanGiuXe()));
 
         return ResponseEntity.ok(ApiResponse.ok(statusMap, "Lấy trạng thái thanh toán phiếu cọc thành công"));
+    }
+
+    private static final ZoneId VN_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
+
+    private String formatIsoDateTime(LocalDateTime dt) {
+        if (dt == null) return null;
+        return dt.atZone(VN_ZONE).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     }
 }

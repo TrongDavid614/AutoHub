@@ -2,8 +2,9 @@
 FROM eclipse-temurin:21-jdk-alpine AS builder
 WORKDIR /app
 
-# Install bash for Gradle wrapper
-RUN apk add --no-cache bash
+# Install bash and tzdata for Gradle wrapper & timezone support
+RUN apk add --no-cache bash tzdata
+ENV TZ=Asia/Ho_Chi_Minh
 
 # Copy gradle wrapper and build configs first for dependency caching
 COPY gradlew .
@@ -24,6 +25,10 @@ RUN ./gradlew bootJar --no-daemon -x test
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
+# Install tzdata and configure Vietnam timezone (Asia/Ho_Chi_Minh)
+RUN apk add --no-cache tzdata
+ENV TZ=Asia/Ho_Chi_Minh
+
 # Run as non-root user for security and prepare uploads directory
 RUN addgroup -S autohub && adduser -S autohub -G autohub
 RUN mkdir -p /app/uploads/avatars && chown -R autohub:autohub /app
@@ -34,4 +39,4 @@ COPY --from=builder /app/build/libs/*.jar app.jar
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Duser.timezone=Asia/Ho_Chi_Minh", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]

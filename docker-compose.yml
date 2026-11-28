@@ -7,6 +7,7 @@ services:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: "Sapassword@123"
       MSSQL_PID: "Express"
+      TZ: "Asia/Ho_Chi_Minh"
     ports:
       - "1433:1433"
     volumes:
@@ -64,6 +65,7 @@ services:
       - path: ./.env
         required: false
     environment:
+      TZ: "Asia/Ho_Chi_Minh"
       SPRING_DATASOURCE_URL: "jdbc:sqlserver://sqlserver:1433;databaseName=AutoHubDB;encrypt=true;trustServerCertificate=true;sendStringParametersAsUnicode=true"
       SPRING_DATASOURCE_USERNAME: "sa"
       SPRING_DATASOURCE_PASSWORD: "Sapassword@123"
@@ -92,6 +94,8 @@ services:
         VITE_USE_MOCK: "false"
         VITE_GOOGLE_CLIENT_ID: "${VITE_GOOGLE_CLIENT_ID:-833436348399-eka9dmurcvtflggm4fl30aud9sr1snj5.apps.googleusercontent.com}"
     container_name: autohub-frontend
+    environment:
+      TZ: "Asia/Ho_Chi_Minh"
     depends_on:
       - backend
     ports:

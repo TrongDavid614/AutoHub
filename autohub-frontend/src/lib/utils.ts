@@ -64,13 +64,43 @@ export function matchesSearchTerms(
   return tokens.every((token) => haystack.includes(token));
 }
 
-const parseIsoTimestampMs = (raw?: string | null): number | null => {
+/**
+ * Parse ISO timestamp string to epoch milliseconds.
+ * Resilient against:
+ * - Strings with explicit timezone (+07:00, Z)
+ * - Strings with space instead of T
+ * - Strings without timezone from UTC backend (when client is in GMT+7)
+ */
+export const parseIsoTimestampMs = (raw?: string | null, referenceNowMs: number = Date.now()): number | null => {
   if (!raw) return null;
   const trimmed = raw.trim();
   if (!trimmed) return null;
   const normalized = trimmed.includes('T') ? trimmed : trimmed.replace(' ', 'T');
-  const ms = Date.parse(normalized);
-  return Number.isNaN(ms) ? null : ms;
+
+  const hasTimezone = /[Zz]|([+-]\d{2}:?\d{2})$/.test(normalized);
+  if (hasTimezone) {
+    const ms = Date.parse(normalized);
+    return Number.isNaN(ms) ? null : ms;
+  }
+
+  // When no timezone is provided:
+  const localMs = Date.parse(normalized);
+  if (Number.isNaN(localMs)) return null;
+
+  // Compare localMs with utcMs (+ 'Z'):
+  const utcMs = Date.parse(`${normalized}Z`);
+  if (!Number.isNaN(utcMs)) {
+    const diffLocal = (localMs - referenceNowMs) / 1000;
+    const diffUtc = (utcMs - referenceNowMs) / 1000;
+
+    // If local interpretation is severely in the past (e.g. ~7 hours behind due to UTC server vs GMT+7 client),
+    // but UTC interpretation is reasonable (within -1 hour to future), use UTC!
+    if (diffLocal < -3600 * 5 && diffUtc >= -3600) {
+      return utcMs;
+    }
+  }
+
+  return localMs;
 };
 
 /**
@@ -82,12 +112,16 @@ export function getRemainingSeconds(
   createdAtIso?: string | null,
   fallbackDurationSeconds = 0
 ): number {
-  let targetMs = parseIsoTimestampMs(deadlineIso);
+  let targetMs = parseIsoTimestampMs(deadlineIso, nowMs);
 
-  if (targetMs === null && fallbackDurationSeconds > 0) {
-    const createdMs = parseIsoTimestampMs(createdAtIso);
+  // If deadline was missing or has expired in calculation, but createdAt indicates a recent transaction
+  if ((targetMs === null || targetMs <= nowMs) && fallbackDurationSeconds > 0) {
+    const createdMs = parseIsoTimestampMs(createdAtIso, nowMs);
     if (createdMs !== null) {
-      targetMs = createdMs + fallbackDurationSeconds * 1000;
+      const calculatedTargetMs = createdMs + fallbackDurationSeconds * 1000;
+      if (calculatedTargetMs > nowMs) {
+        targetMs = calculatedTargetMs;
+      }
     }
   }
 

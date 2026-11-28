@@ -254,6 +254,7 @@ export const CarDepositPage: React.FC = () => {
       });
 
       if (created) {
+        setNowMs(Date.now());
         setActiveDeposit(created);
         setCheckoutStep('PAYMENT_QR');
       } else {
